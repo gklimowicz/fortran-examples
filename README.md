@@ -9,17 +9,17 @@ I plan to use them as inputs into analyses on Fortran source, such as the invest
 # Makefile
 The Makefile drives the collection of these repositories. Most of them come from the projects listed on https://fortran-lang.org.
 
-## make all
+## `make all`
 This creates lists of
 * all projects (just their directory names)
 * all the Fortran files across all the projects
 * a word count for each Fortran file
 
-# make add-new-projects
+## `make add-new-projects`
 Search for new projects to add. Only looks at fortran-lang.org so far.
 
-# make update-existing-projects
+## `make update-existing-projects`
 Does a `git pull` on each submodule te bring it up to date.
 
-# make stats
+## `make stats`
 Print a couple lines of interesting statistics about the repository as a whole.
