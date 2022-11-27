@@ -1,7 +1,8 @@
 FORTRAN_LANG_URL = https://fortran-lang.org/en/packages
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" -o -iname "*.ftn" \)
 
-all:	all-files all-fortran-files all-projects all-fortran-files-lc stats
+all:	all-projects all-files all-fortran-files \
+	all-projects-lc all-fortran-files-lc stats
 
 
 # Create a list of all Fortran projects we have,
@@ -32,7 +33,6 @@ all-projects-lc:	all-fortran-files Makefile
 	done >"$@"
 
 # Print some moderately interesting stats about the repositories.
-# stats: all-files all-fortran-files all-projects-lc Makefile
 stats: FORCE
 	@printf "%'11d projects\n" $$(wc -l <all-projects)
 	@printf "%'11d files\n" $$(wc -l <all-files)
