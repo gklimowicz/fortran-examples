@@ -49,8 +49,8 @@ add-new-projects:	fortran-lang-new-projects
 update-existing-projects:
 	git submodule foreach git pull
 
-# Get ne projects for fortran-lang.org.
-# Only look at Git projects (net sourceforge or whatever).
+# Get new projects for fortran-lang.org.
+# Only look at Git projects (not sourceforge or whatever).
 fortran-lang-new-projects:	fortran-lang-projects
 	for P in `cat fortran-lang-projects`; do \
 		case "$$P" in git*) ;; *) continue;; esac; \
