@@ -2,7 +2,7 @@ FORTRAN_LANG_URL = https://fortran-lang.org/en/packages
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" -o -iname "*.ftn" \)
 
 all:	all-projects all-files all-fortran-files \
-	all-projects-lc all-fortran-files-lc stats
+	all-projects-lc all-fortran-files-lc provenance stats
 
 
 # Create a list of all Fortran projects we have,
@@ -41,6 +41,10 @@ stats: FORCE
 	@printf "%'11d cpp directive lines\n" $$(cat all-fortran-files | tr '\n' '\0' | xargs -0 cat | grep '^#' | wc -l)
 	@echo "Largest projects:"; \
 	 sort -rn -k 2 all-projects-lc | head -10 | awk $$'{ printf "  %-10s %\'10d\\n", $$1, $$2}'
+
+provenance:	FORCE
+	git submodule foreach --quiet \
+		'echo "$sm_path: git clone $(git remote get-url origin)"' >"$@"
 
 
 # Add new projects we may find lying about.
