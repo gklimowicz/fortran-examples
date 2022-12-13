@@ -1110,6 +1110,7 @@ DAMASK/src/results.f90
 DAMASK/src/rotations.f90
 DAMASK/src/signals.f90
 DAMASK/src/system_routines.f90
+DAMASK/src/tables.f90
 DelaunaySparse/c_binding/blas.f
 DelaunaySparse/c_binding/delsparse.f90
 DelaunaySparse/c_binding/delsparse_bind_c.f90
@@ -6907,7 +6908,6 @@ GALAHAD/src/dum/hsl_of01s.f90
 GALAHAD/src/dum/hsl_zb01d.f90
 GALAHAD/src/dum/hsl_zb01i.f90
 GALAHAD/src/dum/hsl_zb01s.f90
-GALAHAD/src/dum/icfs.f
 GALAHAD/src/dum/kb07i.f
 GALAHAD/src/dum/la04d.f
 GALAHAD/src/dum/la04s.f
@@ -7077,6 +7077,9 @@ GALAHAD/src/hash/C/hash_ciface.f90
 GALAHAD/src/hash/hash.f90
 GALAHAD/src/hash/hashs.f90
 GALAHAD/src/hash/hasht.f90
+GALAHAD/src/icfs/icfs.f90
+GALAHAD/src/icfs/icfss.f90
+GALAHAD/src/icfs/icfst.f90
 GALAHAD/src/ir/C/ir_ciface.f90
 GALAHAD/src/ir/ir.f90
 GALAHAD/src/ir/irs.f90
@@ -7382,6 +7385,7 @@ GALAHAD/src/oblivion/trtn/runtrtn_sif.f90
 GALAHAD/src/oblivion/trtn/trtn.f90
 GALAHAD/src/oblivion/trtn/usetrtn.f90
 GALAHAD/src/opt/opt.f90
+GALAHAD/src/precision/precision.F90
 GALAHAD/src/presolve/C/presolve_ciface.f90
 GALAHAD/src/presolve/presolve.f90
 GALAHAD/src/presolve/presolves.f90
@@ -35328,6 +35332,7 @@ cp2k/src/negf_matrix_utils.F
 cp2k/src/negf_methods.F
 cp2k/src/negf_subgroup_types.F
 cp2k/src/negf_vectors.F
+cp2k/src/nequip_unittest.F
 cp2k/src/nnp_acsf.F
 cp2k/src/nnp_environment.F
 cp2k/src/nnp_environment_types.F
@@ -35822,6 +35827,7 @@ cp2k/src/topology_types.F
 cp2k/src/topology_util.F
 cp2k/src/topology_xtl.F
 cp2k/src/topology_xyz.F
+cp2k/src/torch_api.F
 cp2k/src/transport.F
 cp2k/src/transport_env_types.F
 cp2k/src/uff_vdw_radii_table.F
@@ -37441,6 +37447,7 @@ dftd4/src/dftd4/data/zeff.f90
 dftd4/src/dftd4/disp.f90
 dftd4/src/dftd4/model.f90
 dftd4/src/dftd4/ncoord.f90
+dftd4/src/dftd4/numdiff.f90
 dftd4/src/dftd4/output.f90
 dftd4/src/dftd4/param.f90
 dftd4/src/dftd4/reference.f90
@@ -38638,6 +38645,7 @@ elmerfem/fem/tests/mgdyn_bh_relfun/reluctivity.F90
 elmerfem/fem/tests/mgdyn_harmonic_wire_Cgauge/HelmholtzProjectionHarmonic.F90
 elmerfem/fem/tests/mgdyn_lamstack_lowfreq_transient/currents.f90
 elmerfem/fem/tests/mhd/exmag.f90
+elmerfem/fem/tests/p-FEM_two_solvers/BenchmarkShell.F90
 elmerfem/fem/tests/p-FEM_with_varying_p/BenchmarkShell.F90
 elmerfem/fem/tests/pmultg/Poisson.f90
 elmerfem/fem/tests/tresca/Tresca.f90
@@ -40265,6 +40273,7 @@ elpa/src/GPU/check_legacy_gpu_setting_template.F90
 elpa/src/GPU/device_arrays_template.F90
 elpa/src/GPU/handle_creation_template.F90
 elpa/src/GPU/handle_destruction_template.F90
+elpa/src/GPU/mod_gpu_setup.F90
 elpa/src/GPU/mod_vendor_agnostic_layer.F90
 elpa/src/cholesky/GPU/CUDA/mod_cholesky_cuda.F90
 elpa/src/cholesky/GPU/ROCm/mod_cholesky_hip.F90
@@ -40859,7 +40868,6 @@ fds/Source/pres.f90
 fds/Source/radi.f90
 fds/Source/rcal.f90
 fds/Source/read.f90
-fds/Source/scrc.f90
 fds/Source/smvv.f90
 fds/Source/soot.f90
 fds/Source/turb.f90
@@ -41210,6 +41218,8 @@ flexi/src/testcase/channel/testcase.f90
 flexi/src/testcase/channel/testcase_vars.f90
 flexi/src/testcase/default/testcase.f90
 flexi/src/testcase/default/testcase_vars.f90
+flexi/src/testcase/hit/testcase.f90
+flexi/src/testcase/hit/testcase_vars.f90
 flexi/src/testcase/phill/testcase.f90
 flexi/src/testcase/phill/testcase_vars.f90
 flexi/src/testcase/riemannd2d/testcase.f90
@@ -45368,6 +45378,7 @@ h5fortran/example/char_repeat_read.f90
 h5fortran/example/ex_fcn.f90
 h5fortran/example/ex_oo.f90
 h5fortran/example/fortran_interface.f90
+h5fortran/example/vtk_write.f90
 h5fortran/src/attr.f90
 h5fortran/src/attr_read.f90
 h5fortran/src/attr_write.f90
@@ -45995,6 +46006,7 @@ incompact3d/decomp2d/mkl_dfti.f90
 incompact3d/examples/Channel-Flow/stretching_parameter_channel.f90
 incompact3d/post_vtk/paraview_incompact3d_vtk.f90
 incompact3d/src/BC-ABL.f90
+incompact3d/src/BC-Cavity.f90
 incompact3d/src/BC-Channel-flow.f90
 incompact3d/src/BC-Cylinder.f90
 incompact3d/src/BC-Jet.f90
@@ -54815,8 +54827,6 @@ nwchem/src/moints/moints_mem.F
 nwchem/src/moints/moints_mp2.F
 nwchem/src/moints/moints_semi.F
 nwchem/src/moints/moints_stats.F
-nwchem/src/moints/sifs0.F
-nwchem/src/moints/sifs1.F
 nwchem/src/mp2_grad/mp2_back_transform.F
 nwchem/src/mp2_grad/mp2_energy.F
 nwchem/src/mp2_grad/mp2_grad.F
@@ -71102,6 +71112,7 @@ pencil-code/src/special/NS_polecap.f90
 pencil-code/src/special/advective_gauge.f90
 pencil-code/src/special/alphadisk.f90
 pencil-code/src/special/atmosphere.f90
+pencil-code/src/special/axionSU2back.f90
 pencil-code/src/special/backreact_infl.f90
 pencil-code/src/special/baroclinic_run.f90
 pencil-code/src/special/bc_strat.f90
@@ -81145,6 +81156,8 @@ truchas/src/truchas/input/physics_input_module.F90
 truchas/src/truchas/materials/avg_matl_prop_type.F90
 truchas/src/truchas/materials/avg_phase_prop_type.F90
 truchas/src/truchas/materials/equil_temp_type.F90
+truchas/src/truchas/materials/legacy_matl_api.F90
+truchas/src/truchas/materials/legacy_matl_type.F90
 truchas/src/truchas/materials/material_class.F90
 truchas/src/truchas/materials/material_database_type.F90
 truchas/src/truchas/materials/material_factory.F90
@@ -81315,8 +81328,6 @@ truchas/src/truchas/physics/volume_tracking/truncation_volume_type.F90
 truchas/src/truchas/physics/volume_tracking/volume_tracker_class.F90
 truchas/src/truchas/physics/volume_tracking/vtrack_driver.F90
 truchas/src/truchas/physics/volume_tracking/wisp_redistribution_type.F90
-truchas/src/truchas/setup/base_types/matl_module.F90
-truchas/src/truchas/setup/base_types/matl_utilities.F90
 truchas/src/truchas/setup/base_types/zone_module.F90
 truchas/src/truchas/setup/initialize/init_module.F90
 truchas/src/truchas/setup/overwrite/overwrite_module.F90
@@ -81900,6 +81911,7 @@ xtb/src/extern/driver.f90
 xtb/src/extern/mopac.f90
 xtb/src/extern/orca.f90
 xtb/src/extern/turbomole.f90
+xtb/src/features.F90
 xtb/src/filetools.F90
 xtb/src/fixparam.f90
 xtb/src/foden.f90
@@ -82100,6 +82112,8 @@ xtb/src/spline3.f90
 xtb/src/splitparam.f90
 xtb/src/stm.f
 xtb/src/surfac.f
+xtb/src/tblite/calculator.F90
+xtb/src/tblite/restart.F90
 xtb/src/thermo.f90
 xtb/src/timing.f90
 xtb/src/topology.f90
@@ -82122,7 +82136,7 @@ xtb/src/type/options.f90
 xtb/src/type/param.f90
 xtb/src/type/pcem.f90
 xtb/src/type/reader.F90
-xtb/src/type/restart.f90
+xtb/src/type/restart.F90
 xtb/src/type/setvar.f90
 xtb/src/type/solvation.f90
 xtb/src/type/timer.f90
@@ -82175,6 +82189,7 @@ xtb/test/unit/test_pbc_tools.f90
 xtb/test/unit/test_peeq.f90
 xtb/test/unit/test_repulsion.f90
 xtb/test/unit/test_symmetry.f90
+xtb/test/unit/test_tblite.f90
 xtb/test/unit/test_thermo.f90
 xtb/test/unit/test_wsc.f90
 yaFyaml/Examples/Iterators/iterator.F90
