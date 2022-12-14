@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+
+use File::Basename;
+
+if( @ARGV < 2 ) {
+    print "usage: ".basename($0)." infiles outfile\n";
+    exit;
+}
+
+$outfile = pop @ARGV;
+
+# check that input files are exist and are valid acc files
+foreach $i ( @ARGV ) {
+    if ( ! -e $i ) {
+	print "input file(s) do not exist: ".$i."\n";
+	exit;
+    }
+    if( system("ncdump -h ".$i." | egrep XLABEL >/dev/null") ) {
+	print "input file ".$i." not an acc file\n";
+	exit;
+    }
+}
+
+$ffirst = $ARGV[0];
+$flast = $ARGV[$#ARGV];
+$infiles = join(" ",@ARGV);
+
+#print "infiles    ",$infiles, "\n";
+#print "first file ",$ffirst,  "\n";
+#print "last file  ",$flast,   "\n";
+#print "outfile    ",$outfile, "\n";
+
+# refuse to overwrite existing output file
+if( -e $outfile ) {
+    print "output file already exists: ".$outfile."\n";
+    print "no action taken\n";
+    exit;
+}
+
+$ncobin="/u/kelley/nco-1.2/bin/";
+$ncea=$ncobin."ncea -h -A";
+$ncks=$ncobin."ncks -h -A";
+$nowarn=" 2>/dev/null";
+
+# add up the files
+$cmd=$ncea." -y ttl ".$infiles." ".$outfile;
+print $cmd,"\n";
+system($cmd);
+
+# the following kluge necessary because idacc(5) is not additive
+$cmd=$ncea." -y min -v IDACC -F -d NDACC,1,5 ".$infiles." ".$outfile.$nowarn;
+print $cmd,"\n";
+system($cmd);
+$cmd=$ncea." -y ttl -v IDACC -F -d NDACC,1,4 ".$infiles." ".$outfile.$nowarn;
+print $cmd,"\n";
+system($cmd);
+
+# undo summation of fixed arrays
+$fixed="area,areab,dxv,KEYNR,TSFREZ1,TSFREZ2";
+$cmd=$ncks." -v ".$fixed." ".$flast." ".$outfile.$nowarn;
+print $cmd,"\n";
+system($cmd);
+
+# still left to do: put the right "season name" into global attributes

@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Running the model</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Running the model</H3>
+<P>
+The standard way to run modelE is to start it first from the initial
+conditions, run it for one hour of model time, let it write the
+checkpoint (restart) file and stop. After this one is supposed to check
+the log file to make sure that the model behaves properly and then one 
+can restart it for a longer run. While running, the model
+periodically writes a checkpoint file, so that if it is stopped 
+or killed by a system, it can be restarted from this checkpoint 
+to continue the execution. Both ending times (for initial
+short run and for a longer run) are specified in the rundeck in the
+section with <code>INPUTZ</code> namelist parameters. The ending time
+for a short run is specified on a line which starts with
+<code>ISTART=</code>, the ending time for a longer run is specified on
+the line above it. 
+
+<P>
+ModelE source repository provides a simple script for starting the
+model runs: <code>modelE/exec/runE</code>. This script provides enough
+functionality to run the model on personal computes (desktops and
+laptops), but when working on a supercomputer one typically has to
+submit the runs as batch jobs (since MPI jobs are not allowed to run
+interactively). This functionality depends on a particular
+architecture and a special script has to be written for each such
+computer. You have to check local information for a particular
+computer to see which scripts are available there.
+
+<H4>Using <code>runE</code> script</H4>
+
+<P>
+The command to start a model run
+<pre>
+    runE &lt;RunID&gt; [-np NP] [-t time] [-cold-restart] [-d] [-q] [-l logfile] [-s tag]
+</pre>
+Here <code>&lt;RunID&gt;</code> is the name of your run (rundeck name
+without <code>.R</code>). The script accepts the following options:
+<dl>
+<dt><code>-np NP</code></dt>
+<dd>
+Run the model in parallel with <code>NP</code> MPI threads.
+</dd>
+<dt><code>-t time</code></dt>
+<dd>
+Specify the execution time <code>time</code> to be used
+in <code>QSUB_STRING</code> (see below). Otherwise has no effect.
+</dd>
+<dt><code>-cold-restart</code></dt>
+<dd>
+Start the run from the initial conditions. If not specified the run
+will be restarted from the latest checkpoint.
+</dd>
+<dt><code>-d</code></dt>
+<dd>
+Start the run in debugger. (You should compile the code with
+<code>-g</code> flag). By default <code>gdb</code> is used starting
+each MPI thread in a separate <code>xterm</code> window. If you want to use a
+different debugger you can specify your own debugger command by
+assigning it to an environment variable <code>DEBUG_COMMAND</code>.
+</dd>
+<dt><code>-q</code></dt>
+<dd>
+Do not write output to the log file. By default all standard output is
+written to <code>&lt;RunID&gt;.PRT</code> file.
+</dd>
+<dt><code>-l logfile</code></dt>
+<dd>
+Instead of <code>&lt;RunID&gt;.PRT</code> use <code>logfile</code> as
+a log file.  
+</dd>
+<dt><code>-s tag</code></dt>
+<dd>
+Instead of default <code>QSUB_STRING</code>
+use <code>QSUB_STRING_tag</code> (see below). 
+</dd>
+</dl>
+
+<P>
+If you want to use this script to start model runs as batch jobs on a
+supercomputer, you can do it in most cases. You just have to add a
+variable <code>QSUB_STRING</code> to your <code>~/.modelErc</code>
+file and set it to a command which would start an appropriate batch
+job. One can set several such strings (with different settings) giving
+each one a &quot;tag&quot; and choose which string to use by
+specifying the tag with <code>-s</code> flag. For example, for Slurm
+resource manager you could use
+<pre>
+QSUB_STRING=&quot;sbatch -A account_name -n %np -t %t&quot;
+QSUB_STRING_debug=&quot;sbatch --qos=debug -A account_name -n %np -t %t&quot;
+</pre>
+Here <code>%np</code> and <code>%t</code> are the number of MPI
+threads and execution time passed from the command line.
+
+<P>
+To start a run which was set up in the previous section, you can just
+execute 
+<pre>
+    ../exec/runE &lt;RunID&gt; -np &lt;NP&gt;
+</pre>
+Actually, this command will always restart
+your <code>&lt;RunID&gt;</code> run from the latest saved checkpoint
+file.
+
+<H4>Stopping the model</H4>
+
+<P>
+The standard way to stop the model is to use a command <code>sswE</code>
+(also located in <code>modelE/exec</code>). To stop the run
+<code>&lt;RunID&gt;</code> just execute the command
+<pre>
+    sswE &lt;RunID&gt;
+</pre>
+This will let the model know that you want to interrupt the
+execution. The model will finish the current time step, write the
+checkpoint file and then it will stop.
+
+</BODY>
+</HTML>

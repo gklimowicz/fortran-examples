@@ -1,0 +1,70 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Choosing proper ISTART</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Choosing proper ISTART</H3>
+
+<p> ISTART controls how the model first picks up the initial
+conditions to start the run. We have a number of options depending on
+how much information is already available.</P>
+
+<ol>
+ <li> <tt>ISTART=1</tt> Default start. This sets atmospheric
+ variables to constants and requires input files for ground values (a
+ GIC file), and ocean values (OIC) if required.
+ <li> <tt>ISTART=2</tt> Observed start. This sets atmospheric
+values to observations, based on a particular format of AIC file. As
+for ISTART=1, input files are required for ground and ocean variables.
+ <li> <tt>ISTART=3</tt> Not used.
+ <li> <tt>ISTART=4</tt> A restart from an rsf file from a
+previous run, but the ocean is reinitialised. Needs an initial OIC
+file (for fully coupled models).
+ <li> <tt>ISTART=5</tt> A restart from an rsf file from a
+previous run, but no tracers. This is only useful for tracer runs that
+need to be initialised with a particular model state.
+ <li> <tt>ISTART=6</tt> A restart from an rsf file from a
+previous run that might not have had the same land-ocean mask. This
+makes sure to reset snow values, pbl values and ocean values
+accordingly.
+ <li> <tt>ISTART=7</tt> A restart from an rsf file from a
+previous run with the same land-ocean mask. This still makes sure to
+set snow values and ocean values. This is used mainly for converted
+model II' data.
+ <li> <tt>ISTART=8</tt> This is a restart from a model
+configuration identical to the run now starting. This is for
+perturbation experiments etc. See note below.
+ <li> <tt>ISTART=9</tt> This is a restart from this model
+run. (i.e. a continuation, or a backtrack to an older rsf file).
+ <li> <tt>ISTART=10</tt> This is used internally to pick up
+from the instantaneous rsf file (the later of fort.1 and fort.2). Does
+not ever need to be set in the rundeck.
+ <li> <tt>ISTART=11</tt> This is used internally to pick up
+from an instantaneous rsf file (fort.1). Only rarely used.
+ <li> <tt>ISTART=12</tt> This is used internally to pick up
+from an instantaneous rsf file (fort.2). Only rarely used.
+ <li> <tt>ISTART=13</tt> This is used internally to pick up
+from the instantaneous rsf file (the earlier of fort.1 and
+fort.2). Only rarely used.
+ <li> <tt>ISTART<0</tt> This option is used by the
+post-processing program to run the model to generate nice
+diagnostics. This should never need to be set manually.
+</ol>
+
+Please note that if you get this wrong i.e. you use an ISTART that is
+not compatible with the AIC, GIC or OIC files in the rundeck, the
+model is not guaranteed to crash nicely. In fact, the opposite is
+likely. Strange crashes on start up are very often related to this.
+
+Note for ISTART=8: Since itime_tr0 defaults to Itime, tracers will be
+reinitialized. To have them keep their setttings from the rsf file,
+set itime_tr0 to < ItimeI (e.g. 0) for all tracers in the rundeck 
+parameters. If you use tracers that depend on (Itime-itime_tr0), you need
+to set itime_tr0 to the starting time of the rsf file for continuity.
+
+</BODY>
+</HTML>

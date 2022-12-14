@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Aerosol Tracers</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Aerosol Tracers</H3>
+
+<p>TwO-Moment Aerosol Sectional (TOMAS) microphysics model uses a sectional approach that represents the aerosol size distribution by predicting the amount of aerosol in several size sections or “bins” (Adams and Seinfeld, 2002; Lee and Adams, 2011). TOMAS uses a moving sectional approach to treat water uptake; changes in water mass do not move particles between sections. TOMAS tracks two moments of the aerosol size distribution in each size bin: total aerosol number and mass. Total mass is decomposed into several aerosol species, allowing prediction of the size-resolved aerosol composition. The TOMAS model tracks ten quantities for each size bin: sulfate mass, sea-salt mass, mass of externally mixed elemental carbon (EC), mass of internally mixed EC (mixed with all other species), mass of hydrophobic organic matter (OM), mass of hydrophilic OM, mass of mineral dust, mass of ammonium, and mass of aerosol-water and the number of aerosol particles in that size section.  In addition, the model tracks two bulk aerosol-phase species, methanesulfonic acid (MSA) and Ammonium(NH4), and six bulk gas-phase species: H2O2, SO2, dimethylsulfide (DMS), H2SO4, ammonia (NH3), and a lumped gas-phase tracer representing oxidized organic vapors that can form secondary organic aerosol (SOA). Gas-phase H2SO4 is assumed to be in pseudo-steady state equilibrium between chemical production and condensational/nucleation losses (Pierce and Adams, 2009). TOMAS model simulates coagualtion, condensation, and nucleation processes. For in-cloud scavenging, modified Köhler theory is applied for the large-scale and convective clouds that are assumed to have supersaturations of 0.2% and 1.0%, respectively. Dry deposition uses the series resistance approach that treats sizedependent gravitational settling of particles and a size-dependent resistance in the quasilaminar sublayer.</p>
+
+
+<h4>TOMAS models by size resolution</h4>
+
+<p> TOMAS-12: This is the default configuration in ModelE, which as 12 bins for each species. Size resolution from 10 nm to 10 micron - 10 logarithmically spaced bins covering from 10 nm to 1 micron and 2 logarithmically spaced bins covering from 1 microns to 10 micro. Coarser bin spacing than TOMAS-30. Improved computation time. </p>
+ 
+<p> TOMAS-12-3NM: Availble in ModelE. It is same as TOMAS-12 but has extra 3 bins extending the lowest size boundary to 3nm. Size resolution from 3 nm to 10 micron - 13 logarithmically spaced bins covering from 3 nm to 1 micron and 2 logarithmically spaced bins covering from 1 microns to 10 micro.  </p>
+
+<p> TOMAS-15: Same as TOMAS-12 but no lumping super-micron size. Size resolution ranging from 10 nm to 10 micron, spanned by 15 logarithmically spaced bins. Not available in ModelE yet.  </p>
+
+<p> TOMAS-30: All size-resolved aerosol species have size resolution ranging from 10 nm to 10 micron, spanned by 30 logarithmically spaced bins. Not available in ModelE yet.  </p>
+
+<p> TOMAS-40: Size resolution from 1 nm to 10 micron, again spanned by 40 logarithmically spaced bins. Not available in ModelE yet. </p>
+
+<p> TOMAS-36: Size resolution from 3 nm to 10 micron, 36 logarithmically spaced bins. Not available in ModelE yet. </p>
+  
+<p>Note that TOMAS-12 and TOMAS-12-3NM are available in the developing branch, AR5_v2_branch, and AR5_aer - NOT IN AR5_branch. </p>
+  
+  
+<table border=1 align=center>
+ <tr align=center>
+  <td>
+  &nbsp;
+  </td>
+  <td>SO4</td>
+  <td>Sea salt</td>
+  <td>BC</td>
+  <td>OA</td>
+  <td>Dust</td>
+  <td>NH4</td>
+  <td>Aerosol-water</td>
+  <td>Aerosol number</td>  
+ </tr>
+ <tr align=center>
+  <td>Molecular weight (g/mol)</td>
+  <td>96</td>
+  <td>75</td>
+  <td>12</td>
+  <td>200</td>
+  <td>1</td>
+  <td>18</td>
+  <td>18</td>
+  <td>n/a</td>
+ </tr>
+ <tr align=center>
+  <td>Density (kg/m<sup>3</sup>)</td>
+  <td>1780</td>
+  <td>2165</td>
+  <td>1800</td>
+  <td>1400</td>
+  <td>Dp<2um: 2500; Dp>2um: 2650<br>
+  <td>1700</td>
+  <td>1000</td>
+  <td>n/a</td>
+ </tr>
+</table>
+
+<h4>Aerosol tracers</h4>
+<ul>
+ <li>Sulfate: 12 tracers (i.e. ASO4__01 to ASO4__12) for TOMAS-12 ; 15 tracers (i.e. ASO4__01 to ASO4__15) for TOMAS-12-3NM 
+ <ul>
+  <li>Direct emissions: 2.5% by mass of anthropogenic SO2 emissions in the model are
+      assummed to be emitted as SO4. 
+  <li>Gas-phase chemistry: The gaseous oxidation of SO2 by OH
+      (Koch et al., 1999; 2006). The SO4 produced from the gas-phase chemistry is condensed on SO4 tracers. 
+  <li>Aqueous-phase chemistry: in-cloud oxidation of SO2 by H2O2
+      (Koch et al., 1999; 2006). The SO4 produced from the aqueous-phase chemistry is condensed on SO4 tracers. 
+ </ul>
+ <li>Sea salt: 12 tracers (ANACL_01 to ANACL_12) for TOMAS-12 ; 15 tracers for TOMAS-12-3NM. Sea salt particles are being emitted as a function of 10-m wind speed, based on Gong et al. (2003). 
+ <li>Organic aerosols (OA): OA is distinguished into two types: hydrophobic (AOCOB) and hydrophilic (AOCIL). Each type has 12 tracers for TOMAS-12 (or 15 tracers for TOMAS-12-3NM). TOMAS has one tracer for SOA precursor gas (SOAgas) and no tracer for a separate SOA - the SOAgas condenses on hydrophilic OA tracers directly.
+ <ul>
+  <li>POA: 50% of fossil fuel and biofuel emissions are assumed to be
+      hydrophobic, which are being converted to hydrophilic
+      with an e-folding time of 1.5 days. The ratio of organic matter-to-organic
+      carbon is OM/OC=1.4.
+  <li>SOA: SOA emission is simply assumed to be 10% of terpene emissions.
+ </ul>
+ <li>Elemental Carbon (EC) : EC is distinguished into two types: externally mixed EC (AECOB) and internally mixed EC (AECIL). Each type has 12 tracers for TOMAS-12 (or 15 tracers for TOMAS-12-3NM). 80% of fossil fuel and biofuel emissions are considered to produce externally mixed BC, which are being converted to internally mixed BC with an e-folding time of 1.5 days.
+ <li>Dust : 12 tracers (ADUST_01 to ADUST_12) for TOMAS-12; 15 tracers (ADUST_01 to ADUST_15) for TOMAS-12-3NM
+ <li>Ammonium (NH4): 12 tracers in TOMAS model but lumped into one tracer when exit the TOMAS model. Produced from NH3 uptake, simply based on the neutralization with SO4 tracers (i.e. 2 moles of ammonium per 1 mole of sulfate and the remainder of ammonia is left in the gas phase)
+  <li>Aerosol-water: 12 tracers (i.e. AH2O__01 to AH2O__12) for TOMAS-12 ; 15 tracers (i.e. AH2O__01 to AH2O__15) for TOMAS-12-3NM. Water update by sulfate, sea-salt, and hydrophilic OA.
+  <li>Aerosol number: 12 tracers (i.e. ANUM__01 to ANUM__12) for TOMAS-12 ; 15 tracers (i.e. ANUM__01 to ANUM__15) for TOMAS-12-3NM 
+</ul>
+
+<h4>References</h4>
+
+<p>Adams, P. J., and Seinfeld, J. H.: Predicting global aerosol size distributions in general
+circulation models, Journal of Geophysical Research-Atmospheres, 107,
+doi:10.1029/2001JD001010, 2002.</p> 
+
+<p>Lee, Y. H. and Adams, 5 P. J.: A fast and efficient version of the TwO-Moment Aerosol Sectional
+(TOMAS) global aerosol microphysics model, Aerosol Sci. Tech., 46, 678–689,
+doi:10.1080/02786826.2011.643259, 2011.</p>
+
+<p>Pierce, J. R., and Adams, P. J.: A Computationally Efficient Aerosol
+Nucleation/Condensation Method: Pseudo-Steady-State Sulfuric Acid, Aerosol Science
+and Technology, 43, 216-226, 2009.</p>
+
+
+</BODY>
+</HTML>

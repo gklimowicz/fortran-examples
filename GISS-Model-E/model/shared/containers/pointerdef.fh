@@ -1,0 +1,32 @@
+      function compptr(x, y)
+      use iso_c_binding, only: c_loc
+      implicit none
+      _ptrtype, pointer, intent(in) :: x
+      _trgtype, target, intent(in) :: y
+      logical :: compptr
+      integer, dimension(:), allocatable :: ax, ay
+      integer :: i
+
+      __ALLOC_SET(ax, transfer(c_loc(x), [1]))
+      __ALLOC_SET(ay, transfer(c_loc(y), [1]))
+      do i=1, size(ax)
+        compptr=ax(i)<ay(i)
+        if (ax(i)/=ay(i)) exit
+      end do
+      return
+      end function compptr
+
+      function sameptr(x, y)
+      implicit none
+      _ptrtype, pointer, intent(in) :: x
+      _trgtype, target, intent(in) :: y
+      logical :: sameptr
+      _ptrtype, pointer :: p
+
+      p=>y
+      sameptr=(.not.associated(x).and..not.associated(p)).or.            &
+     &       associated(x, p)
+      return
+      end function sameptr
+#undef _ptrtype
+#undef _trgtype

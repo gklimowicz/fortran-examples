@@ -1,0 +1,225 @@
+      SUBROUTINE FORM(UICE,VICE,ETA,ZETA,DRAGSU,DRAGSV,DRAGAU,DRAGAV
+     &,GAIRX,GAIRY,GWATX,GWATY,FORCEX,FORCEY,HEFF,AMASSU,AMASSV,AREA)
+C PROGRAM FORMS BASIC INPUT PARAMETERS FOR RELAXATION
+!auth D.Gueyffier (original code from Jinlun Zhang)
+C FIRST SET UP BASIC CONSTANTS
+      USE DOMAIN_DECOMP_ICE, ONLY : grid_ICDYN,AM_I_ROOT,HALO_UPDATE
+      USE DOMAIN_DECOMP_1D, ONLY  : hasSouthPole, hasNorthPole
+      implicit none
+      INTEGER I,J
+      INTEGER :: J_0,J_1,J_0S,J_1S,J_0H,J_1H
+      INTEGER :: I_0,I_1,I_0S,I_1S,I_0H,I_1H
+
+
+C****
+C**** Extract useful local domain parameters from "grid"
+C****
+      CALL GET(grid_ICDYN, J_STRT     =J_0,    J_STOP     =J_1,
+     &               J_STRT_HALO=J_0H,   J_STOP_HALO=J_1H,
+     &               J_STRT_SKP =J_0S,   J_STOP_SKP =J_1S )
+      CALL GET(grid_ICDYN, I_STRT     =I_0,    I_STOP     =I_1,
+     &               I_STRT_HALO=I_0H,   I_STOP_HALO=I_1H,
+     &               I_STRT_SKP =I_0S,   I_STOP_SKP =I_1S )
+
+
+      DWAT=0.59
+      DAIR=0.01462
+      RHOICE=0.91D+03
+      FCOR=1.46D-04
+      RHOAIR=1.3
+C   25 DEG GIVES SIN EQUAL TO 0.4226
+      SINWIN=0.4226
+      COSWIN=0.9063
+      SINWAT=0.4226
+      COSWAT=0.9063
+      OMEGA=3.1415927/43082. 
+      GRAV=9.832
+      ECCEN=2.0
+C 20 DEG GIVES SIN EQUAL TO .34202
+C NOW SET UP MASS PER UNIT AREA AND CORIOLIS TER
+      DO J=J_0,J_1
+      DO I=I_0,I_1
+      AMASSU(I,J)=RHOICE*0.5*(HEFF(I,J,1)+HEFF(I-1,J,1))
+      AMASSV(I,J)=RHOICE*0.5*(HEFF(I,J,1)+HEFF(I,J-1,1))
+      CORU(I,J)=AMASSU(I,J)*2.0*OMEGA*SIN(ULAT(I,J))
+      CORV(I,J)=AMASSV(I,J)*2.0*OMEGA*SIN(VLAT(I,J))
+      ENDDO
+      ENDDO
+C NOW SET UP NON LINEAR WIND AND WATER DRAG
+      DO J=J_0,J_1S
+      DO I=I_0,I_1
+C STD CALCULATION
+      DAIRNU(I,J)=RHOAIR*.0012*SQRT(GAIRX(I,J)**2
+     &+(0.25*(GAIRY(I,J)+GAIRY(I,J+1)+GAIRY(I-1,J+1)+GAIRY(I-1,J)))**2)
+      DAIRNV(I,J)=RHOAIR*.0012*SQRT(GAIRY(I,J)**2
+     &+(0.25*(GAIRX(I,J)+GAIRX(I+1,J)+GAIRX(I+1,J-1)+GAIRX(I,J-1)))**2)
+      DWATNU(I,J)=5.5*SQRT((UICE(I,J,1)-GWATX(I,J))**2
+     &+(0.25*(VICE(I,J,1)+VICE(I,J+1,1)+VICE(I-1,J+1,1)+VICE(I-1,J,1))
+     &-0.25*(GWATY(I,J)+GWATY(I,J+1)+GWATY(I-1,J+1)+GWATY(I-1,J)))**2)
+      DWATNV(I,J)=5.5*SQRT((VICE(I,J,1)-GWATY(I,J))**2
+     &+(0.25*(UICE(I,J,1)+UICE(I+1,J,1)+UICE(I+1,J-1,1)+UICE(I,J-1,1))
+     &-0.25*(GWATX(I,J)+GWATX(I+1,J)+GWATX(I+1,J-1)+GWATX(I,J-1)))**2)
+      DWATNU(I,J)=DMAX1(DWATNU(I,J),0.25D+00)
+      DWATNV(I,J)=DMAX1(DWATNV(I,J),0.25D+00)
+      ENDDO
+      ENDDO
+
+C NOW SET UP SYMMETTRIC DRAG
+      DO J=J_0,J_1S
+      DO I=I_0,I_1
+      DRAGSU(I,J)=DWATNU(I,J)*COSWAT
+      DRAGSV(I,J)=DWATNV(I,J)*COSWAT
+      ENDDO
+      ENDDO
+C NOW SET UP ANTI SYMMETRIC DRAG PLUS CORIOLIS
+      DO J=J_0,J_1S
+      DO I=I_0,I_1
+      if(lat2d(i,j).gt.0.) then
+      DRAGAU(I,J)=DWATNU(I,J)*SINWAT+CORU(I,J)
+      DRAGAV(I,J)=DWATNV(I,J)*SINWAT+CORV(I,J)
+      else
+      DRAGAU(I,J)=DWATNU(I,J)*(-SINWAT)+CORU(I,J)
+      DRAGAV(I,J)=DWATNV(I,J)*(-SINWAT)+CORV(I,J)
+      endif
+      ENDDO
+      ENDDO
+
+C NOW SET UP FORCING FIELD
+      DO J=J_0,J_1S
+      DO I=I_0,I_1
+C FIRST DO WIND
+      if (lat2d(i,j) .gt. 0.) then
+      FORCEX(I,J)=DAIRNU(I,J)*(COSWIN*GAIRX(I,J)
+     &-SINWIN*0.25*(GAIRY(I,J)+GAIRY(I,J+1)+GAIRY(I-1,J+1)
+     &+GAIRY(I-1,J)))
+      FORCEY(I,J)=DAIRNV(I,J)*(COSWIN*GAIRY(I,J)
+     &+SINWIN*0.25*(GAIRX(I,J)+GAIRX(I+1,J)+GAIRX(I+1,J-1)
+     &+GAIRX(I,J-1)))
+      ELSE
+      FORCEX(I,J)=DAIRNU(I,J)*(COSWIN*GAIRX(I,J)
+     &+SINWIN*0.25*(GAIRY(I,J)+GAIRY(I,J+1)+GAIRY(I-1,J+1)
+     &+GAIRY(I-1,J)))
+      FORCEY(I,J)=DAIRNV(I,J)*(COSWIN*GAIRY(I,J)
+     &-SINWIN*0.25*(GAIRX(I,J)+GAIRX(I+1,J)+GAIRX(I+1,J-1)
+     &+GAIRX(I,J-1)))
+      END IF
+
+C NOW ADD IN CURRENT FORCE
+      if (lat2d(i,j) .gt. 0.) then
+      FORCEX(I,J)=FORCEX(I,J)+DWATNU(I,J)*(COSWAT*GWATX(I,J)
+     &-SINWAT*0.25*(GWATY(I,J)+GWATY(I,J+1)+GWATY(I-1,J+1)
+     &+GWATY(I-1,J)))
+      FORCEY(I,J)=FORCEY(I,J)+DWATNV(I,J)*(COSWAT*GWATY(I,J)
+     &+SINWAT*0.25*(GWATX(I,J)+GWATX(I+1,J)+GWATX(I+1,J-1)
+     &+GWATX(I,J-1)))
+      ELSE
+      FORCEX(I,J)=FORCEX(I,J)+DWATNU(I,J)*(COSWAT*GWATX(I,J)
+     &+SINWAT*0.25*(GWATY(I,J)+GWATY(I,J+1)+GWATY(I-1,J+1)
+     &+GWATY(I-1,J)))
+      FORCEY(I,J)=FORCEY(I,J)+DWATNV(I,J)*(COSWAT*GWATY(I,J)
+     &-SINWAT*0.25*(GWATX(I,J)+GWATX(I+1,J)+GWATX(I+1,J-1)
+     &+GWATX(I,J-1)))
+      END IF
+
+      else !CS
+
+      endif
+
+C NOW ADD IN TILT
+      FORCEX(I,J)=FORCEX(I,J)-CORU(I,J)*GWATY(I,J)
+      FORCEY(I,J)=FORCEY(I,J)+CORV(I,J)*GWATX(I,J)
+
+      ENDDO
+      ENDDO
+
+c      WRITE(*,*) 'DPX=,UOA=', DPX(30,70),DPY(30,70),DPX(20,8),DPY(20,8)
+c     &, UOA(30,70,1),VOA(30,70,1),UOA(20,8,2),VOA(20,8,2)
+ 2    FORMAT(1X,12G10.4/,1X,12G10.4/,1X,12G10.4/)
+C NOW SET UP ICE PRESSURE AND VISCOSITIES
+C FIRST SET UP CONSTANTS
+      PSTAR=5.0D+03
+      PSTAR=2.75D+04
+      ZETAC=0.15
+      ETAC=ZETAC/4.0
+C NOW SET UP VALUES
+      DO J=J_0,J_1
+      DO I=I_0,I_1
+      PRESS(I,J)=PSTAR*HEFF(I,J,1)*EXP(-20.0*(1.0-AREA(I,J,1)))
+      ZMAX(I,J)=(5.0D+12/(2.0D+04))*PRESS(I,J)
+c      ZMIN(I,J)=0.0D+00
+      ZMIN(I,J)=4.0D+08
+      ENDDO
+      ENDDO
+
+      CALL PLAST
+
+      if (hasNorthPole(grid_ICDYN)) then
+      AAA=0.0
+      DO I=2,NX1-1
+      AAA=AAA+PRESS(I,NY1-1)
+      END DO
+      AAA=AAA/FLOAT(NX1-2)
+      DO I=1,NX1
+      PRESS(I,NY1)=AAA
+      END DO
+      endif
+
+
+#ifndef CUBED_SPHERE_ICE   
+      DO J=J_0,J_1
+      PRESS(1,J)=PRESS(NX1-1,J)
+      PRESS(NX1,J)=PRESS(2,J)
+      END DO
+#endif
+
+C NOW SET VISCOSITIES AND PRESSURE EQUAL TO ZERO AT OUTFLOW PTS
+
+      DO J=J_0,J_1
+      DO 106 I=I_0,I_1
+      PRESS(I,J)=PRESS(I,J)*OUT(I,J)
+      ETA(I,J)=ETA(I,J)*OUT(I,J)
+      ZETA(I,J)=ZETA(I,J)*OUT(I,J)
+      ZETAPETA(I,J)=ZETA(I,J)+ETA(I,J)
+      ZETAMETA(I,J)=ZETA(I,J)-ETA(I,J)
+c       if(j.gt.NY1-3)
+c     &  write(*,'(2i5,f4.0,3e10.2,4f8.4,f5.1)') i,j, heffm(i,j)
+c     &, PRESS(I,J),ETA(I,J),ZETA(I,J),GWATX(I,J),GWATY(I,J)
+c     &, GAIRX(I,J),GAIRY(I,J),heff(i,j,1)
+      enddo
+      enddo
+C NOW CALCULATE PRESSURE FORCE AND ADD TO EXTERNAL FORCE
+      DO J=J_0,J_1S
+      DO I=I_0,I_1
+      FORCEX(I,J)=FORCEX(I,J)-0.5*(PRESS(I,J)-PRESS(I-1,J))/DXC(I,J)
+      FORCEY(I,J)=FORCEY(I,J)-0.5*(PRESS(I,J)-PRESS(I,J-1))/DYC(I,J)
+C NOW PUT IN MINIMAL MASS FOR TIME STEPPING CALCULATIONS
+      enddo
+      enddo
+
+#ifndef CUBED_SPHERE_ICE 
+      DO J=1,NY1
+      FORCEX(1,J)=FORCEX(NX,J)
+      FORCEY(1,J)=FORCEY(NX,J)
+      FORCEX(NX1,J)=FORCEX(2,J)
+      FORCEY(NX1,J)=FORCEY(2,J)
+
+      DRAGSU(1,J)=DRAGSU(NX,J)
+      DRAGSV(1,J)=DRAGSV(NX,J)
+      DRAGSU(NX1,J)=DRAGSU(2,J)
+      DRAGSV(NX1,J)=DRAGSV(2,J)
+
+      DRAGAU(1,J)=DRAGAU(NX,J)
+      DRAGAV(1,J)=DRAGAV(NX,J)
+      DRAGAU(NX1,J)=DRAGAU(2,J)
+      DRAGAV(NX1,J)=DRAGAV(2,J)
+
+      AMASSU(1,J)=AMASSU(NX,J)
+      AMASSV(1,J)=AMASSV(NX,J)
+      AMASSU(NX1,J)=AMASSU(2,J)
+      AMASSV(NX1,J)=AMASSV(2,J)
+      END DO
+#endif
+      RETURN
+      END
+
+

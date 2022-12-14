@@ -1,0 +1,185 @@
+NAMELIST PARAMTERS
+
+nl-Parameter (~alph. order)    short Description                         Default
+------------                   -----------------                         -------
+HOURI,DATEI,MONTHI,YEARI       model time at start of run               0 1 1 ??
+HOURE,DATEE,MONTHE,YEARE       model time at end   of run               0 1 1 ??
+IHOURE       model time at end of run (hrs since 1/1/Iyear1,hr 0)           (??)
+IRANDI       seed for rand.number sequence to perturb init.conditions          0
+ISTART       type-of-start flag   1-8 starts, >8 continuations                10
+ITWRITE      controls # pages of radiative debug output                        0
+IWRITE,      if JWRITE<1500 get rad.info for box (Iwrite,Jwrite)               0
+JWRITE       if JWRITE>1500 get forcing info for years Iwrite->Jwrite          0
+IYEAR1       base year for internal clock ("Itime=0"="1/1/Iyear1,hr 0")   =YEARI
+KDIAG        controls amount of diagnostic printout (0=full->9=none)      12*0,9
+QDIAG        controls whether binary diagn. files are created (ij,jl..)  .false.
+QDIAG_ratios fields with titles "q1 x q2" are replaced by field/q2        .true.
+QCHECK       activates the checking routines (checkt ... )               .false.
+
+Note:  default=?? indicates that no reasonable default is set:
+----              value has to be set in the rundeck
+
+Except for IYEAR1, none of these parameters are part of a restart file, i.e.
+they are not remembered on restarts unless they are read in again (from I),
+however, some of these parameters are used to find parameters that are saved.
+
+More information about selected NAMELIST parameters
+---------------------------------------------------
+ISTART:        -1: postprocessing
+       -1: read and process 1 or more diagn. acc-files (pdE)
+              1-8: initial starts from :
+        1: homogeneous atmosphere, ground data from file
+        2: obs. atmosphere, all data from files
+      3-6: currently unused (starts from older models)
+        7: from old converted end-of-month rsf- or M-file
+        8: from end-of-month restart file (rsf- or M-file)
+             9-13: restarts from:
+        9: from end-of-month restart file (rsf- or M-file)
+       10: from later of fort.1 or fort.2 (tries earlier, if newer is bad)
+       11: from fort.1
+       12: from fort.2
+       13: from earlier of fort.1 or fort.2 (14-99 same as 13)
+
+    difference between ISTART=8 and ISTART=9:
+    8: start of a new run - parameters from rundeck+defaults
+       In particular: Itime is set to ItimeI, radiation and all diagnostic
+       accumulations are performed in the first hour, IRAND is set to its
+       default (unless reset in the rundeck). See note below.
+
+    9: continuation of an old run which happened to have been stopped
+       at the beginning of a diagnostic accumulation period
+
+Note: For ISTART=8: Since itime_tr0 defaults to Itime, tracers will be
+      reinitialized. To have them keep their setttings from the rsf file,
+      set itime_tr0 to < ItimeI (e.g. 0) for all tracers in the rundeck
+      parameters. If you use tracers that depend on (Itime-itime_tr0), you need
+      to set itime_tr0 to the starting time of the rsf file for continuity.
+
+Note: ISTART defaults to 10 on restarts;
+      make sure, that ISTART<10 is never left in 'I', otherwise
+      the model goes back to the beginning at each restart !
+
+IHOURE
+HOURE,DATEE,MONTHE,YEARE
+      are alternate ways to prescribe when the run should stop:
+      if IHOURE is set,     HOURE,DATEE,MONTHE,YEARE are ignored
+      if YEARE  is NOT set, HOURE,DATEE,MONTHE are ignored.
+
+Note: These variables used to find the saved variable "ItimeE",
+      where ItimeE*DTsrc is the time interval (in seconds)
+      between 1/1/Iyear1,hr0 and the time the run is stopped, i.e.
+      ItimeE*DTsrc = IHOURE*3600 .
+
+HOURI,DATEI,MONTHI,YEARI are used to find the saved variable ItimeI;
+      they are ignored on restarts. YEARI has to be specified for initial
+      starts (ISTART<9).
+
+IRANDI  If ISTART<10 and IRANDI/=0, the initial temperatures are perturbed
+        by up to 1C, the perturbations depend on the value of IRANDI.
+
+QCHECK, Iwrite,Jwrite,ITwrite  - Debug tools
+      If QCHECK = .true., all prognostic variables are checked whether
+           they are still real numbers after every subroutine called
+           from MAIN; some variables are checked whether they lie within
+           reasonable bounds. If gross deviations are discovered, the run
+           is stopped, indicating after which subroutine and at which
+           grid point the error was discovered. Reset QCHECK to .false.
+           to continue a run, since the checking is CPU-intensive.
+
+      If Jwrite>Iwrite>1800 selected tables of radiative forcing trends are
+            printed (once only) displaying the years Iwrite -> Jwrite. The
+            selection depends on ITwrite: 19 shows all forcings, 1/2 GHG,
+            3 So, 4/5 O3, 6-9 Aerosols: Trop,DesertDust,Volc,Total.
+
+      If (Iwrite,Jwrite) is a grid box, 1-19 pages are produced for that box
+           EVERY NRAD hours. The selection depends on the value of ITwrite.
+                ITwrite  0-9 : show item 'ITwrite' only
+                ITwrite 11-19: show items 1->last digit of 'ITwrite'
+                ITwrite 21-29: show items 0->last digit of 'ITwrite'
+         ITwrite
+             0     ISPARE,FSPARE control parameter defaults in BLOCK DATA
+             1     RADCOM Radiative control/scaling parameter GHG defaults
+             2     RADCOM Atmospheric composition P,H,T,Cld,Aer  profiles
+             3     RADCOM Computed LW SW fluxes cooling and heating rates
+             4     Aerosol and Cloud: Mie scattering radiative parameters
+                   A  SW aerosol Mie scattering Qx,Qs,g in use parameters
+                   B  SW  cloud  Mie scattering Qx,Qs,g in use parameters
+                   C  SW cld+aer Mie scattering Qx,Qs,g in use parameters
+                   D  SW LW aerosol 11-compositon  Mie Qx,Qs,g parameters
+                   E  SW LW aerosol 09-compositon  Mie Qx,Qs,g parameters
+                   F  SW LW aerosol 8-size D dust  Mie Qx,Qs,g parameters
+                   G  SW LW  cloud  15-size/phase  Mie Qx,Qs,g parameters
+             5     LW cld,aer,gas total optical k-distribution extinction
+             6     LW gas absorb: total optical k-distribution extinction
+             7     A  LW cloud   TRCALK optical k-distribution extinction
+                   B  LW aerosol TRAALK optical k-distribution extinction
+             8     SW Spectral/k-dist flux, albedo, absorption components
+                   A  Spectral components of downward & upward solar flux
+                   B  Spectral components of net solar flux, heating rate
+             9     LW flux contribution from each k-distribution interval
+                   1  Downward LW flux  from each k-distribution interval
+                   2  Upward   LW flux  from each k-distribution interval
+                   3  Net (Up) LW flux  from each k-distribution interval
+                   4  Flux cooling rate from each k-distribution interval
+                   5  Fraction coolrate from each k-distribution interval
+       For debug purposes, ITWRITE=23 is usually sufficient, only
+       radiation specialists will profit from any other settings.
+
+KDIAG(1->13) - Suppressing printout if >0
+  KDIAG(i) may be used to (partially) suppress type i diagn. printout
+      i=1  budget pages,zonal means:
+             kdiag(1)=0    print all budget pages
+                      1-7  produce pages listed in Ibp
+                      8    regional page only
+                      9    skip all budget pages
+             Editing Ibp: just delete lines, rearranging has no effect
+             Note: no regional data files are produced even if qdiag=.true.
+        2  latitude-height tables
+             kdiag(2)=0   produce all possible tables
+                      1-8 produce the tables listed in Ijk (if still possible)
+                      9   skip all tables
+             Editing Ijk: just delete lines, rearranging has no effect
+             Note: some titles may appear in Ijk that have no corr. tables
+        3  lat-lon maps
+             kdiag(3)=0   standard printout, all binary files if QDIAG=.true.
+                      1   ij-fields as in list Iij, all ijk-fields
+                      2-7 ij and ijk fields are handled according to list Iij
+                      8   ij-fields as in list Iij, no ijk-fields are produced
+                      9   suppress all ij and ijk fields
+             Editing Iij: don't touch lines starting with 'List' or 'list'
+                     you may delete any other lines
+                     you may rearrange the remaining ij-fields only (not ijk)
+                     you may add blank maplets (up to 10)
+        4  energy history           skip if kdiag(4)=9
+        5  spectral analysis        skip if kdiag(5)>3
+                                       else: with 1=SH  2=NH  3=Equ  4=45N
+                                    show lats 1->4-kdiag(5)
+                                    show only lat i if kdiag(5)=-i<0
+        6  diurnal diagnostics      skip if kdiag(6)>3  else:
+                                    show points 1->4-kdiag(6)
+                                    show only point  i if kdiag(6)=-i<0
+        7  wave power diagnostics   skip if kdiag(7)=9
+        8  tracer diagnostics       skip if kdiag(8)=9
+        9  conservation tables      skip if kdiag(9)=9
+       10  longitude height tables  skip if kdiag(10)=9
+       11  river diagnostics        skip if kdiag(11)=9
+       12  ice and ocean diagnostics
+       13  hourly diagnostics       skip if kdiag(13)>3
+                                    show only points 1->4-kdiag(13)
+                                    show only point  i if kdiag(13)=-i<0
+
+Listing Parameters according to how they have to be handled:
+------------------------------------------------------------
+Parameters that HAVE to be set for an initial start:
+SetIni:    ISTART,YEARI,YEARE or IHOURE
+
+Parameters that are ignored on restarts
+IniOnly:   HOURI,DATEI,MONTHI,YEARI are ignored if ISTART>8
+IniOnly:   IRANDI is ignored if ISTART>9
+
+Parameters that may be changed without affecting any model results
+Chg: QCHECK,IWRITE,JWRITE,ITWRITE,KDIAG,QDIAG
+Chg: (I)HOURE,DATEE,MONTHE,YEARE, ISTART (if >9)
+Chg? IYEAR1 (unless the YEAR is significant, e.g. in transient runs)
+     In runs with ann. varying prescribed ocean, IYEAR1 has to be
+     part of the 2 input file names OST... and SICE... .

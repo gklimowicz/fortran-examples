@@ -1,0 +1,774 @@
+MODELE.CallS     2018/02/02
+
+Module HorizontalRes   [Atm144X90.F90]
+Module HorizontalRes   [AtmCS90.F90]
+Module HorizontalRes   [AtmI32R.F90]
+Module VerticalRes     [AtmLayering.F90]
+Module Resolution      [AtmRes.F90]
+     use HorizontalRes
+     use VerticalRes
+
+Module MpiSupport_mod   [MPI_Support/MpiSupport_mod.F90]
+     interface am_i_root
+     type MpiType_type
+     subroutine getNeighbors(rank, npes, pe_south,pe_north,bc_periodic)
+     function createDecompMpiType(baseType, counts, decompIdx) result(newType)
+     integer function getTypeIndex(numBlocks, blockLen, stride, baseType)
+     logical function amRootWorld()
+     logical function amRootComm(mpiCommunicator)
+
+Module Domain_mod       [MPI_Support/Domain_mod.F90]
+     type Domain1D_type
+     type Domain_type
+     function newDomain1d(interior, exterior) result(domain1d)
+     function newDomain(im, jm) result(domain)
+     subroutine setTile(this, tile)
+     subroutine setAxis(this, ith, axis)
+
+Module Hidden_mod       [MPI_Support/Hidden_mod.F90]
+     type Hidden_type
+
+Module dd2d_utils       [MPI_Support/dd2d_utils.f]
+     use Hidden_mod, only: Hidden_type
+     type dist_grid
+     interface pack_data
+     interface unpack_data
+     interface pack_row
+     interface unpack_row
+     interface halo_update
+     interface globalsum
+     interface get_nlnk
+     subroutine init_dist_grid (npx,npy,ntiles, is,ie,js,je, isd,ied,jsd,jed, communicator, grid)
+
+Module dist_grid_mod    [MPI_Support/dist_grid_mod.F90]
+     use MpiSupport_mod, only: am_i_root
+     use Domain_mod
+     use Hidden_mod
+     use dd2d_utils, only : dist_grid,init_dist_grid
+
+Module DOMAIN_DECOMP_1D   [MPI_Support/DomainDecomposition_mod.F90]
+     use dist_grid_mod
+     use Halo_mod
+     use SpecialIO_mod
+     use GatherScatter_mod
+     use GlobalSum_mod
+
+Module DOMAIN_DECOMP_ATM   [MPI_Support/DomainDecomLatLon.f]
+     use dist_grid_mod
+     use Halo_mod
+     use SpecialIO_mod
+     use GatherScatter_mod
+     use GlobalSum_mod
+     use iso_c_binding
+
+Module domain_decomp_atm   [CS_Support/DOMAIN_DECOMcs.f]
+     Use domain_decomp_1d, Only: am_i_root, sumxpe, read_parallel,write_parallel,broadcast, globalmax, setMpiCommunicator,
+                                hasSouthPole, hasNorthPole, getDomainBounds
+     Use dd2d_utils, Only: dist_grid,init_dist_grid,halo_update,globalsum
+     Use pario_fbsa
+     Use pario
+     USE ESMF, Only: ESMF_VM,ESMF_Grid
+
+Program MAIN   [main.F90]
+Call modelE_mainDriver ()   [MODELE_DRV.f]
+VVVVVVVVVVVVVVVVVVVVVVVVV
+
+Call read_options (qcRestart, coldRestart, iFile, max_wall_time)   [MODELE_DRV.f]
+Call GISS_modelE  (qcRestart, coldRestart, iFile, max_wall_time)   [MODELE.f]
+VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+
+Call openunit (trim(ifile),iu_IFILE,.false.,.true.)
+Call parse_params (iu_IFILE)
+Call closeunit (iu_IFILE)
+Call setup_ocean()
+Call initializeModelE   [MODELE.f]
+     Call initializeConstants ()
+     Call init_app ()   [MPI_Support/dist_grid_mod.F90]
+          Call MPI_INIT(rc)
+          Call setCommunicator(MPI_COMM_WORLD)
+          Call MPI_COMM_SIZE(COMMUNICATOR, NPES_WORLD, rc)
+          Call MPI_COMM_RANK(COMMUNICATOR, rank, rc)
+     Call initializeDefaultTimers ()   [MODELE.f]
+          Call INITIALIZE ()           [FV_INTERFACE.F90]
+               ModuleProcedure INITIALIZE_FV (FV_WRAPPER,ISTART,KDISK)
+     Call orbit%setVerbose(am_I_root())
+     Call calendar%setVerbose(am_I_root())
+     Call calendar%print(2000)   
+     Call alloc_drv_atm ()             [ATM_DRV.f]
+          Call init_grid (grid, im, jm, lm, CREATE_CAP=.true.)   [MPI_Support/dist_grid_mod.F90]
+               Call MPI_COMM_SIZE (COMMUNICATOR, distGrid%NPES_WORLD, rc)
+               Call MPI_COMM_RANK (COMMUNICATOR, distGrid%rank, rc)
+               Call mpi_comm_group(COMMUNICATOR,group_world,ierr)
+               Call mpi_group_incl(group_world,distGrid%npes_used,pelist,group_used,ierr)
+               Call mpi_comm_create(COMMUNICATOR,group_used, newCommunicator, ierr)
+               Call setMpiCommunicator(distGrid, newCommunicator)
+               Call init_dist_grid (distGrid%IM_WORLD,distGrid%JM_WORLD,1, &   [MPI_Support/dd2d_utils.f]
+                                    distGrid%I_STRT,distGrid%I_STOP, &
+                                    distGrid%j_strt,distGrid%J_STOP, &
+                                    distGrid%I_STRT_HALO,distGrid%I_STOP_HALO, &
+                                    distGrid%J_STRT_HALO,distGrid%J_STOP_HALO, &
+                                    COMMUNICATOR, distGrid)
+                    Call mpi_comm_rank(COMMUNICATOR,grid%gid,ierr)
+                    Call mpi_comm_size(COMMUNICATOR,grid%nproc,ierr)
+                    Call mpi_comm_group(COMMUNICATOR,group_world,ierr)
+                    Call mpi_group_incl(group_world,grid%nproc_tile,proclist, group_mytile,ierr)
+                    Call mpi_comm_create(COMMUNICATOR,group_mytile, tile_comms(itile),ierr)
+                    Call mpi_comm_rank(grid%comm_tile,grid%rank_tile,ierr)
+                    Call mpi_group_incl(group_world,grid%nprocx,proclist, group_row,ierr)
+                    Call mpi_comm_create(COMMUNICATOR,group_row, row_comm,ierr)
+                    Call mpi_comm_rank(grid%comm_row,grid%rank_row,ierr)
+                    Call genlist1(grid%nprocx,n,proclist)
+                    Call mpi_group_incl(group_world,nproc_comm,proclist, group_halo,ierr)
+                    Call mpi_comm_create(COMMUNICATOR,group_halo, halo_comm,ierr)
+                    Call mpi_comm_rank(grid%comm_ew,grid%rank_ew,ierr)
+                    Call genlist2_odd(grid%nprocx,n,proclist)
+                    Call genlist2_even(grid%nprocx,n,proclist)
+                    Call mpi_group_incl(group_world,nproc_comm,proclist, group_halo,ierr)
+                    Call mpi_comm_create(COMMUNICATOR,group_halo, halo_comm,ierr)
+                    Call mpi_comm_rank(grid%comm_ns,grid%rank_ns,ierr)
+                    Call mpi_group_incl(group_world,grid%ntiles,tile_root_procs, group_intertile,ierr)
+                    Call mpi_comm_create(COMMUNICATOR,group_intertile, grid%comm_intertile,ierr)
+                    Call mpi_allgather(grid%is,1,MPI_INTEGER,grid%isr,1,MPI_INTEGER, grid%comm_tile,ierr)
+                    Call mpi_allgather(grid%ie,1,MPI_INTEGER,grid%ier,1,MPI_INTEGER, grid%comm_tile,ierr)
+                    Call mpi_allgather(grid%js,1,MPI_INTEGER,grid%jsr,1,MPI_INTEGER, grid%comm_tile,ierr)
+                    Call mpi_allgather(grid%je,1,MPI_INTEGER,grid%jer,1,MPI_INTEGER, grid%comm_tile,ierr)
+               Call getAxisIndex(distGrid, AI)
+          Call geom_atm
+          Call alloc_dynamics (grid)   [ATMDYN_COM.f]
+               SIGE=, SIG=, DSIG=, byDSIG=
+               Call CALC_VERT_AMP (PSFMPT,LMR,PL00,AML00,PDSIGL00,PEDNL00,PMIDL00)
+          Call alloc_atm_com (grid)
+          Call alloc_smomtq (grid)
+          Call alloc_fluxes
+          Call alloc_clouds_com (grid)
+          Call alloc_ghy_com (grid)
+          Call alloc_pbl_com (grid)
+          Call alloc_diag_com (grid)
+          Call alloc_diag_loc (grid)
+          Call alloc_strat_com (grid)
+          Call alloc_rad_com (grid)
+          Call alloc_lakes (grid)
+          Call alloc_lakes_com (grid)
+          Call alloc_landice_com (grid)
+     Call alloc_drv_ocean ()
+          Call alloc_icedyn (grid%im_world,grid%jm_world)
+          Call alloc_icedyn_com (grid)
+               Call INIT_GRID(grid_NXY,NX1,NY1,1,npes_max=JMICDYN/3)
+               Call INIT_GRID(grid_ICDYN,IMICDYN,JMICDYN,1,npes_max=JMICDYN/3)   
+               Call getDomainBounds(grid_NXY, I_STRT_HALO=I_0H, I_STOP_HALO=I_1H, J_STRT_HALO=J_0H, J_STOP_HALO=J_1H)
+          Call alloc_seaice_com (grid)
+          Call alloc_ocean  
+               Call init_oceanr_grid      
+               Call getDomainBounds(ogrid, J_STRT_HALO=J_0H, J_STOP_HALO=J_1H)
+               Call sync_param( "ocean_use_qus", use_qus )
+               Call alloc_straits
+               Call alloc_gissmix_com(ogrid)
+               Call alloc_giss_sm_com(ogrid)
+               Call alloc_odiag(ogrid)
+               Call alloc_obio_com
+               Call alloc_odiff(ogrid)
+               Call alloc_ocnmeso_com
+               Call read_ocean_topo
+               Call GEOMO
+Call INPUT (istart,ifile,coldRestart)   [MODELE.f]
+     ISTART = 10
+     Call OPENUNIT (IFILE,IU_IFILE,.False.,.True.)
+     Read (IU_IFILE,'(A80)') XLABEL(1:80),NLREC
+     Call print_and_check_PPopts   If AM_I_ROOT
+     Read (IU_IFILE, NML=INPUTZ, Err=900)
+     If (coldRestart) Read (IU_IFILE, NML=INPUTZ_COLD, Err=900)
+     Call CLOSEUNIT (IU_IFILE)
+     Call get_param( "DTsrc", DTsrc )
+     Call get_param( "IRAND", IRAND )
+
+     ISTART == 2 or ISTART == 8
+     --------------------------
+     Call tmpTime%setByDate (yearI, monthI, dateI, hourI)
+     Call modelEtime0%setByDate (iyear1, month=1, date=1, hour=0)
+
+     ISTART == 8
+     -----------
+     Call IO_RSF ("AIC",IhrX,irsfic,ioerr)   [IO_DRV.f]
+     Call modelEtimeI%add (calendar%getSecondsPerHour()*IhrI)
+
+     ISTART == 9
+     -----------
+     Call IO_RSF ("AIC",Itime,irerun,ioerr)
+
+     ISTART == 10, 11, 12, 13+
+     -------------------------
+     Call IO_RSF (rsf_file_name(KDISK),Itime,ioread,ioerr)   [IO_DRV.f]
+          Call set_ioptrs_acc_default
+          Call new_io_label  (fid,iaction,it)
+          Call new_io_atmvars(fid,iorw)   [ATM_DRV.f]
+               Call new_io_atm    (fid,iorw)   [ATM_COM.f]
+                    +++
+                    Call write_dist_data(grid, fid, 'p', p)
+                    Call write_dist_data(grid, fid, 'ma', ma, jdim=3)
+                    +++
+                    Call READ_dist_data(grid, fid, 'p', p)
+                    MVAR = [P(I,J)+PTOP]*MB2KG - MFIXs - MTOP
+                    MA(:,I,J) = MFIX(:) + MVAR*MFRAC(:)
+                    Call HALO_UPDATE_COLUMN (GRID, MA)
+                    Call MAtoPMB   
+                    +++
+               Call new_io_lakes  (fid,iorw)
+               Call new_io_agrice (fid,iorw)
+               Call new_io_earth  (fid,iorw)
+               Call new_io_soils  (fid,iorw)
+               Call new_io_vegetation  (fid,iorw)
+               Call new_io_veg_related (fid,iorw)
+               Call new_io_snow   (fid,iorw)
+               Call new_io_landice(fid,iorw)
+               Call new_io_bldat  (fid,iorw)
+               Call new_io_pbl    (fid,iorw)
+               Call new_io_clouds (fid,iorw)
+               Call new_io_somtq  (fid,iorw)
+               Call new_io_rad    (fid,iorw)
+               Call new_io_icedyn (fid,iorw)
+               Call new_io_subdd  (fid,iorw)
+               Call new_io_fluxes (fid,iorw)
+          Call new_io_ocean  (fid,iorw)
+               Call new_io_sstmod(fid,iaction)   If(KOCEAN==0)
+                    Call write_dist_data(grid, fid, 'tocean', tocean_4io, jdim=3)   If(IOWRITE)
+                    Call read_dist_data(grid, fid, 'tocean', tocean_4io, jdim=3)   If(IOREAD)
+               Call new_io_ocnml(fid,iaction)   If(KOCEAN/=0)
+          Call new_io_seaice (fid,iorw)
+
+     ISTART == all
+     -------------
+     Call modelEtime0%setByDate(iyear1, month=1, date=1, hour=0)
+     Call init_Model
+     Call modelEtime0%setByDate(iyear1, month=1, date=1, hour=0)
+     Call modelEtime0%add(dtSrcUsed * itime0)
+     Call modelEtime%setByDate(Iyear1, 1, 1, 0)
+     modelEclockI = ModelClock(modelETime, dtSrcUsed, itimeI)
+     Call modelETime%add( dtSrcUsed * itime )
+     modelEclock = ModelClock(modelEtime, dtSrcUsed, itime)
+     Call orbit%setYear(real(year,kind=8))
+     Call DAILY_cal(.false.)                  ! not end_of_day
+
+     ISTART == 2 or (ISTART == 8 and INIT_TOPOG_RELATED == 1)
+     --------------------------------------------------------
+     Call INPUT_ocean (istart,istart_fixup,do_IC_fixups,is_coldstart)
+          Call read_seaice_ic   If(ISTART==2)
+          Call init_oceanice (iniOCEAN,do_IC_fixups,atmocn)
+          Call init_icedyn (iniOCEAN,atmice)
+               Call GEOMICDYN()
+               Call init_band_pack_type (atmice%grid, grid_ICDYN, grid_ICDYN%J_STRT_HALO,grid_ICDYN%J_STOP_HALO, pack_a2i)
+               Call init_band_pack_type (grid_ICDYN, atmice%grid, atmice%grid%J_STRT_HALO,atmice%grid%J_STOP_HALO, pack_i2a)
+               Call band_pack (pack_a2i, atmice%focean, ifocean) ! ifocean = afocean
+               Call ICE_HALO(grid_ICDYN, iFOCEAN)
+               Call ICDYN_MASKS()
+               Call getDomainBounds( grid_NXY,J_STRT_HALO=J_0H, J_STOP_HALO=J_1H, J_STRT=J_0, J_STOP=J_1, J_STOP_SKP=J_1S)
+               Call get_uisurf(usi,vsi,atmice)     
+          Call init_OCEAN (iniOCEAN,istart_fixup,atmocn,igice)
+               fid = par_open(grid,'GIC','read')
+               Call new_io_ocean (fid,ioread)   If(istart<=2 and file_exists('GIC'))
+               Call set_gtemp_sst(atmocn)   If(KOCEAN==0)
+               Call init_sstmod(atmocn)   If(KOCEAN==0)
+                    Call init_stream(grid,SSTstream,'OSST','sst',-100d0,100d0,'ppm',jyear,jday,msk=atmocn%focean,cyclic=cyclic)
+               Call set_gtemp_ocnml(atmocn)   If(KOCEAN/=0)
+               Call init_ocnml(iniOCEAN,istart,atmocn)   If(KOCEAN/=0)
+     Call INPUT_atm (istart,istart_fixup,do_IC_fixups,is_coldstart,KDISK_restart,IRANDI)   [ATM_DRV.f]
+          Call set_param("IM",IM,'o')
+          Call READ_AIC ()    If(ISTART==2)   [ATM_DRV.f]
+
+               traditional_coldstart_aic
+               -------------------------
+               Call read_dist_data(grid,fid,'u',uout)
+               Call read_dist_data(grid,fid,'v',vout)
+               Call read_dist_data(grid,fid,'t',tout)
+               Call read_dist_data(grid,fid,'p',psrf)
+               Call read_dist_data(grid,fid,'q',qout)
+               Call par_close(grid,fid)
+
+               not traditional_coldstart_aic
+               -----------------------------
+
+          Call AIC_PART2 ()   If(ISTART==2)   [ATMDYN_COM.F90]
+               MVAR = P(I,J)*mb2kg - MFIXs - MTOP  !  P = surface pressure (mb)
+               MA(:,I,J) = MFIX(:) + MVAR*MFRAC(:)
+               Call HALO_UPDATE_COLUMN (GRID, MA)
+               Call MAtoPMB              
+               T(I,J,L) = T(I,J,L) / PK(L,I,J)
+               Call TQ_ZMOM_INIT (T,Q,PMID,PEDN)
+               Call RECALC_AGRID_UV
+
+          Call RINIT (IRANDI)   If(ISTART<10 and IRANDI/=0)
+          Call PERTURB_TEMPS    If(ISTART<10 and IRANDI/=0)
+          Call RINIT (IRAND)
+          Call FFT0 (IMLON)  !  Call FFT0 (IM)
+          Call init_QUS(grid,im,jm,lm)
+          Call INIT_ATMDYN   If(notCUBED-SPHERE)
+          Call init_sdrag
+          Call init_GWDRAG
+          Call init_CLD (istart)
+          Call init_RAD (istart)
+          Call daily_orbit (.false.)             ! not end_of_day
+          Call daily_ch4ox (.false.)             ! not end_of_day
+          Call daily_RAD (.false.)
+          Call read_rad_ic   If(ISTART==2)
+          Call atm_phase1_exports
+          Call read_agrice_ic   If(ISTART==2)
+          Call init_lakeice (inilake,do_IC_fixups)
+          Call seaice_to_atmgrid (atmice) ! set gtemp etc.
+          Call init_LAKES (inilake,istart_fixup)
+          Call read_landsurf_ic   If(ISTART==2)
+          Call init_LSM (DTsrc/NIsurf,redoGH,iniSNOW,inilake,ISTART)
+               Call init_gh(dtsurf,istart)
+               Call init_veg( istart, redogh )
+               Call init_land_surface(redogh,inisnow,inilake,istart)
+               Call init_irrigmod()
+                    Call init_stream(grid,IRRIGstream,'IRRIG','irrigation_per_m2',
+     &                               0d0,1000d0,'linm2m',jyear,jday,cyclic=cyclic)
+                    Call read_irrig(.false.)
+                         Call read_stream(grid,IRRIGstream,jyear,jday,irrig_water_pot)
+          Call daily_EARTH (.false.)            ! not end_of_day
+          Call init_flammability
+          Call read_landice_ic   If(ISTART==2)
+          Call init_LI (istart_fixup)
+          Call recalc_agrid_uv   If(INIPBL)  ! PBL needs A-grid winds
+          Call init_pbl (iniPBL,istart)
+          Call init_DIAG
+          Call UPDTYPE   ! for atm-grid diags
+          Call DAILY_atmdyn (.false.)           ! not end_of_day
+
+          Call Initialize (fvstate, istart, kdisk_restart)
+
+          Call daily_OCEAN (.false.,atmocn)   [OCEAN.f]
+               Call daily_ocnml (end_of_day,atmocn,atmice)   If(KOCEAN>0)
+               Call set_gtemp_ocnml (atmocn)   If(KOCEAN>0)
+               Call read_sst (end_of_day,atmocn)   If(KOCEAN<=0)
+                    Call read_stream (grid,SSTstream,jyear,jday,SST)
+               Call set_gtemp_sst (atmocn)   If(KOCEAN<=0)
+               Call daily_seaice (end_of_day,atmocn,atmice)   If(KOVEAN<=0)  
+          Call seaice_to_atmgrid (atmice)
+          Call UPDTYPE
+          Call CHECKT ('INPUT ')
+               Call CHECK3B (U(I_0STG:I_1STG,J_0STG:J_1STG,:),I_0STG,I_1STG,J_0STG,J_1STG,0,LM,SUBR,'u     ')
+               Call CHECK3B (V(I_0STG:I_1STG,J_0STG:J_1STG,:),I_0STG,I_1STG,J_0STG,J_1STG,0,LM,SUBR,'v     ')
+               Call CHECK3B (T(I_0:I_1,J_0:J_1,:),I_0,I_1,J_0,J_1,NJPOL,LM,SUBR,'t     ')
+               Call CHECK3B (Q(I_0:I_1,J_0:J_1,:),I_0,I_1,J_0,J_1,NJPOL,LM,SUBR,'q     ')
+               Call CHECK3B (P(I_0:I_1,J_0:J_1),I_0,I_1,J_0,J_1,NJPOL,1,SUBR,'p     ')
+!              Call CHECK3B (WM(I_0:I_1,J_0:J_1,:),I_0,I_1,J_0,J_1,NJPOL,LM,SUBR,'wm    ')
+               Call CHECK3B (QCL(I_0:I_1,J_0:J_1,:),I_0,I_1,J_0,J_1,NJPOL,LM,SUBR,'qcl   ')
+               Call CHECK3B (QCI(I_0:I_1,J_0:J_1,:),I_0,I_1,J_0,J_1,NJPOL,LM,SUBR,'qci   ')
+               Call CHECKPBL (SUBR)
+               Call CHECKO (SUBR)   If(KOCEAN/=0)
+                    Call CHECK3C (TOCEAN(:,I_0:I_1,J_0:J_1),3,I_0,I_1,J_0,J_1,NJPOL,SUBR,'toc')
+               Call CHECKI (SUBR)   [LAKES.f]
+               Call CHECKL (SUBR)
+               Call CHECKE (SUBR)
+               Call CHECKLI (SUBR)
+
+     Call reset_adiag(0)   If ISTART<10
+     Call reset_odiag(0)   If ISTART<10
+     Call reset_glaacc
+
+Call modelEclock%get(hour=hour, date=date, year=year,amn=amon)
+Call sys_flush (6)
+
+MAIN-LOOP:
+----------
+Call gettime (tloopbegin)
+Call checkpointModelE ()   If(NDISK>0)
+     Call rfinal(IRAND)
+     Call set_param( "IRAND", IRAND, 'o' )
+     Call io_rsf(rsf_file_name(KDISK),Itime,iowrite,ioerr)
+          fid = par_open(grid,trim(tmpname),'read')
+          fid = par_open(grid,trim(tmpname),'create')
+          Call def_rsf_label(fid)
+               Call defvar(grid,fid,intdum,'rparam')
+               Call defvar(grid,fid,intdum,'iparam')
+               Call defvar(grid,fid,intdum,'cparam')
+               Call new_io_param(fid,iowrite,.false.)
+                    Call get_param(pname,pvali,plen,update_access_flag=.false.)
+                    Call write_attr(grid,fid,'iparam',trim(pname), pvali(1:plen))     
+                    Call get_param(pname,pvalr,plen,update_access_flag=.false.)
+                    Call write_attr(grid,fid,'rparam',trim(pname), pvalr(1:plen))
+                    Call get_param(pname,pvalc,plen,update_access_flag=.false.)
+                    Call write_attr(grid,fid,'cparam',trim(pname),cstr)
+          if(do_io_prog) Call def_rsf_prog(fid)
+               Call def_rsf_atmvars(fid)
+                    Call new_io_atm    (fid,iorw)
+                         Call write_dist_data(grid, fid, 'ma', ma, jdim=3)     
+                         Call write_dist_data(grid, fid, 'u', u)
+                         Call write_dist_data(grid, fid, 'v', v)
+                         Call write_dist_data(grid, fid, 't', t)
+                         Call write_dist_data(grid, fid, 'p', p)
+                         Call write_dist_data(grid, fid, 'q', q)
+                         Call write_dist_data(grid, fid, 'qcl', qcl)
+                         Call write_dist_data(grid, fid, 'qci', qci)
+                    Call new_io_lakes  (fid,iorw)
+                    Call new_io_agrice (fid,iorw)
+                    Call new_io_earth  (fid,iorw)
+                    Call new_io_soils  (fid,iorw)
+                    Call new_io_vegetation  (fid,iorw)
+                    Call new_io_veg_related(fid,iorw)
+                    Call new_io_snow   (fid,iorw)
+                    Call new_io_landice(fid,iorw)    
+                    Call new_io_bldat  (fid,iorw)
+                    Call new_io_pbl    (fid,iorw)
+                    Call new_io_clouds (fid,iorw)
+                    Call new_io_lightning(fid,iorw)
+                    Call new_io_somtq  (fid,iorw)
+                    Call new_io_rad    (fid,iorw)
+                    Call new_io_icedyn (fid,iorw)
+                    Call new_io_flammability(fid,iorw)
+               Call def_rsf_ocean  (fid)
+               Call def_rsf_seaice (fid)
+          if(do_io_acc) Call def_acc_all(fid,r4)
+          if(do_io_longacc) Call def_rsf_longacc(fid,r4)
+          if(iaction.eq.iowrite_single) Call def_acc_meta(fid)
+          Call par_enddef(grid,fid)
+          Call new_io_atmvars(fid,iorw)
+          Call new_io_ocean  (fid,iorw)
+          Call new_io_seaice (fid,iorw)
+     Call checkpoint(fvstate, rsf_file_name(KDISK))   If USE_FVCORE
+Call startNewDay ()   If(modelEclock%isBeginningOfDay())
+     cMonth = calendar%getCalendarMonth(month=month-1,year=year)
+     newmonth = (day_of_year == 1+ cMonth%lastDayInMonth)
+     Call daily_DIAG(newmonth) ! atmosphere
+     Call reset_ODIAG(0)   If(newmonth)
+Call ATM_PHASE1   [ATM_DRV.f]
+     Call CHECKT ('DYNAM0')
+     Call DIAGCA (1)   If Mod(ITIME-ITIMEI,NDA5D)
+     MAOLD(:,:,:) = MA(:,:,:)   save for clouds
+     PMIDOLD(:,:,:) = PMID(:,:,:)
+     PS(:,:) = P(:,:)
+     Call CONSERV_SE (SEINIT)   [DIAG.f]
+     Call CONSERV_KE (KEINIT)   [DIAG.f]
+
+     Latitude-Longitude Grid
+     -----------------------
+     Call DYNAM   [ATMDYN.f]
+          Initial Forward Step:  MODD3 = MA + .667*DT*F(U,V,MA)
+          MRCH=0
+          Call AFLUX  (NS,   U,V,MA,MASUM,    MA   ,MASUM)
+          Call ADVECM (DTFS,         MA,      MODD3,MSUMODD)    
+               Call MAtoP (MNEW,MSUM)   [ATMDYN_COM.F90]
+          Call GWDRAG (DTFS, U,V,       UX,VX,MODD3, T,TZ, .True.)   
+          Call VDIFF  (DTFS, U,V,       UX,VX,MODD3, T)
+          Call ADVECV (DTFS, U,V,MA, MA,UX,VX,MODD3)
+          Call PGF    (DTFS, U,V,MA,    UX,VX,MODD3, T,TZ)
+            Call CALC_PIJL (LM,P,PIJL)
+          Call isotropuv (ux,vx,COS_LIMIT)  
+          +++
+          Even leap frog step:  MA = MEVEN + 2*DT*F(UT,VT,MODD1)
+          MRCH=2
+          Call AFLUX  (NS,   UT,VT,MODD1,MSUMODD,   MEVEN,MASUM)
+          Call ADVECM (DTLF,              MEVEN,    MA,MASUM)
+          Call GWDRAG (DTLF, UT,VT,             U,V,MA, T,TZ, .False.)
+          Call VDIFF  (DTLF, UT,VT,             U,V,MA, T)
+          Call ADVECV (DTLF, UT,VT,MODD1, MEVEN,U,V,MA)
+            Call CALC_PIJL (LS1-1,PA,PIJL)
+            IF(MODDA.LT.MRCH) Call DIAGA0   ! strat
+          Call AADVT (DTLF, MMA,T,TMOM, .False., FPEU,FPEV)
+            Call CALC_PIJL(LS1-1,PC,PIJL)
+          Call PGF    (DTLF, UT,VT,MODD1,       U,V,MA, TT,TZT)       
+          Call COMPUTE_MASS_FLUX_DIAGS (GZ, MU,MV, DT) 
+            Call CALC_AMPK(LS1-1)
+          Call isotropuv(u,v,COS_LIMIT)
+          if (USE_UNR_DRAG==0) Call SDRAG (DTLF)
+          Call DIAGA
+          Call DIAGB
+          Call EPFLUX (U,V,T,P)
+          End Leap Frog Time Scheme:
+          +++
+          If (USE_UNR_DRAG == 1)  Call UNRDRAG (P,U,V,T,TZ,UNRDRAG_X,UNRDRAG_Y) 
+          Call FLTRUV (U,V,UT,VT)
+          Call conserv_amb_ext (u,am1) ! calculate ang. mom. before filter
+          Call fltry2 (u,1d0)          ! 2nd arg could be set using DT_YUfilter
+          Call fltry2 (v,1d0)          ! 2nd arg could be set using DT_YVfilter
+          Call conserv_amb_ext (u,am2) ! calculate ang. mom. after filter
+          am2(:,j_0stg:j_1stg) = am1(:,j_0stg:j_1stg)-am2(:,j_0stg:j_1stg)  
+          Call globalsum (grid,am2,damsum,all=.true.)
+          Call add_am_as_solidbody_rotation (u,damsum) ! maintain global ang. mom.
+
+     Cube-Sphere Grid
+     ----------------
+     Call DIAG0
+     Call RUN (FVSTATE)                                        [FV_INTERFACE.F90]
+          ModuleProcedure RUN_FV (FV_WRAPPER)                  [FV_INTERFACE.F90]
+               Call CALC_AMP (P,MMA)
+               Call COPY_ModelE_to_FV_IMPORT (FV_WRAPPER%FV)
+               Call CLEAR_ACCUMULATED_MASS_FLUXES ()           [FV_UTILS.F90]
+               Call ESMF_GridCompRun (fv_wrapper%fv%gc,importstate=fv_wrapper%fv%import,exportstate=fv_wrapper%fv%export,clock=clock,phase=addIncsPhase,rc=rc)
+               Call clearTendencies  (fv_wrapper%fv)           [FV_UTILS.F90]
+               Call ESMF_GridCompRun (fv_wrapper%fv%gc,importstate=fv_wrapper%fv%import,exportstate=fv_wrapper%fv%export,clock=clock,rc=rc)
+               Call ESMF_TimeIntervalSet (timeInterval, s=nint(DT), rc=rc)
+               Call ESMF_ClockAdvance (clock, timestep=timeInterval, rc=rc)
+               Call accumulate_mass_fluxes (fv_wrapper%fv)     [FV_CS_Mod.F90]
+               Call Copy_FV_export_to_modelE (fv_wrapper%fv)   [FV_CS_Mod.F90] ! inside loop to accumulate MUs,MVs,MWs
+               Call reset_tmom                                 [FV_INTERFACE.F90]
+               Call reset_qmom   [If USE_FV_Q]                 [FV_INTERFACE.F90]
+               phi = compute_phi (P, T, TMOM(MZ,:,:,:), ZATMO) [FV_UTILS.F90]
+               Call compute_mass_flux_diags (phi, pu, pv, dt)   [If FVCUBED_SKIPPED_THIS]
+               Call compute_cp_vvel (MUs,MVs,MWs,p)            [ATM_DUM.f]
+
+     Call SDRAG (DTsrc)   If not CUBED-SPHERE
+     Call DIAGA
+     Call DIAGB
+     Call EPFLUX   If CUBED-SPHERE
+
+     Call COMPUTE_DYNAM_AIJ_DIAGNOSTICS (MUs, MVs, DT)   If not CUBED-SPHERE
+     Call COMPUTE_WSAVE
+     Call QDYNAM  !  Advection of Q by integrated fluxes   [ATMDYN.f]
+          Call AADVQ0  !  uses the fluxes MUs,MVs,MWs from DYNAM     [TQUS_DRV.f]
+               MVs(:,1:JM-1,:) = MVs(:,2:JM,:)
+          Call AADVQ (Q,QMOM, .TRUE. ,'q       ')
+     Call TRDYNAM
+     Call CONSERV_SE (SEFINAL)
+     Call CONSERV_KE (KEFINAL)
+     Call GLOBALSUM (GRID, SEFINAL, dSEpKE, ALL=.True.)
+     Call GLOBALSUM (GRID, KEFINAL, MMGLOB, ALL=.True.)
+     Call CALC_TROP   [ATM_UTILS.f]
+     Call PGRAD_PBL
+     Call calc_zenith_angle (modelEclock, 1, cosz1)   [Zenith.F90]
+          Call COSZT (ROT1,ROT2,COSZ1)
+     Call CHECKT ('DYNAM ')
+     Call DIAGCA (2)   If Mod(ITIME-ITIMEI,NDA5D)
+     Call calc_kea_3d (kea)
+     Call GWDRAG          If CUBED-SPHERE
+     Call SDRAG (DTsrc)   If CUBED-SPHERE
+     Call MELT_SI (si_ocn,iceocn,atmocn,atmice)
+     Call MELT_SI (si_atm,icelak,atmocn,atmice)
+     Call seaice_to_atmgrid (atmice)
+     Call CONDSE
+     Call CHECKT ('CONDSE')
+     Call DIAGCA (3)
+     Call RADIA   [RAD_DRV.f]
+          Call calc_zenith_angle (modelEclock, 1, cosz1)
+          Call calc_zenith_angle (modelEclock, NRAD, cosz2, cosza)
+          Call RCOMPX
+     Call CHECKT ('RADIA ')
+     Call DIAGCA (4)
+     Call atm_phase1_exports
+
+Call PRECIP_SI(si_ocn,iceocn,atmice)  ! move to ocean_driver
+Call PRECIP_OC(atmocn,iceocn)         ! move to ocean_driver
+Call SURFACE   [SURFACE.f]
+     Call downscale_pressure_li
+     Call PRECIP_SI(si_atm,icelak,atmice)
+     Call PRECIP_LI(atmglas(ipatch),ipatch)
+     Call IRRIG_LK
+          Call irrigate_extract(I,J,MWL(I,J),GML(I,J),MLDLK(I,J),TLAKE(I,J),
+                    FLAKE(I,J),HLAKE_MIN,MWL_to_irrig,GML_to_irrig,irrig_gw
+                    ,irrig_gw_energy,irrig_water_actij,irrig_energy_actij
+     Call PRECIP_LK
+     Call CHECKT ('PRECIP')
+     Call seaice_to_atmgrid(atmice)
+     Call alloc_pbl_args(pbl_args)
+     DO NS=1,NIsurf
+     Call loadbl
+     Call recalc_agrid_uv
+     Call atm_exports_phasesrf
+     Call get_dbl
+     Call surface_diag0(moddd,ih,ihm)
+     Call solar_ice_frac(SNOW,MSI2,si_atm%FLAG_DSWS(I,J),FSRI,2)    
+     Call PBL(I,J,1,ITYPE,PTYPE,pbl_args,atmocn)
+     Call PBL(I,J,1,ITYPE,PTYPE,pbl_args,atmice)
+     Call downscale_temperature_li
+     Call SURFACE_LANDICE(NS==1,MODDD,DTSURF,atmglas(ipatch),ipatch)
+     Call EARTH (NS,MODDSF,MODDD)
+          Call alloc_pbl_args(pbl_args)
+          Call get_canopy_temperaure(pbl_args%canopy_temperature, i, j)
+          Call pbl(i,j,1,itype,ptype,pbl_args,atmlnd)
+          Call get_fb_fv( fb, fv, i, j )
+          Call advnc (entcells(i,j), Ca, cos_zen_angle, vis_rad, direct_vis_rad, ...
+          Call evap_limits (.false., evap_max_ij(i,j), fr_sat_ij(i,j) )
+          Call ghy_diag (i,j,jr,kr,ns,moddsf ,rcdmws,cdm,cdh,cdq,qg,dlwdt ,pbl_args, pbl_args%dtsurf)
+          Call dealloc_pbl_args(pbl_args)
+     Call avg_patches_pbl_exports(grid,asflx,atmsrf)       
+     Call avg_patches_srfflx_exports(grid,asflx,atmsrf)
+     Call avg_patches_srfstate_exports(grid,asflx,atmsrf)
+     Call apply_fluxes_to_atm(dtsurf)     
+     Call ATM_DIFFUS(1,1,dtsurf)
+     Call surface_diag2(moddd,ih,ihm, srhdt_sv,trhdt_sv,evhdt_sv,shdt_sv,evap_sv)
+     Call dealloc_pbl_args(pbl_args)
+     Call GROUND_LI(atmglas(ipatch),ipatch)
+     Call avg_patches_srfflx_exports(grid, atmglas(:)%atmsrf_xchng_vars,atmgla%atmsrf_xchng_vars, rel=.true.)  
+     Call avg_patches_srfflx_exports_gla(grid,atmglas,atmgla, rel=.true.)
+     Call avg_patches_srfstate_exports(grid, atmglas(:)%atmsrf_xchng_vars,atmgla%atmsrf_xchng_vars, rel=.true.)
+     Call avg_patches_srfstate_exports(grid,asflx,atmsrf)
+     Call surface_diag1a
+     Call surface_diag3
+     Call UNDERICE (si_atm,icelak,atmocn)
+     Call GROUND_SI (si_atm,icelak,atmice,atmocn)
+     Call GROUND_LK   [LAKES.F90]
+          Call LKSOURC (I,J,ROICE,MLAKE,ELAKE,RUN0,FODT,FIDT,SROX,FSR2, EVAPO,ENRGFO,ACEFO,ACEFI,ENRGFI)
+          Call LKMIX (MLAKE,ELAKE, HLAKE(I,J),TKE,ROICE,DTSRC)
+     Call CHECKT ('GRNDLK')
+     Call RIVERF
+     Call FORM_SI (si_atm,icelak,atmice)
+     Call SI_diags (si_atm,icelak,atmice)
+     Call CHECKT ('SURFACE')      
+     Call DIAGCA (5)
+          Call DIAGCO (5)
+Call OCEAN_DRIVER   [OCN_DRV.f]
+     Call SEAICE_to_ATMGRID (ATMICE)     If CUBED_SPHERE
+     Call DYNSI (atmice,iceocn,si_atm)   If CUBED_SPHERE
+     Call DYNSI (atmice,iceocn,si_ocn)
+          Call VPICEDYN      
+     Call UNDERICE (si_ocn,iceocn,atmocn)   [SEAICE_DRV.f]
+     Call GROUND_SI (si_ocn,iceocn,atmice,atmocn)   [SEAICE_DRV.f]
+          Call SEA_ICE (DTSRC,SNOW,ROICE,HSIL,SSIL,MSI2,F0DT,F1DT,EVAP,SROX,FMOC,FHOC,FSOC,RUN,ERUN,SRUN,WETSNOW,MELT12)
+          Call SSIDEC (SNOW,MSI2,HSIL,SSIL,DTsrc,MELT12,MFLUX,HFLUX,SFLUX)
+          Call snowice (Tm,Sm,SNOW,MSI2,HSIL,SSIL,qsfix,MSNWIC,HSNWIC,SSNWIC,DSNOW)    
+
+     Call CALC_APRESS (atmice)
+     Call OCEANS (atmocn,iceocn,igice)   [OCNDYN2.f]
+          Call AG2OG_oceans(atmocn,iceocn)
+          Call IG2OG_oceans(dynsice)
+          Call GROUND_OC   [OCNDYN.f]
+               Call OSOURC (ROICE,MO1,G0ML,GZML,SO1,DXYPJ,byDXYPJ,LMM,RUNO,RUNI,ERUNO,ERUNI,SRUNO,SRUNI,SROX,DMOO,DEOO,DMOI,DEOI,DSOO,DSOI)
+          Call OSTRES2
+          Call DIAGCO (11,atmocn)
+          Call OCONV
+          Call OBDRAG2   If OBOTTOM_DRAG == 1
+          Call OCOAST    If OCOASTAL_DRAG == 1
+
+          Integrate Ocean Dynamics
+          ------------------------
+          Call ODHORZ0
+          Call ODHORZ (MO ,UO ,VO ,UOD ,VOD ,OPBOT , MO2,UO2,VO2,UOD2,VOD2,OPBOT2, DTOFS,.false.)
+          Call ODHORZ (MO2,UO2,VO2,UOD2,VOD2,OPBOT2, MO1,UO1,VO1,UOD1,VOD1,OPBOT1, DTO,.false.)
+          Do N=1,NDYNO/2*NOCEAN
+          Call ODHORZ (MO1,UO1,VO1,UOD1,VOD1,OPBOT1, MO ,UO ,VO ,UOD ,VOD ,OPBOT , DTOLF,.true.)   [even]
+          Call ODHORZ (MO ,UO ,VO ,UOD ,VOD ,OPBOT , MO1,UO1,VO1,UOD1,VOD1,OPBOT1, DTOLF,.false.)  [odd]
+          Call OFLUXV
+          Call CONSERV_OCE (G0INIT)   
+          Call OADVT3 (G0M, GXMO,GYMO,GZMO, GXXMO,GYYMO,GZZMO, GXYMO,GYZMO,GZXMO, DTDUM,.FALSE.,OIJL(1,J_0H,1,IJL_GFLX))
+          Call OADVT3 (S0M, SXMO,SYMO,SZMO, SXXMO,SYYMO,SZZMO, SXYMO,SYZMO,SZXMO, DTDUM,.TRUE.,OIJL(1,J_0H,1,IJL_SFLX))
+          Call CONSERV_OCE (G0FINAL)
+          Call CHECKO ('OADVT ')
+
+          Call gather_ocean_straits()
+          Call STPGF (DTS/NOCEAN)   
+          Call STADV (DTS/NOCEAN)
+          Call STCONV   If NO == NOCEAN
+          Call STBDRA   If NO == NOCEAN
+          Call scatter_ocean_straits() 
+          Call BCAST_straits (.false.)
+          Call DIAGCO (12,atmocn)
+               Call conserv_ODIAG (M,conserv_OCE,icon_OCE,atmocn)
+                    Call CONSFN => CONSERV_OCE (TOTAL)
+
+          Call ODHORZ0
+          Call ODIFF (dt_odiff)
+          Call GMKDIF (1d0)
+          Call GMFEXP (G0M,GXMO,GYMO,GZMO,.FALSE.,OIJL(1,J_0H,1,IJL_GGMFL))
+          Call GMFEXP (S0M,SXMO,SYMO,SZMO,.TRUE. ,OIJL(1,J_0H,1,IJL_SGMFL))
+          Call OCN_mesosc   If OCN_MESOSCALES
+          Call TOC2SST (atmocn)
+          Call OG2AG_oceans (iceocn)
+          Call OG2IG_uvsurf (dynsice,atmocn)
+     Call FORM_SI (si_ocn,iceocn,atmice)  [SEAICE_DRV.f]
+          Call ADDICE (SNOW,ROICE,HSIL,SSIL,MSI2,TSIL,ENRGFO,ACEFO,ACEFI,ENRGFI,SALTO,SALTI,DMIMP,DHIMP,DSIMP,FLEAD,QFIXR)
+     Call SEAICE_to_ATMGRID (atmice) ! needed only to preserve former result
+     Call CHECKT ('FORMSI')
+     Call ADVSI (atmice)   [ICEDYN_DRV.f]                      
+     Call CHECKT ('ADVSI ')
+     Call SI_DIAGS (si_ocn,iceocn,atmice)   [SEAICE_DRV.f]
+Call ATM_PHASE2   [ATM_DRV.f]
+     Call seaice_to_atmgrid(atmice)
+     Call ADVSI_DIAG(atmocn,atmice) ! needed to update qflux model, dummy otherwise
+     Call vflx_OCEAN   IF (MOD(Itime+1,NDAY).ne.0 .and. MOD(Itime+1,NDAY/2).eq.0)
+     Call ATM_DIFFUS (2,LM-1,dtsrc)
+     Call CHECKT ('DRYCNV')
+     Call DIAGCA (9)
+          Call DIAGCO (9,ATMOCN)
+     Call UPDTYPE
+     Call DISSIP ! uses kea calculated before column physics
+     Call CHECKT ('DISSIP')
+     Call DIAGCA (7)
+     Call DIAGCA (1)
+     Call FILTER   [ATMDYN.f]
+          InitialTotalEnergy = GetTotalEnergy ()   [ATM_UTILS.f]
+          Call SHAP1D (8, X)
+          Call ISOTROPSLP (X, COS_LIMIT)
+          Call CALC_AMPK (LS1-1)
+          FinalTotalEnergy = GetTotalEnergy ()   [ATM_UTILS.f]
+          Call AddEnergyAsDiffuseHeat (FinalTotalEnergy - IinitialTotalEnergy)
+     Call CHECKT ('FILTER')
+     Call DIAGCA (8)
+     Call DIAGCA (1)
+Call modelEclock%nextTick()
+Call modelEclock%getDate(year, month, day, date, hour, amon)
+Itime=Itime+1                       ! DTsrc-steps since 1/1/Iyear1
+Call dailyUpdates   [MODELE.f]
+     Call daily_CAL(.true.)    ! end_of_day
+     Call daily_OCEAN(.true.,atmocn)  ! end_of_day
+          Call GLMELT(SECONDS_PER_DAY)
+          Call DIAGCO (10)
+          Call TOC2SST(atmocn)
+     Call daily_ATM(.true.)
+          Call DIAGCA (1)
+          Call daily_atmdyn(.true.)  ! end_of_day
+          Call daily_orbit(.true.)   ! end_of_day
+          Call daily_ch4ox(.true.)   ! end_of_day
+          Call daily_RAD(.true.)
+          Call daily_LAKE
+               Call read_irrig(.true.)
+          Call daily_EARTH(.true.)  ! end_of_day
+          Call daily_LI
+          Call CHECKT ('DAILY ')
+          Call DIAGCA (10)
+          Call UPDTYPE
+Call Compute_Tendencies (fvstate)   If USE_FVCORE
+
+If (NIPRNT > 0)  Then
+   filenm='PARTIAL.acc'//XLABEL(1:LRUNID)
+   Call io_rsf (filenm,Itime,iowrite_single,ioerr)
+   Call aPERIOD (JMON0,JYEAR0,months,1,0, aDATE(1:12),Ldate)
+   Call print_diags (1)
+        Call calc_derived_aij
+             Call diag_msu(pland,ts,tlm,ple,tmsu)
+        Call calc_derived_aijk
+        if(isccp_diags.eq.1) Call diag_isccp_prep
+        IF (KDIAG(12).LT.9) Call diag_OCEAN_prep
+        Call DIAG_GATHER
+        IF (KDIAG(1).LT.9) Call DIAGJ_PREP
+        IF (KDIAG(1).LT.9) Call DIAGJ
+        IF (KDIAG(2).LT.9) Call DIAGJL_PREP
+        IF (KDIAG(2).LT.9) Call DIAGGC_PREP
+        IF (KDIAG(2).LT.9) Call DIAGJK
+        IF (KDIAG(10).LT.9) Call DIAGIL
+        IF (KDIAG(7).LT.9) Call DIAG7P
+        IF (KDIAG(3).LT.9) Call DIAGIJ
+        IF (KDIAG(9).LT.9) Call DIAGCP
+        IF (KDIAG(5).LT.9) Call DIAG5P
+        IF (partial.eq.0 .and. KDIAG(6).LT.9) Call DIAGDD  ! full period
+        IF (KDIAG(13).LT.9) Call DIAGDH
+        IF (KDIAG(4).LT.9) Call DIAG4
+        IF (KDIAG(11).LT.9) Call diag_RIVER
+        IF (KDIAG(12).LT.9) Call diag_OCEAN
+        IF (KDIAG(12).LT.9) Call diag_ICEDYN
+        IF (isccp_diags.eq.1) Call diag_ISCCP
+        Call DIAGKN   
+        Call DIAGJLT
+        Call DIAGIJT
+        Call DIAGIJLT
+        Call DIAG_SCATTER
+
+If (isBeginningAccumPeriod(modelEClock)) then
+   Call aPERIOD (JMON0,JYEAR0,months,1,0, aDATE(1:12),Ldate)
+   Call print_diags (0)
+   filenm=aDATE(1:7)//'.acc'//XLABEL(1:LRUNID)
+   Call io_rsf (filenm,Itime,iowrite_single,ioerr)
+   Call RFINAL (IRAND)
+   Call set_param( "IRAND", IRAND, 'o' )
+   filenm='1'//aDATE(8:14)//'.rsf'//XLABEL(1:LRUNID)
+   Call io_rsf(filenm,Itime,iowrite_mon,ioerr)
+   Call Checkpoint(fvstate, filenm)   If USE_FVCORE
+   Call SUMXPE(TIMING, TIMING_glob, increment=.true.)
+
+Call broadcast(iflag)
+
+End of MAIN loop
+----------------
+Call RFINAL (IRAND)
+Call set_param( "IRAND", IRAND, 'o' )
+Call io_rsf(rsf_file_name(KDISK),Itime,iowrite,ioerr)
+Call finalize_atm

@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+
+if ( $#ARGV < 1 ) { print "Usage: $0 RunID rcode [owner]\n"; exit; }
+
+## default settings
+$CMRUNDIR='/u/cmrun';
+$EXECDIR='/u/exec';
+
+$modelerc = (getpwuid($>))[7]."/.modelErc";
+
+if ( -f $modelerc ) {
+  open MODELERC, $modelerc or die "can't open $modelerc";
+  while(<MODELERC>) {
+    ($CMRUNDIR = $1) if /^ *CMRUNDIR *= *(\S+)/;
+    $EXECDIR = $1 if /^ *EXECDIR *= *(\S+)/;
+  }
+  close MODELERC;
+}
+
+## get environment variables
+$MP_SET_NUMTHREADS = $ENV{MP_SET_NUMTHREADS};
+
+$runID = shift;
+$rcode = shift;
+$owner = shift;
+
+
+if ( $rcode == 12 ) {
+  `echo "$runID halted - ready for restart" | Mail -s "$runID temporarily halted" $owner` if $owner;
+  exit;
+  }
+
+if ( $rcode == 13 ) {
+  `echo "$runID reached end of run" | Mail -s "$runID ended" $owner` if $owner;
+  exit;
+  }
+
+
+## abnormal stop: checking info and trying automatic fixup
+
+## getting an error message
+if ( -f "run_status" ) {
+    $error_message = `tail -1 run_status`; chop $error_message;
+} else { # trying "nohup.out" for older runs
+    $error_message = `cat nohup.out | tail -1`; chop $error_message;
+}
+$subj_msg = "'$runID: $error_message'";
+
+## extracting the date (currently not working in general)
+($dummy, $tau, $date) =
+    split " ",`./$runID.exe -r | grep QCRESTART_DATA`;
+if ( $dummy !~ /^QCRESTART_DATA/ ) { $tau = 0; $date = ''; }
+
+## archive the error message
+`echo ' ' >> problem_log ; echo "Stopped $date" >> problem_log ; echo "$error_message" >> problem_log`;
+
+
+## report a problem
+  `cat $runID.PRT | tail -20 | Mail -s $subj_msg $owner` if $owner;
+  exit;

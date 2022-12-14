@@ -1,0 +1,228 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>ModelE rundeck</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>ModelE rundeck</H3>
+
+<P>
+A rundeck (a file with an extension .R) is a file which contains
+a complete description of a particular model run, including 
+the description of model code used and run-time parameters. 
+Directory modelE/templates contains typical rundecks which 
+can be used as examples.
+</P>
+
+<H4>Rundeck structure</H4>
+
+<P>
+Rundeck consists of a number of sections describing different
+aspects of the run. Each section starts with certain keywords
+(like "Object modules:") and terminates either with "End ..." 
+statement or with the start of a new section. The sections 
+are supposed to follow in a pre-defined order and can't be
+interchanged, though some unneeded sections can be skipped. 
+The character ! starts a comment. Everything to the right of ! 
+until the end of the line is ignored. Here is the list 
+of rundeck sections in proper order:
+<UL>
+ <LI> Run name and comment
+ <LI> Preprocessor Options
+ <LI> Run Options
+ <LI> Object modules
+ <LI> Components
+ <LI> Component Options
+ <LI> Data input files
+ <LI> Label and Namelist
+ <LI> Run-time parameters
+ <LI> Restart and timing parameters
+</UL>
+Any text after the last section is considered a comment and is
+ignored.
+</P>
+
+<H4>Run name and comment</H4>
+
+<P>
+The first line of this section should start from the name of
+this rundeck (including .R) and contain short information on the 
+run (no more than 80 characters). The rest of this section is 
+a comment.
+</P>
+
+<H4>Preprocessor Options</H4>
+
+<P>
+Starts with the line
+<pre>
+Preprocessor Options
+</pre>
+and ends with the line
+<pre>
+End Preprocessor Options
+</pre>
+This section should contain all preprocessing definitions you 
+want to be set in the code. Keep in mind that these preprocessing
+options are passed by means of creating a file rundeck_opts.h 
+which is included from the source files. When adding preprocessing
+instructions to a source file one should make sure that rundeck_opts.h
+is included at the start of this file.
+</P>
+
+<H4>Run Options</H4>
+
+<P>
+Starts with the line
+<pre>
+Run Options
+</pre>
+This section contains options for setting a proper environment 
+before startting a model run. Only one option is currently supported:
+<pre>
+STACKSIZE=stack size in KB>
+</pre>
+which sets a corresponding stack size. Currenlly if the default stack
+size is bigger than the one requested this option is <LI>ignored.
+
+
+<H4>Object modules</H4>
+
+<P>
+Starts with a line
+<pre>
+Object modules:
+</pre>
+This section lists all the source files from modelE/model which 
+have to be compiled with current executable. Only basename of
+these files should be given (no suffix). If more than one source
+file with the same basename is present in modelE/model directory
+the search is done in the following order: *.f, *.F90, *.c .
+For each source file one can specify individual compilation 
+options which will be appended to the compilation command. These
+options are specified between "||" after the file name, for
+example " MODELE |-O0 -g| " . The files located inside "Components"
+should not be listed in this section.
+
+
+<H4>Components</H4>
+
+<P>
+Starts with a line
+<pre>
+Components:
+</pre>
+This section lists all "Components" (the subdirectories of
+modelE/model) which have to be compiled with the executable. Keep in
+mind that each Component will be compiled into a library which will be
+then linked with the main executable. As a result in a case of a name
+conflict (more than one subroutine with the same name is present) the
+preference will be given to the one located in modelE/model
+directory. 
+
+
+<H4>Component Options</H4>
+
+<P>
+Starts with a line
+<pre>
+Component Options:
+</pre>
+This section lists specific options which have to be passed to certain
+components. For each Component the options are listed on a single line
+as follows
+<pre>
+OPTS_&ltComponentName&gt = &ltOpt1&gt=&ltX&gt &ltOpt2&gt=&ltY&gt
+</pre>
+where Opt1, Opt2 are variabes to be set and X, Y are corresponding
+values. The instruction above is equivalent to setting Opt1=X, Opt2=Y
+at the start of <tt>&ltComponentName&gt</tt> Makefile. 
+
+There is a special debugging option OVERWRITE_FSRCS which can be
+passed to any component (which uses base.mk). If this option is set to
+a list of source files, these files will be used when compiling the
+component (instead of the ones specified inside the component
+Makefile). The use of this option is discouraged for the production
+runs though (which should use the source files specified by the
+component itself). Similar option OVERWRITE_F90SRCS can be used to
+specify F90 files.
+
+
+<H4>Data input files</H4>
+
+<P>
+Starts with a line
+<pre>
+Data input files:
+</pre>
+This section lists all the input files used by the current
+executable. The files are listed in the form
+<pre>
+&ltshort_name&gt=&ltpath to the actual file&gt
+</pre>
+where &ltshort_name&gt is the name of the file used in the code and
+&ltpath to the actual file&gt is the path to the actual input file. The
+pass is specified with respect to GCMSEARCHPATH directory, unless it
+starts with "/" in which case it is an absolute path.
+</P>
+
+<H4>Label and Namelist</H4>
+
+<P>
+Starts with a line
+<pre>
+Label and Namelist:
+</pre>
+And consists of a single line which starts with the name of the
+run which is followed by a short description.
+
+This section may follow by (now obsolete) instruction
+<pre>
+DTFIX=&lttime_step&gt
+</pre>
+where &lttime_step&gt is a fall-back time step (s) which the model should
+use if it discovers internal instability.
+</P>
+
+<H4>Run-time parameters</H4>
+
+<P>
+Starts with a line
+<pre>
+&&PARAMETERS
+</pre>
+and ends with a line
+<pre>
+&&END_PARAMETERS
+</pre>
+This section contains all run-time parameters which have to be passed
+to the model. Parameters shoud be listed one per line in the form
+<pre>
+&ltparam_name&gt=&ltparam_value&gt
+</pre>
+where &ltparam_name&gt is the name of the parameter as it is used in the
+model code. &ltparam_value&gt is its numerical value. In case of an array
+&ltparam_value&gt is a coma-separated list of values. Values should be of
+the same type as the parameter they are assigned to (as it is declared
+in the model code).
+</P>
+
+<H4>Restart and timing parameters</H4>
+
+<P>
+Starts with a line
+<pre>
+ &INPUTZ
+</pre>
+This section contains the fortran namelist for the timing and restart
+parameters. By default these should be set to start the model from
+some kind of initial conditions and run it for one hour of model time 
+(for "make setup ...").
+</P>
+
+</BODY>
+</HTML>
+

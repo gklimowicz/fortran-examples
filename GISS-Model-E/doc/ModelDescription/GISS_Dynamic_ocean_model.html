@@ -1,0 +1,180 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>GISS Dynamic ocean model</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>GISS Dynamic ocean model</H3>
+
+<P> This model is a fully dynamic, non-Boussinesq, mass-conserving
+free surface ocean model (Russell et al, 1995, 2000, Liu et al 2002,
+2003). The dynamics is based on a modified Arakawa scheme on the
+C-grid, with a linear upstream scheme for advecting tracers. Vertical
+mixing uses the KPP scheme of Large et al (1996). Momentum mixing is
+modelled as a spatically varying laplacian as in Wajsowicz (1993). The
+effects of mesoscale eddies and isopycnal diffusion are parameterised
+as in Gent and McWilliams (1996), but using variable coefficients
+(Visbeck et al, 1997), and coded as in Griffies (1998).
+</P>
+
+<p> The model contains up to 12 variable depth subgrid scale straits
+which contect ocean grid cells, which would not be connected at the
+resolution used. In particular, the Straits of Gibraltar, Hormuz, and
+Nares straits are so modelled. All ocean components are fluxed through
+these straits as a function of the end to end pressure gradients,
+balanced against a drag proportional to the straits 'width' which
+serves as a tuning parameter to get reasonable fluxes. </p><BR>
+
+
+<B>Prognostic Variables</B><BR>
+MO(I,J,L) (kg/m&sup2;)  =  salt water mass per unit area<BR>
+G0MO(I,J,L) (J)  =  potential enthapy in grid cell<BR>
+GXMO,GYMO,GZMO (J)  =  linear gradients of potential enthalpy<BR>
+GXXMO,GYYMO,GZZMO,GXYMO,GYZMO,GZXMO (J)  =  second order moments of potential enthalpy<BR>
+S0MO(I,J,L) (kg)  =  salt mass in grid cell<BR>
+SXMO,SYMO,SZMO (J)  =  linear gradients of salt<BR>
+SXXMO,SYYMO,SZZMO,SXYMO,SYZMO,SZXMO (J)  =  second order moments of salt<BR>
+UO (I,J,L) (m/s)  =  eastward C-grid velocity centered at eastern edge of grid cell<BR> 
+VO (I,J,L) (m/s)  =  northward C-grid velocity centered at northern edge of grid cell<BR>
+UOD (I,J,L) (m/s)  =  eastward D-grid velocity centered at northern edge of grid cell<BR>
+VOD (I,J,L) (m/s)  =  northward D-grid velocity centered at eastern edge of grid cell<BR><BR>
+
+MUST (L,N) (kg/s)  =  mass flux of salt water through strait<BR>
+G0MST (L,N) (J)  =  potential enthalpy in strait cell<BR>
+GXMST,GZMST (J)  =  linear gradients of potential enthapy<BR>
+S0MST (L,N) (kg)  =  salt mass in strait cell<BR>
+SXMST,SZMST (kg)  =  linear gradients of salt<BR><BR>
+
+Cross sectional area of salinity as a function of longitude in an ocean grid cell is:<BR>
+S (kg/kg)  =  S0MO / M  +  2 * SXMO * m / M&sup2;  +  6 * SXXMO * m&sup2; / M&sup3;  -  .5 * SXXMO / M<BR>
+where  M (kg) = MO * oDXYP  and  - .5 M < m < .5 M<BR><BR>
+
+
+<B>Ocean Functions and the Equation of State</B><BR>
+The following variables are defined for the ocean model:<BR><BR>
+
+C (J/kg&deg;C) = specific heat capacity at constant pressure<BR>
+g (m/s&sup2;)   = Earth's vertical gravitational acceleration<BR>
+G (J/kg)   = potential specific enthalpy<BR>
+H (J/kg)   = specific enthalpy<BR>
+m (kg/m&sup2;)  = vertical coordinate = mass above minus mean atmospheric mass<BR>
+P (Pa)     = pressure above mean atmospheric pressure<BR>
+Po (Pa)    = global mean atmospheric pressure at sea level (101325 Pa)<BR>
+S (kg/kg)  = salinity<BR>
+T (&deg;C)     = in-situ temperature<BR>
+&alpha; (m&sup3;/kg)  = specific volume<BR>
+&beta; (m&sup3;/kg)  = potential specific volume<BR>
+&Gamma; (&deg;C/Pa)  = adiabatic lapse rate<BR>
+&Theta; (&deg;C)     = potential temperature<BR><BR>
+
+G and S can be calculated at any location in the ocean from m and
+the prognostic variables.  The purpose of this section is to derive P,
+H, T, &alpha; and &beta; from G, S and m or G, S and P.  Remember that P = m&middot;g.<BR><BR>
+
+&alpha;(T,S,P), C(T,S,P) and &Gamma;(T,S,P) are provided by Fofonoff and
+Millard [1983], but also see Fofonoff [1985].  H(T,S,P) is derived as
+follows:<BR><BR>
+
+&part;H/&part;P  =  &alpha;(T,S,P)   (Eq. 1)<BR><BR>
+
+&part;T/&part;P  =  &Gamma;(T,S,P)   (Eq. 2)<BR><BR>
+
+are integrated simultaneously from P to Po at constant entropy and
+salinity to obtain H(T,S,P) - H(&Theta;,S,Po).  Po is the reference pressure
+for potential temperature so that &Theta; = T at Po.  Next evaluate H(&Theta;,S,Po)
+- H(&Theta;,0,Po) at constant entropy and pressure which is provided by
+Millero and Leung [1976].  Finally, the differential equation<BR><BR>
+
+&part;H/&part;T  =  C(T,0,Po)   (Eq. 3)<BR><BR>
+
+is integrated from &Theta; to 0&deg;C at constant salinity and pressure to obtain
+H(&Theta;,0,Po) - H(0,0,Po).  The reference value for specific enthalpy is
+set by H(0,0,Po) = 0.  Thus H(T,S,P) is determined by the above formulas.<BR><BR>
+
+&Theta;(T,S,P) and T(&Theta;,S,P) are derived by integrating (Eq. 2) from P to
+Po.  The G of a parcel is defined to be the H of the parcel at Po were
+it raised adiabatically.  Thus, G(T,S,P) = H(&Theta;(T,S,P),S,Po) = G(&Theta;,S).
+&Theta;(G,S) is derived by inverting the first argument of G(&Theta;,S) which is
+possible because G and &Theta; are in a one-to-one relationship at constant S and Po.<BR><BR>
+
+T, H, &alpha; and &beta; can now be derived as functions of G, S and P.<BR>
+T(G,S,P) = T(G(&Theta;,S),S,P) = T(&Theta;,S,P)<BR>
+H(G,S,P) = H(G(&Theta;,S),S,P) = H(&Theta;,S,P) = H(&Theta;(T,S,P),S,P) = H(T,S,P)<BR>
+&alpha;(G,S,P) = &alpha;(G(&Theta;,S),S,P) = &alpha;(&Theta;,S,P) = &alpha;(&Theta;(T,S,P),S,P) =
+   &alpha;(T,S,P)<BR>
+&beta;(G,S) = &alpha;(G,S,Po)<BR><BR>
+
+Evaluation of &alpha;(G,S,P), called the equation of state, is
+performed by linear interpolation within a look-up table in the ocean
+model's computer program.  The increments in the table are 4000 (J/kg)
+for G, .001 for S, and 2&middot;10^5 (Pa) for P.<BR><BR>
+
+
+<B>Ocean Pressure Gradient Force</B><BR>
+
+The pressure gradient force accelerates the velocity between two
+mass grid cells at the same layer.  The force in a layer has two terms:
+the gradient of the mean pressure multiplied by the average mean volume
+of the two cells and the gradient of the mean geopotential multiplied
+by the average mass of the two cells.  Other gradients of
+potential enthalpy and salt are not used in calculating the above mean
+quantities, but the linear vertical gradients are used.<BR><BR>
+
+The mean vertical coordinate, m1, of a grid cell is the average of
+the top edge m and the bottom edge m.  &Delta;m1 is the difference of m at
+the two edges.  The mean pressure of a grid cell is P(m1) = m1&middot;g, where g
+(m/s&sup2;) is the uniform effective gravity.  To calculate the mean
+specific volume of a grid cell we assume that &alpha;(G(m),S(m),P(m)) = &alpha;(m)
+fits a quadratic polynomial in m.  The mean value of the quadratic &alpha;(m)
+from m1-&Delta;m1/2 to m1+&Delta;m1/2 is equal to [&alpha;(m1-x) + &alpha;(m1+x)]/2 where x =
+&Delta;m1/&radic;12.  The mean volume of a grid cell is equal to the
+mass multiplied by the mean specific volume which is calculated using
+quadratic precision using two evaluations of &alpha;(G,S,P) per grid cell at
+the vertical coordinates m1-x and m1+x.  This shows how the first term
+of the pressure gradient term is modeled.<BR><BR>
+
+The second term is modeled as follows.  We again assume that &alpha;(m)
+fits a quadratic in each grid cell.  The height, h (meters), at the
+column bottom is specified by the bottom topography.  Integrating
+upwards, the change in h from the bottom layer edge to any level in a
+layer is equal to the integral of &alpha;(m) dm.  The change in h to the top
+layer edge uses the two evaluations of &alpha; mentioned in the previous
+paragraph and is calculated with quadratic precision.  The top edge
+value of h of a layer becomes the bottom edge value of h for the layer
+above.  The mean geopotential, &Phi; (m&sup2;/s&sup2;), of the layer is the mass
+weighted g&middot;h throughout the layer which is a double integral of &alpha;(m) and
+is equal to<BR>
+
+<PRE>
+            &int;m1+&Delta;m1/2
+&Phi;  =  1/&Delta;m1 &int;         g&middot;h(m) dm  =
+            &int;m1-&Delta;m1/2
+
+            &int;m1+&Delta;m1/2   [               &int;m1+&Delta;m1/2         ]
+   =  1/&Delta;m1 &int;         g [ h(m1+&Delta;m1/2) + &int;         &alpha;(n) dn ] dm  =
+            &int;m1-&Delta;m1/2   [               &int;m                ]
+
+   =  g&middot;h(m1+&Delta;m1/2) + g[&alpha;(m1-x)(3-&radic;3) + &alpha;(m1+x)(3+&radic;3)]m1/12
+</PRE>
+
+The mean &Phi; is calculated with quadratic precision using the same
+two evaluations of &alpha;(G,S,P) as used in evaluating the first term.<BR><BR>
+
+Given an arbitrary quadratic polynomial in an interval
+[-&Delta;m1/2,&Delta;m1/2], the abcissas of the intersection points between the
+polynomial and the least square fit line that fits the polynomial in
+the interval are the points -x and x mentioned above.  These points do
+not depend on the coefficients of the polynomial.  Conversely, there
+are no two other points such that the mean value of an arbitrary
+quadratic polynomial can be derived from evaluating the polynomial at
+the two points.  This mathematical result is even more elegant because
+the double integral above can be calculated from an evaluation of
+the polynomial at the points -x and x.<BR><BR>
+
+<!--#config timefmt="%Y/%m/%d/%T"--><!--#echo var="LAST_MODIFIED"-->
+
+</BODY>
+</HTML>

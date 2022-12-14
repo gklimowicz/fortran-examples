@@ -1,0 +1,246 @@
+#!/usr/bin/perl
+
+use File::Copy;
+use Getopt::Long;         #module to process command line options
+
+GetOptions("w", "t=s", "y=s") || die "problem in GetOptions";
+
+if ( $#ARGV < 0 ) { 
+    print "Usage: $0 [-w] [-t ndays] [-y year_start:year_end] RunID [data_dir]\n"; 
+    print "  Creates a directory 'data_dir' (or 'RunID_data' by default)\n";
+    print "  and copies there all input files required to run RunID.\n";
+    print "  Intended to be used when taking the model off-site.\n";
+    print "  Options:\n";
+    print "  -w\n";
+    print "      instead of using local repository try to download\n";
+    print "      necessary files from central storage (using wget).\n";
+    print "  -t ndays\n";
+    print "      if present, the files older than ndays will be skipped\n";
+    print "  -y year_start:year_end\n";
+    print "      if present, the annual data files will be downloaded for the period\n";
+    print "      from year_start to year_end. Otherwise, the script assumes \n";
+    print "      year_start=year_end=1850 (preindustrial conditions).\n";
+    print "      This option has effect only when downloading data from a remote server.\n";
+    print "      When creating a local copy, the data files for all years will be copied.\n";
+    exit; 
+}
+
+## default settings
+$DECKS_REPOSITORY='';
+$GCMSEARCHPATH='';
+$DATA_PORTAL_URL = 
+    "http://portal.nccs.nasa.gov/GISS_modelE/modelE_input_data";
+
+$modelerc = (getpwuid($>))[7]."/.modelErc";
+
+$READLINK='readlink';
+# workaround for Apple
+if ( `uname` =~ /Darwin/ ) {
+  print "Oh, we are on a Mac :-(\n";
+  if ( `which greadlink` =~ /greadlink/ ) {
+    $READLINK='greadlink';
+  } else {
+    print "*****************************************\n";
+    print "Can't find 'greadlink'\n";
+    print "Please install 'coreutils' with Mac Ports\n";
+    print "*****************************************\n";
+    exit(1);
+  }
+}
+
+if ( -f $modelerc ) {
+  open MODELERC, $modelerc or die "can't open $modelerc\n";
+  while(<MODELERC>) {
+    $DECKS_REPOSITORY = $1 if /^ *DECKS_REPOSITORY *= *(\S+)/;
+    $GCMSEARCHPATH = $1 if /^ *GCMSEARCHPATH *= *(\S+)/;
+  }
+  close MODELERC;
+}
+
+$runID = shift;
+($data_dir = shift) or $data_dir = $runID.'_data';
+
+$abs_data_dir = `$READLINK -f $data_dir`;
+
+print "trying to create dir name:";
+print "in: $data_dir";
+print "out: $abs_data_dir";
+
+
+chop $abs_data_dir;
+
+$max_age = 365*100;
+if ( $opt_t ) {
+    $max_age = $opt_t;
+}
+
+if ( $opt_w ) {
+    print "Will search for data files in: $DATA_PORTAL_URL\n";
+} else {
+    print "Will search for data files in: $GCMSEARCHPATH\n";
+}
+print "Will store the data files  in: $data_dir\n";
+
+if ( $opt_y ) {
+    $years = $opt_y;
+} else {
+    $years = "-100000:100000";
+}
+
+if ( -f "$runID.R" ) { $rundeck = "$runID.R"; }
+else { $rundeck = "$DECKS_REPOSITORY/$runID.R"; }
+
+print "Will use rundeck: $rundeck\n";
+
+open RUNDECK,"$rundeck" or die "can't open file: $rundeck\n";
+
+while(<RUNDECK>) { last if /^Data +input +files/i; }
+
+@a=();
+while(<RUNDECK>) {
+    last if /^Label +and +Namelist/i;
+    chop;
+    s/!.*$//;  #remove comments
+    push @a, /(\S+ *= *\S+)/g;
+}
+
+## creating data dir
+if ( ! -d $data_dir ) {
+    mkdir $data_dir, 0755 or die "can't create dir: $data_dir\n";
+}
+
+$dirlist = "$abs_data_dir/dirlist.remote";
+
+## copy (or create) directory list
+if ( $opt_w ) {
+    `wget -O $dirlist $DATA_PORTAL_URL/dirlist`;
+} else {
+    print "will create $dirlist\n";
+    `rm -f $dirlist`;
+    foreach $dir (split /:/, $GCMSEARCHPATH) {
+	print "dir = $dir\n";
+	`cd $dir && find . -type f >> $dirlist`;
+    }
+}
+
+$dirlist_str = `cat $dirlist`;
+
+$failed_downloads = "";
+foreach $str (@a) {
+    #print "$str\n";
+    ($tag,$filename) = split / *= */, $str;
+    # no trailing slashes at the end of the directory name allowed
+    $filename =~ s/\/+$//;
+    if ( ! -f "$data_dir/$filename" ) {
+	create_path( "$data_dir/$filename" );
+	if ( $opt_w ) {
+	    my $file_dir = `dirname $data_dir/$filename`;
+	    chop $file_dir;
+	    if ( $dirlist_str =~ /^\.\/$filename\//m ) {
+		print "directory : $filename\n";
+		if ( ! -d "$data_dir/$filename" ) {
+		    print "has to create $data_dir/$filename\n";
+		    mkdir "$data_dir/$filename" or
+			die "Can't create $full_filename\n";
+		}
+		my @years_in_toc = ($dirlist_str =~ /^\.\/$filename\/(\d+).nc/mg );
+		my $year_start, $year_end;
+		($year_start,$year_end) = split /:/, $years;
+		if ( !$year_end ) { $year_end = $year_start; }
+		my $y0=-100000, $y1=100000;
+		# y0 = year_start or the first available before it
+		# y1 = year_end   or the first available after  it
+		foreach $y (@years_in_toc) {
+		    if ( $y<=$year_start && $y>$y0 ) { $y0 = $y; }
+		    if ( $y>=$year_end   && $y<$y1 ) { $y1 = $y; }
+		}
+		##for($y=$year_start; $y<=$year_end; $y++) {
+		foreach $y (@years_in_toc) {
+		    # print "checking: $data_dir/$filename/$y.nc\n"; 
+		    ##if ( ! ($dirlist_str =~ /^\.\/$filename\/$y.nc/m) ) {
+		    ##	print "Not present on server: $filename/$y.nc - skipping\n";
+		    ##	next;
+		    ##}
+		    next if ( $y<$y0 || $y>$y1);
+		    if ( ! -s "$data_dir/$filename/$y.nc" ) {
+			print "Downloading:     $filename/$y.nc\n";
+			# hack to prevent incomplete downloads
+			`cd $data_dir/$filename && wget $DATA_PORTAL_URL/$filename/$y.nc -O tmp.nc && mv tmp.nc $y.nc`;
+		    } else {
+			print "Already present:     $filename/$y.nc\n";
+		    }
+		}
+		    
+	    } else {
+		print "Downloading:     $filename\n";
+		`cd $file_dir &&  wget $DATA_PORTAL_URL/$filename`;
+		$rcode = $? >> 8;
+		if ( $rcode != 0 ) { $failed_downloads .= $filename."\n"; }
+	    }
+	} else {
+	    my $dir = "";
+	    my $success = 0;
+	    foreach $dir (split /:/, $GCMSEARCHPATH) {
+		my $full_filename = "$dir/$filename";
+		if ( -f $full_filename ) {
+		    if ( -M $full_filename > $max_age ) {
+			print "Too old:     $full_filename\n";
+			next; 
+		    }
+		    print "Copying:     $full_filename\n";
+		    copy( $full_filename, "$data_dir/$filename") or
+			die "Can't copy $full_filename\n";
+		    $success = 1;
+		    last;
+		} elsif ( -d $full_filename ) {
+		    print "is directory: $full_filename\n";
+		    if ( ! -d "$data_dir/$filename" ) {
+			print "has to create $data_dir/$filename\n";
+			mkdir "$data_dir/$filename" or
+			    die "Can't create $full_filename\n";
+		    }
+		    opendir(DIR, $full_filename) or die $!;
+		    while (my $file = readdir(DIR)) {
+			next unless ($file =~ m/\d\d\d\d\.nc$/);
+			print "$file\n";
+			if( ! -f "$data_dir/$filename/$file") {
+			    print "copying $data_dir/$filename/$file\n";
+			    copy( "$full_filename/$file", "$data_dir/$filename") or
+				die "Can't copy $full_filename\n";
+			} else {
+			    print "already present\n";
+			}
+		    }
+		    $success = 1;
+		    last;		    
+		}
+	    }
+	    if ( ! $success ) {print "Not found:     $filename\n";} 
+	}
+    } else {
+	print "Already present:     $filename\n";
+    }
+}
+
+## update local dirlist
+`cd $data_dir && find . -type f > dirlist`;
+
+if ( $failed_downloads ) {
+    die "\nERROR: Failed to download:\n$failed_downloads\n";
+}
+
+sub create_path {
+    my $path = shift;
+    my @dirs = split /\//, $path;
+    pop @dirs;
+    if ( $path =~ /^\// ) { $dir = ""; }
+    else {  $dir = "."; }
+    foreach my $name ( @dirs ) {
+	$dir .= '/'.$name;
+	if ( ! -e $dir ) {
+	    print "creating dir: $dir\n";
+	    mkdir $dir, 0755 or die "can't create dir: $dir\n";
+	}
+    }
+
+}

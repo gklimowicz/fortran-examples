@@ -1,0 +1,286 @@
+module Test_Timer_mod
+   use pFUnit_mod
+   use Timer_mod
+   implicit none
+
+   public :: Test_Timer
+   integer, parameter :: dp = selected_real_kind(14)
+
+@TestCase
+   type, extends(TestCase) :: Test_Timer
+      type (Timer_type) :: timer
+      type (Timer_type) :: otherTimer
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+   end type Test_Timer
+
+   real(kind=dp), parameter :: EPS = EPSilon(1.)
+
+contains
+
+   subroutine setUp(this)
+      class (Test_Timer), intent(inout) :: this
+      call reset(this%timer)
+      call reset(this%otherTimer)
+      call resetGlobal()
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (Test_Timer), intent(inout) :: this
+      call reset(this%timer)
+      call reset(this%otherTimer)
+   end subroutine tearDown
+
+@Test   
+   subroutine test_getNumTrips0(this)
+      class (Test_Timer), intent(inout) :: this
+      @assertEqual(0, getNumTrips(this%timer))
+   end subroutine test_getNumTrips0
+
+@Test   
+   subroutine test_getNumTrips1(this)
+      class (Test_Timer), intent(inout) :: this
+      call addTrip(this%Timer)
+      @assertEqual(1, getNumTrips(this%timer))
+   end subroutine test_getNumTrips1
+
+@Test   
+   subroutine test_getNumTrips2(this)
+      class (Test_Timer), intent(inout) :: this
+      call addTrip(this%Timer)
+      call addTrip(this%Timer)
+      @assertEqual(2, getNumTrips(this%timer))
+   end subroutine test_getNumTrips2
+
+@Test   
+   subroutine test_getNumTripsAfterReset(this)
+      class (Test_Timer), intent(inout) :: this
+      call start(this%timer)
+      call stop(this%timer)
+      call reset(this%timer)
+      @assertEqual(0, getNumTrips(this%timer))
+   end subroutine test_getNumTripsAfterReset
+
+@Test   
+   subroutine test_getTimeNoTrips(this)
+      class (Test_Timer), intent(inout) :: this
+      @assertEqual(0._dp, getInclusiveTime(this%timer))
+      @assertEqual(0._dp, getExclusiveTime(this%timer))
+   end subroutine test_getTimeNoTrips
+
+@Test   
+   subroutine test_addTime(this)
+      class (Test_Timer), intent(inout) :: this
+      real(kind=dp) :: dt1
+
+      dt1 = 1.234_dp
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer,  time = dt1)
+      @assertEqual(dt1, getInclusiveTime(this%timer))
+      @assertEqual(dt1, getExclusiveTime(this%timer))
+
+   end subroutine test_addTime
+
+@Test   
+   subroutine test_addTime2(this)
+      class (Test_Timer), intent(inout) :: this
+      real(kind=dp) :: dt1, dt2
+      real(kind=dp) :: timeSecondTrip
+
+      dt1 = 1.234_dp
+      dt2 = 2.345_dp
+      timeSecondTrip = 10.
+
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt1)
+      call start(this%timer, time = timeSecondTrip)
+      call stop(this%timer, time = timeSecondTrip+dt2)
+      @assertEqual(dt1+dt2, getInclusiveTime(this%timer), EPS, 'inclusive')
+      @assertEqual(dt1+dt2, getExclusiveTime(this%timer), EPS, 'exclusive')
+
+   end subroutine test_addTime2
+
+@Test   
+   subroutine test_getTimeAfterReset(this)
+      class (Test_Timer), intent(inout) :: this
+      real(kind=dp) :: dt1
+
+      dt1 = 1.234_dp
+
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt1)
+      call reset(this%timer)
+      @assertEqual(0._dp, getInclusiveTime(this%timer))
+      @assertEqual(0._dp, getExclusiveTime(this%timer))
+
+   end subroutine test_getTimeAfterReset
+
+   ! Use trusted system_clock(this) timer to ensure that a minimum time
+   ! has elapsed between start/stop.
+@Test   
+   subroutine test_reallyMeasuresTime(this)
+      class (Test_Timer), intent(inout) :: this
+
+      real (kind=dp), parameter :: SHORT_TIME = 0.1    ! seconds - a longish test
+      real (kind=dp), parameter :: ACCURACY   = 0.0001 ! seconds
+      real (kind=dp) :: time
+
+      call start(this%timer)
+      call pause(SHORT_TIME)
+      call stop(this%timer)
+      @assertTrue(getInclusiveTime(this%timer) >= SHORT_TIME)
+      @assertEqual(getInclusiveTime(this%timer), getExclusiveTime(this%timer))
+
+   contains
+
+      subroutine pause(delay)
+         real(kind=dp) :: delay
+         integer :: count0, count1, countRate
+         integer :: counter
+         integer :: i
+         integer, parameter :: MAX_COUNTER=HUGE(1)
+
+
+         call system_clock(count0, countRate)
+         counter = 0
+         do
+            counter = counter + 1
+            if (counter == MAX_COUNTER) then ! possibly counter has cycled
+               call throw('failed to complete timing loop')
+               exit
+            end if
+            call system_clock(count1)
+            time = real(count1 - count0)/countRate
+            if (time > delay) exit
+         end do
+         return
+      end subroutine pause
+
+   end subroutine test_reallyMeasuresTime
+
+@Test   
+   subroutine test_isActiveUnused(this)
+      class (Test_Timer), intent(inout) :: this
+      @assertFalse(isActive(this%timer))
+   end subroutine test_isActiveUnused
+
+@Test   
+   subroutine test_isActiveAfterStart(this)
+      class (Test_Timer), intent(inout) :: this
+
+      call start(this%timer)
+      @assertTrue(isActive(this%timer))
+
+   end subroutine test_isActiveAfterStart
+
+@Test   
+   subroutine test_isActiveAfterStop(this)
+      class (Test_Timer), intent(inout) :: this
+
+      call start(this%timer)
+      call stop(this%timer)
+      @assertFalse(isActive(this%timer))
+
+   end subroutine test_isActiveAfterStop
+
+@Test   
+   subroutine test_isActiveAfterReset(this)
+      class (Test_Timer), intent(inout) :: this
+
+      call start(this%timer)
+      call reset(this%timer)
+      @assertFalse(isActive(this%timer))
+
+   end subroutine test_isActiveAfterReset
+
+@Test   
+   subroutine test_getMaximumTimeNoTrips(this)
+      class (Test_Timer), intent(inout) :: this
+      @assertEqual(0._dp, getMaximumTime(this%timer))
+   end subroutine test_getMaximumTimeNoTrips
+
+@Test   
+   subroutine test_getMaximumTime(this)
+      class (Test_Timer), intent(inout) :: this
+      real(kind=dp) :: dt1, dt2
+
+      dt1 = 0.5
+      dt2 = 1.5
+
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt1)
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt2)
+
+      @assertEqual(max(dt1,dt2), getMaximumTime(this%timer))
+
+   end subroutine test_getMaximumTime
+
+@Test   
+   subroutine test_getMinimumTimeNoTrips(this)
+      class (Test_Timer), intent(inout) :: this
+      @assertEqual(0._dp, getMinimumTime(this%timer))
+   end subroutine test_getMinimumTimeNoTrips
+
+@Test   
+   subroutine test_getMinimumTime(this)
+      class (Test_Timer), intent(inout) :: this
+      real(kind=dp) :: dt1, dt2
+
+      dt1 = 0.5
+      dt2 = 1.5
+
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt1)
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt2)
+
+      @assertEqual(min(dt1,dt2), getMinimumTime(this%timer))
+
+   end subroutine test_getMinimumTime
+
+@Test   
+   subroutine test_getAverageTripTimeNoTrips(this)
+      class (Test_Timer), intent(inout) :: this
+      @assertEqual(0., getAverageTripTime(this%timer), tolerance=EPS)
+   end subroutine test_getAverageTripTimeNoTrips
+
+@Test   
+   subroutine test_getAverageTripTime(this)
+      class (Test_Timer), intent(inout) :: this
+      real(kind=dp) :: dt1, dt2
+
+      dt1 = 0.5
+      dt2 = 1.5
+
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt1)
+      call start(this%timer, time = 0._dp)
+      call stop(this%timer, time = dt2)
+
+      @assertEqual((dt1+dt2)/2, getAverageTripTime(this%timer), tolerance=EPS)
+
+   end subroutine test_getAverageTripTime
+
+@Test   
+   subroutine test_getExclusiveTime(this)
+      class (Test_Timer), intent(inout) :: this
+      real(kind=dp) :: dt1, dt2, dt3
+
+      dt1 = 1.0
+      dt2 = 3.0
+      dt3 = 4.0
+
+      ! add time to other timer _while_ 1st timer is still active
+      call start(this%timer,       time = 0._dp)
+      call start(this%otherTimer,  time = dt1)
+      call stop(this%otherTimer,   time = dt2)
+      call stop(this%timer,        time = dt3)
+
+      @assertEqual(dt2-dt1, getExclusiveTime(this%otherTimer), tolerance=EPS) 
+      @assertEqual(dt3-(dt2-dt1), getExclusiveTime(this%timer), tolerance=EPS) 
+
+   end subroutine test_getExclusiveTime
+
+end module Test_Timer_mod

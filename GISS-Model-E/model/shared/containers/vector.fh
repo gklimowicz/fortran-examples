@@ -1,0 +1,327 @@
+#include "containers/tmplhead.fh"
+
+      type, public :: vector
+        private
+        _bufentry, dimension(:), allocatable :: buf
+        integer :: vsize=0
+      contains
+        procedure :: getsize
+        procedure :: empty
+        procedure :: at
+#ifndef _wrapentry
+        procedure :: getdata
+#endif
+        procedure :: back
+        procedure :: set
+        procedure :: copy
+        procedure :: push_back
+        procedure :: pop_back
+        procedure :: resize
+        procedure :: clear
+        procedure :: reserve
+        procedure :: swap
+        procedure :: reset
+        generic, public :: assignment(=) => copy
+#ifdef EQUAL_DEFINED
+        procedure :: getindex
+        procedure :: equal
+        generic, public :: operator(==) => equal
+#endif
+      end type vector
+
+      contains
+
+#ifdef _pointer
+#define _ptrtype _ptrentry
+#define _trgtype _trgentry
+#include "pointerdef.inc"
+#endif
+
+! =======================
+!  getsize
+! =======================
+      pure function getsize(this) result(res)
+      implicit none
+      class(vector), intent(in) :: this
+      integer :: res
+
+      res=this%vsize
+      return
+      end function getsize
+
+
+! =======================
+!  empty
+! =======================
+      pure function empty(this) result(res)
+      implicit none
+      class(vector), intent(in) :: this
+      logical :: res
+
+      res=this%vsize==0
+      return
+      end function empty
+
+
+! =======================
+!  at
+! =======================
+      function at(this, i) result(res)
+      implicit none
+      class(vector), target, intent(in) :: this
+      integer, intent(in) :: i
+#if (defined __GFORTRAN__ && defined _string)
+      character(len=:), allocatable :: res   ! bug in gfortran 4.9.1
+
+      res=__GET(this%buf(i))
+#else
+      _ptrentry, pointer :: res
+
+      res=>__GET(this%buf(i))
+#endif
+      return
+      end function at
+
+
+#ifndef _wrapentry
+! =======================
+!  getdata
+! =======================
+      function getdata(this) result(res)
+      implicit none
+      class(vector), target, intent(in) :: this
+      _entry, dimension(:), pointer :: res
+
+      res=>this%buf(:this%vsize)
+      return
+      end function getdata
+#endif
+
+! =======================
+!  back
+! =======================
+      function back(this) result(res)
+      implicit none
+      class(vector), target, intent(in) :: this
+#if (defined __GFORTRAN__ && defined _string)
+      character(len=:), allocatable :: res
+
+      res=__GET(this%buf(this%vsize))
+#else
+      _ptrentry, pointer :: res
+
+      res=>__GET(this%buf(this%vsize))
+#endif
+      return
+      end function back
+
+
+! =======================
+!  set
+! =======================
+      subroutine set(this, i, value)
+      implicit none
+      class(vector), intent(inout) :: this
+      integer, intent(in) :: i
+      _trgentry, target, intent(in) :: value
+
+      __SET(__GET(this%buf(i)), value)
+      return
+      end subroutine set
+
+
+! =======================
+!  reset
+! =======================
+      subroutine reset(this)
+      implicit none
+      class(vector), intent(inout) :: this
+
+      if (allocated(this%buf)) then
+        deallocate(this%buf)
+      end if
+      this%vsize=0
+      return
+      end subroutine reset
+
+
+! =======================
+!  copy
+! =======================
+      subroutine copy(this, other)
+      implicit none
+      class(vector), intent(inout) :: this
+      class(vector), intent(in) :: other
+
+      call this%resize(other%vsize)
+      this%buf(1:this%vsize)=other%buf(1:this%vsize)
+      return
+      end subroutine copy
+
+
+#ifdef EQUAL_DEFINED
+! =======================
+!  getindex
+! =======================
+      function getindex(this, value) result(i)
+      implicit none
+      class(vector), target, intent(in) :: this
+      _trgentry, target, intent(in) :: value
+      integer :: i
+
+      do i=1, this%vsize
+        if (__EQ(__GET(this%buf(i)), value)) return
+      end do
+      i=0
+      return
+      end function getindex
+
+
+! =======================
+!  equal
+! =======================
+      function equal(this, other) result(res)
+      implicit none
+      class(vector), intent(in) :: this, other
+      logical :: res
+      integer :: i
+
+      res=this%vsize==other%vsize
+      if (res) then
+        res=.false.
+        do i=1, this%vsize
+          if (.not.                                                      &
+     &      __EQ(__GET(this%buf(i)),__GET(other%buf(i)))) return
+        end do
+        res=.true.
+      endif
+      return
+      end function equal
+#endif
+
+! =======================
+!  copyarray
+! =======================
+      subroutine copyarray(this, array)
+      implicit none
+      class(vector), intent(inout) :: this
+      _bufentry, dimension(:), intent(in) :: array
+
+      call this%resize(size(array))
+      this%buf(1:this%vsize)=array(1:this%vsize)
+      return
+      end subroutine copyarray
+
+
+! =======================
+!  push_back
+! =======================
+      subroutine push_back(this, value)
+      implicit none
+      class(vector), intent(inout) :: this
+      _trgentry, target, intent(in) :: value
+
+      if (.not.allocated(this%buf)) then
+        call this%reserve(1)
+      elseif (this%vsize.ge.size(this%buf)) then
+        call this%reserve(this%vsize*2)
+      endif
+      this%vsize=this%vsize+1
+      __SET(__GET(this%buf(this%vsize)), value)
+      return
+      end subroutine push_back
+
+
+! =======================
+!  pop_back
+! =======================
+      subroutine pop_back(this)
+      implicit none
+      class(vector), intent(inout) :: this
+
+      call this%resize(this%vsize-1)
+      return
+      end subroutine pop_back
+
+
+! =======================
+!  resize
+! =======================
+      subroutine resize(this, newsize, value)
+      implicit none
+      class(vector), intent(inout) :: this
+      integer, intent(in) :: newsize
+      _trgentry, target, intent(in), optional :: value
+      integer :: oldsize, i
+
+      if (newsize==this%vsize) return
+      if (newsize<0) stop 'vector resize: negative size'
+      oldsize=this%vsize
+      if (.not.allocated(this%buf).or.(size(this%buf)<newsize))          &
+     &                      call this%reserve(newsize)
+      this%vsize=newsize
+      if (present(value).and.(newsize>oldsize)) then
+        do i=oldsize+1, newsize
+          __SET(__GET(this%buf(i)), value)
+        end do
+      endif
+      return
+      end subroutine resize
+
+
+! =======================
+!  clear
+! =======================
+      subroutine clear(this)
+      implicit none
+      class(vector), intent(inout) :: this
+
+      call this%resize(0)
+      return
+      end subroutine clear
+
+
+! =======================
+!  reserve
+! =======================
+      subroutine reserve(this, capacity)
+      implicit none
+      class(vector), intent(inout) :: this
+      integer, intent(in) :: capacity
+      _bufentry, dimension(:), allocatable :: temp
+
+      if (capacity<0) stop 'vector reserve: negative size'
+      if (this%vsize>capacity) return
+      if (.not.allocated(this%buf).and.(capacity>0)) then
+        allocate(this%buf(capacity))
+      elseif (allocated(this%buf).and.(capacity==0)) then
+        deallocate(this%buf)
+      elseif (size(this%buf)/=capacity) then
+        allocate(temp(capacity))
+        temp(1:this%vsize)=this%buf(1:this%vsize)
+        call move_alloc(temp, this%buf)
+      endif
+      return
+      end subroutine reserve
+
+
+! =======================
+!  swap
+! =======================
+      subroutine swap(this, other)
+      implicit none
+      class(vector), intent(inout) :: this
+      type(vector), intent(inout) :: other
+      _bufentry, dimension(:), allocatable :: tmpbuffer
+      integer :: tmpsize
+
+      call move_alloc(this%buf, tmpbuffer)
+      call move_alloc(other%buf, this%buf)
+      call move_alloc(tmpbuffer, other%buf)
+      tmpsize=this%vsize
+      this%vsize=other%vsize
+      other%vsize=tmpsize
+      return
+      end subroutine swap
+
+#include "containers/tmpltail.fh"

@@ -1,0 +1,31 @@
+# Experimental set of rsync filtering rules for modelE code
+# USE AT YOUR OWN RISK!
+# Has only been tested as follows:  rsync -aF source_dir/ target_dir/
+# The filters are applied in this directory and all its
+# subdirectories.  Some of these rules could/should be moved
+# into subdirectory-specific .rsync-filter files.
+
+# Skip Git repository info
+- .git
+
+# Skip object files, libraries, Fortran module files
+- *.o
+- *.a
+- *.mod
+- *.smod
+
+# Skip emacs saves
+- *~
+- .*~
+
+# Only copy certain files from the decks directory
++ decks/Makefile
+- decks/*
+
+# Skip (directories for) temporary files
+- model/include/*
+- *.ERR
+- .current_options
+- .depend*
+- .depend_subdirs
+- .liblist

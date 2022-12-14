@@ -1,0 +1,102 @@
+
+Directory structure of ModelE source tree
+===================================================================
+
+This document describes the structure and compilation process
+for the ModelE source tree
+
+
+Directory Structure
+================
+
+  modelE/
+        |
+        |- config/          - configuration files for various architectures,
+        |                     compilers and libraries
+        |- exec/            - shell and perl scripts
+        |
+        |- decks/           - working directory: all "make" commands
+        |                     should be executed from here
+        |- templates/       - collection of predefined rundecks for
+        |                     various model configurations
+        |- doc/             - documentation files
+        |
+        |- init_cond/       - useful programs for setting initial
+        |                     conditions for various simulations
+        |- aux/             - useful programs for postprocessing
+        |                     model output
+        |- model/           - main model source code
+                |
+                |- dd2d                 |
+                |- Ent                  |
+                |- ESMF_Interface        \  ModelE "Components"
+                |- giss_LSM              /
+                |- shared               |
+                |- solvers              |
+                |
+                |
+                | Unsorted files
+                | with model source code
+                _
+
+
+Most of the model source code is written in fortran 90/95 
+in fixed format with small number of files in free format. 
+All the source code needed for compilation of ModelE executable
+is located under model/ directory tree. model/ directory consists
+of subdirectories (from now called "components"), unsorted 
+source files and a Makefile. Each "component" conatins source
+files collected together according to their functionality.
+They either constitute a certain physics model (Ent, giss_LSM), 
+provide certain computational functionality (solvers) or serve 
+for some administrative purposes (shared). Each component has
+its own Makefile which typically is trivial: it contains the list 
+source files in the component and includes a template Makefile
+from config/ . But if necessary a component can provide its
+own Makefile which is not related to the rest of the modelE. 
+The only requirement to such Makefile is that it should compile
+the code into a library "lib.a" which will then be linked 
+together with the rest of modelE code.
+
+Though most of the model code now remains unsorted in model/ 
+directory it is anticipated that it will be encapsulated into
+"components" with only main drivers remaining in model/ 
+directory.
+
+
+Compilation
+==================
+
+The disadvantage of using fortran 90 modules is that files have to
+be compiled in certain order, i.e. the file with the module should 
+be compiled before the file which "uses" this module. This also
+forbids circular dependencies: if file A "uses" module from file B
+then file B can't use a module from file A (keep in mind that 
+such circular dependence may accidentialy be created through a third
+file). The same rule applies to modelE "components": they can 
+depend on other components as long as it doesn't create a dependency
+loop between the components. Also, files in model/ directory can
+depend on "components" but "components" can't depend on files in
+model/ directory.
+
+The compilation of the model is performed in the following order:
+1. "make" enters each "component" directory and computes dependencies
+   there.
+2. Based on dependency lists for each component "make" constructs
+   dependency relations between the components.
+3. "make" computes dependencies for the main directory.
+4. "make" enters each "component" (in appropriate order), compiles
+   the code there and combines the object files into a library
+   "lib.a". All *.mod files are copied into a global model/mod
+   directory.
+5. "make" compiles the code in the main model/ directory.
+6. All object files in model/ directory are linked together with 
+   lib.a libraries for each component (listed in appropriate order).
+
+The compilation process is parallel-compatible, so one can request
+"make" to use multiple threads for faster compilation 
+(with -j<num of threads>). Though due to complicated dependencies
+between modelE modules one usually doesn't gain much.
+
+ 
+

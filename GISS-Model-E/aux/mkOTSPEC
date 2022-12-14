@@ -1,0 +1,122 @@
+#!/bin/ksh
+## create otspec and IC for a 4x5 Bgrid run - 5 harmonics  02/09/01
+if [[ $# -lt 5 ]] ; then
+    echo "Usage: $0 runID first_month first_year last_month last_year"
+    echo "       All months, and years are integer arguments"
+    echo "Please ensure that relevant aux executables are up-to-date by"
+    echo "running 'gmake auxqflux RUN=$runID' from decks"
+    exit
+fi
+# Input files from rundeck (actually ${RUNID}ln)
+# This script uses (inputs) TOPO,OSST,SICE,OCNML,MLMAX,VFLX,RSFIC
+#               (tmp files) OHT,OHTnoID,OCNOUT,SRCOR,XCORR,OHTLP,RSFNEW,SNOW
+
+cd ..
+MODEL_E_ROOT=$PWD
+DECKS_DIR=${MODEL_E_ROOT}/decks
+AUX_DIR=${MODEL_E_ROOT}/aux
+BIN_DIR=${DECKS_DIR}/$1_bin
+CMRUNDIR=/u/cmrun
+if [[ ! -d ${CMRUNDIR} ]] ; then CMRUNDIR=/giss ; fi
+if [[ -f ~/.modelErc ]]; then . ~/.modelErc; fi
+
+runID=$1
+cd $CMRUNDIR/$runID
+rm -f RSFIC* OHT OHTnoID
+
+z12o_max=0
+while [[ ${z12o_max} != [1-9][0-9][0-9] ]] && [[ ${z12o_max} != [1-9][0-9] ]]
+do echo "Enter the maximal mixed layer depth (m) as an integer (11-999)"
+   read z12o_max
+done
+
+do_uln=1 ; if [[ ! -L TOPO ]] ; then ${runID}ln ; do_uln=0 ; fi
+
+set -A month -- xx JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC
+rsfic=1${month[$2]}$(( $5 + $4/12 )).rsf${1} ; qc=$BIN_DIR/${qc} ; sfx=''
+if [[ -s ${rsfic}.nc ]] ; then
+   qc=$AUX_DIR/qcnc ; sfx='.nc'
+fi
+
+echo 'Enter rsf file for new initial conditions'
+echo "   (path from `pwd` or absolute pathname):"
+echo "   or hit enter if $rsfic$sfx is ok:"
+read rsficx
+if [[ ${rsficx} != '' ]]
+then rsfic=${rsficx} ; sfx=''
+  if [[ ${rsfic} = *'.nc' ]]
+  then rsfic=${rsfic%.nc} ; sfx='.nc'
+  fi
+fi
+
+ln -s $rsfic$sfx RSFIC${sfx}
+if [[ -s RSFIC${sfx} ]]
+then
+  if ( ${qc} RSFIC${sfx} ) then
+      echo "This RSF file contains part of the I.C. for the new run"
+      echo "It will be used to create a new i.c. file by this program"
+  else
+    echo "Error in $qc program. "
+    echo "Ensure that it is up-to-date with a 'gmake aux RUN=${runID}' command from ../decks."
+    exit
+  fi
+else echo "RSF file not found, please start over"
+     exit
+fi
+
+echo " "
+echo "Reading in saved ocean data..."
+echo "  ${BIN_DIR}/vertflux.exe $1 $2 $3 $4 $5 > vertflux.$1.$3-$5.PRT "
+if ( ! ${BIN_DIR}/vertflux.exe $1 $2 $3 $4 $5 > vertflux.$1.$3-$5.PRT ) then
+    echo " "
+    echo "  Problem reading in vertical flux data. Aborting."
+    exit
+fi
+echo "Done"
+echo " "
+  mv SRCOR  SRCOR.line.$1.$3-$5
+
+echo "Finding climatological ocean temperatures below mixed layer"
+echo "assuming a max. mixed layer depth of ${z12o_max}m ....."
+echo "  ${BIN_DIR}/ocnIC.exe $2 ${z12o_max}.d0 > ocnIC.$4.$5.${z12o_max}.PRT"
+if ( !  ${BIN_DIR}/ocnIC.exe $2 ${z12o_max}.d0 > ocnIC.$4.$5.${z12o_max}.PRT ) then
+    echo " "
+    echo "  Problem determining mixed layer data. Aborting."
+    exit
+fi
+echo "Done"
+echo " "
+
+echo "Computing transports..." ; out=otspec.$1.MXL${z12o_max}m.$3-$5.PRT
+echo "  ${BIN_DIR}/otspec.E001.exe $1 $2 $3 $4 $5 ${z12o_max}.d0 > $out"
+if ( !  ${BIN_DIR}/otspec.E001.exe $1 $2 $3 $4 $5 ${z12o_max}.d0 > $out ) then
+    echo " "
+    echo "  Problem computing transports. Aborting."
+    exit
+fi
+echo Done
+echo " "
+
+echo Output files in `pwd`:
+outfile=OTSPEC.$1.MXL${z12o_max}m.$3-$5
+mv OHT $outfile
+echo "Saved ocean heat transports in file: " $outfile
+outfile=OTSPEC.$1.MXL${z12o_max}m.noIceD.$3-$5
+mv OHTnoID $outfile
+echo "Saved ocean heat transports (no ice dynamics) in file: " $outfile
+
+mv OHTLP oht$1.$3-$5.lpl
+echo "Saved zonal ocean heat transports: " oht$1.$3-$5.lpl
+
+icfile=${rsfic##*/}.MXL${z12o_max}m
+mv RSFNEW${sfx} $icfile${sfx}   #do--put on raid, link to /giss
+echo "Saved modified init. condition file: " $icfile$sfx
+${qc} $icfile$sfx
+
+echo "Surface heat flux imbalance: "
+cat SRCOR.line.$1.$3-$5
+
+# clean up
+
+rm SNOW XCORR OCNOUT
+if [[ ${do_uln} -eq 0 ]] ; then ${runID}uln ; fi

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+## defaults
+  CMRUNDIR='/u/cmrun'
+  if [ -f $HOME/.modelErc ]; then . $HOME/.modelErc; fi
+
+  if [ $# -ne 1 ] ; then
+      echo "Usage: unlock RUNID"
+      echo "Unlocks model run RUNID cleanly"
+      exit; fi
+  RUNID=$1
+
+  if [ ! -d $CMRUNDIR/$RUNID ] ; then
+      echo "Run directory not found: $CMRUNDIR/$RUNID"
+      exit ; fi
+
+  cd "$CMRUNDIR/$RUNID"
+  if [ -e lock ] ; then
+## remove lock file
+      rm -f lock
+## unlink any input files 
+      ./${RUNID}uln
+      echo "Lock removed: $RUNID"
+  else
+      echo "Nothing to do: $RUNID"
+  fi
+

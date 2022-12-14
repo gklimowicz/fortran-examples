@@ -1,0 +1,115 @@
+module Test_TimerList_mod
+   use TimerList_mod, only: start, stop, reset, getTimer, getNumTimers, isTimer, addTimer
+   use TimerList_mod, only: initializeTimer=>initialize
+   use TimerList_mod, only: finalizeTimer=>finalize
+   use pFUnit_mod
+   implicit none
+
+   integer, parameter :: dp = selected_real_kind(14)
+
+@TestCase
+   type, extends(TestCase) :: Test_TimerList
+      integer :: iplace
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+   end type Test_TimerList
+
+contains
+
+   subroutine setUp(this)
+      class (Test_TimerList), intent(inout) :: this
+      call initializeTimer(mockTime = 0._dp)
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      use Timer_mod
+      use TimeFormatUtilities_mod
+      class (Test_TimerList), intent(inout) :: this
+      type (Timer_type), pointer :: pTimer
+
+      call finalizeTimer(mockTime = 10*3600._dp)
+      pTimer => getTimer('main')
+
+      call reset()
+   end subroutine tearDown
+
+@Test
+   subroutine test_initialize(this)
+      class (Test_TimerList), intent(inout) :: this
+      @assertEqual(1,getNumTimers())
+      @assertTrue(isTimer('main'))
+   end subroutine test_initialize
+
+@Test
+   subroutine test_addTimer(this)
+      class (Test_TimerList), intent(inout) :: this
+      @assertFalse(isTimer('timer A'),'timer A should not be found')
+      call addTimer('timer A')
+      @assertTrue(isTimer('timer A'),'timer A not found')
+      @assertEqual(2, getNumTimers())
+
+      @assertFalse(isTimer('timer B'),'timer B should not be found')
+      call addTimer('timer B')
+      @assertTrue(isTimer('timer A'),'timer A not found')
+      @assertTrue(isTimer('timer B'),'timer B not found')
+      @assertEqual(3, getNumTimers())
+
+   end subroutine test_addTimer
+
+@Test
+   subroutine test_getTimer(this)
+      use Timer_mod
+      class (Test_TimerList), intent(inout) :: this
+      type (Timer_type), pointer :: timer_A
+
+      call addTimer('timer A')
+      call addTimer('timer B')
+
+      timer_A => getTimer('timer A')
+
+      @assertEqual(0, getNumTrips(timer_A))
+      call start('timer A')
+      call stop('timer A')
+      @assertEqual(1, getNumTrips(timer_A))
+      call start('timer A')
+      call stop('timer A')
+      @assertEqual(2, getNumTrips(timer_A))
+
+   end subroutine test_getTimer
+
+   ! For convenience create a timer if it does not exist
+   ! Could abort instead, but that would be annoying.
+@Test
+   subroutine test_startTimerNotFound(this)
+      class (Test_TimerList), intent(inout) :: this
+      character(len=*), parameter :: name = 'undeclared Timer'
+      call start(name)
+      @assertTrue(isTimer(name))
+      call stop(name)
+   end subroutine test_startTimerNotFound
+
+   ! Cannot stop a timer that does not exist.  Even creating it
+   ! makes no sense at this point.
+@Test
+   subroutine test_stopTimerNotFound(this)
+      class (Test_TimerList), intent(inout) :: this
+      character(len=*), parameter :: name = 'undeclared Timer'
+      call stop(name)
+      @assertTrue(catch('Timer <' // trim(name) // '> has not been declared prior to use.'))
+   end subroutine test_stopTimerNotFound
+
+@Test
+   subroutine test_detectUnbalanced(this)
+      class (Test_TimerList), intent(inout) :: this
+#ifdef USE_PFUNIT
+      call addTimer('timer')
+      call start('timer')
+      call finalizeTimer()
+      @assertTrue(catch('Unbalanced start/stop for timer <timer>.'))
+      call reset('timer')
+#endif
+   end subroutine test_detectUnbalanced
+
+end module test_TimerList_mod
+

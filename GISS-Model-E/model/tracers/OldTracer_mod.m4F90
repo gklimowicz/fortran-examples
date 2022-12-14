@@ -1,0 +1,272 @@
+#include "rundeck_opts.h"
+changequote([,])
+include([../shared/m4Iteration.m4])
+
+define([PROPERTIES_AND_TYPES],
+ [(tr_mm,real*8,,!@var TR_MM: molecular mass of each tracer (g/mole)),
+  (ntm_power,integer,,Power of 10 associated with each tracer (for printing)),
+  (t_qlimit,logical,.true.,if t_qlimit=.true. tracer is maintained as positive),
+  (needtrs,logical,.false.,true if surface tracer value from PBL is required),
+  (trdecay,real*8,0.d0,radioactive decay constant (1/s) (=0 for stable tracers)),
+  (itime_tr0,integer,,start time for each tracer (hours)),
+  (trsi0,real*8,0.d0, conc. in sea ice (kg/m^2)),
+  (trw0,real*8,0.d0,concentration in water (kg/kg)),
+  (mass2vol,real*8,,mass to volume ratio = mair/tr_mm),
+  (vol2mass,real*8,,volume to mass ratio = tr_mm/mair),
+  (dodrydep,logical,.false.,true if tracer should undergo dry deposition),
+  (F0,real*8,0.d0,reactivity factor for oxidation of biological substances),
+  (HSTAR,real*8,0.d0,Henry's Law const for tracer dry deposition. mole/(L atm)
+!@+   Same as the tr_RKD wet dep variable, except for units.
+!@+   If F0 & HSTAR both 0, & tracer not particulate, then no drydep.),
+  (do_fire,logical,.false.,true if tracer should have emissions via flammability),
+  (do_aircraft,logical,.false.,true if tracer should have emissions via aircraft),
+  (first_aircraft,logical,.true.,false once tracer timestream opened for aircraft),
+  (is_dCO_tracer,logical,.false.,!@var true if the tracer belongs to TRACERS_dCO),
+  (is_VBS_tracer,logical,.false.,!@var true if the tracer belongs to TRACERS_VBS),
+  (has_chemistry,logical,.false.,!@var true if the tracer is affected by chemistry, which adds a TRACERNAME_chem taij diagnostic),
+  (nBBsources,integer,0, number of sources attributed to biomass burning),
+  (emisPerFireByVegType,real*8[[[,]]] dimension(12),0.0d0,emisPerFireByVegType tracer emissions per fire count as a
+!@+ function of 12 standard GISS (VDATA) vegetation types, or Ent
+!@+ remapped to them. Thus the "12" hardcode.),
+  (trpdens,real*8,0.d0,tracer particle density (kg/m^3)
+!@+               (=0 for non-particle tracers)),
+  (trradius,real*8,0.d0,tracer effective radius (m) (=0 for non particle tracers)),
+  (tr_wd_TYPE,integer,nGas,tracer wet dep type (gas, particle, water)),
+  (tr_RKD,real*8,0.d0,Henry's Law coefficient (in mole/Joule please !)),
+  (tr_DHD,real*8,0.d0,coefficient of temperature-dependence term of Henry's
+!@+   Law coefficient (in Joule/mole please !)),
+  (fq_aer,real*8,0.d0,fraction of aerosol that condenses),
+  (rc_washt,real*8,1.d-1,aerosol washout rate),
+  (isDust,integer,0,index array for testing if tracer is a dust type),
+  (tr_H2ObyCH4,real*8,0.d0,conc. of tracer in water from methane oxidation),
+  (dowetdep,logical,.false.,true if tracer has some form of wet deposition),
+  (ntrocn,integer,0,scaling power factor for ocean/ice tracer concentrations),
+  (conc_from_fw,logical,.true.,true if ocean conc is defined using fresh water),
+  (trglac,real*8,,tracer ratio in glacial runoff to ocean (kg/kg)),
+  (iso_index,integer,1,indexing taking actual tracer number to isotope),
+  (om2oc,real*8,1.d0,ratio of organic matter to organic carbon),
+  (pm2p5fact,real*8,0.d0,amount of mass tracer that is PM2.5),
+  (pm10fact,real*8,0.d0,amount of mass tracer that is PM10),
+  (to_volume_MixRat,integer,0, =0: print tracer conc. by vol mix ratio; =1:mass mixing ratio),
+  (to_conc,integer,0, =0: print 3D tracer conc. by to_volume_MixRat; =1: kg/m3),
+  (TRLI0, real*8,0.d0,default tracer conc. for land ice (kg/kg)),
+  (iMPtable,integer,0,tracer index in scale tables),
+  (tcscale,real*8,0.d0,Scale factor for frequency tables),
+  (src_dist_base,integer,0,source distribution base),
+  (src_dist_index,integer,0,source distribution index)])dnl
+
+
+define([FIRST], [$1])
+
+define([PROPERTIES],
+    [(foreachq([property_and_type],[PROPERTIES_AND_TYPES],[_cat([FIRST],property_and_type),]))])dnl
+
+
+define([DECLARE_ACCESSORS],
+[public :: set_$1, $1 ]
+)dnl
+
+define([OVERLOAD_ACCESSORS],
+interface $1
+[module procedure $1_s
+ifelse($1,emisPerFireByVegType,,
+   module procedure $1_all
+   module procedure $1_m)]
+end interface
+)dnl
+
+define([DECLARE_COMPONENT],
+[ifelse($4,,,!@var $1: $4
+)dnl
+    $2 :: $1 ifelse($3,,,= $3) ]
+)dnl
+
+
+define([CREATE_ACCESSORS],
+[  subroutine set_$1(oldIndex, value)
+   use Attributes_mod
+    integer, intent(in) :: oldIndex
+    $2, intent(in) :: value
+    internalTracers(oldIndex)%$1 = value
+    call tracerReference%setAttribute(trName(oldIndex), "$1", newAttribute(value))
+  end subroutine set_$1
+  
+  function $1_s(oldIndex)
+    use GenericType_mod
+    integer, intent(in) :: oldIndex
+    type (Tracer), pointer :: p
+    $2 :: $1_s
+#ifdef NEW_TRACER_PROPERTIES
+    $1_s = tracerReference%getProperty(trName(oldIndex), "$1")
+#else
+#ifdef MIXED_TRACER_PROPERTIES
+    $1_s = tracerReference%internalTracers(oldIndex)%getProperty("$1")
+#else
+    $1_s = internalTracers(oldIndex)%$1
+#endif
+#endif
+  end function $1_s
+
+ifelse($1,emisPerFireByVegType,,
+[  function $1_all()
+    $2 :: $1_all(size(internalTracers))
+    $1_all = internalTracers(:)%$1
+  end function $1_all
+
+  function $1_m(oldIndices)
+    integer, intent(in) :: oldIndices(:)
+    $2 :: $1_m(size(oldIndices))
+    $1_m = internalTracers(oldIndices(:))%$1
+  end function $1_m
+]
+)
+])dnl
+
+module OldTracer_mod
+  use TracerBundle_mod
+  use Tracer_mod
+  implicit none
+  private
+
+  public :: OldTracer_type
+  public :: initializeOldTracers
+  public :: oldAddTracer
+  public :: findtracer
+!!$  public :: internalTracers
+  public :: trName
+  public :: MAX_LEN_NAME
+
+  public :: nGAS, nPART, nWATER
+
+  foreach([property],PROPERTIES,[DECLARE_ACCESSORS(property)])
+  foreach([property],PROPERTIES,[OVERLOAD_ACCESSORS(property)])
+
+  integer, parameter :: MAX_LEN_NAME = 20
+!**** parameters for tr_wd_TYPE
+!@param nGAS   index for wetdep tracer type = gas
+!@param nPART  index for wetdep tracer type = particle/aerosol
+!@param nWATER index for wetdep tracer type = water
+      integer, parameter :: nGAS=1, nPART=2, nWATER=3
+
+  type OldTracer_type
+    private
+    character(len=MAX_LEN_NAME) :: name
+
+foreachq([property_and_type],[PROPERTIES_AND_TYPES],[_cat([DECLARE_COMPONENT],property_and_type)])
+
+  end type OldTracer_type
+
+  integer, save :: numTracers = 0
+  type (OldTracer_type), allocatable :: internalTracers(:)
+  procedure(IdefaultSpec), pointer :: defaultSpec
+
+  abstract interface
+    subroutine IdefaultSpec(n_idx, trcer)
+    use Tracer_mod
+    use Attributes_mod, only: assignment(=)
+    integer, intent(in) :: n_idx
+    class (Tracer), pointer :: trcer
+    end subroutine IdefaultSpec
+  end interface
+
+  interface trName
+    module procedure trname_s
+    module procedure trname_all
+  end interface trName
+  
+  type (TracerBundle), pointer :: tracerReference => null()
+
+contains
+
+  function trName_s(idx) result(name)
+    integer, intent(in) :: idx
+    character(len=len_trim(internalTracers(idx)%name)) :: name
+    name = trim(internalTracers(idx)%name)
+  end function trName_s
+
+  function trName_all() result(name)
+    character(len=MAX_LEN_NAME) :: name(numTracers)
+    name = internalTracers(:)%name
+  end function trName_all
+
+  subroutine initializeOldTracers(tracerRef, spec)
+    type (TracerBundle), target :: tracerRef
+    procedure(IdefaultSpec) :: spec
+
+    tracerReference => tracerRef
+    defaultSpec => spec
+    allocate(internalTracers(0))
+    
+  end subroutine initializeOldTracers
+
+  integer function oldAddTracer(name, initname) result(n)
+     use Attributes_mod, only: assignment(=)
+    character(len=*), intent(in) :: name
+    character(len=*), intent(in), optional :: initname
+    type (OldTracer_type), allocatable :: tmp(:)
+    class (Tracer), pointer :: t, it=>null()
+    integer :: i
+
+    allocate(tmp(numTracers))
+    tmp = internalTracers
+    deallocate(internalTracers)
+
+    allocate(internalTracers(numTracers+1))
+    internalTracers(1:numTracers) = tmp
+    deallocate(tmp)
+
+    if (present(initname)) then
+      do i=1, numtracers
+        if (internaltracers(i)%name==initname) then
+          internaltracers(numtracers+1)=internaltracers(i)
+          exit
+        endif
+      end do
+    endif
+
+    numTracers = numTracers + 1
+    internalTracers(numTracers)%name = trim(name)
+
+    call tracerReference%insert(name, newTracer(name))
+
+!    t => newTracer(name)
+!    call tracerReference%insert(name, t)
+    t => tracerReference%getReference(name)
+    if (present(initname)) it=>tracerreference%getreference(initname)
+    if (associated(it)) then
+      call copyinto(t, it)
+    else
+      call defaultSpec(numTracers, t)
+    endif
+    call t%insert('index', numTracers)
+    n = numTracers
+
+  end function oldAddTracer
+
+  function findtracer(name)
+  implicit none
+  character(len=*), intent(in) :: name
+  integer :: findtracer, i
+
+#ifdef NEW_TRACER_PROPERTIES
+  findtracer=tracerreference%getproperty(name, 'index')
+#else
+  findtracer=0
+  do i=1, numtracers
+#ifdef MIXED_TRACER_PROPERTIES
+    if (tracerreference%internaltracers(i)%getproperty('name')==name) then
+#else
+    if (internaltracers(i)%name==name) then
+#endif
+#endif
+      findtracer=i
+      exit
+    endif
+  end do
+  return
+  end function findtracer
+
+  foreachq([property_and_type],[PROPERTIES_AND_TYPES],[_cat([CREATE_ACCESSORS],property_and_type)]
+)
+
+end module OldTracer_mod

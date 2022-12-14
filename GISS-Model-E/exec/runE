@@ -1,0 +1,141 @@
+#!/bin/bash
+## simple script to run the model
+
+OPTS=
+QS_OPT=
+np=1
+t=0:10:00
+
+if [ "$MODELERC"x = x ] ; then MODELERC=$HOME/.modelErc ; fi
+if [ -f $MODELERC ] ; then
+    . $MODELERC
+else
+    echo config file not found : $MODELERC
+    exit 1
+fi
+
+if [ $# -le 0 ] ; then
+    echo "Usage: runE RUNID [-s suffix] [-t time_limit] [-np number_of_cpus] [-cold-restart]"
+    echo "Restart the run RUNID"
+    echo "-cold-restart will re-initialize the model as specified"
+    echo "              by the ISTART= line in the rundeck"
+    echo " "
+    echo "This command requires a configuration file MODELERC, default: ~/.modelErc"
+    echo "containing 1 or more job-submission-strings QSUB_STRING_suffix"
+    echo "Use the -s option to select the appropriate QSUB_STRING"
+    echo "If it contains the place holders %t and %np for time and number-of-cpus," 
+    echo "-t and -np may be used to override the defaults 0:10 (10 minutes) and 1 resp."
+    exit 1; fi
+
+## The first argument is RunID
+RUNID=$1; shift
+
+## Extract flags related to runE and pass the rest to "RunID" script
+while [ $# -ge 1 ] ; do
+    OPT=$1 ; shift
+    case $OPT in
+        -s)
+            QS_OPT=_"$1" ; shift
+            continue
+            ;;
+        -t)
+            t="$1" ; shift
+            continue
+            ;;
+         -np)
+            np="$1"
+            ;;
+         *)
+            ;;
+    esac
+    OPTS="$OPTS $OPT"
+done
+
+echo "will use OPTS: "$OPTS
+
+
+if [ ! -d $CMRUNDIR/$RUNID ] ; then
+    echo "Run directory not found: $CMRUNDIR/$RUNID"
+    exit 1; fi
+
+## check if this run is already running
+if [ -f $CMRUNDIR/$RUNID/lock ] ; then
+    echo "            **********************                "
+    echo "$RUNID seems to be already running in $CMRUNDIR/$RUNID"
+    echo
+    echo "If you think it is an error, then most probably this"
+    echo "task was interrupted in an unusual way. Please check."
+    echo "Then remove the lock file:"
+    echo "$CMRUNDIR/$RUNID/lock"
+    echo "and restart the runE."
+    echo "            **********************                "
+    exit 1
+fi
+
+## check if this run is already finished
+run_status_file=$CMRUNDIR/$RUNID/run_status
+if [ -s $run_status_file ] ; then
+    if [ `head -1 $run_status_file` -eq 13 ] \
+     && [ `find $run_status_file -newer $CMRUNDIR/$RUNID/I` ] ; then
+        echo "            **********************                "
+        echo "$RUNID seems to have already finished"
+        echo "Update (or touch) $CMRUNDIR/$RUNID/I to continue the run or"
+        echo "  final diagnostics"
+        echo "            **********************                "
+        exit 1
+    fi
+fi
+
+## form the "qsub" request here
+run_command=${RUNID}.qsub
+cd "$CMRUNDIR/$RUNID"
+echo "#!/bin/bash" > $run_command
+echo "if [ -s modules ] ; then" >> $run_command
+echo "  if [ -f /usr/share/modules/init/bash ] ; then . /usr/share/modules/init/bash ; fi" >>  $run_command
+echo "  if [ -f /usr/share/Modules/init/bash ] ; then . /usr/share/Modules/init/bash ; fi" >>  $run_command
+echo '  module purge ; module load `cat modules` ; fi' >> $run_command
+echo "trap '' TERM" >> $run_command
+echo "cd $CMRUNDIR/$RUNID" >> $run_command
+echo "./$RUNID $OPTS" >> $run_command
+chmod 755 $run_command
+## also reset "run_status"
+echo "-99" > run_status
+echo "not started yet" >> run_status
+
+# get full name (including -s suffix) of  QSUB_STRING
+eval QSUB_STRING_VAL_0=\$QSUB_STRING$QS_OPT
+# expand variables (like %np, %t) in QSUB_STRING
+# (the following line can be used to expand \$xyz variables)
+#eval QSUB_STRING_VALUE=\"$QSUB_STRING_VAL_0\"
+QSUB_STRING_VAL_1=${QSUB_STRING_VAL_0/\%np/$np}
+QSUB_STRING_VALUE=${QSUB_STRING_VAL_1/\%t/$t}
+# POSIX-compatible version:
+#QSUB_STRING_VAL_1=$(echo $QSUB_STRING_VAL_0 | sed "s/\%np/$np/;")
+#QSUB_STRING_VALUE=$(echo $QSUB_STRING_VAL_1 | sed "s/\%t/$t/;")
+
+echo "submitting: " $QSUB_STRING_VALUE " ./$run_command"
+
+$QSUB_STRING_VALUE ./$run_command
+
+## if the task is submitted as a SLURM batch job quit here
+if [[ "$QSUB_STRING_VALUE" =~ .*sbatch.* ]] ; then
+    echo "Submitted as a batch job."
+    echo "After it finishes, check "
+    echo "  $CMRUNDIR/$RUNID/run_status"
+    echo "for status."
+    exit 0
+fi
+
+rc=`head -1 run_status`
+if [ $rc -ne 13 ] && [ $rc -ne 12 ] ; then
+    echo " Problem encountered while running $RUID";
+    if [ $rc -ne 1 ] ; then
+        error_message=`tail -1 run_status`
+    else 
+        error_message="Unknown reason"
+    fi
+    echo " >>> $error_message <<<"
+    exit 2 ;
+else
+    echo "Run $RUNID completed successfully"
+fi

@@ -1,0 +1,739 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<body bgcolor="#ffffff" text="#000000" link="#000099" vlink="#cc0000" alink="#cc0000">
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+ <TITLE>NEW_IO</TITLE>
+</HEAD>
+
+<BODY>
+<H1>NEW_IO</H1>
+
+<P>
+M. Kelley, November 2010
+</P>
+
+<P>
+Table of Contents
+</P>
+
+<!--<LI><a HREF="#why_newio">    Why use NEW_IO mode?</a> -->
+
+<UL>
+  <LI><a HREF="#rundeck">      HOW-TO configure your rundeck and set up your environment</a>
+  <LI><a HREF="#model_state">  HOW-TO examine a quantity in the restart file</a>
+  <LI><a HREF="#diffreport">   HOW-TO compare restart files</a>
+  <LI><a HREF="#defvar">       HOW-TO save a quantity in the restart file</a>
+  <LI><a HREF="#pdE">          HOW-TO obtain scaled diagnostics (short version)</a>
+  <LI><a HREF="#scaleacc">     HOW-TO obtain scaled diagnostics</a>
+  <LI><a HREF="#sumfiles">     HOW-TO do time averages</a>
+  <LI><a HREF="#remap">        HOW-TO obtain lat-lon outputs from a cubed-sphere run</a>
+  <LI><a HREF="#tables">       HOW-TO print the diagnostics tables</a>
+  <LI><a HREF="#gissbin">      HOW-TO convert netcdf to GISS-binary format</a>
+  <LI><a HREF="#ncksprt">      HOW-TO print a netcdf variable in ASCII format</a>
+  <LI><a HREF="#hemis">        HOW-TO extract hemispheric/global means</a>
+  <LI><a HREF="#subdd">        HOW-TO write "subdaily" diagnostics in netcdf format</a>
+  <LI><a HREF="#add_diag">     HOW-TO add a new diagnostic to an existing category</a>
+  <LI><a HREF="#add_diag_cat"> HOW-TO add a new category of diagnostic</a>
+  <LI><a HREF="#special_cat">  Special diagnostic calculations</a>
+  <LI><a HREF="#probs">        Troubleshooting</a>
+  <LI><a HREF="#plotting">     Plotting options</a>
+  <LI><a HREF="#rules">        How it works</a>
+  <LI><a HREF="#local_info">   Local information</a>
+</UL>
+
+<!------------------------------------------------------------------------------->
+<!--<P><HR><p><p><A name="why_newio"><b>WHY use NEW_IO mode?</b></a></p> -->
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="rundeck"><b>HOW-TO configure your rundeck and set up your environment</b></a>
+</p>
+
+<p>
+Cubed-sphere rundecks function in NEW_IO mode only and no changes are necessary.
+To reconfigure a rundeck for NEW_IO, change the following:
+<ul>
+  <li><tt>#define NEW_IO</tt> in the <tt>Preprocessor Options</tt> section</li>
+  <li>in the <tt>Object Modules:</tt> section, replace <tt>IORSF</tt> by <tt>IO_DRV</tt>  If doing a tracer run, add <tt>TRDIAG</tt> somewhere.</li>
+  <li>in the <tt>Components:</tt> section, add <tt>dd2d</tt></li>
+  <li>If you wish to use parallel-netcdf, add a line <tt>OPTS_dd2d = NC_IO=PNETCDF</tt> in the <tt>Component Options:</tt> section of the rundeck, and check that PNETCDFHOME is set in your .modelErc (see <a href="#local_info">Local information</a> for installation locations).
+If your run writes restart files larger than 1-2 GB, this option is highly recommended.
+  <li>If ISTART=2: in the <tt>Data input files:</tt> section, set <tt>GIC=name_of_a_netcdf_gic.nc</tt>
+         (The <a href="#local_info">Local information</a> section will point you to some existing netcdf GIC files)</li>
+</ul>
+</p>
+
+<p>
+Most systems running modelE have a netcdf installation which is probably already specified
+in your .modelErc file.  However, your PATH environment variable may not include the location
+of two important helper programs: <tt>ncdump</tt> and <tt>ncgen</tt>.  If it doesn't, add
+<tt>NETCDFHOME/bin</tt> to your PATH (<tt>NETCDFHOME</tt> denoting whatever is present
+in your .modelErc).
+</p>
+
+<p>
+Unless indicated otherwise, standalone programs/scripts referenced below are installed
+in a location noted in the <a href="#local_info">Local information</a> section.
+Most are built from the code in the <tt>model/mk_diags</tt> directory.
+Though not necessary to run the model, the NCO package is a prerequisite for
+the <tt>ncksprt</tt> script.  Again, see <a href="#local_info">Local information</a>
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="model_state"><b>HOW-TO examine a quantity in the restart file</b></a>
+</p>
+
+<p>
+To view a plot of the instantaneous state of particular model variables, one can
+open a restart file using a <a href=#plotting>netcdf-aware</a> plotting package.
+However, note that restart files are not currently written with coordinate data
+and other metadata, which causes some packages to throw up their hands
+and refuse to plot anything, period.  Thankfully there exist packages
+like the CDAT GUI <tt>vcdat</tt> that accept just about any input
+and plot it in gridpoint space.
+</p>
+
+<p>
+To simply print the (local) values of one or model variables to the screen,
+use the <tt>ncksprt</tt> utility described <a href=#ncksprt>here:</a>
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="diffreport"><b>HOW-TO compare restart files</b></a>
+</p>
+
+<p>
+Say you have two restart files <tt>fort.2.8proc.nc</tt> and <tt>fort.2.1proc.nc</tt>
+whose comparison will tell you whether the model produced the same result on 8 processors
+versus 1.
+To print a report of which variables differ, and their maximum absolute and
+relative differences, use the <tt>diffreport</tt> utility (which can be applied
+to any two netcdf files from any source, actually):
+</p>
+<pre>
+   diffreport fort.2.8proc.nc fort.2.1proc.nc
+</pre>
+
+<p>
+To suppress reports for certain variables, an optional third command-line argument
+can be passed to <tt>diffreport</tt> specifying a dummy netcdf variable whose
+attributes contain a list of on/off switches.  One use of this feature in the
+modelE example above would be:
+</p>
+<pre>
+   diffreport fort.2.8proc.nc fort.2.1proc.nc is_npes_reproducible
+</pre>
+
+<p>
+Here, the <tt>is_npes_reproducible</tt> variable is defined by modelE to
+contain a list of (diagnostic) arrays known to have roundoff differences on
+different processor counts.
+</p>
+
+<p>
+For a broader look at a potential problem, the NCO utility <tt>ncdiff</tt>
+can be used to generate a file containing the differences which can then be
+viewed (or printed with <tt>ncksprt</tt>):
+</p>
+<pre>
+   ncdiff fort.2.8proc.nc fort.2.1proc.nc diff.nc
+</pre>
+
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="defvar"><b>HOW-TO save a quantity to the restart file</b></a>
+</p>
+
+<p>
+As of March 2010, NEW_IO versions of existing model
+input/output routines exist alongside the default <tt>io_XYZ</tt> versions,
+but with a <tt>new_</tt> prefix.  With a few exceptions described below,
+these function
+analogously to the <tt>io_XYZ</tt> versions, but call special routines
+which handle the netcdf and parallelization details.  A single call to
+one of these routines reads/writes a single model variable, which is
+associated with the corresponding variable in the file using its
+netcdf name.  There is no requirement that the Fortran name in the
+code match the netcdf name in the file.  The ordering of variables
+in a netcdf file is arbitrary since they are always read/written
+using their netcdf names.
+</p>
+
+<pre>
+! write distributed array u to the netcdf variable 'u':
+    call write_dist_data(grid,fid,'u',u) ! grid is a dist_grid object, fid is file ID
+
+! read distributed array t from the netcdf variable 't':
+    call read_dist_data(grid,fid,'t',t)
+
+! root processor writes its copy of non-distributed array idacc to the netcdf variable 'idacc'
+    call write_data(grid,fid,'idacc',idacc)
+
+! read non-distributed variable s0 from netcdf variable s0, and broadcast to all processors
+    call read_data(grid,fid,'s0',s0,bcast_all=.true.) ! bcast_all is an optional argument
+</pre>
+
+<p>
+Subroutines <tt>write_dist_data,read_dist_data</tt> take an optional argument
+<tt>jdim</tt> which specifies which dimension is the LAST horizontal dimension;
+if <tt>jdim</tt> is not specified it is assumed to be 2, which is the case
+for model arrays like temperature T(I,J,L).  To write an array
+dimensioned L,I,J, set <tt>jdim=3</tt>
+</p>
+
+
+<p>
+Before calling one of these I/O routines, the shapes of model variables
+and their netcdf names must have been declared
+already, via a call to <tt>defvar</tt> in one of the
+<tt>def_rsf_XYZ</tt> subroutines.  The sizes of dimensions are
+inferred from those of Fortran arrays passed to <tt>defvar</tt>, and
+the netcdf names of variables and their dimensions are taken
+from string arguments.
+</p>
+<pre>
+! declare a scalar 's0'
+    call defvar(grid,fid,s0,'s0')
+! declare a 1-D array 'idacc' and a dimension 'nsampl'
+    call defvar(grid,fid,idacc,'idacc(nsampl)')
+</pre>
+
+<p>
+For distributed arrays, a prefix <tt>dist_</tt> must be added to dimension
+names.  The sizes of distributed dimensions are taken from the <tt>grid</tt>
+object.
+</p>
+<pre>
+! declare a 3-D array 't' whose first two dimensions are distributed
+    call defvar(grid,fid,t,'t(dist_im,dist_jm,lm)')  ! grid is a dist_grid object, fid is file ID
+</pre>
+
+<p>
+Obviously many model variables share dimensions; it is not necessary to
+declare separate dimension names for each variable.  If a dimension is
+ever redeclared with a different size than previously,
+<tt>defvar</tt> will abort.
+</p>
+
+<p>
+If a call to one of the write routines is made for a variable that does
+not exist in the output file, they will abort.  If a read routine is
+called for a nonexistent variable, a warning message is printed
+but execution will continue; this behavior is useful when restarting
+from older model versions for example.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="scaleacc"><b>HOW-TO obtain scaled diagnostics</b></a>
+</p>
+
+<pre>
+   scaleacc acc-file acc-array-name[,name2,name3...]
+
+# Examples:
+# scale the JAN1901 "aj" and "aij" accumulations of run E001xyz:
+   scaleacc JAN1901.accE001xyz.nc aj,aij # output files will be JAN1901.{aj,aij}E001xyz.nc
+# scale all available accumulations using the "all" request
+   scaleacc JAN1901.accE001xyz.nc all
+</pre>
+
+<p>
+The standalone (i.e. run-independent) <tt>scaleacc</tt> utility converts the
+contents of an accumulation array to final scaled form in much the same way as the
+<tt>pdE</tt> command.  Accumulations are divided by the number of times
+they were accumulated, scale factors are applied, ratios
+are calculated, and so forth.  The name of the output file produced is
+the name of the accumulation file with the "acc" substring replaced
+by the name of the accumulation array (this differs from the filename
+choices of <tt>pdE</tt>).
+From the end user's point of view, there are a few other minor procedural
+differences compared to "standard" <tt>pdE</tt>:
+
+<ul>
+  <li>
+Final scaled outputs are written in netcdf format, but these are easily convertible to
+GISS-binary using one of the utilities documented <a href=#gissbin>here.</a>
+  </li>
+  <li>
+Individual diagnostics categories are requested by name rather than via the KDIAG namelist array.
+Several categories can be specfied with a comma-separated list, or this collection can be
+built up one category at a time. For simplicity,
+<a href=#remap>remapped output</a> must be generated using the latter approach.
+  </li>
+  <li>
+<tt>scaleacc</tt> does NOT perform time averaging - time averages are
+constructed by first applying the <tt>sumfiles</tt> utility to the
+set of acc-files constituting a particular time period
+(see <a href=#sumfiles>the next section</a>),
+and then applying <tt>scaleacc</tt> to the resulting "sum of files".
+  </li>
+  <li>
+<tt>scaleacc</tt> does not calculate diagnostics defined using nontrivial operations
+on time-mean output; <a href=#special_cat>special standalone programs </a> have been created for this purpose.
+  </li>
+</ul>
+Model E diagnostics categories configured for <tt>scaleacc</tt> include
+<ul>
+  <li> <tt>aj</tt>: atmospheric model, budget page (budget latitude bands)
+  </li>
+  <li> <tt>areg</tt>: atmospheric model, aj diagnostics for predefined regions
+  </li>
+  <li> <tt>ajl</tt>: atmospheric model, latitude-height (budget latitude bands)
+  </li>
+  <li> <tt>aij</tt>: atmospheric model, longitude-latitude (or on the cubed-sphere grid if applicable)
+  </li>
+  <li> <tt>aijl</tt>: atmospheric model, longitude-latitude-height (or on the cubed-sphere grid if applicable)
+  </li>
+  <li> <tt>consrv</tt>: atmospheric model, conservation quantities on the budget grid
+  </li>
+  <li> <tt>agc</tt>: atmospheric model, latitude-height general circulation diagnostics on constant-pressure levels (winds, temperature, eddy fluxes etc.)
+  </li>
+  <li> <tt>aijk</tt>: atmospheric model, longitude-latitude-height general circulation diagnostics on constant-pressure levels (winds, temperature, eddy fluxes etc.)
+  </li>
+  <li> <tt>tconsrv</tt>: atmospheric model, tracer conservation quantities on the budget grid
+  </li>
+  <li> <tt>tajl</tt>: atmospheric model, latitude-height tracer fields (budget latitude bands)
+  </li>
+  <li> <tt>taij</tt>: atmospheric model, longitude-latitude tracer fields (or on the cubed-sphere grid if applicable)
+  </li>
+  <li> <tt>taijl</tt>: atmospheric model, longitude-latitude-height tracer fields (or on the cubed-sphere grid if applicable)
+  </li>
+  <li> <tt>adiurn</tt>: atmospheric model, diurnal cycles at selected gridpoints
+  </li>
+  <li> <tt>hdiurn</tt>: atmospheric model, hourly timeseries at selected gridpoints
+  </li>
+  <li> <tt>otj</tt>: Ocean R, northward transports
+  </li>
+  <li> <tt>ojl</tt>: Ocean R, latitude-depth
+  </li>
+  <li> <tt>oij</tt>: Ocean R, longitude-latitude
+  </li>
+  <li> <tt>oijl</tt>: Ocean R, longitude-latitude-depth
+  </li>
+  <li> <tt>olnst</tt>: Ocean R, straits
+  </li>
+  <li> <tt>toijl</tt>: Ocean R, longitude-latitude-depth tracer fields
+  </li>
+  <li> <tt>icij</tt>: Viscous-plastic ice dynamics, longitude-latitude fields
+  </li>
+</ul>
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="sumfiles"><b>HOW-TO do time averages</b></a>
+</p>
+
+<pre>
+   sumfiles acc-files-to-be-summed
+
+# Example: produce the JJA1901 accumulations of run E001xyz:
+   sumfiles {JUN,JUL,AUG}1901.accE001xyz.nc
+</pre>
+
+<p>
+The scaled diagnostics for a multi-month averaging period are
+generated by applying <tt>scaleacc</tt> to an acc-file generated
+by <tt>sumfiles</tt> which contains sums over the months in this averaging period.
+<tt>sumfiles</tt> attempts to guess an appropriate name for the file it
+produces, but is not foolproof.  Caution should be used when applying
+regular expressions like <tt>*1901.accE001xyz.nc</tt> ; this will
+cause problems if one has already created seasonal sums like
+<tt>JJA1901.accE001xyz.nc</tt> for example.  Multi-year sums
+can be calculated by applying <tt>sumfiles</tt> to single-year sums.
+</p>
+
+<p>
+The <tt>sumfiles</tt> program can do more than the computation of the
+sums used to define time averages.  In fact, the only accumulation
+arrays it sums are those having a netcdf attribute <tt>reduction = "sum"</tt>.
+In addition to "sum", it currently understands "min" and "max"; other
+operations can easily be added.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="remap"><b>HOW-TO obtain lat-lon outputs from a cubed-sphere run</b></a>
+</p>
+
+<p>
+For a cubed-sphere run whose so-called "native grid" is not a latitude-longitude mesh,
+scaled diagnostics from accumulation arrays such as <tt>aij</tt>
+can be output on the native grid or remapped to a
+user-specified latitude-longitude grid.  Native-grid accumulation arrays remain
+native in acc-files; remapping to a different grid is requested during the
+<tt>scaleacc</tt> step by adding the name of a "remap" file to the command line:
+</p>
+
+<pre>
+# Example: scale the JAN1901 "aij" accumulations of run E001xyz whose native
+# grid is C90, and output them on a 288x180 latitude-longitude grid defined
+# in the file remap_C90_288x180.nc
+   scaleacc JAN1901.accE001xyz.nc aij remap_C90_288x180.nc
+</pre>
+
+<p>
+The name of the remap file is arbitrary since the resolutions of the cubed-sphere
+and latitude-longitude grids are taken from its contents.
+If no remap file is specified, <tt>scaleacc</tt> outputs quantities on
+their native grids.  Outputs which are ratios are defined as the ratio of
+remapped numerators and denominators.
+At some point the calculation of remapping information may be moved into
+the <tt>scaleacc</tt> process, but most users will find it convenient
+to use one of several precalculated files available on systems where
+modelE runs or acc-files are archived
+(see <a href="#local_info">Local information</a> concerning locations of remap files).
+The choice of remapping method for a particular diagnostic (first- versus
+second-order accuracy, area-weighted versus interpolation) is made during
+the declaration of the metadata for that diagnostic
+(conventions for this are currently being decided).
+For more information, contact the author.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="tables"><b>HOW-TO print the diagnostics tables</b></a>
+</p>
+
+<p>
+To allow a large amount of output to be perused quickly, modelE provides
+routines which print certain categories of results in tabular form
+(e.g. zonal means).
+Most of these routines have been transplanted to standalone programs
+and modified to read the files produced by <tt>scaleacc</tt>.
+Fortran format statements, powers of 10, and other information needed
+to replicate the look and feel of existing output are retrieved from the metadata for
+each quantity.  Each standalone program is designed to print one and only one
+category of output (although tracer quantities can be printed using the
+same programs as non-tracer quantities).  Tables are printed to
+standard output which can be redirected to user-specified output files.
+Currently available print programs and their syntax for January 1901
+of a run E001xyz are:
+</p>
+
+<pre>
+#  program          input file or argument
+   prtaj            JAN1901.ajE001xyz.nc
+   prtareg          JAN1901.aregE001xyz.nc
+   prtconsrv        JAN1901.consrvE001xyz.nc
+   prtconsrv_tracer JAN1901.tconsrvE001xyz.nc
+   prtajl           JAN1901.ajlE001xyz.nc     # also works for tajl
+   prtadiurn        JAN1901.adiurnE001xyz.nc
+   prtrvr           JAN1901.accE001xyz.nc     # river flow; acc file is read
+   prtisccp         JAN1901.accE001xyz.nc     # ISCCP clouds; acc file is read
+   prtotj           JAN1901.otjE001xyz.nc
+   prtolnst         JAN1901.olnstE001xyz.nc
+   prtostat E001xyz JAN1901                   # reads ojl and oij output files
+</pre>
+
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="gissbin"><b>HOW-TO convert netcdf to GISS-binary format</b></a>
+</p>
+
+<p>
+GISS-binary files can be created from netcdf files using one of these programs:
+</p>
+
+<pre>
+write_giss2d       infile.nc outfile [ varname OR dimname1 dimname2 ]
+write_2d_as_giss4d infile.nc outfile [ varname OR dimname1 dimname2 ]
+</pre>
+
+<p>
+which behave identically save for the coordinate information
+written to "GISS 4D" files.
+If the optional argument <tt>varname</tt> is specified, only
+that netcdf variable is written to the GISS-binary file; otherwise
+all dimension-matched variables are written.
+If the optional arguments <tt>dimname1</tt> and <tt>dimname2</tt> are
+specified, dimension-matched variables are defined as those whose
+dimensions include <tt>dimname1</tt> and <tt>dimname2</tt>;
+otherwise all variables having two or more dimensions are written.
+If <tt>dimname1</tt> and <tt>dimname2</tt> are not specified,
+they are assumed to correspond to the first two dimensions of 3D+ variables.
+A two-dimensional variable is written as a single fortran
+record, and each record of a 3D+ variable contains a
+two-dimensional "slab" of data spanning the
+two dimensions <tt>dimname1</tt> and <tt>dimname2</tt>.
+The 80-byte title of
+each record is created from the <tt>long_name</tt> and
+<tt>units</tt> attributes of the variable being written, and
+contains the index information along the dimensions other than
+the slab dimensions <tt>dimname1 dimname2</tt>.  The slab
+dimensions need not be the first two of a given variable,
+nor consecutive.
+If <tt>long_name</tt> is absent, the netcdf variable name is used
+in the title.
+Examples:
+</p>
+
+<pre>
+write_giss2d JAN1901.aijE001xyz.nc JAN1901.aijE001xyz.giss2d            # convert all variables in the input file
+write_giss2d JAN1901.aijE001xyz.nc JAN1901.aijE001xyz.giss2d lon lat    # extract only the aij variables dimensioned by lon and lat
+write_giss2d JAN1901.aijE001xyz.nc JAN1901.tsurfE001xyz.giss2d tsurf    # extract only the "tsurf" variable
+write_giss2d JAN1901.aijlE001xyz.nc JAN1901.aijlE001xyz.giss2d lon plm  # aijl variables split along the lat dimension to make "IL" records
+write_giss2d JAN1901.aijlE001xyz.nc JAN1901.aijlE001xyz.giss2d          # all aijl variables will be split along their 3rd dimension
+write_2d_as_giss4d JAN1901.ajlE001xyz.nc JAN1901.ajlE001xyz.giss4d      # extract all AJL fields
+</pre>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="pdE"><b>HOW-TO obtain scaled diagnostics (short version)</b></a>
+</p>
+
+R. Ruedy has created a NEW_IO version of the <tt>pdE</tt> script which
+executes the commands described in the previous sections.  It collects
+the printed tables for all diagnostics categories into a single text
+file, and offers the option to convert netcdf to GISS-format files.
+Execute <tt>pdE</tt> without arguments to see the syntax of its usage.
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="ncksprt"><b>HOW-TO print a netcdf variable in ASCII format</b></a>
+</p>
+
+<p>
+The script <tt>ncksprt</tt> employs the NCO utility <tt>ncks</tt> to print
+the values of variables in ASCII format, with further formatting of the
+output done by UNIX <tt>sed</tt>, <tt>awk</tt>, and <tt>paste</tt>.
+Coordinate values are printed along with the requested variables, and
+multiple variables can be printed simultaneously (in column format).
+The syntax for specifying dimension bounds is that of NCO:
+integers correspond to (1-based) dimension indices, while floating-point
+numbers correspond to coordinate values.  Although it can be used to
+print multidimensional hyperslabs of data, this tool was intended
+for point or one-dimensional reports.
+Examples:
+</p>
+
+<pre>
+# surface air temperature and wind speed as a function of longitude, at the latitude closest to 30 degrees north
+   ncksprt -v tsurf,wsurf -d lat,30. JAN1901.aijE001xyz.nc
+
+# model variables t(i,j,l),q(i,j,l) at i=20 and j=10 for l=1 to l=5 
+   ncksprt -v t,q -d im,10 -d jm,10 -d lm,1,5 fort.2.nc  # netcdf dimension names are im,jm,lm in the restart file
+</pre>
+
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<a name="hemis"><b>HOW-TO extract hemispheric/global means</b></a>
+</p>
+
+<p>
+To avoid making standalone programs understand the details of
+horizontal grids and area weightings, the model computes hemispheric and
+global means of accumulation quantities, saves these means in
+auxiliary arrays in acc-files, and defines auxiliary scaled output
+quantities having the suffix <tt>_hemis</tt>.  These auxiliary
+outputs have a dimension name <tt>shnhgm</tt> of size 3 in addition
+to whatever other relevant dimensions they may possess.  The first
+position in the <tt>shnhgm</tt> dimension contains the southern hemisphere
+mean, the second the northern hemisphere, and the third the global mean.
+From an aij output file for example, the hemispheric and/or global means
+of surface air temperature can be printed using <tt>ncksprt</tt>
+</p>
+
+<pre>
+    ncksprt -v tsurf_hemis JAN1901.aijE001xyz.nc
+    ncksprt -v tsurf_hemis -d shnhgm,3 JAN1901.aijE001xyz.nc # print global mean only
+</pre>
+
+<p>
+The <tt>scaleacc</tt> program defines the means of diagnostics which are ratios
+using the ratio of the means of the respective accumulations.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<a name="subdd"><b>HOW-TO write "subdaily" diagnostics in netcdf format</b></a>
+</p>
+
+<p>
+(The reader is assumed to be familiar with the workings of the subdaily diagnostics code.)
+</p>
+
+<p>
+A line <tt>#define NEW_IO_SUBDD</tt> in the <tt>Preprocessor Options</tt> section of
+a rundeck is currently required to override the default output format for these
+diagnostics (one lat-lon slice per Fortran binary sequential-access record).
+Note that this option currently requires that the model be built with parallel
+netcdf.
+</p>
+
+<p>
+The default routine <tt>write_data</tt> outputs only one lat-lon slice per call;
+for simplicity/efficiency, an alternate interface <tt>write_subdd</tt> was
+introduced to allow output of 3- and higher-dimensional arrays in one call.
+The coding for the default format will soon be changed to use this interface.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="add_diag"><b>HOW-TO add a new diagnostic to an existing category</b></a>
+</p>
+
+<p>
+For the most part, postprocessing by standalone programs does not
+change the procedure.  However, it does require attention to a few
+details that are sometimes overlooked.  Firstly, the short names
+of output quantities must be accepted by the netcdf library:
+they must begin with an alphabetic character followed by zero or more
+alphanumeric characters (including underscores).  Secondly,
+for outputs that are ratios, a denominator must be stored somewhere
+in the accumulation array since it cannot be computed "on the fly"
+during postprocessing.  The metadata for the numerator should
+contain the index of the denominator.  Some categories of diagnostics
+in modelE (e.g. <tt>aij,ajl</tt>) are already scaled online using this
+denominator system, so there are examples to follow.
+</p>
+
+<p>
+More challenging for standalone postprocessing are diagnostics that
+are declared locally within modelE print programs, or those which
+having some meta-metadata not registered anywhere
+(e.g. which tracer outputs need division by gridcell area when
+most others don't, or vice versa).  The number of such special cases
+has declined recently and hopefully the trend will continue.
+</p>
+
+<p>
+Finally, for outputs that are simple functions of already-existing outputs,
+it may be more expedient to calculate/extract them using generic tools rather
+than adding new code to modelE.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="special_cat"><b>Special diagnostic calculations</b></a>
+</p>
+
+Special-purpose programs for outputs not fitting the generic-postprocessing mold include:
+<ul>
+  <li> <tt>agcstat</tt>: calculates standing-eddy statistics, refractive indices, etc. from time-mean output,
+and places the results into the <tt>agc</tt> output file
+  </li>
+  <li> <tt>prtostat</tt>: prints selected ocean circulation statistics from time-mean output
+  </li>
+</ul>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="add_diag_cat"><b>HOW-TO add a new category of diagnostic</b></a>
+</p>
+
+<p>
+Recipe to be written.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="probs"><b>Troubleshooting</b></a>
+</p>
+
+<p>
+Known causes of aberrant behavior:
+<ul>
+  <li> Application of <tt>sumfiles/scaleacc</tt> to acc-files residing in a
+mass-storage facility.  Some facilities have commands to create temporary copies of
+slow-media (tape) files on higher-performance media.  The coding of <tt>sumfiles/scaleacc</tt>
+assumes that once a file has been successfully opened, its contents will remain available
+during execution.  Unfortunately, files can sometimes "disappear" before execution
+completes.
+</ul>
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="plotting"><b>Plotting options</b></a>
+</p>
+
+<p>
+To be written.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="rules"><b>How it works</b></a>
+</p>
+
+<p>
+Move mk_diags/conventions.txt here.
+</p>
+
+<!------------------------------------------------------------------------------->
+<P><HR><p>
+
+<p>
+<A name="local_info"><b>Local information</b></a>
+</p>
+
+<pre>
+
+                       On Discover:
+                       ------------
+
+modelE standalone programs: /discover/nobackup/projects/giss/exec
+
+netcdf GIC files in /discover/nobackup/projects/giss/prod_input_files:
+                     GIC.E046D3M20A.1DEC1955.ext.nc  for 4x5    lat-lon resolution
+                     GIC.144X90.DEC01.1.ext.nc           2x2.5  lat-lon resolution
+                     GIC.288X180.DEC01.1.ext.nc          1x1.25 lat-lon resolution
+
+
+PNETCDFHOME=/discover/nobackup/mkelley5/pnetcdf-1.2.0  (ifort 10.1.017, impi 3.2.011)
+
+remap files: /discover/nobackup/mkelley5/remap_files
+
+NCO programs: /usr/local/other/NCO/3.9.9_gcc/bin
+
+</pre>
+
+
+</BODY>
+</HTML>

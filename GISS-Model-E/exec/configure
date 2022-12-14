@@ -1,0 +1,58 @@
+#!/bin/bash
+
+echo $#
+
+if [ $# -lt 2 ] ; then
+   echo "Usage: configure <RUN_NAME> <RUNSRC> [extra options]"
+   echo "Where:"
+   echo "<RUN_NAME> - the name you want to use for your run"
+   echo "<RUNSRC> - the name of the template rundeck"
+   echo "[extra options] - extra options to pass to 'make'"
+   exit 1
+fi
+
+path_to_config=$0
+relative_path_to_root=${path_to_config/\/exec\/configure/}
+model_e_root=$(cd $relative_path_to_root; pwd)
+
+if [ -f Makefile ] ; then
+   echo "This directory was already configured."
+   echo "Delete ./Makefile and *_obj directory to start from scratch."
+   exit 1
+fi
+
+cat <<EOF >Makefile
+#This file was copied from $model_e_root/decks - do not edit
+export MODEL_E_ROOT=$model_e_root
+
+EOF
+
+run=$1 ; shift
+runsrc=$1 ; shift
+
+while [ $# -ge 1 ] ; do
+   opt=$1 ; shift
+   echo "export $opt" >> Makefile
+done
+
+echo "" >> Makefile
+echo "#Standard Makefile starts here ('RUN' is overwritten)" >> Makefile
+echo "" >> Makefile
+
+cat $model_e_root/decks/Makefile | sed "s/^RUN *=/RUN=$run/" >> Makefile
+
+make rundeck RUN=$run RUNSRC=$runsrc OVERWRITE=YES
+
+if [ $? -ne 0 ] ; then
+   echo "Something didn't work"
+   echo "Removing Makefile"
+   rm -f Makefile
+   exit 1
+fi
+
+echo done
+echo
+echo "use 'make setup' to compile the model"
+echo
+
+

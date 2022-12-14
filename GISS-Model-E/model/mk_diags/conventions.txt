@@ -1,0 +1,108 @@
+Postprocessing of modelE diagnostics by standalone programs is
+facilitated through the use of some simple conventions outlined
+here.  Throughout this document, it is assumed that the files
+processed by these programs are in netcdf format.
+
+----------------------------------------------------------------------------
+Combining acc-files from different time periods using the "sumfiles" program
+----------------------------------------------------------------------------
+Any variable in an acc-file having an attribute called "reduction"
+is "accumulated" over the set of input files.  The value
+of the "reduction" attribute determines the type of accumulation.
+A value of "sum" causes the variable to be summed over time,
+while "max" or "min" causes the maximum or minimum values
+to be taken.  Other operations will be defined as necessary.
+For variables lacking the "reduction" attribute, the value
+in the output file is taken as the value in the latest of the
+input files.
+
+----------------------------------------------------------------------------
+Generic scaling of accumulation arrays using the "scaleacc" routine
+----------------------------------------------------------------------------
+When asked to scale an accumulation array named "xyz",
+the scaleacc routine searches for a number of attributes
+and supplementary arrays/variables in the acc-file which
+provide the instructions for how to treat that array.
+
+split_dim attribute:  If xyz has this attribute, xyz
+is assumed to contain multiple diagnostics, all of which
+have the same shape.  For the aij array for example,
+split_dim = 3.  The size of the split_dim dimension
+indicates how many diagnostics are in xyz.  We refer
+to this size as kacc.  If xyz has no split_dim, kacc=1.
+
+cdl_xyz(1:kacc):  Mandatory. This text array serves as the
+template for the netcdf output file produced by scaleacc.
+Variables declared in this template that are present
+in the acc-file are automatically copied from the
+acc-file to the output file; this is a convenient way
+to fill in the values of coordinates such as latitude
+or pressure for example.
+
+sname_xyz(1:kacc):  Mandatory. This text array contains the
+netcdf names of the different diagnostics in xyz.
+These names must match the netcdf names in cdl_xyz
+so that scaleacc knows where to store each scaled
+output that it produces.
+
+ia_xyz(1:kacc):  Indicates which idacc-counters to use for scaling.
+
+ntime_xyz:  If ia_xyz does not exist, ntime_xyz should exist
+as a special counter variable indicating how many times
+xyz was accumulated.
+
+scale_xyz(1:kacc):  Mandatory - scaling factors.
+
+denom_xyz(1:kacc):  Optional - part of the scaling recipe.
+
+hemis_xyz:  Optional array containing hemispheric and global means of xyz.
+If present, it will be scaled using the recipe applied to xyz.
+Currently only relevant to AJ-, AJL-, and CONSRV-type arrays.
+Its "shnhgm" dimension corresponds to the latitude dimension in xyz.
+
+vmean_xyz:  Optional array only relevant to AJL-type arrays.  If present,
+it will be scaled using the recipe applied to xyz.
+
+In simplified notation that ignores dimensions other than split_dim,
+the scaling recipe for the nth diagnostic in xyz is:
+
+if denom_xyz is not present or denom_xyz(n) is zero,
+
+   scaled output =  xyz(n) * scale_xyz(n) / idacc(ia_xyz(n))
+
+otherwise
+
+   scaled output = ( xyz(n) * scale_xyz(n) / idacc(ia_xyz(n)) ) /
+                   ( xyz(denom_xyz(n)) / idacc(ia_xyz(denom_xyz(n))) )
+
+If ntime_xyz is present in lieu of ia_xyz, ia_xyz is set to 1 and
+idacc(1) is set to ntime_xyz.
+
+----------------------------------------------------------------------------
+Printing tables from netcdf binary output created by scaleacc
+----------------------------------------------------------------------------
+Some standalone print programs tailored to specific categories of diagnostics
+have been created which can read output files created by scaleacc.
+
+The standalone programs can easily recognize which variables to print
+through a number of different kinds of checks:
+- the names of the dimensions of a variable match what is expected
+- a variable has the special attributes specific to printing tables
+  (e.g. "stitle" and "fmt" for AJ)
+- the existence of arrays like hemis_varname
+
+For simplicity, the standalone programs often assume the existence of
+dimensions, arrays, and attributes having particular names
+("terrain" for example).  These names are chosen by the routines
+within modelE that create the cdl templates.  If these names are
+changed in modelE, the names expected by the standalone program
+must be changed as well.  There is no reason to change names often.
+
+----------------------------------------------------------------------------
+Making scaled output directly from acc-files
+----------------------------------------------------------------------------
+
+Some accumulation arrays always have the same content, so their
+scaling procedures have never been generalized.  Standalone routines
+can be written to read these arrays directly from an acc-file and
+write ASCII or binary output with code transplanted from modelE.

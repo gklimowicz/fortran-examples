@@ -1,0 +1,18 @@
+! ----------------------------------
+#include "tracer_dust_source_files"
+TRACERS_AEROSOLS_SEASALT                   ! seasalt
+TRACERS_AEROSOLS_Koch_e4                   ! BC/OC/sulfate
+TRACERS_AEROSOLS_SOA                       ! Secondary Organic Aerosols
+TRACER_HETCHEM                             ! Nitrate and Sulfate production on dust
+! enable either EQSAM or ISORROPIA files
+! EQSAM Thermodynamics
+TRACER_drv_eqsam | $(EXTENDED_SOURCE) |    ! Nitrate aerosol
+TRAMP_eqsam_v03d                           ! EQSAM module for inorganic aerosol thermodynamic equilibrium
+! ISORROPIA 2 Thermodynamics
+!TRACER_drv_isorropia | $(EXTENDED_SOURCE) | 
+!TRAMP_isocom2              
+!TRAMP_isofwd2          
+!TRAMP_isorev2
+! ----------------------------------
+SeasaltTracersMetadata
+KochTracersMetadata

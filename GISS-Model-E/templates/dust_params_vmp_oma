@@ -1,0 +1,99 @@
+!--------- dust aerosol parameters----------------
+#include "dust_params_general"
+
+!! OMA with model winds
+! OMA w/ VMP clouds:
+! for imDust=0:
+scaleDustEmission=1.0
+fracClayPDFscheme=0.0177771056404 ! clay emission parameter from calibration
+fracSiltPDFscheme=0.0523608361104 ! silt emission parameter from calibration
+   !fracClayPDFscheme = 0.0181021293733[1] * 0.997[2] * 0.985[3]
+   !fracSiltPDFscheme = 0.0531582092491[1] * 1.000[2] * 0.985[3]
+   ![1] emission parameters used for calibration run E20170309TomaF40climIM0_001
+   ![2] size distribution factors derived from calibration
+   ![3] total emitted mass factor derived from calibration
+! Following settings are optional. Comment out the default settings above and
+! uncomment for the desired configuration below
+! for imDust=3 (AeroCom size distribution):
+!scaleDustEmission=0.17460942133 ! scales total dust emission
+  !scaleDustEmission = 0.152098799068[1] * 1.148[2]
+  ![1]: emission parameter used for calibration run E20170309TomaF40climIM3_002
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=4 (size distribution derived from OMA-mineral version):
+!scaleDustEmission=0.95530181177 ! scales total dust emission
+  !scaleDustEmission = 0.89531566239[1] * 1.067[2]
+  ![1]: emission parameter used for calibration run E20170309TomaF40climIM4_003
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=5 (same as imDust=4, but with AeroCom source distribution):
+!scaleDustEmission=1.00556672594 ! scales total dust emission
+  !scaleDustEmission = 0.812907619997[1] * 1.237[2]
+  ![1]: emission parameter used for calibration run E20170309TomaF40climIM5_003
+  ![2]: total emitted mass factor derived from calibration run
+!for imDust=3-5 (also set as default in the model)
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+!------------------------------------------------------
+!! OMA nudged toward NCEP winds:
+! OMA w/ VMP clouds:
+! for imDust=0:
+!scaleDustEmission=1.0
+!fracClayPDFscheme=0.00932446885303 ! clay emission parameter from calibration
+!fracSiltPDFscheme=0.0282330407078  ! silt emission parameter from calibration
+   !fracClayPDFscheme = 0.00938067787486[1] * 0.998[2] * 0.996[3]
+   !fracSiltPDFscheme = 0.0283464264135 [1] * 1.000[2] * 0.996[3]
+   ![1] emission parameters used for calibration run E2p1_20180927TomaNcepF40IM0_000
+   ![2] size distribution factors derived from calibration
+   ![3] total emitted mass factor derived from calibration
+! for imDust=3 (AeroCom size distribution):
+!scaleDustEmission=0.0877932196337 ! scales total dust emission
+  !scaleDustEmission = 0.0885905344437[1] * 0.991[2]
+  ![1]: emission parameter used for calibration run E2p1_20180927TomaNcepF40IM3_000
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=4 (size distribution derived from OMA-mineral version):
+!scaleDustEmission=0.422273999119 ! scales total dust emission
+  !scaleDustEmission = 0.42653939305[1] * 0.990[2]
+  ![1]: emission parameter used for calibration run E2p1_20180927TomaNcepF40IM4_000
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=5 (same as imDust=4, but with AeroCom source distribution):
+!scaleDustEmission=0.422219111601 ! scales total dust emission
+  !scaleDustEmission = 0.426053593947[1] * 0.991[2]
+  ![1]: emission parameter used for calibration run E2p1_20180927TomaNcepF40IM5_000
+  ![2]: total emitted mass factor derived from calibration run
+!for imDust=3-5 (also set as default in the model)
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+!------------------------------------------------------
+!! OMA nudged toward MERRA2 3-hourly winds:
+! OMA w/ VMP clouds:
+! for imDust=0:
+!scaleDustEmission=1.0
+!fracClayPDFscheme=0.00623665525675 ! clay emission parameter from calibration
+!fracSiltPDFscheme=0.0189417539334  ! silt emission parameter from calibration
+   !fracClayPDFscheme = 0.00633261977685[1] * 1.007[2] * 0.978[3]
+   !fracSiltPDFscheme = 0.0193872337915 [1] * 0.999[2] * 0.978[3]
+   ![1] emission parameters used for calibration run E2p1_20191222TomaMer2F40IM0_001
+   ![2] size distribution factors derived from calibration
+   ![3] total emitted mass factor derived from calibration
+! for imDust=3 (AeroCom size distribution):
+!scaleDustEmission=0.059081851844 ! scales total dust emission
+  !scaleDustEmission = 0.0602261486687[1] * 0.981[2]
+  ![1]: emission parameter used for calibration run E2p1_20191222TomaMer2F40IM3_001
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=4 (size distribution derived from OMA-mineral version):
+!scaleDustEmission=0.277053970822 ! scales total dust emission
+  !scaleDustEmission = 0.285034949405[1] * 0.972[2]
+  ![1]: emission parameter used for calibration run E2p1_20191222TomaMer2F40IM4_001
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=5 (same as imDust=4, but with AeroCom source distribution):
+!scaleDustEmission=0.276892137826 ! scales total dust emission
+  !scaleDustEmission = 0.284575681219[1] * 0.973[2]
+  ![1]: emission parameter used for calibration run E2p1_20191222TomaMer2F40IM5_001
+  ![2]: total emitted mass factor derived from calibration run
+!for imDust=3-5 (also set as default in the model)
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+!------------------------------------------------------
+!! all versions:
+! for imDust=1 (prescribed AeroCom emissions):
+!scaleDustEmission=1.0
+!-------------------------------------------------

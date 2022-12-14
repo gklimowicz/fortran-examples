@@ -1,0 +1,67 @@
+Using GISS ModelE in single-column mode (master branch only)
+
+Source code files dedicated to single-column model (SCM) are as follows:
+
+-- SCM_COM.F90: common variables for single-column model simulations
+-- SCM.F90: code for reading and processing single-column model input data
+-- ATMDYN_SCM{,_EXT}.f: code for replacing large-scale dynamics with forcing terms
+
+It is possible to run ModelE in single-column model mode with several
+options for initialization and forcing. Current options handle
+atmosphere-only runs, with prescribed surface conditions and
+large-scale tendencies specified in the run deck. Set preprocessor
+option #define SCM. Include object modules SCM_COM, SCM, ATMDYN_SCM,
+and ATMDYN_SCM_EXT prior to CLOUDS_COM. User-supplied input files
+may currently include the following:
+
+-- SCM_NML: namelist containing all input variable names and unit conversions (required)
+-- SCM_PS: surface pressure (required)
+-- SCM_TEMP or SCM_THETA: atmospheric temperature profile (required)
+-- SCM_WVMR: water vapor mixing ratio profile (required)
+-- SCM_TSKIN: surface skin temperature
+-- SCM_SFLUX: surface sensible and latent heat fluxes
+-- SCM_WIND: horizontal wind profiles
+-- SCM_GEO: horizontal geostrophic wind profiles
+-- SCM_W or SCM_OMEGA: large-scale vertical wind or pressure tendency profiles
+-- SCM_QRAD: radiative heating rate profiles
+-- SCM_LS_V: large-scale heat and moisture vertical flux divergence profiles
+-- SCM_LS_H: large-scale heat and moisture horizontal flux divergence profiles
+-- SCM_FNUDGE: thermodynamic nudging strength profile
+
+Each netCDF input file must contain UTC "year", "month", "day", and
+"hour" variables as integer time series with dimension "nt". If
+floating point time series (such as surface pressure) contain only
+one time, the value will be fixed for all simulation times. Input
+files containing a profile variable must contain a pressure grid as a
+floating point variable "lev" in units of hPa or mb with dimension
+"lev".  For each profile variable, the pressure grid must be fixed
+in time if more than one time is provided, but each variable may
+be on its own pressure grid.  Profile variables can be combined in
+a single input file if they share the same pressure grid.
+
+Run-time parameters include the following:
+
+-- SCM_lon: location longitude (required)
+-- SCM_lat: location latitude (required)
+-- SCM_area: nominal grid box area for calculation of extrinsic mass fluxes (required)
+-- SCM_sfc: 1=land, 2=ocean
+-- SCM_ustar: surface friction velocity
+-- SCM_z0m: surface roughness height
+-- SCM_alb: surface mid-visible albedo
+-- SCM_BeersLaw: Beer's law coefficients for radiative flux divergence
+-- SCM_tau: nudging time constant for temperature and moisture profiles
+
+The shell script modelE/exec/extract_scm.sh uses SCM_lat and SCM_lon
+to extract ancillary input data for a given SCM run location.
+Run-time success reading and processing individual input files is
+reported to .PRT within the output run directory. Diagnostics are
+obtained using the GCM-native subdaily diagnostics system. Diagnostics
+made available using this system are opt-in, with variable names
+specified in SUBDD{,1,2,3,etc} strings within the run deck.
+
+Existing run-deck templates include the following:
+
+-- SCM.R: DOE ARM Southern Great Plains case with VARANAL data (www.arm.gov)
+-- SCM_BOMEX.R: BOMEX case study described by Siebesma et al. (2003)
+-- SCM_DYCOMS-II-RF02.R: DYCOMS case study described by Ackerman et al. (2009)
+

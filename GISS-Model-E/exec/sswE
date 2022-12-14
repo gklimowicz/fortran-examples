@@ -1,0 +1,28 @@
+#!/bin/sh
+
+## if issued without arguments in a run directory: stop that run
+  if [ $# -eq 0 ] ; then
+     if [ -s flagGoStop ] ; then
+        echo "__STOP__" > flagGoStop
+        exit
+     else
+        echo "Usage: sswE RUNID"
+        echo "Stops the model run RUNID"
+        exit
+     fi
+  fi
+
+## find and change to the selected run directory to set the flag
+  RUNID=$1
+
+  CMRUNDIR='.'
+  if [ -f $HOME/.modelErc ]; then . $HOME/.modelErc; fi
+
+  if [ ! -d $CMRUNDIR/$RUNID ] ; then
+      echo "Run directory not found: $CMRUNDIR/$RUNID"
+      exit ; fi
+
+  cd "$CMRUNDIR/$RUNID"
+
+  echo "__STOP__" > flagGoStop
+  echo "Set the flag to STOP position. Please wait for $RUNID to stop."

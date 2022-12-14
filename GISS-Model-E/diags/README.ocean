@@ -1,0 +1,63 @@
+Instructions for doing ocean diags
+
+**** To be able to execute the following commands, please log in to dali
+**** comments/suggestions/errors to Natassa Romanou
+(ar2235@columbia.edu)
+
+Warning (Sep 20 2017): To run the Python scripts (from dali) included in this packet, load the following module:
+"other/SSSO_Ana-PyD/SApd_2.4.0_py3.5"
+It seems that this Python version already includes the netCDF4 library. 
+Additionally, do not load the module "other/ncl-6.3.0", which creates conflicts
+with the NCO toolkit.
+
+
+1. Edit script user_input.s  for the model run to be analyzed and the observations to be used
+
+$ACCDataDir = directory where ACC files are
+$DataDir = directory where netcdf files with analyzed fields should be saved
+$RUN = RUNID
+$yrini = year to start analysis                          
+$yrend = year to end   analysis                         
+
+$variable = variable name (as in acc files) to be analyzed
+$nctag = remap file name where the variable is found,  eg. aij, oijl, etc
+$ilev = for 3d variables, which level to analyze
+$lat = latitude string related to the variable as defined in the remap file, e.g. lato, or lata etc
+$lon = longitude string related to the variable as defined in the remap file 
+$area = area array related to the variable, eg oxyp or axyp
+$depth = depth cordinate related to the variable, eg zoc, zoce etc
+
+$ObsDir = directory with obs eg, /discover/nobackup/projects/giss/OBS/, or other
+$RUN2 = datafile with obs regridded on modelE grid. This can also be a different modelE run
+$variable_obs = name of variable in the obs file
+$lon_obs = longitude string in the obs file
+$lat_obs = latitude string in the obs file
+
+
+
+2. Run main_py.s to get a series of diagnostics defined in that script.
+Currently, diagnostics include:
+---- avgACC.s           averaging files, annual means, climatologies, seasonal means  
+---- seasonalCycle.s    mean annual cycle at a certain level  
+---- seasonalCycleObs.s mean annual cycle in obs
+---- diff_seasons.s     mean annual cycle diff from obs  
+---- clim_map.s         climatology maps at certain level from the model
+---- obs_map.s          climatology maps at certain level from obs
+---- diff_maps.s        difference maps from observations 
+---- map_glbavg_ts.s    global averaged timeseries at a certain level
+---- basinAvg_obs.s     basin vertical sections from obs (Atl, Pac)
+---- basinAvg_model.s   basin vertical sections from the model(Atl, Pac)
+---- diffBasinAvg.s     diff basin vertical sections from the model (Atl, Pac)
+---- basinAvg_MOC.s     MOC vertical sections, all basins     
+---- AMOCvertMax.s      AMOC max at 26N timeseries  
+---- currentTransp.s    Current Transport timeseries 
+
+3. Although the script main_py.s will run without any python modules and it will produce netcdf files with the results, it will not plot out the results automatically.
+To have figures popup as the script runs, the following modules need to be loaded in advance:
+
+lib/mkl-15.0.0.090
+other/Py3Dist/py-3.4.1_gcc-4.9.1_mkl-15.0.0.090
+other/SSSO_Ana-PyD/SApd_2.4.0_py3.5
+other/comp/gcc-5.3-sp3            
+
+

@@ -1,0 +1,223 @@
+Coupling the atmosphere to an ocean model
+=========================================
+
+This is a quick summary of the fluxes, required inputs and entry
+points needed into any ocean code that is to be coupled to the AGCM.
+
+There are three sections. 1) routines that provide entry points to the
+ocean code (and must be part of the ocean code, though they be dummy
+routines), 2) list of the fluxes available for the ocean, 3) list of
+fields that must be provided to the atmosphere (on the AGCM grid).
+
+The ice dynamics code is related to what happens to the ocean code and
+is included in this description for completeness. The file ICEDYN_DRV
+contains the details of the interpolations between the ocean/ice and
+atmosopheric grids and contains all of the ice dynamic routines
+mentioned. For a different grid, these details will need to be
+adjusted. ICEDYN is the local code, which apart from the size of the
+ice dynamics arrays (imic,jmic), should not need to be changed.
+
+========================================================================
+
+1) Routines that MUST be part of any ocean code:
+
+init_OCEAN(iniOCEAN,istart)  [ ALSO init_icedyn(iniOCEAN) ]
+ 
+  Routine used to initialise ocean arrays. iniOCEAN is true if ocean
+  initial conditions are not read in from a restart file in
+  INPUT. ISTART determines what kind of start is required. init_icedyn
+  works using the same flag as for the ocean.
+
+io_ocean(kunit,iaction,ioerr)  [ ALSO io_icedyn ]
+
+  Routine that outputs the ocean prognostic variables to the restart
+  files. (This output can have multiple records, and can be in any 
+  format you like). Similarly for io_icedyn.
+
+io_ocdiag(kunit,iaction,ioerr)  [ ALSO io_icdiag ]
+
+  Routine that outputs the ocean diagnostic variables to the restart
+  files or accumulation files. (Can be a dummy routine if no such
+  fields are saved).
+
+daily_ocean(IEND)
+
+  Routine used to do anything for the ocean that is only done once at
+  the end of the day (or initially if IEND=0). 
+  This is where we add in estimates of glaical runoff from 
+  Antartica and Greenland (since there is no iceberg calving in model). 
+  You can decide if you want to include this or not.  
+
+io_oda(kunit,it,iaction,ioerr)
+
+  Dummy routine (needed for compatibility with fixed SST runs).
+
+advsi_diag 
+
+  Dummy routine (need for compatibility with qflux ocean)
+
+PRECIP_OC
+
+  Called after calculation of precipitation. (May be a dummy routine if
+  the precip is added later).
+
+OCEANS
+
+  Main entry point to ocean code, called after the surface routine.
+  Use to add surface and runoff fluxes to ocean. The amount of ice
+  formation is already calculated under the ice, but open water and
+  deep ice formation must be calculated here. Ocean dynamics should be
+  called from within here. CANNOT be a dummy routine!
+
+DIAGCO
+
+  Entry point to conservation diagnostics for ocean (on atmospheric
+  grid). Keeps track of conserved quantities if you like. Can be a
+  dummy routine.
+
+diag_OCEAN  [ ALSO diag_ICEDYN ]
+
+  Called once a month and used to print out (or output) ocean related
+  diagnostics in any format you like. You might want to use it to
+  simply print out some key ocean numbers (overturning strength, ACC,
+  Gulf stream, mean vertical profiles etc.). Can be a dummy routine.
+
+Summary:
+
+There is one compulsory entry point. OCEANS is the driver for the
+ocean code, and calculates any ice that has formed in the open
+ocean. Note that what happens in each call is completely independent
+of the AGCM (as long as the necessary fields are set). Thus fluxes can
+be summed over a long period and the ocean model run only every n
+hours, and the ice fluxes can have been calculated previously and then
+slowly applied to the ice every hour. The other entry points are there
+for your convenience so that, for instance, the model restart files
+work consistently and monthly diagnostics can be output togther. There
+use is encouraged, but not demanded.
+
+=======================================================================
+
+2) Needed variables/functions from ocean code:
+
+GTEMP(1,1,I,J) : surface ocean temperature (i.e layer 1) for ocean on
+  atmospheric grid.  This must be set during the initialisation, and
+  after any call to the ocean model (PRECIP_OC, OCEANS, daily_OCEAN)). 
+  GTEMP(2,1,I,J) is the second layer ocean temperature, but this is
+  only used for diagnostic purposes. Some compilers require this to be
+  set regardless.
+
+SSS(I,J) : surface salinity on atmospheric grid. This is used to
+  estimate the salinity at the ice ocean interface and hence the
+  freezing point there.
+
+MLHC(I,J) : Mixed layer heat capacity (J/m^2 C) on the atmospheric
+  grid. This is used to estimate an implicit mixed layer temperature 
+  (NOT YET USED) and for calculating the maximum heat available 
+  for laterally melting ice. This should correspond to the depth of the 
+  ocean over which the surface fluxes are spread (not necessarily the actual 
+  mixed layer).
+
+OGEOZA (ocean geopotential height) (m^2/s^2)
+  The sea surface height field is required for computing the ice
+  dynamics. This is the height of the ocean without considering any
+  displacement due to sea ice. If you prefer to use geostrophy to 
+  estimate the sea surface height field, set "osurf_tilt=0" in the rundeck. 
+
+UOSURF(I,J), VOSURF(I,J): (ocean surface currents) (m/s)
+  The sea surface velocities are required in the ice dynamics, and 
+  optionally ("UOdrag=1") in the atmosphere-ocean surface stress 
+  calculation. As a first step, these velocities are on the atmospheric 
+  C-grid. If higher resolution ice dynamics are required, the grid for 
+  these will change (but so will the ICEDYN_DRV.f code).
+
+======================================================================
+
+3) Fluxes to/from ocean code:
+
+All fluxes are saved in the module FLUXES, and should be 'USE'd in any
+interface routine.
+
+ I) On atmospheric grid: 
+a) INPUT
+
+PREC,EPREC precip (kg/m^2) and energy of precip (J/m^2)
+
+RUNPSI, SRUNPSI   runoff (kg/m^2) and salt contained in the runoff
+                 (kg/m^2) from sea ice as a result of precipitation
+                 (assumed to be at zero degrees for the moment).
+
+RUNOSI, ERUNOSI, SRUNOSI runoff (kg/m^2), energy of runoff (J/m^2) and
+                 salt contained in the runoff (kg/m^2) from sea ice as
+                 a result of surface and basal flux calculation.
+
+E0(:,:,1) (J/m^2) total energy received at the surface of the open ocean
+
+EVAPOR(:,:,1) (kg/m^2) evaporation (dew) at the surface of the open ocean
+
+SOLAR (J/m^2) solar radiation recieved over the open ocean (SOLAR(1)),
+      and under the ice (SOLAR(3))
+
+FLOWO, EFLOWO runoff (kg), energy of runoff (J) from rivers into ocean. 
+
+MELTI, EMELTI, SMELTI mass (kg), heat (J) and salt (kg) of melted ice
+      going into ocean. This array is for the lateral melt (ie. for
+      when sea ice extent is changed, and therefore is applied over
+      the whole box (not just the ice covered portion).
+
+GMELT, EGMELT glacial runoff (kg), energy of glacial runoff (J) from 
+      icebergs. This is sepearated from river runoff, since it comes
+      into the ocean as ice, and can optionally be distributed over a 
+      significant depth (say 400m) to mimic iceberg melt
+      profiles. Currently, these fluxes are constant, and based on IPCC
+      estimates of mass balance in Antartica and Greenland. The
+      database parameter 'glmelt_on' must be set to 1 in the rundeck to 
+      set these fluxes.
+
+DMUA, DMVA N-S and E-W components of the atmospheric wind stress (kg/ms). 
+      Note that these are on the atmospheric tracer grid, and are the
+      stresses to be applied over the whole box (i.e. they are already
+      weighted by the open ocean fraction).
+
+APRESS this is the anomalous (gauge) pressure (Pa) at the top of the
+      ocean (i.e. below the sea ice).
+
+b) OUTPUT
+DMSI, DHSI, DSSI mass (kg/m^2), energy (J/m^2) and salt (kg/m^2)
+     amount in ice formed in the ocean that is to be applied to the
+     ice variables. This MUST be calculated in the ocean code (since
+     only the ocean knows over what depth the surface fluxes are
+     spread (see MLHC above), whether any deep freezing occurs and
+     what salinity any ice should have). There are two I,J arrays for 
+     each term, DMSI(1,:,:) is for the open ocean fraction, DMSI(2,:,:) 
+     is for the ice-covered fraction. 
+
+II) On ice dynamic grid (currently the atmospheric grid, but could be the 
+    ocean grid).
+
+DMUI, DMVI N-S and E-W components of the ice-ocean stress (kg/ms). 
+      Note that these are on the dynamic ice velocity grid, and are the
+      stresses to be applied over the whole box (i.e. they are already
+      weighted by ice fraction).
+
+
+Tracers: Generally there are equivalent tracer fluxes for most of the
+above arrays. Usually these are in the same unit as the mass/freshwater
+flux (note that TRPREC is the exception).
+
+Input:	TRPREC(NTM,IM,JM) (kg), TREVAPOR(NTM,NSTYPE,IM,JM) (kg/m^2),
+	TRUNPSI(NTM,IM,JM) (kg/m^2), TRUNOSI(NTM,IM,JM) (kg/m^2),
+	TRFLOWO(NTM,IM,JM) (kg), TRMELTI(NTM,IM,JM) (kg), 
+	TRGMELT(NTM,IM,JM) (kg), TRDRYDEP(NTM,NSTYPE,IM,JM) (kg/m^2)
+
+Output: DTRSI(NTM,IM,JM,2) (kg/m^2) tracer amount in formed ice
+
+Needed field on AGCM grid: 
+	GTRACER(NTM,NSTYPE,IM,JM) ground tracer concentration
+
+Additionally, there are some tracer fluxes which are not currently
+coupled: pratcularly trsource for some non-interactive
+fluxes. Depending on the tracer and application, some or all of these
+fluxes should probably be accounted for in the ocean.
+
+
+

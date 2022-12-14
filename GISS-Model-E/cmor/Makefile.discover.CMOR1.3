@@ -1,0 +1,109 @@
+############################# PLATFORM DEPENDENT STUFF  ######################
+#Prefix
+PREFIX = "/discover/nobackup/klo/CMOR_V1.3"
+
+## Machine dependant var to define are:
+#Fortran compiler: FC
+#Netcdf directory where mod file can be found: NetCDF_MOD_DIR
+#FORTRAN COMPILER SPECIFIC OPTIONS: FFLAGS_SPEC
+#Module suffix: MODULE_SUFFIX
+#Compilation options used for optimizing: OPTIM
+
+## Setup for SGI
+FC = ifort
+NetCDF_MOD_DIR = /usr/local/other/netcdf/3.6.1_intel-9.1.042/include
+CPPFLAGS_USER = 
+FFLAGS_USER = -convert big_endian
+MODULE_SUFFIX = mod
+OPTIM = 
+
+########################### END OF PLATFORM DEPENDENT ######################
+
+# Compilation options used for debugging
+#DEBUG = -g
+DEBUG = 
+
+# Library name
+LIBNAME = libcmor.a
+
+# Library sources
+LIBSOURCES = Src/cmor_internal_tables.f90 Src/cmor_getinput.f90 Src/cmor_users_functions.F90 
+
+#LIBFILES
+LIBFILES = cmor_getinput.o cmor_internal_tables.o cmor_users_functions.o
+
+#Dependent Libraries
+LIBDEP = -lnetcdf
+
+# Files to keep if there is an error
+.PRECIOUS:      $(LIBNAME) $(LIBSOURCES)
+
+#Modules
+MODDIR = Modules
+MODFILES = CMOR_INTERNAL_TABLES.$(MODULE_SUFFIX) \
+	CMOR_GETINPUT.$(MODULE_SUFFIX)\
+	CMOR_USERS_FUNCTIONS.$(MODULE_SUFFIX)
+
+
+# General compilation options for the fortran compiler
+# -module path : the path specifies the directory to rout the module
+#                files to. Provide space before path.
+GENFFLAGS = -I$(NetCDF_MOD_DIR)
+
+# Compilation options for the fortran compiler
+FFLAGS = $(CPPFLAGS_USER) $(OPTIM) $(DEBUG) $(OPTIM) $(GENFFLAGS) $(FFLAGS_USER) 
+
+# Temporary files
+TMPFILES = *~ $(LIBFILES) *.mod a.out $(MODFILES) *.stb
+
+# Extra files to remove, when doing a 'cleandist'
+DISTFILES = $(LIBNAME)
+
+all:    cmor
+	@echo
+
+cmor:  $(LIBNAME)
+
+$(LIBFILES) : $(LIBSOURCES) 
+
+$(LIBNAME):   $(LIBFILES)
+	@$(FC) -c -g $(FFLAGS) $(LIBSOURCES)
+	@ar crv $(LIBNAME) $(LIBFILES)
+#	@ranlib $(LIBNAME)
+
+clean:
+	@echo "Cleaning [$(WHEREAMI)] ..."
+	@rm -f $(TMPFILES)
+
+distclean:      clean
+	@echo "Completely cleaning [$(WHEREAMI)]..."
+	@rm -f $(DISTFILES)
+
+install: $(LIBNAME)
+	@mkdir -p $(PREFIX)/lib
+	@mkdir -p $(PREFIX)/include
+	@cp -p $(LIBNAME) $(PREFIX)/lib
+	@cp -p $(MODFILES) $(PREFIX)/include
+
+uninstall: distclean 
+	@rm $(PREFIX)/lib/$(LIBNAME)	
+	@cd $(PREFIX)/include ; rm $(MODFILES)	
+
+help:
+	@echo
+	@echo "Usage :"
+	@echo
+	@echo "Use one of the following targets to create/test the CMOR library"
+	@echo
+	@echo -e "  make \tCompile the library"
+	@echo -e "  make clean\tRemove all temporary files"
+	@echo -e "  make distclean\tRemove library and temporary files"
+
+backup:
+	@echo "Creating full backup tar file..."
+	@(cd ..; \
+	TGZNAME=$(TGZDIR)/cmor_`$(TIMESTAMP)`_full.tgz; \
+	tar cfz $$TGZNAME Cmor; \
+	touch $(TIMESTAMPDIR)/cmor_`$(TIMESTAMP)`_full.time; \
+	echo "Full backup tar file created : $$TGZNAME")
+

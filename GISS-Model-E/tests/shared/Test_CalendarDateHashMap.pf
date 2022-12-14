@@ -1,0 +1,25 @@
+module Test_CalendarDateHashMap_mod
+  use pfunit_mod
+  use CalendarDate_mod
+  use CalendarDateHashMap_mod
+  use CalendarDateAssociativeArray_mod
+  implicit none
+
+contains
+
+@test
+   subroutine testInsert()
+     type (CalendarDateHashMap) :: map
+     class (CalendarDate), pointer :: date
+
+     map = newCalendarDateHashMap(10)
+     call map%insert('a', CalendarDate(1,2,3))
+
+     date => map%getReference('a')
+     @assertEqual(1,date%month)
+     @assertEqual(2,date%date)
+     @assertEqual(3,date%year)
+
+   end subroutine testInsert
+
+end module Test_CalendarDateHashMap_mod

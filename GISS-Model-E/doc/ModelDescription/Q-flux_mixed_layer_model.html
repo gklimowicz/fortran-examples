@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Q-flux mixed layer model</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Q-flux (mixed layer) model</H3>
+
+<P>We can calculate the total freshwater mass and heat fluxes into the
+ice/ocean component from a spin up run with fixed SST. Given a
+climatology of ocean mixed layer depths, we can calculate the implied
+ocean heat convergence at the base of the mixed layer. This will
+incorporate the actual ocean heat transports, but also a residual
+component related to any errors in the surface heat or mass fluxes.
+This ocean heat convergence can be input into a thermodynamic mixed
+layer to give a Q-flux model. Depending on whether ice advection is
+turned on (see <a href="#part4_2">above</a>), the horizontal transport
+of the sea ice is or is not incorporated into the ocean heat
+convergence. A full sea  ice thermodynamic calculation is performed
+for this model. Generally this model takes 20 to 30 years to come into
+thermal equilibrium with any change in forcing, but this can be
+changed by specifying the maximum mixed layer depth (smaller implies a
+faster equilibration).</P>
+
+<P> There is an option to allow diffusion into the deep ocean by
+replacing OCNML with ODEEP in the run deck. This requires a 10 year
+spin up of the Q-flux model in order to properly set the deeper layers
+(12 layers, down to 5000m).</P>
+
+</BODY>
+</HTML>

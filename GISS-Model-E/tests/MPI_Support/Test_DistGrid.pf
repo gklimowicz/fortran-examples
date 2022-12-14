@@ -1,0 +1,319 @@
+module Test_DistGrid_mod
+  use pFUnit_mod
+  use dist_grid_mod, only: setCommunicator, dist_grid, init_grid, destroy_grid, &
+    getDomainBounds, AxisIndex, getAxisIndex, sumxpe, globalmin, globalmax, &
+    broadcast, transp
+
+  implicit none
+
+  public :: Test_DistGrid
+
+@TestCase
+  type, extends(MpiTestCase) :: Test_DistGrid
+    type (DIST_GRID) :: distGrid
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type Test_DistGrid
+
+  ! compute axes indices of a distributed grid
+  public :: test_getAxisIndexNoOverlap
+
+  public :: test_getAxisIndexNoGaps
+
+  ! sum an array over processors without reducing its rank
+  public :: test_sumxpeMasterPresent
+  public :: test_sumxpeIncrPresent
+
+  ! sum an array over processors without reducing its rank (Real(8))
+  public :: test_sumxpe
+
+  ! sum an array over processors without reducing its rank (integer)
+  public :: test_sumxpeInt
+
+  ! determine min, max value across pes
+  public :: test_globalmax1d
+  ! determine min value across pes
+  public :: test_globalminmax
+
+  ! broadcast data to all PEs. (real(8))
+  public :: test_broadcast
+  ! broadcast data to all PEs. (integer)
+  public :: test_broadcastInt
+
+  ! TODO : need transp tests
+
+  integer, parameter :: IM = 5 
+  integer, parameter :: JM = 10
+  integer, parameter :: LM = 2
+
+contains
+
+  subroutine setUp(this)
+    class (Test_DistGrid), intent(inout) :: this
+    call setCommunicator(this%getMpiCommunicator())
+    call init_grid(this%distGrid, IM, JM, LM)
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_DistGrid), intent(inout) :: this
+    call destroy_grid(this%distGrid)
+  end subroutine tearDown
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_getAxisIndexNoOverlap(this)
+    class (Test_DistGrid), intent(inout) :: this
+    Type (AxisIndex), Pointer :: ai(:,:)
+    integer :: p1, p2
+
+    allocate(ai(0:this%getNumProcesses()-1,3))
+
+    ! test getAxisIndex
+    call getAxisIndex(this%distGrid, ai)
+
+    ! NOTE : This will not work for 2D decomposition (CS)
+    do p1 = 0, this%getNumProcesses() - 1
+      do p2 = p1+1, this%getNumProcesses() - 1
+        @assertTrue(ai(p2,2)%min > ai(p1,2)%max)
+      end do
+    end do
+
+    deallocate(ai)
+
+  end subroutine test_getAxisIndexNoOverlap
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_getAxisIndexNoGaps(this)
+    class (Test_DistGrid), intent(inout) :: this
+    Type (AxisIndex), Pointer :: ai(:,:)
+    integer :: p, j
+    logical :: found
+
+    allocate(ai(0:this%getNumProcesses()-1,3))
+
+    ! test getAxisIndex
+    call getAxisIndex(this%distGrid, ai)
+
+    ! NOTE : This will not work for 2D decomposition (CS)
+    do j = 1, JM
+      found = .false.
+      do p = 0, this%getNumProcesses() - 1
+        if (ai(p,2)%min <= j .and. j <= ai(p,2)%max) then
+          found = .true.
+          exit
+        end if
+      end do
+      @assertTrue(found)
+    end do
+
+    deallocate(ai)
+
+  end subroutine test_getAxisIndexNoGaps
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_sumxpe(this)
+    class (Test_DistGrid), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: distArray
+    real(8) :: arithSum 
+
+    allocate (distArray(IM))
+    distArray = this%getProcessRank()
+
+    ! test sumxpe
+    call sumxpe(distArray)
+
+    arithSum = this%getNumProcesses() * (this%getNumProcesses() - 1) /2
+    if (this%getProcessRank()==0) then
+      @assertEqual(arithSum, distArray)
+    endif
+
+    deallocate(distArray)
+
+  end subroutine test_sumxpe
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_sumxpeMasterPresent(this)
+    class (Test_DistGrid), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: distArray
+    real(8), allocatable, dimension(:) :: globalArray
+    real(8) :: arithSum 
+
+    allocate (distArray(IM))
+    distArray = this%getProcessRank()
+    if (this%getProcessRank()==0) then
+      allocate(globalArray(IM))
+    else
+      allocate(globalArray(1))
+    endif
+
+    ! test sumxpe
+    call sumxpe(distArray, globalArray)
+
+    arithSum = this%getNumProcesses() * (this%getNumProcesses() - 1) /2
+    if (this%getProcessRank()==0) then
+      @assertEqual(arithSum, globalArray)
+    endif
+
+    deallocate(distArray, globalArray)
+
+  end subroutine test_sumxpeMasterPresent
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_sumxpeIncrPresent(this)
+    class (Test_DistGrid), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: distArray
+    real(8) :: arithSum 
+
+    allocate (distArray(IM))
+    distArray = this%getProcessRank() + 1
+
+    ! test sumxpe
+    call sumxpe(distArray, increment=.true.)
+
+    arithSum = this%getNumProcesses() * (this%getNumProcesses() + 1) /2
+    if (this%getProcessRank()==0) then
+      @assertEqual(arithSum, distArray)
+    endif
+
+    deallocate(distArray)
+
+  end subroutine test_sumxpeIncrPresent
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_sumxpeInt(this)
+    class (Test_DistGrid), intent(inout) :: this
+    integer, allocatable, dimension(:) :: distArray
+    integer, allocatable, dimension(:) :: globalArray
+    integer :: arithSum
+
+    allocate (distArray(IM))
+    distArray = this%getProcessRank() 
+    if (this%getProcessRank()==0) then
+      allocate(globalArray(IM))
+    else
+      allocate(globalArray(1))
+    endif
+
+    ! test sumxpe
+    call sumxpe(distArray, globalArray)
+
+    arithSum = this%getNumProcesses() * (this%getNumProcesses() - 1) /2
+    if (this%getProcessRank()==0) then
+      @assertEqual(arithSum, globalArray)
+    endif
+
+    deallocate(distArray, globalArray)
+
+  end subroutine test_sumxpeInt
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_globalminmax(this)
+    class (Test_DistGrid), intent(inout) :: this
+    real(8) :: expectedMin, expectedMax
+    real(8) :: actualMin, actualMax, distValue
+
+    distValue = this%getProcessRank() + 1
+
+    ! test globalmin
+    call globalmin(this%distGrid, distValue, actualMin) 
+
+    expectedMin = 1
+    @assertEqual(expectedMin, actualMin)
+
+    ! test globalmax
+    call globalmax(this%distGrid, distValue, actualMax) 
+
+    expectedMax = this%getNumProcesses()
+    @assertEqual(expectedMax, actualMax)
+
+  end subroutine test_globalminmax
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_globalmax1d(this)
+    class (Test_DistGrid), intent(inout) :: this
+    integer, allocatable, dimension(:) :: distArray
+    integer, allocatable, dimension(:) :: max_array
+    integer :: my_max
+
+    allocate (distArray(IM))
+    allocate (max_array(IM))
+
+    distArray = this%getProcessRank() + 1
+
+    ! test globalmax
+    call globalmax(this%distGrid, distArray, max_array) 
+
+    my_max = this%getNumProcesses()
+    @assertEqual(my_max, max_array)
+
+    deallocate(distArray, max_array)
+
+  end subroutine test_globalmax1d
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_broadcast(this)
+    class (Test_DistGrid), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: array1d
+    real(8), allocatable, dimension(:,:) :: array2d
+    real(8) :: expected
+
+    allocate (array1d(IM))
+    allocate (array2d(IM, JM))
+
+    expected = 1.0
+    if (this%getProcessRank()==0) then
+      array1d = expected
+      array2d = expected
+    else
+      array1d = -999
+      array2d = -999
+    end if
+
+    ! test mpi_bcast
+    call broadcast(this%distGrid, array1d)
+
+    @assertEqual(expected, array1d)
+
+    ! test mpi_bcast
+    call broadcast(this%distGrid, array2d)
+
+    @assertEqual(expected, array2d)
+
+    deallocate(array1d, array2d)
+
+  end subroutine test_broadcast
+
+@mpiTest(npes=[1,3,5], ifdef=USE_MPI)
+  subroutine test_broadcastInt(this)
+    class (Test_DistGrid), intent(inout) :: this
+    integer, allocatable, dimension(:) :: array1d
+    integer, allocatable, dimension(:,:) :: array2d
+    integer :: expected
+
+    allocate (array1d(IM))
+    allocate (array2d(IM, JM))
+
+    expected = 1.0
+    if (this%getProcessRank()==0) then
+      array1d = expected
+      array2d = expected
+    else
+      array1d = -999
+      array2d = -999
+    end if
+
+    ! test mpi_bcast
+    call broadcast(this%distGrid, array1d)
+
+    @assertEqual(expected, array1d)
+
+    ! test mpi_bcast
+    call broadcast(this%distGrid, array2d)
+
+    @assertEqual(expected, real(array2d))
+
+    deallocate(array1d, array2d)
+
+  end subroutine test_broadcastInt
+
+end module Test_DistGrid_mod

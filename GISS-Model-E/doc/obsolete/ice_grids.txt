@@ -1,0 +1,23 @@
+c********   edit with Vi for proper alignment **********
+c***
+c***     two types of ice grids : grid_ICEDYN and grid_NXY
+c***     grid_NXY is wrapped around for periodicity in lon direction
+c***
+                    usi(1,j)
+             |------x------|     |------|
+             |      |      |     |      |
+             |  1   |  2   | ... |imicyn|            grid_ICDYN
+             |      |      |     |      |
+             |------|------|     |------|
+                ^                   ^ 
+                |                   |
+                 -------------------|------
+           _________________________|      |              
+1=imicdyn |                                | NX1=1
+          |         uice(2,j)              |
+      |------|------x------|     |------|------|
+      |      |      |      |     |      |      |
+      |  1   |  2   |      | ... |NX1-1 | NX1  |     grid_NXY
+      |      |      |      |     |      |      |
+      |------|------|------|     |------|------|
+

@@ -1,0 +1,73 @@
+! This module contains tests of the GlobalSum_mod module. 
+module Test_GlobalSum_mod
+  use pFUnit_mod
+  use dist_grid_mod, only: setCommunicator, dist_grid, init_grid, destroy_grid, &
+    getDomainBounds
+  use GlobalSum_mod, only: GlobalSum
+
+  implicit none
+
+  public :: Test_GlobalSum
+
+@TestCase
+  type, extends(MpiTestCase) :: Test_GlobalSum
+    integer :: ibeg, iend, jbeg, jend      ! local dimensions
+    integer :: ibegh, iendh, jbegh, jendh  ! local dimensions + halo
+    type (DIST_GRID) :: distGrid
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type Test_GlobalSum
+
+! output a bit-reproducible global-hemisphere-zonal sum for an array
+  public :: test_GlobalSumJ
+
+  integer, parameter :: IM = 5 
+  integer, parameter :: JM = 10
+  integer, parameter :: LM = 2
+
+contains
+
+  subroutine setUp(this)
+    class (Test_GlobalSum), intent(inout) :: this
+
+    call setCommunicator(this%getMpiCommunicator())
+    call init_grid(this%distGrid, IM, JM, LM)
+
+    CALL getDomainBounds( this%distgrid, &
+      I_STRT=this%ibeg, &
+      I_STOP=this%iend, &
+      J_STRT=this%jbeg, &
+      J_STOP=this%jend)
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_GlobalSum), intent(inout) :: this
+    call destroy_grid(this%distGrid)
+  end subroutine tearDown
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_GlobalSumJ(this)
+    class (Test_GlobalSum), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: distArray
+    real(8) :: gsum
+    real(8) :: arithSum
+    integer :: j
+
+    allocate (distArray(this%jbeg:this%jend))
+    do j = this%jbeg, this%jend
+      distArray(j) = j
+    end do
+
+    call globalSum(this%distGrid, distArray, gsum)
+
+    if (this%getProcessRank()==0) then
+      arithSum = JM * ( JM + 1) / 2
+      @assertEqual(arithSum, gsum)
+    end if
+    deallocate(distArray)
+
+  end subroutine test_GlobalSumJ
+
+end module Test_GlobalSum_mod

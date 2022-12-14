@@ -1,0 +1,137 @@
+fc="your_fortran_compiler_name" # e.g. ifort
+#fcopts=""
+#fccmd="${fc} ${fcopts}"
+#nchome="directory_with_netcdf"
+#nclib="-L${nchome}/lib -lnetcdf"
+#ncinc="-I${nchome}/include"
+
+fccmd=$1
+nclib=$2
+ncinc=""
+
+echo "executing compscr with arguments:"
+echo
+echo "fccmd= $fccmd"
+echo
+echo "nclib= $nclib"
+echo
+
+#
+# Loop over diagnostics categories and compile each Fortran print
+# routine with a driver program which opens/closes the input file
+# and passes any extra command-line arguments to the print routine
+#
+
+for diag in aj areg ajl adiurn consrv rvr isccp olnst otj
+do
+
+progname=prt${diag}
+
+cat > driver.f << EOF
+      program driver
+      implicit none
+      include 'netcdf.inc'
+      integer :: status,ifid
+      character(len=80) :: ifile,argstr
+      character(len=160) :: progargs
+      integer :: iarg,nargs
+      !integer, external :: iargc
+      nargs = iargc()
+      call getarg(1,ifile)
+      progargs=''
+      if(nargs.gt.1) then
+         do iarg=2,nargs
+           call getarg(iarg,argstr)
+           if(trim(argstr).eq.'gissfmt') then
+             argstr='gissfmt='//ifile(1:len_trim(ifile)-3) ! no .nc suffix
+           endif
+           if(iarg.eq.2) then
+             progargs=argstr
+           else
+             progargs=trim(progargs)//' '//trim(argstr)
+           endif
+         enddo
+      endif
+      status = nf_open(trim(ifile),nf_nowrite,ifid)
+      if(status.ne.nf_noerr) then
+        write(6,*) 'nonexistent/non-netcdf input file ',trim(ifile)
+        stop
+      endif
+      call ${progname}(ifid,progargs)
+      status = nf_close(ifid)
+      end program driver
+EOF
+
+cmpcmd="${fccmd} miscnc.f ${progname}.f driver.f -o ${progname} ${ncinc} ${nclib}"
+echo $cmpcmd
+$cmpcmd  || exit  # terminate the script if any compilation fails
+rm -f driver.f
+
+done # end loop over diagnostics categories
+
+
+#
+# Compile the generic scaling routine with an appropriate driver
+#
+
+progname=scaleacc
+
+cat > driver.f << EOF
+      program driver
+      implicit none
+      include 'netcdf.inc'
+      integer :: status,ifids(2)
+      character(len=200) :: ifile,remap_file
+      character(len=80) :: accname
+      integer :: i1,i2,nargs
+      !integer, external :: iargc
+      nargs = iargc()
+      if(nargs.ne.2 .and. nargs.ne.3) then
+         write(6,*)
+     &   'usage: scaleacc acc-file acc_array_name[,name2] [remap_file]'
+         stop
+      endif
+      call getarg(1,ifile)
+      call getarg(2,accname)
+      i1 = index(ifile,'.acc')
+      if(i1.eq.0) i1 = index(ifile,'.subdd')
+      i2 = index(ifile,'.nc')
+      if(i1.eq.0 .or. i1.gt.i2) then
+        stop 'expecting filename of the form *.acc*.nc or *.subdd*.nc'
+      endif
+      status = nf_open(trim(ifile),nf_nowrite,ifids(1))
+      if(status.ne.nf_noerr) then
+        write(6,*) 'nonexistent/non-netcdf input file ',trim(ifile)
+        stop
+      endif
+      ifids(2) = -99
+      if(nargs.eq.3) then
+        call getarg(3,remap_file)
+        status = nf_open(trim(remap_file),nf_nowrite,ifids(2))
+        if(status.ne.nf_noerr) then
+          write(6,*) 'nonexistent/non-netcdf remap file ',
+     &          trim(remap_file)
+          stop
+        endif
+      endif
+      call ${progname}(ifids,accname,ifile)
+      status = nf_close(ifids(1))
+      if(ifids(2).ne.-99) status = nf_close(ifids(2))
+      end program driver
+EOF
+
+cmpcmd="${fccmd} csregrid.f miscnc.f ${progname}.f driver.f -o ${progname} ${ncinc} ${nclib}"
+echo $cmpcmd
+$cmpcmd  || exit  # terminate the script if any compilation fails
+rm -f driver.f
+
+#
+# Compile miscellaneous routines
+#
+for progname in agcstat sumfiles write_giss2d write_2d_as_giss4d diffreport prtostat prtspeca fuse_ajlagc prtwp
+do
+  cmpcmd="${fccmd} miscnc.f ${progname}.f -o ${progname} ${ncinc} ${nclib}"
+  echo $cmpcmd
+  $cmpcmd  || exit  # terminate the script if any compilation fails
+done
+

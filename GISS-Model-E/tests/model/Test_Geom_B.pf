@@ -1,0 +1,53 @@
+module Test_Geom_B_mod
+   use pFUnit_mod
+   use Resolution, only: IM, JM, LM
+   use Geom
+   use iso_fortran_env, only: real64
+   implicit none
+
+
+contains
+!   @test
+   subroutine test_lon_to_i()
+      USE DOMAIN_DECOMP_ATM, ONLY : grid,init_grid
+      call init_grid(grid, im, jm, lm)
+      call geom_atm()      
+      @assertEqual(im, lon_to_i(179.9d0))
+      @assertEqual(1, lon_to_i(-179.9d0))
+      @assertEqual(im/2, lon_to_i(-0.01d0))
+      @assertEqual(im/2+1, lon_to_i(0.01d0))
+   end subroutine test_lon_to_i
+
+!   @test
+   subroutine test_lat_to_j()
+      @assertEqual(jm, lat_to_j(90.0d0))
+      @assertEqual(1, lat_to_j(-90.0d0))
+      @assertEqual(jm/2+1, lat_to_j(0.01d0))
+   end subroutine test_lat_to_j
+
+!   @test
+   subroutine test_lonlat_to_ij()
+
+      call check_ij(5,2, 'northern hemisphere')
+      call check_ij(5,jm-1, 'southern hemisphere')
+
+   contains
+
+      subroutine check_ij(i, j, label)
+         integer, intent(in) :: i
+         integer, intent(in) :: j
+         character(len=*), intent(in) :: label
+
+         real(kind=real64) :: lat, lon
+         integer :: ij_found(2)
+
+         lat = lat2d_dg(i, j)
+         lon = lon2d_dg(i, j)
+         call lonlat_to_ij([lon,lat], ij_found)
+         @assertEqual([i,j], ij_found, message=label)
+      
+      end subroutine check_ij
+      
+   end subroutine test_lonlat_to_ij
+
+end module Test_Geom_B_mod

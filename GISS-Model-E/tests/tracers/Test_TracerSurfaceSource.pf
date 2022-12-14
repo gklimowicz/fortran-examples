@@ -1,0 +1,230 @@
+module Test_TracerSurfaceSource_mod
+  use pfunit_mod
+  use TracerSurfaceSource_mod
+  implicit none
+  private
+
+  public testBracketDay
+  public testTransientBracketDecadeAndMonth
+
+  ! scratch pad for legacy procedure
+  ! bad practice, but the point here is to minimize
+  ! change to legacy for comparison against new implementation
+  real*8 :: alpha, frac
+  integer :: record(2,2)
+
+contains
+
+@Test
+  subroutine testBracketDay()
+
+    call check(  1, 12, 01, 15./31)
+    call check( 16, 12, 01, 0.0)
+    call check( 17, 01, 02, 28./29)
+    call check(319, 10, 11, 1./31)
+    call check(365, 12, 01, 16./31)
+
+  contains
+    
+    subroutine check(day, monthA, monthB, frac)
+      integer, intent(in) :: day, monthA, monthB
+      real, intent(in) :: frac
+
+      integer :: monthA_found, monthB_found
+      real*8 :: frac_found
+
+      call bracketDay(day, monthA_found, monthB_found, frac_found)
+      @assertEqual(monthA, monthA_found, 'monthA')
+      @assertEqual(monthB, monthB_found, 'monthB')
+      @assertEqual(frac, frac_found, 'frac')
+    end subroutine check
+
+  end subroutine testBracketDay
+
+  ! Legacy implementation of read_mon_src_2() was heavily refactored.
+  ! This tests ensures that the correct interpolation is still used, by
+  ! preserving (almost) the original logic of the legacy implementation.
+
+@Test
+  subroutine testTransientBracketDecadeAndMonth()
+    use JulianCalendar_mod, only: JDmidOfM, JDendOfM
+    integer :: ty_start, ty_end, delTyr
+
+    integer :: iyear, iday
+    integer :: month
+    integer :: days(71) = [1, (JDmidOfM(month) + [-1,0,+1],month=1,12), &
+         & (JDendOfM(month)+[-1,0,+1],month =1,11),365]
+    integer :: years(13) = &
+         & [1850, 1890, 1899, 1900, 1901, 1909, 1910, 1911, 1920, 1999, 2000, 2001, 2030]
+    character*32 :: message
+
+    ty_start = 1900
+    ty_end = 2000
+    delTyr = 10
+
+    do iyear = 1, 11 !size(years)
+      do iday = 1, size(days) - 1
+        write(message,'(" -- using day ",i3," and year ",i4)') days(iday), years(iyear)
+        call check(days(iday), years(iyear), ty_start, ty_end, delTyr, message)
+      end do
+    end do
+
+  contains
+
+    subroutine check(dayOfYear, year, ty_start, ty_end, delTyr, msg)
+      integer, intent(in) :: dayOfYear
+      integer, intent(in) :: year
+      integer, intent(in) :: ty_start
+      integer, intent(in) :: ty_end
+      integer, intent(in) :: delTyr
+      character(len=*), intent(in) :: msg
+
+      type (TracerSurfaceSource) :: source
+      integer :: offset1, offset2
+      real*8 :: alpha_found, frac_found
+      integer :: yearA, yearB
+      integer :: monthA, monthB
+
+      ! call legacy and write probe values into module variables serving as scratchpad
+      call legacyImplementation(dayOfYear, year, ty_start, ty_end, delTyr)
+
+      ! call new implementation
+      source%yearStart = ty_start
+      source%yearEnd = ty_end
+      source%yearStep = delTyr
+    
+      call bracketYear(source, dayOfYear, year, offset1, offset2, alpha_found, yearA, yearB)
+      call bracketDay(dayOfYear, monthA, monthB, frac_found)
+
+      ! new implementation reads record (1 + month + offset) (+1 is from header)
+      @assertEqual(alpha, alpha_found,'alpha' // msg)
+      @assertEqual(frac, frac_found,'frac' //  msg)
+
+      if (alpha /= 1.) then
+        @assertEqual(record(1,1), 1+monthA+offset1, 'record(1,1) monthA:yearA' // msg)
+        @assertEqual(record(2,1), 1+monthB+offset1, 'record(2,1) monthB:yearA' // msg)
+      end if
+      if (alpha /= 0.) then
+        @assertEqual(record(1,2), 1+monthA+offset2, 'record(1,2) monthA:yearB' // msg)
+        @assertEqual(record(2,2), 1+monthB+offset2, 'record(2,2) monthB:yearB' // msg)
+      end if
+
+
+    end subroutine check
+
+    
+  end subroutine testTransientBracketDecadeAndMonth
+
+  subroutine legacyImplementation(xday, xyear, ty_start, ty_end, delTyr)
+    use JulianCalendar_mod, only: idofm=>JDmidOfM
+    integer, intent(in) :: xday
+    integer, intent(in) :: xyear
+    integer, intent(in) :: ty_start
+    integer, intent(in) :: ty_end
+    integer, intent(in) :: delTyr
+
+    integer :: imon,ipos,k,nn,kx, fileRecord, kstep
+
+    fileRecord = 1 ! last record was header (1st record)
+    kstep=delTyr
+    ipos=1
+    alpha=0.d0 ! before start year, use start year value
+    kx=ty_start ! just for printing
+    if(xyear>ty_end.or. &
+      &  (xyear==ty_end.and.xday>=183))then
+      alpha=1.d0 ! after end year, use end year value
+      ipos=(ty_end-ty_start)/kstep
+      kx=ty_end-kstep
+    endif
+    do k=ty_start,ty_end-kstep,kstep
+      if(xyear>k .or. (xyear==k.and.xday>=183)) then
+        if(xyear<k+kstep .or. (xyear==k+kstep.and.xday<183))then
+          ipos=1+(k-ty_start)/kstep ! (integer artithmatic)
+          alpha=real(xyear-k)/real(kstep)
+          kx=k
+          exit
+        endif
+      endif
+    enddo
+    !
+    ! read the two necessary months from the first decade:
+    !
+    imon=1
+    if (xday <= 16)  then ! xDAY in Jan 1-15, first month is Dec
+      
+      ! skip read for testing - store lookup in module vars
+!!$      call readt_parallel(grid,iu,nameunit(iu),tlca,(ipos-1)*12+12)
+      fileRecord = fileRecord + (ipos-1)*12 + 12 
+      record(1,1) = fileRecord
+      
+!!$      do nn=1,12; call backspace_parallel(iu); enddo
+      fileRecord = fileRecord - 12
+    else            ! xDAY is in Jan 16 to Dec 16, get first month
+      do while(xday > idofm(imon) .and. imon <= 12)
+        imon=imon+1
+      enddo
+!!$      call  readt_parallel
+!!$      &   (grid,iu,nameunit(iu),tlca,(ipos-1)*12+imon-1)
+      fileRecord = fileRecord + (ipos-1)*12+imon-1
+      record(1,1) = fileRecord
+      if (imon == 13)then
+!!$        do nn=1,12; call backspace_parallel(iu); enddo               
+        fileRecord = fileRecord - 12
+      endif
+    end if
+!!$    call readt_parallel(grid,iu,nameunit(iu),tlcb,1)
+    fileRecord = fileRecord + 1
+    record(2,1) = fileRecord
+!****   Interpolate two months of data to current day
+    frac = float(idofm(imon)-xday)/(idofm(imon)-idofm(imon-1))
+
+!!$    sfc_a(I_0:I_1,J_0:J_1)=tlca(I_0:I_1,J_0:J_1)*frac + 
+!!$    &  tlcb(I_0:I_1,J_0:J_1)*(1.-frac)
+!!$    call rewind_parallel( iu );if (AM_I_ROOT()) read( iu ) junk
+    fileRecord = 1 ! after rewind and skip header
+
+    ipos=ipos+1
+    imon=1
+    if (xday <= 16)  then ! xDAY in Jan 1-15, first month is Dec
+!!$      call readt_parallel(grid,iu,nameunit(iu),tlca,(ipos-1)*12+12)
+      fileRecord = fileRecord + (ipos-1)*12+12
+      record(1,2) = fileRecord
+!!$      do nn=1,12; call backspace_parallel(iu); enddo
+      fileRecord = fileRecord - 12
+    else            ! xDAY is in Jan 16 to Dec 16, get first month
+      do while(xday > idofm(imon) .and. imon <= 12)
+        imon=imon+1
+      enddo
+!!$      call readt_parallel &
+!!$           &   (grid,iu,nameunit(iu),tlca,(ipos-1)*12+imon-1)
+      fileRecord = fileRecord + (ipos - 1)*12 + imon - 1
+      record(1,2) = fileRecord
+      if (imon == 13)then
+!!$        do nn=1,12; call backspace_parallel(iu); enddo
+        fileRecord = fileRecord - 12
+      endif
+    end if
+!!$    call readt_parallel(grid,iu,nameunit(iu),tlcb,1)
+    fileRecord = fileRecord + 1
+    record(2,2) = fileRecord
+    !****   Interpolate two months of data to current day
+    frac = float(idofm(imon)-xday)/(idofm(imon)-idofm(imon-1))
+!!$    sfc_b(I_0:I_1,J_0:J_1)=tlca(I_0:I_1,J_0:J_1)*frac + &
+!!$         &  tlcb(I_0:I_1,J_0:J_1)*(1.-frac)
+
+    ! now interpolate between the two time periods:
+
+!!$    data(I_0:I_1,J_0:J_1)=sfc_a(I_0:I_1,J_0:J_1)*(1.d0-alpha) +  &
+!!$        &  sfc_b(I_0:I_1,J_0:J_1)*alpha
+!!$
+!!$    write(out_line,'(a,1X,a,a4,F9.4,a21,I4,a13,I4,a22,F9.4)') &
+!!$         &  trim(nameT),trim(ssname),' at ',100.d0*alpha, &
+!!$         &  '% of period this day ',kx,' to this day ',kx+kstep, &
+!!$         &  ' and monthly fraction=',frac
+!!$    call write_parallel(trim(out_line))
+
+  end subroutine legacyImplementation
+
+end module Test_TracerSurfaceSource_mod
+
+! TODO : remove commented out code

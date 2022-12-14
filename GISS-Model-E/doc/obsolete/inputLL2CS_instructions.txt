@@ -1,0 +1,124 @@
+instructions to perform the regridding to the cubed sphere:
+
+1) Add new regridding routine for your needs
+    * The regridding routines are in aux/inputLL2CS.f
+    * in the program section of inputLL2CS.f you have to define the resolution of the source grid (e.g. ims_TOPO/jms_TOPO, replace TOPO by something else)
+      the resolution of the target cubed sphere grid is defined in the IM, JM in the resolution file
+      you then create a regridding object (e.g. xll2cs_TOPO) which will contain all coefficient and data to perform the interpolation. You do this using e.g. 
+          call init_regrid_root(xll2cs_TOPO,ims_TOPO,jms_TOPO,ntilessource,imt,jmt,ntilestarget)   (replace TOPO by something else)
+    * in the am_i_root section just below, add a call to your regridding routine, e.g. call regridTOPO
+    * create a regridding routine. regridTOPO provides a good template
+      the routine contains 3 sections:
+        -reading the input file. It reads all records (in your case all months from january to december) using read(unit=iu_TOPO,END=30) TITLE(irec), tsourc4(:,:,:,irec). You can modify this for your needs. Make sure that the binary input file has been written using big endians.
+        -regridding to the cubed sphere, for every record it calls root_regrid which is defined in an external library. 
+        -writing the file on disk. It writes all records using write(unit=iu_TOPO) TITLE(ir), ttargr4(:,:,:,ir). You can modify this for your needs
+2) to Compile/Run, 
+     * you must use a cubed sphere compatible .modelErc file
+       here is an example of such a file:
+	# This file contains global options for modelE. By default they are
+	# adjusted to the working environment of Ra.giss.nasa.gov .
+
+	## Directory structure ##
+
+	# DECKS_REPOSITORY - a directory for permanenet storage of run info.
+	# All rundecks that you create will be copied to this directory.
+	DECKS_REPOSITORY=/discover/nobackup/dgueyffi/decks
+
+	# CMRUNDIR - directory to which all run directories will be linked.
+	# This directory will be searched by most scripts for locations of
+	# specific runs.
+	CMRUNDIR=/discover/nobackup/projects/giss/prod_runs
+
+	# GCMSEARCHPATH - directory to search for gcm input files.
+	# All necessary input files should be copied or linked to this directory.
+	GCMSEARCHPATH=/discover/nobackup/projects/giss/prod_input_files
+
+	# EXECDIR - path to directory with modelE scripts and with some
+	# executables. This directory should contain the scripts from modelE/exec.
+	EXECDIR=/discover/nobackup/projects/giss/exec
+
+	# NETCDFHOME - path to location of netcdf library. Leave blank if netcdf
+	# is not installed on this computer
+	NETCDFHOME=/usr/local/other_old/netcdf/3.6.1
+
+        # SAVEDISK - a directory where all run directories (which will contain
+        # all output files such as rsf, acc etc.) will be created. This should
+        # be big enough to accomodate all model output.
+        SAVEDISK=/discover/nobackup/dgueyffi
+      
+        ## Customizable setings for Makefile ##
+
+        # MAILTO - email address of the user. When the program ends/crashes
+        # all notifications will be sent to this address. If not specified
+        # `whoami` will be used.
+        MAILTO=
+
+	# OVERWRITE - can "gmake rundeck" overwrite files already in repository?
+	# (i.e. in the directory DECKS_REPOSITORY)
+	OVERWRITE=NO
+
+	# OUTPUT_TO_FILES - if set to YES all errors and warnings will be sent
+	# to files with the names <source_name>.ERR
+	OUTPUT_TO_FILES=YES
+
+	# VERBOSE_OUTPUT - if set to YES gmake will show compilation commands
+	# and some other information. Otherwise most of the output will be
+	# suppressed
+	VERBOSE_OUTPUT=YES
+
+	# MP - multiprocessing support. If set to YES gmake will compile the
+	# code with OpenMP instructions. This option has effect only on SGI.
+	MP=NO
+
+	# ESMF variables
+	ESMF=YES
+	# ESMF_DIR=/discover/nobackup/projects/giss/esmf_2_2_ifort_9.1.042
+	ESMF_BOPT=O
+
+	#FV variablesdd following entries to .modelErc:
+	FVCORE_ROOT=/discover/nobackup/projects/map/GEOSGCM
+	FVCUBED_ROOT=/discover/nobackup/projects/map/GEOSagcm-cubed
+	MPPDIR=/discover/nobackup/projects/map/MPP/mpp_intel-9.1.052_scali-5
+	BASELIBDIR=/usr/local/other/baselibs/ESMF222rp3_NetCDF362b6_9.1.052/Linux
+
+	QSUB_STRING="qsub -V -l select=2:ncpus=4:scali=true -l walltime=00:05:00 -W block=true -W group_list=a940a"
+
+     * create rundeck from an existing cubed sphere template rundeck, e.g. gmake rundeck RUNSRC=E1CS32L20 RUN=your_deck
+
+     * compile using gmake -j aux RUN=your_deck NPES=6 CUBE_GRID=YES FVCUBED=YES
+
+     * copy inputll2cs in your run directory 
+
+     * copy the input files you want to regrid (fox example vegtype.global4X5.bin, lai01.global.bin...) from e.g.
+         /discover/nobackup/projects/giss/prod_input_files/ to your run directory
+
+     * copy the remap file containing the coefficients for the regridding (e.g. remap360-180C32-32.nc for regridding from 360x160 resolution on latlon grid to CS32 grid) from /discover/nobackup/projects/giss/prod_input_files/ to your run directory
+
+     * run inputll2cs using PBS script 
+       Here is an example of such a pbs script:
+	#!/bin/ksh
+	#PBS -S /bin/ksh
+	#PBS -N tst
+	#PBS -l walltime=00:10:00
+	#PBS -l select=2:ncpus=4:scali=true
+	#PBS -W group_list=a940a
+	#PBS -W umask=002
+	#PBS -A "a940a"
+	#PBS -j oe 
+	#PBS -o /home/dgueyffi/mE-FVcubed/decks/your_deck/
+	#PBS -V
+
+	#ulimit -s unlimited
+	#ulimit -c  0
+
+	. /usr/share/modules/init/bash
+	module purge
+	module load comp/intel-9.1.052
+	module load mpi/scali-5
+
+	cd /home/dgueyffi/mE-FVcubed/decks/your_deck/
+
+	#echo ${LD_LIBRARY_PATH}
+	#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/other/hdf/5-1.8.0_parallel/lib
+	umask 2
+	mpirun -np 6 -inherit_limits ./inputll2cs > log

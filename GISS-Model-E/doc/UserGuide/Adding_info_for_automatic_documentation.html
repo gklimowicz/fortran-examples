@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Adding information for automatic documentation</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Adding information for automatic documentation</H3>
+
+<p>
+We are using a special format for adding in-line documentation inside
+the modelE source code. This serves two purposes. First, users know
+where to look for important information. Second, we are using an
+automatic documentation system which can process such specially
+formatted comments and generate an online documentation. 
+
+Each line of such comments should start from one of the following
+special tags:</p>
+<pre>
+!@sum     Brief summary/description of the current program unit or file
+!@auth    Author (if known)
+!@ver     Version (if relevant)
+!@var     &lt;name&gt; Describes a variable (in the FORTRAN sense)
+!@param   &lt;name&gt; Describes a parameter (in the FORTRAN sense)
+!@dbparam &lt;name&gt; Describes a database parameter (in the modelE sense)
+!@nlparam &lt;name&gt; Describes a NAMELIST parameter (in the modelE sense)
+!@+       Continuation line
+</pre>
+We require that each module, each subroutine and each function are
+given a brief summary which describes their functionality. This should
+be done by adding a line immediately after their declaration which
+starts from <code>!@sum</code> (written from the first position) and which
+provides such description. If description consists of more than one
+line a continuation tag <code>!@+</code> should be put at the beginning of
+each new line. When author (or authors) is known his/her name should
+be included on a line which starts from <code>!@auth</code> and
+immediately follows the summary. If the entire module was written
+primarily by the same author, it is enough to mention his/her name
+at the beginning of the module and not to include it with each
+subroutine or function. Version tag <code>!@ver</code> proved to be not
+very informative and you don't need to use it unless you have a reason
+to explicitly mention the version of a particular piece of code in
+the documentation. 
+
+<p>
+Each global module variable and each argument in declaration of
+function or subroutine should be described using <code>!@var</code> tag. 
+This can be done either on a separate line which starts
+from <code>!@var</code> immediately followed by the variable name and then
+by its description, or one can include a description on the same line
+the variable is declared (if declaration contains only one variable). 
+In latter case one should not include the variable name
+after <code>!@var</code>. The description of each variable should include
+its physical units.
+</p>
+<p>
+There are two types of variables for which one has to use different
+tags: the ones which are defined in the rundeck in the
+&quot;parametes&quot; and namelist sections. These should be described
+using <code>!@dbparam</code> and <code>!@nlparam</code> respectively (instead
+of <code>!@var</code>).
+</p>
+<p>
+Example:</p>
+<pre>
+      module ghy
+!@sum This module contains ground hydrology routines.
+!@+   Most of its functionality is described in Abramopoulos 1988 paper.
+!@auth John Smith
+
+!@var asnsh sensible heat accumulated over the time step (J)
+      real*8 :: asnsh
+!@dbparam max_snow maximal allowed snow thickness from rundeck (m)
+      real*8 :: max_snow
+
+      contains
+      subroutine advnc(dt, w, ht)
+!@sum advances ground prognostic variables one time step
+      real*8 :: dt    !@var time step (s)
+      real*8 :: w(:)  !@var soil layer water content (m)
+      real*8 :: ht(:) !@var soil layer heat content (J)
+      ...........................
+      end subroutine advnc
+      end module ghy
+</pre>
+
+
+</BODY>
+</HTML>

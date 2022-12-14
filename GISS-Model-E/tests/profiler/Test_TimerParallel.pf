@@ -1,0 +1,89 @@
+module Test_TimerParallel_mod
+   use pFUnit_mod
+   use Timer_mod
+   implicit none
+   private
+
+   public :: Test_TimerParallel
+
+@TestCase
+  type, extends(MpiTestCase) :: Test_TimerParallel
+  end type Test_TimerParallel
+
+   public :: test_gather
+   integer, parameter :: dp = selected_real_kind(14)
+
+contains
+
+@mpiTest(npes=[2,3], ifdef=USE_MPI)
+   subroutine test_gather(this)
+    class (Test_TimerParallel), intent(inout) :: this
+      type (Timer_type) :: localTimer
+      type (Timer_type) :: globalTimer
+      character(len=200) :: report, expected
+
+      integer :: rank, npes, ier
+      integer :: i
+      real (kind=dp) :: dt
+      integer, parameter :: root = 0
+
+      integer :: numTripsExpected
+      real (kind=dp) :: exclusiveTimeExpected
+      real (kind=dp) :: inclusiveTimeExpected
+      real (kind=dp) :: minimumTimeExpected
+      real (kind=dp) :: maximumTimeExpected
+      real (kind=dp) :: time
+
+      call resetGlobal()
+
+      rank = this%getProcessRank()
+      npes = this%getNumProcesses()
+
+      dt = 1 + rank
+      time = 0
+
+      do i = 0, rank
+         call start(localTimer, time)
+         time = time + dt
+         call stop(localTimer, time)
+      end do
+
+      globalTimer = gather(localTimer, this%getMpiCommunicator())
+
+      numTripsExpected = sumN(1, npes)
+      call assertEqual(numTripsExpected, getNumTrips(globalTimer),'numtrips')
+
+      inclusiveTimeExpected = sumNsquared(1, npes) / npes
+      exclusiveTimeExpected = sumNsquared(1, npes) / npes
+
+      @assertEqual(inclusiveTimeExpected, getInclusiveTime(globalTimer), 0.01_dp, message='inclusive')
+      @assertEqual(exclusiveTimeExpected, getExclusiveTime(globalTimer), 0.01_dp, message='exclusive')
+
+      minimumTimeExpected = 1
+      maximumTimeExpected = npes**2
+
+      @assertEqual(minimumTimeExpected, getMinimumTime(globalTimer), 0.01_dp, message='min')
+      @assertEqual(maximumTimeExpected, getMaximumTime(globalTimer), 0.01_dp, message='max')
+
+      @assertEqual(0, getMinProcess(globalTimer), 'minProcess')
+      @assertEqual(npes-1, getMaxProcess(globalTimer), 'maxProcess')
+
+      call reset(globalTimer)
+      call reset(localTimer)
+
+   contains
+
+      real function sumN(i0, i1) result (total)
+         integer, intent(in) :: i0, i1
+         total = (i1 - i0 + 1) * (i0 + i1) / 2
+      end function sumN
+
+      real function sumNsquared(i0, i1) result (total)
+         integer, intent(in) :: i0, i1
+         integer :: i
+         total = sum ( (/ (i**2, i=i0,i1) /) )
+      end function sumNsquared
+
+   end subroutine test_gather
+
+end module Test_TimerParallel_mod

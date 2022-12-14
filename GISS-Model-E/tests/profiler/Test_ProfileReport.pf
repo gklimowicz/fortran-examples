@@ -1,0 +1,165 @@
+module test_ProfileReport_mod
+   use pFUnit_mod
+   use ProfileReport_mod
+   use ReportColumn_mod
+   use TimerList_mod
+   implicit none
+   private
+
+   public :: test_oneColumn
+   public :: test_nameTrip
+   public :: test_percent
+   public :: test_minPerDay
+   public :: test_generateReport
+
+   integer, parameter :: dp = selected_real_kind(14)
+
+contains
+
+@Test
+   subroutine test_oneColumn()
+      type (ProfileReport_type) :: report
+      type (TimerList_type) :: timers
+
+      report = newReport()
+      call addColumn(report, newColumn(NAME_COLUMN, fieldWidth=10))
+
+      call reset(timers)
+      call addTimer(timers,'A')
+
+      @assertEqual('   Name', getHeader(report))
+      @assertEqual('', getUnits(report))
+      @assertEqual('A',    trim(getLine(report, timers, 1)))
+
+      call reset(timers)
+   end subroutine test_oneColumn
+
+@Test
+   subroutine test_nameTrip()
+      use Timer_mod
+      type (ProfileReport_type) :: report
+      type (TimerList_type) :: timers
+
+      report = newReport()
+      call addColumn(report, newColumn(NAME_COLUMN, fieldWidth=10))
+      call addColumn(report, newColumn(TRIP_COUNTS_COLUMN, fieldWidth=3))
+
+      call reset(timers)
+      call addTimer(timers,'A')
+      call start(timers, 'A')
+      call stop(timers, 'A')
+      call start(timers, 'A')
+      call stop(timers, 'A')
+      !                       1234567890123456
+      @assertEqual('   Name    Tri ', getHeader(report))
+      @assertEqual('               ', getUnits(report))
+      @assertEqual('A            2 ', getLine(report, timers, 1))
+
+      call reset(timers)
+   end subroutine test_nameTrip
+
+@Test
+   subroutine test_percent()
+      use Timer_mod
+      type (ProfileReport_type) :: report
+      type (TimerList_type) :: timers
+      type (ReportColumn_type) :: column
+      real(kind=dp) :: totalTime
+
+      report = newReport()
+      column = newColumn(INCLUSIVE_TIME_COLUMN, fieldWidth=7)
+      call reset(timers)
+      call addTimer(timers,'A')
+      call addTimer(timers,'B')
+      call start(timers, 'A', 0._dp)
+      call stop(timers, 'A',  1._dp)
+      call start(timers, 'B', 1._dp)
+      call stop(timers, 'B',  4._dp)
+
+      totalTime = 4._dp
+      call setScale(column, 100/totalTime, 'Percent')
+      call addColumn(report, column)
+
+
+      !                       1234567890123
+      @assertEqual('Inclusi', getHeader(report))
+      @assertEqual('Percent', getUnits(report))
+      @assertEqual('  25.00', getLine(report, timers, 1))
+      @assertEqual('  75.00', getLine(report, timers, 2))
+
+      call reset(timers)
+   end subroutine test_percent
+
+@Test
+   subroutine test_minPerDay()
+      use Timer_mod
+      type (ProfileReport_type) :: report
+      type (TimerList_type) :: timers
+      type (ReportColumn_type) :: column
+      real(kind=dp) :: simulatedTime
+      integer, parameter :: MINUTES_PER_DAY = 60*24
+      integer, parameter :: SECONDS_PER_DAY = 60 * MINUTES_PER_DAY
+
+      report = newReport()
+      column = newColumn(INCLUSIVE_TIME_COLUMN, fieldWidth=7)
+      call reset(timers)
+      call addTimer(timers,'A')
+      call addTimer(timers,'B')
+      call start(timers, 'A', 0._dp)
+      call stop(timers, 'A',  60._dp)
+      call start(timers, 'B', 60._dp)
+      call stop(timers, 'B', 180._dp)
+
+      simulatedTime = SECONDS_PER_DAY ! day
+      call setScale(column, MINUTES_PER_DAY/simulatedTime, 'min/day')
+      call addColumn(report, column)
+
+      !                       1234567890123
+      @assertEqual('Inclusi', getHeader(report))
+      @assertEqual('min/day', getUnits(report))
+      @assertEqual('   1.00', getLine(report, timers, 1))
+      @assertEqual('   2.00', getLine(report, timers, 2))
+
+      call reset(timers)
+   end subroutine test_minPerDay
+
+@Test
+   subroutine test_generateReport()
+      use Timer_mod
+      type (ProfileReport_type) :: report
+      type (TimerList_type) :: timers
+      type (ReportColumn_type) :: column
+      real(kind=dp) :: totalTime
+      character(len=MAX_RECORD_LENGTH), pointer :: lines(:)
+
+      report = newReport()
+      column = newColumn(INCLUSIVE_TIME_COLUMN, fieldWidth=8)
+      call reset(timers)
+      call addTimer(timers,'A')
+      call addTimer(timers,'B')
+      call start(timers, 'A', 0._dp)
+      call stop(timers, 'A',  1._dp)
+      call start(timers, 'B', 1._dp)
+      call stop(timers, 'B',  4._dp)
+
+      totalTime = 4._dp
+      call setScale(column, 100/totalTime, ' %')
+      call addColumn(report, newColumn(NAME_COLUMN, 10))
+      call addColumn(report, column)
+      call addColumn(report, newColumn(TRIP_COUNTS_COLUMN, 4))
+
+      lines => generateReport(report, timers)
+
+      !                       12345678901234567890123456
+      @assertEqual('-------------------------', trim(lines(1)))
+      @assertEqual('   Name    Inclusiv Trip ', trim(lines(2)))
+      @assertEqual('               %         ', trim(lines(3)))
+      @assertEqual('-------------------------', trim(lines(4)))
+      @assertEqual('A             25.00    1 ', trim(lines(5)))
+      @assertEqual('B             75.00    1 ', trim(lines(6)))
+      @assertEqual('-------------------------', trim(lines(7)))
+      deallocate(lines)
+      call reset(timers)
+   end subroutine test_generateReport
+
+end module test_ProfileReport_mod

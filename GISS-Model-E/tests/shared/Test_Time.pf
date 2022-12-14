@@ -1,0 +1,32 @@
+module Test_Time_mod
+  use pfunit_mod
+  use Time_mod
+
+  implicit none
+
+contains
+
+@test
+  subroutine test_copy()
+    use AbstractCalendar_mod
+    use JulianCalendar_mod
+    use BaseTime_mod
+    use Rational_mod
+
+    type (BaseTime) :: t
+    type (Time) :: t1, t2
+    class (AbstractCalendar), allocatable :: calendar
+
+
+    allocate(calendar, source=JulianCalendar())
+
+    t1 = newTime(calendar)
+    t2 = newTime(JulianCalendar())
+    t = newBaseTime(Rational(1,2,3))
+    call t1%set(t)
+    t2 = t1
+    @assertTrue(t1 == t2)
+
+  end subroutine test_copy
+
+end module Test_Time_mod

@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+FC=ifort
+NetCDF=/usr/local/other/netcdf/3.6.1_intel-9.1.042
+#CDMS=/lgm/cdat/latest
+CMOR=.
+#USER_FLAGS='-L/usr/local/lib -ldrs'
+
+${FC} $1.f90 -convert big_endian -g -I${CMOR}/include -L${CMOR}/lib -lcmor -I${NetCDF}/include -L${NetCDF}/lib -lnetcdf -o $1
+
+

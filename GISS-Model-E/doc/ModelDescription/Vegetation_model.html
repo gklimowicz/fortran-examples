@@ -1,0 +1,319 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Vegetation model</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Vegetation model</H3>
+
+<H3>The Ent Dynamic Terrestrial Biosphere Model</H3>
+(More details and diagrams may be found <a href="http:/www.giss.nasa.gov/projects/ent">here</a>)
+
+
+<H4>	Introduction and Background</H4>
+
+	The Ent Terrestrial Biosphere Model (Ent TBM) is a standalone dynamic global vegetation model (DGVM) compatible with the Earth System Modeling Framework (ESMF).  It is designed to couple biophysics (fluxes of water, energy, carbon, and nitrogen) with land surface models and atmospheric general circulations models (GCMs); biogeochemistry (seasonal growth and decay of vegetation); and biogeography or ecological dynamics (decadal- to century-scale vegetation cover change due to mortality, establishment, and disturbance).  Dynamics in Ent are integrated in a consistent, prognostic, process-based manner, in a way that is both biologically realistic and computationally efficient, and suitable for two-way coupling and parallel computing in GCMs.  The original development platform is the NASA Goddard Institute for Space Studies (GISS) GCM.
+	<br><br>
+	Ent's distinguishing feature from previous DGVMs that couple to GCMs is the representation of mixed 
+	vegetation canopies rather than mosaicked. The biophysics of Ent utilizes the well-known photosynthesis 
+	functions of Farqhuar, von Caemmerer, and Berry (1980) and Farqhuar and von Caemmerer (1982), and stomatal 
+	conductance of Ball and Berry (1985, 1987).   For canopy radiative transfer for changing canopies, Ent 
+	introduces new algorithms to calculate the clumping of foliage in mixed, vertically layered canopies 
+	(Ni-Meister et al., 2010; Yang et al., 2010).  Phenology is based on temperature, drought, and radiation 
+	cues, and growth is via allocation of carbon from labile carbohydrate reserve storage to different plant 
+	components.  Soil biogeochemistry is based on the Carnegie-Ames-Stanford (CASA) model of Potter et al. 
+	(1993), and we introduce variable Q10 values for soil respiration response to moisture and temperature 
+	based on data from Del Grosso et al. (2005); a deep soil layer is optional.  Ent's subgrid plant 
+	communities are structured to adopt the ecological dynamics approach of the Ecosystem Demography (ED) 
+	model (Medvigy et al., 2009; Moorcroft et al., 2001), which captures light competition due to vertical 
+	heterogeneity in mixed canopies, and subgrid heterogeneity from patch disturbance dynamics. The Ent TBM 
+	is set up to capture these mixed canopy processes within dynamically changing linked-list data structures. 
+	
+<br><br>
+	The Ent TBM can run at different spatial scales (column or site, ij boundaries, and global),
+and with different levels of dynamics turned on or off (biophysics, biogeochemistry, biogeography).
+The functionality of Ent available in ModelE2 currently is only the biophysics portion for calculating fluxes 
+of carbon dioxide and water vapor at the physical time step of the GCM.  Prognostic seasonal growth is undergoing testing and is available only to developers.  ED dynamics are to be introduced in 2013.   This document describes the Ent framework and the biophysics.
+<br><br>
+
+<H4>Model Overview</H4>
+
+<H4>Ent Interfaces and Submodels</H4>
+The Ent TBM is designed as a stand-alone model that can be forced by observed soil and atmospheric meteorology, or 
+coupled to a land surface hydrology model or atmospheric GCM. The land hydrology drivers or model provide soil and canopy temperature, snow and soil albedo, and soil moisture, and Ent returns vegetation cover
+leaf area index (LAI), total canopy albedo (including snow and soil), and water vapor conductance. 
+The atmospheric drivers or model provide pressure, vapor pressure, atmospheric CO<sub>2</sub> concentration, 
+surface air temperature, downwelling shortwave and photosynthetically active radiation, the fraction of direct beam 
+vs. diffuse radiation, and precipitation, and Ent provides surface albedo, surface flux of CO<sub>2</sub> and 
+other mass exchanges of interest, such as isoprene.
+
+
+<H4>Ent subgrid heterogeneity</H4>
+
+Ent represents a grid cell or catchment hydrologic subregion as an "ent cell", and subgrid heterogeneity as 
+dynamic patches of vegetation communities, comprised of cohorts of plants that are ensembles of identical 
+individuals.  Patches dynamically open or merge according to disturbances and development of plant 
+communities.  Canopy conductances from each patch are summed to the ent cell level to couple with the 
+atmosphere.  All patches in one ent cell experience the same atmospheric conditions.  Currently, 
+conductances of water vapor from each patch are summed over the ent cell, such that all patches then share 
+the same soil water balance.  Subgrid heterogeneity of water balances is a development area.
+<br>
+
+<H4>	Ent plant and landscape structure</H4>
+<H4>	Individuals</H4>
+Ent does not simulate individual plants, but instead simulates cohorts that are ensembles of identical individuals that are distinguished by plant functional type and size (geometry, biomass pools).  The biomass pools are constrained by fixed allometry, with seasonally varying foliage and fine roots limited within this allometry.  The allometry relations are taken from many sources further documented in a full technical report for Ent.
+<br><br>
+Biomass pools for woody plants consist of carbon pools for foliage, live and dead stem, sapwood, fine and coarse roots, and a labile storage pool to which photosynthetic uptake (and eventually retranslocated nitrogen) is stored and from which growth is allocated.  Herbaceous plants have only foliage, fine root, and labile pools.  Nitrogen content is currently specified by fixed carbon:nitrogen ratios by PFT and carbon pool.
+<br><br>
+ 
+<H4>Cohorts</H4>
+Cohorts of ensembles of identical individuals in a patch community are organized in linked list data structures, from tallest to shortest.  This stratification organizes the cohorts in their competition for light.  Horizontal spatial distribution of individuals is statistical and not explicit, with a constraint that crowns do not overlap (see Section on canopy radiative transfer).  The number of cohorts per patch may be restricted as an option if necessary.
+<br><br>
+Utilities for managing cohorts include reading, for reading in prescribed land cover from a data file; insertion, for read in or newly established cohorts;  deletion, for dead cohorts;  sorting, when cohort growth leads to change in their height order; and merging, for cohorts that grow to have the same characteristics.  These management routines need to be called only during initialization of the vegetation cover, or when algorithms deem that there is significant enough structural change to make a difference in canopy radiative transfer parameters or community dynamics.  In addition, a utility to write cohort data to a text file is provided.
+<br><br>
+Routines to summarize cohort properties to the patch level are called half-hourly for fluxes, daily for biomass pools, and intermittently for significant community structural changes.
+
+<H4>Patch communities</H4>
+Patches of subgrid areas within an ent cell contain communities of plant cohorts.  Patches are not spatially explicit within an ent cell, but are organized in linked lists, stratified by age, that is, the time since the disturbance that opened a patch area as bare soil.  The number of patches in a grid cell may be restricted as an option if necessary;  experience with the ED model indicates that a grid cell generally requires ~10 patches to capture a realistic level of surface heterogeneity and dynamics.  For land surface models with representations of different hydrological zones of catchments, since this level of land surface heterogeneity is described by the hydrological model, Ent can be set with static patches that correspond to each catchment zone. 
+<br><br>
+Utilities for managing patches include reading, for reading in prescribed land cover from a data file;  insertion, for new patches; partitioning, for when disturbance (fire) leads to new patches due to clearing parts of existing patches;  and merging, and when ecosystem dynamics lead to similar communities on different patches, such that managing them separately is redundant.  In addition, a utility to write patch data to a text file is provided.
+<br><br>
+Routines to summarize patch properties to the Ent cell level (grid cell) are called half-hourly for fluxes, daily for soil carbon and nitrogen pools, and intermittently according to occurrence of disturbance and patch merging.
+
+<H4>Ent cells</H4>
+Ent cells correspond to the basic unit of the land surface hydrology model, which may be a GCM grid cell or a catchment zone.  At the Ent cell level, atmospheric drivers and surface temperature are supplied to Ent, and Ent returns vegetation conductance of water vapor and fluxes of CO2, as diagrammed in Figure 1.  Soil depth structure for soil moisture also follows that of the land surface scheme (see Section on land surface model coupling).  Note that the Ent model does not calculate energy balances, but relies on the land surface and atmosphere model to calculate canopy temperature and soil temperature.  
+<br><br>
+	Ent cells are stored in an array and are set up at initialization of the model according to the land surface hydrology model's structure.  The Ent cell array and soil moisture vertical structure interface requires customized setup through a driver file according to different land surface schemes.
+<br><br>
+	The cell-level meteorological drivers are all stored in the Ent cell data structure for access by Ent modules that perform operations at the patch and cohort levels.  Pointers between a parent Ent cell, its children patches, and their children cohorts, allow straightforward access to and passing of driver data.
+
+<H4>Ent vertical and horizontal soil structure</H4>
+Soil type in Ent depends on the soil types specified by the land surface hydrology model to which Ent is coupled, which must provide sand, silt, and clay fractions, and soil depth.  Soil type is expected to of one kind in an ent cell.  Ent soil biogeochemistry requires distinction of soil temperature, moisture, and texture in a 0-30 cm layer, and optionally in a 30-100 cm deep layer.  Ent canopy conductance requires interfacing vertical root distributions with the layering scheme of the land surface model to calculate soil moisture stress;  the layering of vertical root distributions is currently based on continuous functions by Rosenszweig and Abramopoulos (1997) and so can be scaled according to the land surface scheme.  
+
+<H4>Plant functional types</H4>
+Ent supports 16 plant functional types (PFTs), as listed below.  [Planned update: Ent will later support a 17th PFT, C3 crops].  Following the rationale first advocated by Defries et al. (1995) and adopted by all vegetation models since to varying degrees, Ent's PFTs distinguish physiogonomic characteristics:  photosynthetic pathway (C3, C4), leaf type (broadleaf, needleleaf), growth form (woody, herbaceous), phenotype (evergreen, cold deciduous, drought deciduous; for herbs, annual vs. perennial), and cultivated (crops). To better capture community dynamics in mixed canopies, Ent optionally can distinguish early and late successional species through differences in leaf life span, following the approach of the Ecosystem Demography (ED) model (Moorcroft, et al., 2001), which is based on leaf physiological relations found in Reich et al. (1997).
+<br>
+<H5>Ent plant functional types</H5>
+<table border="1">
+<td>
+1.  evergreen broadleaf early successional<br>
+2.  evergreen broadleaf late successional<br>
+3.  evergreen needleleaf early successional<br>
+4.  evergreen needleleaf late successional<br>
+5.  cold deciduous broadleaf early successional<br>
+6.  cold deciduous broadleaf late successional<br>
+7.  drought deciduous broadleaf<br>
+8.  decidous needleleaf<br>
+<br>
+</td>
+<td>
+9.  cold adapted shrub<br>
+10.  arid adapted shrub<br>
+11.  C3 grass - perennial<br>
+12.  C4 grass - perennial<br>
+13.  C3 grass arctic<br>
+14.  C3 grass annual<br>
+15. crops - C4 herbaceous<br>
+16. crops - broadleaf woody<br>
+TBA crops - C3 herbaceous<br>
+</td>
+</table>
+
+<H4> Biophysics </H4>
+Photosynthesis and conductance in Ent are calculated at the leaf level using the well-known Michaelis-Menten photosynthesis relationships of of Farquhar, von Caemmerer and Berry (1980) and Farquhar and von Caemmerer (1982) and stomatal conductance of Ball and Berry (1985, 1987).  Photosynthetic capacity varies according to immediate temperature, and phenology.  The solution to the coupled photosynthesis-conductance equations utilizes leaf boundary conductances similarly to the approach by Collatz et al. (1991) but with the boundary layer conductance derived from canopy surface layer conductance;  equations for a cubic solution are propose a variation on the approaches by Baldocchi (1994), Su et al. (1996), and Zhan et al. (2003).  Photosynthetic uptake of CO<sub>2</sub> is accumulated into a carbon reserve pool, from which other processes may allocate uses.
+<br><br>
+	Scaling of the leaf to canopy level is through stratification of canopy light levels and leaf area profiles as in (Friend and Kiang, 2005).  This will soon be replaced by the Analytical Clumped Two-Stream scheme (ACTS) of (Ni-Meister et al., 2010; Yang et al., 2010), which accounts for foliage clumping and stem effects.  Coupling of the canopy fluxes and physical properties to the atmosphere consists of specification of canopy fluxes of CO2, conductance of water vapor, canopy heat capacity, and canopy roughness length.
+<br><br>
+	Autotrophic respiration consists of 1) maintenance respiration as a function of plant biomass pool size, its carbon:nitrogen ratio, with an Arrhenius temperature response and acclimation to 10-day average temperature;  2) growth respiration as a function of photosynthetic activity; and 3) growth respiration resulting from tissue growth.  The latter is calculated once a day when tissue turnover and growth are calculated, and the resulting respiration fluxes are distributed uniformly at the physical time step over the next day.
+<br><br>
+   More details on the leaf and photosynthetic parameters used in Ent are documented in an Ent Technical Report.
+
+<H4>Seasonality</H4>
+Seasonal variation in carbon stocks due to plant growth and decay (soil respiration) can be either prescribed or prognostic. Soil biogeochemistry in either case is driven by litterfall from the seasonal change in plant carbon pools.
+<br><br>When prescribed, the time course of leaf area index is either read from a file or determined by simple seasonal curves that are insensitive to climate drivers or carbon balances as in Rosenzweig & Abramopoulos (1997).  With prescribed seasonal leaf area, leaf mass is not driven by uptake of CO<sub>2</sub> by photosynthesis;  therefore in this mode a closed carbon cycle is not simulated, but the prescribed leaf area is be expedient for capturing water vapor feedbacks to climate from vegetation.
+With prognostic seasonal leaf area, seasonal leaf dynamics are driven by CO<sub>2</sub> uptake and by climate cues.  Therefore, a closed carbon cycle can be simulated.  Since this mode does not include community dynamics or cover change (competition, mortality, establishment, disturbance), to prevent woody plants from unlimited increase in size, any allocation of carbon that would have been for woody structural growth or reproduction is dumped into litterfall so that the carbon cycle is closed.  This is equivalent to assuming that the given vegetation structure is at an equilibrium with the climate, such that the community structure is at a steady-state.
+<br>
+
+<H4>Soil biogeochemistry</H4>
+
+The soil biogeochemistry submodel of Ent is based largely on the CASA' biosphere submodel used in the NCAR LSM and CSM 1.4 (Bonan, 1996; Randerson et al., 1997; Fung et al., 2005; Doney et al., 2006), which itself is a modified version of the original NASA-CASA biosphere model (Potter et al., 1993). Modifications have been made to for soil respiration response to moisture and temperature based on data from Del Grosso et al. (2005). The soil model mechanistically determines terrestrial soil carbon (and nitrogen) pools and CO2 fluxes from microbial respiration.  Ent combines soil respiration, photosynthesis, and autotrophic respiration to predict net ecosystem exchange (NEE) of carbon with the atmosphere.  
+
+
+<H4>Meteorological drivers to Ent</H4>
+<H5>Table: Input variables from the atmosphere and land surface hydrology models to the Ent TBM ("patch"=subgrid cover fraction).</H5>
+<!-- <img style="width: 630px; border:0px" alt="" src="Figures_Ent/EntTechnical_C.1_TableMetDrivers.jpg">-->
+
+<table border="1">
+<tr>
+<td>Inputs to Ent</td>
+<td>Variable</td>
+<td>Units</td>
+<td>Spatial resolution</td>
+</tr>
+<tr>
+<td>From atmosphere</td>
+<td>Air pressure<br>
+	Air temperature<br>
+	Vapor pressure mixing ratio at foliage surface<br>
+	Atmospheric CO<sub>2</sub> concentration<br>
+	Cosine of solar zenith angle<br>
+	Incident direct photosynthetically active radiation<br>
+	Incident diffuse photosynthetically active radiation<br>
+	Wind speed<br>
+	Ground to surface layer heat transfer coefficient
+</td>
+<td>millibar<br>
+	Celsius<br>
+	kg/kg<br>
+	mol/m<sup>3</sup><br>
+	cosine<br>
+	W/m<sup>2</sup><br>
+	W/m<sup>2</sup><br>
+	m/s<br>
+	dimensionless<br>
+</td>
+<td>Ent cell</td>
+</tr>
+<tr>
+<td>From land surface model</td>
+<td>Soil texture (sand, silt, clay)<br>
+	Soil albedo<br>
+	Soil temperature<br>
+	Soil moisture<br>
+	Soil ice fraction of soil water<br>
+	Canopy temperature<br>
+	Snow albedo<br>
+	Canopy wetness<br>
+</td>
+<td>fractions (init.)<br>
+	fraction by band (init.)<br>
+	Celsius<br>
+	saturated fraction<br>
+	fraction by layer<br>
+	Celsius<br>
+	fraction by band<br>
+	fraction of leaf area<br>
+</td>
+<td>Ent cell<br>
+	patch<br>
+	Ent cell<br>
+	Ent cell<br>
+	Ent cell<br>
+	Ent cell<br>
+	Ent cell<br>
+	patch<br>
+</td>
+</tr>
+</table>
+<br>
+
+<H5>Table: Outputs from the Ent TBM to the atmospheric and land surface hydrology models.</H5>
+<!-- <img style="width: 630px; border:0px" alt="" src="Figures_Ent/EntTechnical_C.1_TableEntCouplingOut.jpg">-->
+
+<table border="1">
+<tr>
+<td>Inputs to Ent</td>
+<td>Variable</td>
+<td>Units</td>
+<td>Spatial Resolution</td>
+</tr>
+<tr>
+<td>To atmosphere</td>
+<td>Canopy albedo<br>
+	Net CO<sub>2</sub> flux<br>
+	Canopy height<br>
+	(Roughness length TBA)<br>
+	(Aerosols from fire TBA)<br>
+	(Volatile organic carbons TBA)<br>
+</td>
+<td>fraction (bands)<br>
+	kg-C/m<sup>2</sup>-ground/s<br>
+	m (daily)<br>
+	m (daily)<br>
+	TBA<br>
+	TBA<br>
+</td>
+<td>patches avg. to Ent cell<br>
+	patches sum to Ent cell<br>
+	patch<br>
+	patch<br>
+	patches sum to Ent cell<br>
+	patches sum to Ent cell<br>
+</td>
+</tr>
+<tr>
+<td>To land surface model</td>
+<td>Canopy conductance of water vapor<br>
+	Plant water stress<br>
+	Vegetation structure - leaf area index (LAI)<br>
+	Vegetation structure - root depth distribution<br>
+	Transmittance of shortwave to the ground
+</td>
+<td>m/s<br>
+	fraction (0-1) by layer<br>
+	m<sup>2</sup>/m<sup>2</sup> (daily)<br>
+	fraction biomass per layer<br>
+	fraction
+</td>
+<td>patch<br>
+	patch<br>
+	patch<br>
+	cohorts avg. to patch<br>
+	patch
+</tr>
+</table>
+
+
+<H4>References</H4>
+Baldocchi, D. (1994). "An analytical solution for coupled leaf photosynthesis and stomatal conductance models." Tree Physiology 14(7-9): 1069-1079.
+<br><br>
+Ball, J. T. and J. A. Berry (1987). A model predicting stomatal conductance and its contribution to photosynthesis under different environmental conditions. Progress in Photosynthesis Research. I. Biggins. Nijhoff, Dordrecht, Netherlands. IV: 110-112.
+<br><br>
+Ball, T. and J. Berry (1985). "A Simple Empirical Model of Stomatal Control." Plant Physiology 77(n. Supplement 4): 91.
+<br><br>
+Bonan, G. B. (1996). A land surface model (LSM Version 1.0) for ecological, hydrological, and atmospheric studies:  technical description and user's guide. Boulder, Colorado, National Center of Atmospheric Research: 122.
+<br><br>
+Collatz, G. J., J. T. Ball, C. Grivet and J. A. Berry (1991). "Physiological and environmental regulation of stomatal conductance, photosynthesis and transpiration:  a model that includes a laminar boundary layer." Agricultural and Forest Meteorology 54: 107-136.
+<br><br>
+Defries, R. S., C. B. Field, I. Fung, C. O. Justice, S. O. Los, P. A. Matson, E. Matthews, H. A. Mooney, C. Potter, K. C. Prentice, P. J. Sellers, J. Townshend, C. J. Tucker, S. L. Ustin and P. Vitousek (1995). "Mapping the land surface for global atmosphere-biosphere models - toward continuous distributions of vegetation's functional properties." Journal of Geophysical Research - Atmospheres 100(D10): 20,867-20,882.
+<br><br>
+Del Grosso, S. J., W. J. Parton, A. R. Mosier, E. A. Holland, E. Pendall, D. S. Schimel and D. S. Ojima (2005). "Modeling soil CO2 emissions from ecosystems." Biogeochemistry 73: 71-91
+<br><br>
+Doney, S.C., Lindsay, K., Fung, I., John, J. (2006) Natural variability in a stable, 1000-yr global coupled climate-carbon cycle simulation. Journal of Climate 19, 3033-3052.
+<br><br>
+Farquhar, G. D. and S. von Caemmerer (1982). 16 Modelling photosynthetic response to environmental conditions. Encyclopedia of Plant Physiology (NS). P. S. N. O.L. Lange, C.B. Osmond, H. Ziegler. Berlin, Springer. 12B: 549-587.
+<br><br>
+Farquhar, G. D., S. von Caemmerer and J. A. Berry (1980). "A biochemical model of photosynthetic CO2 assimilation in leaves of C3 species." Planta 149: 78-90.
+<br><br>
+Friend, A. D. and N. Y. Kiang (2005). "Land Surface Model Development for the GISS GCM: Effects of Improved Canopy Physiology on Simulated Climate." Journal of Climate 18(15): 2883-2902.
+<br><br>
+Fung I, Doney S, Lindsay K, John J (2005) Evolution of carbon sinks in a changing climate. Proc Nat Acad Sci 102: 11201-11206
+<br><br>
+Matthews, E. (1983). "Global vegetation and land use:  new high-resolution data bases for climate studies." Journal of Climate and Applied Meteorology 22: 474-487.
+
+<br><br>
+Medvigy, D., Munger, S.C.W.a.J.W., Hollinger, D.Y., Moorcroft, P.R. (2009) Mechanistic scaling of ecosystem function and dynamics in space and time: Ecosystem Demography model version 2. Journal of Geophysical Research-Atmospheres 114, G01002.
+<br><br>
+Moorcroft, P., G. C. Hurtt and S. W. Pacala (2001). "A method for scaling vegetation dynamics: The Ecosystem Demography Model (ED)." Ecological Monographs 71(4): 557-586.
+<br><br>
+Ni-Meister, W., Yang, W.Z., Kiang, N.Y. (2010) A clumped-foliage canopy radiative transfer model for a global dynamic terrestrial ecosystem model. I: Theory. Agricultural and Forest Meteorology 150, 881-894.
+<br><br>
+Potter, C. S., J. T. Randerson, C. B. Field, P. A. Matson, P. M. Vitousek, H. A. Mooney and S. A. Klooster (1993). "Terrestrial ecosystem production:  a process model based on global satellite and surface data." Global Biogeochemical Cycles 7(4): 811-841.
+<br><br>
+Randerson, J. T., T. M.V., T. J. Conway, I. Y. Fung and C. B. Field (1997). "The contribution of terrestrial sources and sinks to trends in the seasonal cycle of atmospheric carbon dioxide." Global Biogeochemical Cycles 11(4): 535-560.
+<br><br>
+Rosenzweig, C. and F. Abramopoulos (1997). "Land-surface model development for the GISS GCM." Journal of Climate 10: 2040-2054.
+<br><br>
+Su, H.-B., K. T. Paw and R. H. Shaw (1996). "Development of a coupled leaf and canopy model for the simulation of plant-atmosphere interaction." Journal of Applied Meteorology 35(5): 733-748.
+<br><br>
+Yang, W.Z., Ni-Meister, W., Kiang, N.Y., Moorcroft, P.R., Strahler, A.H., Oliphant, A. (2010) A clumped-foliage canopy radiative transfer model for a Global Dynamic Terrestrial Ecosystem Model II: Comparison to measurements. Agricultural and Forest Meteorology 150, 895-907.
+
+<br><br>
+Zhan, X. W., Y. K. Xue and G. J. Collatz (2003). "An analytical approach for estimating CO2 and heat fluxes over the Amazonian region." Ecological Modelling 162(1-2): 97-117.
+	
+
+</BODY>
+</HTML>

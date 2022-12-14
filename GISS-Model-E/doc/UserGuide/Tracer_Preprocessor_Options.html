@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Tracer Preprocessor Options</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Description of Tracer Code Preprocessor Options</H3>
+
+<p> Preprocessor options are turned on in the rundeck by adding: 
+<tt>#define {optionName}</tt> in the section delineated by the lines "<tt>Preprocessor Options</tt>" and "<tt>End Preprocessor Options</tt>". The following describes the options available pertaining to tracer code:</p>
+ 
+<ul>
+ <li> <tt>TRACERS_ON</tt> = general switch to turn on tracer code
+ <li> <tt>TRACERS_WATER</tt> = allow tracers to interact with water (for example, wet deposition, cloud interaction, or tracers which are themselves water). 
+ <li> <tt>TRACERS_DUST</tt> = include dust tracers
+ <li> <tt>TRACERS_DUST_Silt4</tt> = include 4th silt size class of dust
+ <li> <tt>TRACERS_DRYDEP</tt> = tracers may undergo dry deposition (the default scheme)
+ <li> <tt>TRDIAG_WETDEPO</tt> = provide more than the default wet deposition diagnostics
+ <li> <tt>NO_HDIURN</tt> = exclude hdiurn diagnostics
+ <li> <tt>TRACERS_SPECIAL_Shindell</tt> = turn on a set of mostly trace-gas chemistry tracers, based on the work of Drew Shindell.
+ <li> <tt>SHINDELL_STRAT_CHEM</tt> = when added to <tt>TRACERS_SPECIAL_Shindell</tt>, chemistry is throughout the troposphere + stratosphere (highly recommended when <tt>TRACERS_SPECIAL_Shindell</tt> is on) 
+ <li> <tt>RAD_O3_GCM_HRES</tt> = Allows use of radiation code offline ozone input at the GCM's horizontal resolution, rather than a fixed 4 deg x 5 deg resolution. To be used with object module <tt>RAD_native_O3</tt>. For example, if 2x2.5 horizontal resolution is employed, one would use radiation code input files of the form listed in <tt>templates/O3_2010_144x90_input_files</tt> rather than <tt>templates/O3_2005_input_files</tt>.
+ <li> <tt>AUXILIARY_OX_RADF</tt> = The ozone radiative forcing diagnostic is the difference between the radiation code called with the model's "in-use" ozone column and a call with a reference ozone column. The "in-use" ozone may be tracer ozone (chemically interactive) or an offline prescription. Ocassionally, it is useful to e.g. have the "in-use" ozone be climatological but to also output a diagnostic of what the radiation code would have calculated if the tracer had been used. Or the other way around. One can use (carefully) <tt>AUXILIARY_OX_RADF</tt> for this kind of thing. 
+ <li> <tt>TRACERS_TERP</tt> = include terpenes tracers in gas-phase chemistry. Requires <tt>TRACERS_SPECIAL_Shindell</tt>.
+ <li> <tt>BIOGENIC_EMISSIONS</tt> = turn on climate-sensitive isoprene emissions. Rremember to remove the prescribed Isprene source from the rundeck, if it exists.
+ <li> <tt>TRACERS_AEROSOLS_Koch</tt> = turn on a set of aerosol and aerosol-related tracers, based on the work of Dorothy Koch. Tracers enabled are sulfate, organic aerosols, black carbon and sea-salt. When <tt>TRACERS_AEROSOLS_SOA</tt> is not enabled, SOA are included as a yield from terpenes emissions; otherwise semi-volatile SOA are being used, as described by <tt>TRACERS_AEROSOLS_SOA</tt>.
+ <li> <tt>SULF_ONLY_AEROSOLS</tt> = when used with <tt>TRACERS_AEROSOLS_Koch</tt>, it only enables sulfate aerosols
+ <li> <tt>TRACERS_AEROSOLS_SOA</tt> = include Secondary Organic Aerosols tracers/chemistry. Needs to be enabled with <tt>TRACERS_SPECIAL_Shindell</tt> and <tt>TRACERS_AEROSOLS_Koch</tt>.
+ <li> <tt>SOA_DIAGS</tt> = enable many SOA diagnostics, useful for debugging
+ <li> <tt>TRACERS_NITRATE</tt> = include nitrate and ammonium aerosol, using EQSAM
+ <li> <tt>TRACERS_HETCHEM</tt> = include heterogeneous nitrate and sulfate formation on dust
+ <li> <tt>BC_ALB</tt> = include tracer black carbon affects on snow albedo
+ <li> <tt>CLD_AER_CDNC</tt> = include aerosol-cloud interactions _______________
+ <li> <tt>BLK_2MOM</tt> = ____________________________
+ <li> <tt>WATER_MISC_GRND_CH4_SRC</tt> = when CH4 (methane) tracer is in use, and its emissions sources are active (e.g. rundeck parameter <tt>use_rad_ch4=0</tt>), this option adds lake, ocean, and misc. ground sources. One must include the emissions file: <tt>CH4gsfMGOLjal_blank_2x2.5_h</tt>.
+ <li> <tt>CALCULATE_FLAMMABILITY</tt> = activate code to determine flammability of surface vegetation. In AR5 era code, this is based on fixed vegetation density from the <tt>VEG_DENSE</tt> file, surface air temperature, 30-day running average precipitation, near-surface relative humidity and the model's vegetation cover fractions.
+ <li> <tt>DYNAMIC_BIOMASS_BURNING</tt> = when <tt>CALCULATE_FLAMMABILITY</tt> is in use, this turns on flammability-based biomass burning emissions. Please remember to turn off any prescribed biomass burning for affected tracers (unlist their files and remove their corresponding <tt>*_nBBsources</tt> rundeck parameters).  Note that this source will mix throughout the PBL and thus show up as a 3D source.
+ <li> <tt>CALCULATE_LIGHTNING</tt> = A lightning flash rate calculation is done when <tt>TRACERS_SPECIAL_Shindell</tt> is turned on. This option allows the calculation to be done otherwise (for exmple in runs with no tracers).
+ <li> <tt>SHINDELL_STRAT_EXTRA</tt> = turns on additional diagnistic tracers for Shindell chemistry (recommended in conjuction with <tt>HTAP_LIKE_DIAGS</tt> and <tt>ACCMIP_LIKE_DIAGS</tt> options). Specific things you will get with this option: 
+
+    <ul>
+    <li>Tracer <tt>GLT</tt> for "Generic Linear Tracer" is added to the tracers complement to assist with age-of-air/circulation calculations. Its initial concetration starts at 1 ppbv everywhere. Its lowest model level concentration is overwritten each time step to a value that increases by 1% per year. Thus the difference in concetration of the tracer compared to a reference point can give a spatial estimate of age-of-air. Due to the different ways that a simulation can be started (e.g. <tt>ISTART</tt> settings) one must take care to check that initial conditions indeed start at 1 ppbv (if starting a new simulation) or continue their values from parent simulation (if your age-of-air calculations will span the simulations.) This can normally be achieved by proper setting of <tt>itime_tr0( )</tt> parameters in the rundeck, or in more complicated setups by altering this line of code:<br>
+      <tt>new_mr = GLTic * (1.d0 +(Itime-ItimeI-itime_tr0(n_GLT))*DTsrc*by_s_in_yr*1.d-2) !pppv</tt><br>
+ in subroutine <tt>overwrite_GLT</tt>.
+    <li>if <tt>ACCMIP_LIKE_DIAGS</tt> is also turned on, tracer <tt>codirect</tt> is added. This is an idealized carbon monoxide-like tracer that starts at zero concentration, has emissions from a rundeck file at the surface, and a single loss via a 50-day decay time, functionally identical to radioactive decay in the model.  
+    <li>if <tt>ACCMIP_LIKE_DIAGS</tt> is also turned on, a stratospheric ozone diagnostics tracer is added (<tt>stratOx</tt>). This is non-functional in this model version but code was left in in case a fix was easily implementable. So no further details are given here. One consequence is a model stop in <tt>RAD_DRV.f</tt> when rundeck parameter <tt>clim_interact_chem</tt> is .le. 0. (This model stop can be safely commented-out if one is not going to use the stratospheric ozone radiative forcing diagnostic anyway.)
+    </ul>
+
+ <li> <tt>HTAP_LIKE_DIAGS</tt>  = adds several diagnostics for Hemispheric Transport of Air Pollution project (recommended in conjuction with <tt>SHINDELL_STRAT_EXTRA</tt> and <tt>ACCMIP_LIKE_DIAGS</tt> options). Specific things you will get with this option:
+
+  <ul>
+  <li> adds <tt>GridH</tt> diagnostic estimate of grid box geometric thickness
+  <li> the OH concentration diagnostic <tt>OH_con</tt> in molecules/cm3 units is replaced by a diagnostic <tt>OH_vmr</tt> in volume mixing ratio units.
+  <li> diagnostics are added for CO production and destruction rates and CH4 destruction rate. Ox production and destruction rates are also added, but are not very useful as they include fast (photochemical) interconversions within odd oxygen that do not yield a net ozone change. Hence the difference (prod-loss) is consistent with conventional definitions, but the separate terms are very large.
+  <li> The <tt>Air</tt> tracer is added.
+  </ul>
+
+ <li> <tt>ACCMIP_LIKE_DIAGS</tt> = adds many diagnostics as defined by the Atmospheric Chemistry and Climate Model Intercomparison project (recommended when using <tt>TRACERS_SPECIAL_Shindell</tt>. Needs <tt>SHINDELL_STRAT_EXTRA</tt> and <tt>HTAP_LIKE_DIAGS</tt>). Specific things you will get from this option:
+  <ul>
+  <li>shortwave and longwave top of the atmosphere (TOA) diagnostics are added for radiative forcing of the greenhouse gases CH4, N2O, CFC11 and CFC12
+  <li>a diagnostic is added estimating the part of ozone dry deposition that is via stomata
+  <li> adds working <tt>codirect</tt> and non-functional <tt>stratOx</tt> tracers. See <tt>SHINDELL_STRAT_EXTRA</tt> above.
+  <li> adds 3 dimensional diagnostics for ozone production from HO2+NO, CH3O2+NO, RO2+NO and loss from OH, HO2, and Alkenes (individually), O1D production from ozone, and OH production from O1D+H2O. These need to be treated with care -- see note about ozone production/loss terms under <tt>HTAP_LIKE_DIAGS</tt> above. 
+  <li> adds 3 dimensional diagnostics for NOx production from lightning (2 dimensional diagnostic is always available), and NO and NO2 mixing ratios (as these are not tracers like NOx). 
+  <li> when <tt>TRACERS_AEROSOLS_Koch</tt> is defined, adds 3 dimensional diagnostics of SO4 aqueous and gas phase chemical sources
+  <li> please note that you must have rundeck parameter <tt>rad_forc_lev=0</tt> to choose TOA radiative forcing diagnostics for aerosols. There is a online check for this.
+  </ul>
+
+ <li> <tt>TES_LIKE_DIAGS</tt> = for some sub-daily diagnostics (SUBDD) that output on fixed pressure levels, turning this on changes (and increases the number of) those target levels for comparison with satellite measurements. Namely: T, Q, ozone, NOx, NO2, and CO. Instead of being placed in files with the pressures in the filenames, these are written to multi-level files with "TES" in the filename. 
+ <li> <tt>INTERACTIVE_WETLANDS_CH4</tt> = turns on climate-interactive methane wetland source (for use with <tt>TRACERS_SPECIAL_Shindell</tt>)
+ <li> <tt>GFED_3D_BIOMASS</tt> = turns on special code for IIASA AR4 GFED biomass burning. This should still work if you list the correct emissions files, but it might be more logical to use updated GFED emissions files with the normal tracer emissions scheme.
+</ul>
+
+<pre>Other ones listed in 2010 in ../cppConditionals.txt that seem tracer-related:
+NO_WASHOUT_IN_CLOUDS
+PS_BVOC 
+SKIP_TRACERS_RAD
+SKIP_TRACER_DIAGS
+TRACERS_AGE_OCEAN
+TRACERS_AMP
+TRACERS_AMP_M1
+TRACERS_AMP_M2
+TRACERS_AMP_M3
+TRACERS_AMP_M4
+TRACERS_AMP_M5
+TRACERS_AMP_M6
+TRACERS_AMP_M7
+TRACERS_AMP_M8
+TRACERS_ATM_ONLY
+TRACERS_Alkalinity
+TRACERS_COSMO
+TRACERS_GASEXCH_land
+TRACERS_GASEXCH_land_CO2
+TRACERS_GASEXCH_ocean
+TRACERS_GASEXCH_ocean_CFC
+TRACERS_GASEXCH_ocean_CO2
+TRACERS_HYCOM_Ventilation
+TRACERS_MINERALS
+TRACERS_OCEAN
+TRACERS_OCEAN_INDEP
+TRACERS_OCEAN_WATER_MASSES
+TRACERS_OM_SP = Obsolete; I doubt it even works, eliminated from the development branch
+TRACERS_OceanBiology
+TRACERS_QUARZHEM
+TRACERS_RADON
+TRACERS_SPECIAL_Lerner
+TRACERS_SPECIAL_O18
+TRACERS_WATER_OLD
+TRAC_ADV_CPU
+</pre>
+
+</BODY>
+</HTML>

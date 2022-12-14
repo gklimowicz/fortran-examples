@@ -1,0 +1,216 @@
+! Workaround for ifort bug with -assume protect_parens
+#ifdef PROTECT_PARENS
+#define ASSIGN_ATTR(a,b) call toType(a,b)
+#else
+#define ASSIGN_ATTR(a,b) a = b
+#endif
+
+
+module Test_AttributeDictionary_mod
+  use pfunit_mod
+  use AttributeDictionary_mod
+  use AbstractAttribute_mod
+  use Attributes_mod
+
+  implicit none
+
+  public :: Test_AttributeDictionary
+
+@TestCase
+   type, extends(TestCase) :: Test_AttributeDictionary
+    type (AttributeDictionary) :: dictionary
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+  end type Test_AttributeDictionary
+
+contains
+
+  subroutine setUp(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    this%dictionary = newAttributeDictionary()
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    call clean(this%dictionary)
+  end subroutine tearDown
+
+! Test that class can insert intrinsic integer and cast to an integer pointer.
+@Test  
+  subroutine testInsertIntegerAttribute(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    integer, pointer :: pInteger => null()
+    integer :: i
+
+    call this%dictionary%insert('A', 1)
+
+    ASSIGN_ATTR(i, this%dictionary%getReference('A'))
+    @assertEqual(1, i)
+
+    pInteger => toPointer(this%dictionary%getReference('A'), pInteger)
+    @assertEqual(1, pInteger)
+  end subroutine testInsertIntegerAttribute
+
+@Test  
+  subroutine testAssignAttributeReference(this)
+    use AttributeHashMap_mod
+    use IntegerAttribute_mod
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    integer, pointer :: i => null()
+
+    type (IntegerAttribute), target :: iAttr
+
+    iAttr = newAttribute(1)
+    i => toPointer(iAttr, i)
+
+    @assertEqual(1, i)
+
+  end subroutine testAssignAttributeReference
+
+@Test
+  subroutine testAssignAttributeReferenceMulti(this)
+    use AttributeReference_mod
+    use IntegerAttribute_mod
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    type (VectorAttribute) :: vector
+    type (AttributeReference) :: refs(3)
+    integer, allocatable :: i(:)
+
+    type (IntegerAttribute) :: iAttr(3)
+
+    iAttr(1) = newAttribute(1)
+    iAttr(2) = newAttribute(2)
+    iAttr(3) = newAttribute(5)
+
+    call refs(1)%set(iAttr(1))
+    call refs(2)%set(iAttr(2))
+    call refs(3)%set(iAttr(3))
+    vector = newVectorAttribute(refs)
+    
+
+    ASSIGN_ATTR(i, vector)
+
+    @assertEqual([1,2,5], i)
+
+  end subroutine testAssignAttributeReferenceMulti
+  
+  ! Test that class can insert/cast intrinsic 1D integer arrays
+@Test  
+  subroutine testInsertInteger1DAttribute(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    integer, pointer :: pInteger(:)
+    integer, allocatable :: aInteger(:)
+
+    call this%dictionary%insert('A', [1,2])
+
+    ASSIGN_ATTR(aInteger, this%dictionary%getReference('A'))
+    @assertEqual([1,2], aInteger)
+
+    pInteger => toPointer( this%dictionary%getReference('A'), pInteger)
+    @assertEqual([1,2], pInteger)
+
+  end subroutine testInsertInteger1DAttribute
+
+  ! Test that class can insert intrinsic double and cast to an double pointer.
+@Test  
+  subroutine testInsertRealDPAttribute(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    real*8 :: pRealDP
+    real*8, parameter :: VALUE = 1.23d0
+    call this%dictionary%insert('A', VALUE)
+
+    ASSIGN_ATTR(pRealDP, this%dictionary%getReference('A'))
+    @assertEqual(VALUE, pRealDP)
+
+  end subroutine testInsertRealDPAttribute
+
+  ! Test that class can insert/cast intrinsic 1D integer arrays
+@Test  
+  subroutine testInsertRealDP1DAttribute(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    real*8, allocatable :: pRealDP(:)
+    real*8, parameter :: VALUES(3) = [1.2,3.4,5.6]
+    call this%dictionary%insert('A', VALUES)
+
+    ASSIGN_ATTR(pRealDP, this%dictionary%getReference('A'))
+    @assertEqual(VALUES, pRealDP)
+
+  end subroutine testInsertRealDP1DAttribute
+
+  ! Test that class can insert intrinsic integer and cast to an integer pointer.
+@Test  
+  subroutine testInsertStringAttribute(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    character(len=MAX_LEN_ATTRIBUTE_STRING), pointer :: pString
+
+    call this%dictionary%insert('A', 'foo')
+
+    pString => toPointer(this%dictionary%getReference('A'), pString)
+    @assertEqual('foo', pString)
+
+  end subroutine testInsertStringAttribute
+
+  ! Test that class can insert intrinsic logical and cast to a logical pointer.
+@Test  
+  subroutine testInsertLogicalAttribute(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    
+    logical :: pLogical
+    logical, parameter :: TRUE = .true.
+    logical, parameter :: FALSE = .false.
+
+    call this%dictionary%insert('A', TRUE)
+    call this%dictionary%insert('B', FALSE)
+
+    ASSIGN_ATTR(pLogical, this%dictionary%getReference('A'))
+    @assertTrue(pLogical)
+ 
+    ASSIGN_ATTR(pLogical, this%dictionary%getReference('B'))
+    @assertFalse(pLogical)
+
+  end subroutine testInsertLogicalAttribute
+
+! TODO: This test fails to compile. Error is:
+!    A pointer passed to DEALLOCATE points to an object that cannot be deallocated
+! The problem is that "deltaValues" is not allocated...but it should not be
+! Thus, we disable the test until we figure out how to deal with it.
+!!!@Test  
+  subroutine testComplexCase(this)
+    class (Test_AttributeDictionary), intent(inout) :: this
+    integer :: betaValue
+    real(kind=dp) :: gammaValue
+    logical, allocatable :: deltaValues(:)
+
+    call this%dictionary%insert('beta', 2)
+    call this%dictionary%insert('gamma', 3.d0)
+    call this%dictionary%insert('delta', [.true., .false., .true., .true.])
+
+    @assertEqual(3, this%dictionary%size())
+    @assertFalse(this%dictionary%has('alpha'), 'There should not be an "alpha".')
+    @assertTrue(this%dictionary%has('beta'), 'There should be a "beta".')
+    @assertTrue(this%dictionary%has('gamma'), 'There should be a "gamma".')
+    @assertTrue(this%dictionary%has('delta'), 'There should be a "delta".')
+
+    ASSIGN_ATTR(betaValue, this%dictionary%getReference('beta'))
+    @assertEqual(2, betaValue, 'Wrong value for "beta".')
+
+    ASSIGN_ATTR(gammaValue, this%dictionary%getReference('gamma'))
+    @assertEqual(3.d+0, gammaValue, 'Wrong value for "gamma".')
+
+    ASSIGN_ATTR(gammaValue, this%dictionary%getReference('Gamma'))
+    @assertEqual(3.d+0, gammaValue, 'Wrong value for "Gamma".')
+
+    ASSIGN_ATTR(deltaValues, this%dictionary%getReference('delta'))
+    @assertTrue(all([.true.,.false.,.true.,.true.] .eqv. deltaValues), 'Wrong value for "delta".')
+
+  end subroutine testComplexCase
+  
+end module Test_AttributeDictionary_mod

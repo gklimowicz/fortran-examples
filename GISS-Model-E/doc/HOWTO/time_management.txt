@@ -1,0 +1,113 @@
+Accessing and Manipulating Time in ModelE
+=========================================
+
+Tracking the evolution of time is an essential aspect of the model
+infrastructure, and it is relied upon to control the activation of a
+variety of physical processes and diagnostics.  With the introduction
+of the requirement to support planets other than Earth including
+different orbital parameters (i.e. different calendar properties), it
+was essential to improve the encapsulation of time management to
+ensure consistent treatment.
+
+Typical Usage
+=============
+
+Most model developers should only need to know how to access certain
+time-related quantities such as hour, day, month, year, etc.
+Originally these were provided through a set of public module
+variables (integers) in MODEL_COM.  However, in the new
+implementation, a single module variable, ModelEClock should be used
+for access any information about the current time in the model.  The
+details of how this works will be presented later, but generally
+access appears in the following forms:
+
+
+       year = modelEclock%getYear()     ! integer
+       month = modelEclock%getMonth()   ! integer
+       abbrev = modelEclock%getAbbrev() ! character(...)
+       day = modelEclock%getDayOfYear() ! integer
+       date = modelEclock%getDate()     ! integer
+       hour = modelEclock%getHour()     ! integer
+
+If multiple items are needed there is also a subroutine call:
+
+   call modelEclock%get(year=year, month=month, ...)
+
+All arguments are optional - keywords are required.
+
+Another convenient interface is to check to see if this this is the
+first timestep in a new day:
+
+	if (modelEclock%isBeginningOfDay()) then 
+          ...
+        end if
+
+In the future there may be separate clock objects inside some model
+components.  Such clocks could be used to manage subcycling and other
+esoteric purposes.
+
+
+Implementation Details
+========================
+
+The time management facility is constructed with a number of
+interacting classes.  Those with little experience with
+object-oriented programming may find some of the terminology and
+design somewhat difficult to follow.  The major classes and their
+primary repsonsibilities are as follows:
+
+  - Rational
+
+    This class implements a rational number of the form (w + n/d)
+    where {w,n,d} are all 8-byte integers.
+
+  - BaseTime
+
+    BaseTime objects contain time since some arbitrary epoch, measured in seconds.
+    BaseTime is a subclass (i.e. it extends) Rational and is the
+    fundamental representation of time in the model.  The choice of
+    Rational rather than floating point is not immediately obvious,
+    but stems from the requirement to ensure that questions such as
+    "What day is it?" have well-defined answers even on time
+    boundaries.
+
+  - AbsractCalendar
+
+    This base class is used to relate BaseTime objects (i.e. raw
+    seconds) to more useful time units such as hour, day, month, etc.
+    Multiple subclasses of AbstractCalendar have been implemented to
+    support the original pseudo-Julian calendar as well as
+    configurable calendars suitable for exoplanets.  (See other
+    document on Orbits and Calendars.)
+
+  - Time
+
+    This class extends BaseTime, but includes a calendar component.
+    Time objects can therefore be queried for hour, month, etc.  One
+    can think of it as a BaseTime plus an interpretation for
+    ease-of-use.
+
+
+  - TimeInterval
+
+    This class represents the amount of time that between two events.
+    This class is not yet used in the model, but may eventually
+    support so-called "alarms" for periodic processes.
+
+  - ModelClock
+
+    This class combines a Time object (currenTime) and a BaseTime
+    object (dt).  ModelEClock is an object of this time, and as
+    mentioned in the introduction, serves as the main interface for
+    all time management during the simulation.  All queries
+    (e.g. hour, day, month, etc) are relayed to the currentTime
+    component, and time is advanced through calls to the nextTick()
+    method.
+
+
+         
+
+
+
+
+

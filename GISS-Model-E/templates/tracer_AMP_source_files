@@ -1,0 +1,31 @@
+! ----------------------------------
+#include "tracer_dust_source_files"
+TRACERS_AEROSOLS_SEASALT            ! seasalt
+TRACERS_AEROSOLS_Koch_e4            ! BC/OC/sulfate
+! Aerosol MicroPhysics
+TRAMP_drv        | $(EXTENDED_SOURCE) |  
+TRAMP_actv       | $(EXTENDED_SOURCE) |  
+TRAMP_diam       | $(EXTENDED_SOURCE) | 
+TRAMP_nomicrophysics | $(EXTENDED_SOURCE) |  
+TRAMP_subs       | $(EXTENDED_SOURCE) |  
+TRAMP_coag       | $(EXTENDED_SOURCE) |  
+TRAMP_depv       | $(EXTENDED_SOURCE) | 
+TRAMP_param_GISS | $(EXTENDED_SOURCE) |    
+TRAMP_config  
+TRAMP_dicrete    | $(EXTENDED_SOURCE) |    
+TRAMP_init       | $(EXTENDED_SOURCE) |  
+TRAMP_quad       | $(EXTENDED_SOURCE) |  
+TRAMP_matrix     | $(EXTENDED_SOURCE) |        
+TRAMP_setup      | $(EXTENDED_SOURCE) |  
+TRAMP_npf        | $(EXTENDED_SOURCE) |  
+TRAMP_rad        | $(EXTENDED_SOURCE) |
+! When using ISORROPIA Thermodynamics
+!TRAMP_thermo_isorr2 | $(EXTENDED_SOURCE) |
+!TRAMP_isocom2
+!TRAMP_isofwd2
+!TRAMP_isorev2
+! When using EQSAM Thermodynamics
+TRAMP_thermo_eqsam | $(EXTENDED_SOURCE) |  
+TRAMP_eqsam_v03d
+AmpTracersMetadata
+! ----------------------------------

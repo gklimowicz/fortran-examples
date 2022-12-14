@@ -1,0 +1,17 @@
+!-----------------------------------------------
+!  3D chemistry input files:
+!-----------------------------------------------
+N2O_IC=AR5_C90/N2O_IC_from_2x2.5_C90_Dec_2009
+CFC_IC=AR5_C90/CFC_IC_from_2x2.5_C90_Dec_2009 
+! CH4_IC not read if fix_ch4_chemistry==0
+CH4_IC=AR5_C90/CH4_IC_from_2x2.5_C90_Dec_2009
+Ox_IC=AR5_C90/Ox_IC_from_2x2.5_C90_Dec_2009
+CO_IC=AR5_C90/CO_IC_from_2x2.5_C90_Dec_2009
+!! SULFATE_SA, DMS_FIELD, SO2_FIELD, and AER_CHEM are only needed when coupled_chem .ne. 1
+!! For SULFATE_SA for cubed sphere, it looks like only the preindustrial ("pi")
+!! file was prepared. If you want present day, you need to create that file:
+!! SULFATE_SA=AR5_C90/sulfate_pi_fakeM23_M_SA_2x2.5gf_C90 ! really 4x5 and 9-layer
+!! or: SULFATE_SA=AR5_C90/sulfate_fakeM23_M_SA_2x2.5gf_C90 ! really 4x5 and 9-layer
+!! DMS_FIELD=dms_conc_2x2.5gf_C90 ! really 4x5
+!! SO2_FIELD=AR5_C90/so2_conc_2x2.5gf_C90 ! really 4x5
+!! AER_CHEM=OXID_E__1TgfF40_2x2.5

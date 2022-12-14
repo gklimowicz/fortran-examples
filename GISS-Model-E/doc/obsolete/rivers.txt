@@ -1,0 +1,27 @@
+INSTRUCTIONS FOR CREATING CUBED SPHERE RD FILES
+
+* convert STN-30p.bin to STN_C90:
+STN-30p.bin is located in the input file directory. It is the raw distance to the ocean file downloaded from http://www.grdc.sr.unh.edu/index.html
+to do the conversion, compile inputll2cs using the command gmake input in aux/
+and then run inputll2cs, which created STN_C90
+
+* calculate river directions:
+use RDtoO.CS90.F in the input file directory. It reads STN_CS90 and converts it to RDtoO.CS90.INT
+
+an alternate driver RDtoO.CS90EM.F contains hardcoded 911 directions. It creates the file RDtoO.CS90EM.INT
+
+* convert RDtoO.CS90 from Gary's i,j,tile format to latlon format:
+use RDijk2ll.f in aux/ which you compile using gmake csrvr. This creates the file RDdistocean_CS90.bin
+
+an alternate driver RDijk2llEM.f also reads and writes the 911 directions. This creates the file RDdistocean_CS90_EM.bin
+
+
+
+--------------------------------------------------
+
+
+CONVERTING RIVER DIRECTIONS FILE FROM ascii to binary
+* edit RDconv-stand.f
+* compile using ifort -convert big_endian RDconv-stand.f -o RD
+* ascii -> binary : ./RD -a RD_Fc.RVR
+* binary -> ascii : ./RD -b RD_Fc.RVR.bin

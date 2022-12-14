@@ -1,0 +1,25 @@
+!--------- dust aerosol parameters----------------
+#include "dust_params_general"
+
+!! MATRIX
+! MATRIX w/o VMP clouds:
+! for imDust=0:
+scaleDustEmission=1.0
+fracClayPDFscheme=0.0254925492559  ! clay emission parameter from calibration
+fracSiltPDFscheme=0.0442671726272  ! silt emission parameter from calibration
+  !fracClayPDFscheme = 0.5*0.0294128395792[1]*0.904[2] + 0.5*0.0292867845524[3]*0.833[4]
+  !fracSiltPDFscheme = 0.5*0.0518615507181[1]*0.904[2] + 0.5*0.0500018048081[3]*0.833[4]
+  ![1] emission parameters used for calibration run E20TcampF40_2000
+  ![2] optimization factors calculated from calibration run E20TcampF40_2000
+  ![3] emission parameters used for calibration run E22TcampiF40_2000
+  ![4] optimization factors calculated from calibration run E22TcampiF40_2000
+! for imDust=3-5:
+!scaleDustEmission=0.2025779939 ! total dust emission parameter
+  !scaleDustEmission = 0.30927938[1] * 0.655[2]
+  ![1]: emission parameter used for calibration run E20151001TminNu40AMF_001
+  ![2]: optimization factor calculated from calibration run
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+! for imDust=1:
+!scaleDustEmission=1.0
+!-------------------------------------------------

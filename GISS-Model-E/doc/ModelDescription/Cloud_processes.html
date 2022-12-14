@@ -1,0 +1,115 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Cloud processes</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Cloud processes</H3>
+
+<P>CONDSE is a driver that sets up the vertical arrays for the column
+models for moist convection, large scale condensation and stratiform clouds, and
+accumulates diagnostics and output for the radiation and other
+modules.</P>
+
+<H4>Moist convection</H4>
+<P>
+        The cumulus parameterization subroutine MSTCNV triggers convection when a parcel lifted one model level saturates and becomes buoyant.  The mass flux closure assumes that sufficient mass is transported to stabilize the cloud base with respect to its environment over a specified convective adjustment time (Del Genio and Yao 1993).  The total mass flux is partitioned into two plumes that entrain at different rates (Del Genio et al. 2007); the less entraining plume has a mass based on the grid-scale convergence at cloud base, and the more entraining plume receives the remainder of the mass flux. Convection can arise from multiple model levels.  The cumulus updraft speed is diagnosed and plume ascent terminates when it goes to zero.  Mass is detrained when the buoyancy becomes negative.  A convective-scale downdraft is determined when an equal mixture of cloud and environmental air is negatively buoyant at any level. Mass continuity is satisfied at each level by environmental subsidence which compensates the sum of mass flux of the updraft and downdraft. Convective condensate formed by moist adiabatic uplift is partitioned into parts that are advected upward, detrained, and precipitated at each level, an updated version of Del Genio et al. (2005).  The precipitating part goes into the downdraft, where it can evaporate, but an option exists for a fraction to evaporate into the environment above and below cloud base.  Detrained convective condensate is passed to the stratiform cloud subroutine LSCOND.  A moist convective cloud and an anvil cloud cover and optical thickness are calculated and passed to the radiation code.
+</P>
+
+<P>References:</P>
+
+<P>
+Del Genio, A.D., and M.-S. Yao, 1993: Efficient cumulus parameterization for long-term climate studies: The GISS scheme. In The Representation of Cumulus Convection in Numerical Models, AMS Meteor. Monograph. K.A. Emanuel and D.A. Raymond, Eds., vol. 24, no. 46. American Meteorological Society, pp. 181-184.
+</P>
+<P>
+Del Genio, A.D., W. Kovari, M.-S. Yao, and J. Jonas, 2005: Cumulus microphysics and climate sensitivity. J. Climate, 18, 2376-2387, doi:10.1175/JCLI3413.1.
+</P>
+<P>
+Del Genio, A.D., M.-S. Yao, and J. Jonas, 2007: Will moist convection be stronger in a warmer climate?. Geophys. Res. Lett., 34, L16703, doi:10.1029/2007GL030525.
+<P/>
+<P>
+The physics is also described in <a href="http://www.giss.nasa.gov/tools/modelE/docs/kim_moistconvection.pdf">this document.</a>
+</P>
+
+<P>The cumulus parameterization consists of the following subroutines:</P>
+
+<P>
+SUBROUTINE MSTCNV-the primary subroutine in which moist convection calculations are performed and output diagnostics accumulated.  MSTCNV calls a number of other subroutines; those specific to the CLOUDS2 module are listed below.
+</P>
+<P>
+SUBROUTINE ANVIL_OPTICAL_THICKNESS-calculates the optical thickness associated with condensate detrained from convective updrafts; becomes moot if SUBROUTINE LSCOND decides that the anvil can be sustained in a sufficiently humid environment.
+</P>
+<P>
+SUBROUTINE MC_CLOUD_FRACTION-calculates the fractional area of convective cloud that is passed to the radiation code, based on the cumulus mass flux and updraft speed.
+</P>
+<P>
+SUBROUTINE CONVECTIVE_MICROPHYSICS-uses a Marshall-Palmer size distribution, the cumulus updraft speed, and size-fallspeed relationships for liquid, graupel, and ice to partition condensate into precipitating, detrained, and advected parts; uses FUNCTION PRECIP_MP.
+</P>
+<P>
+SUBROUTINE MC_PRECIP_PHASE-calculates the phase of convective precipitation associated with melting, re-freezing, etc.; the gridbox area into which precipitation is allowed to evaporate is also calculated in this subroutine.
+</P>
+<P>
+FUNCTION PRECIP_MP-integrates the cloud water content over ranges of the Marshall-Palmer distribution defined by critical sizes (determined by comparing updraft speed to fallspeed) to calculate the partitioning of convective condensate.
+</P>
+<P>
+SUBROUTINE MASS_FLUX-uses an iterative technique to estimate the mass flux required at cloud base to restore it to neutral stability (based on a virtual moist static energy criterion) via environmental subsidence; the mass flux is applied over a finite convective adjustment time.
+</P>
+
+<P>SUBROUTINE MSTCNV contains 7 primary physics loops:</P>
+
+<P>
+(1) CLOUD_BASE: loops over successive potential cloud base levels (<tt>LMIN</tt>) from <tt>L=1</tt> to <tt>L=LMCM-1</tt>, where <tt>LMCM</tt> is the highest possible cloud base level for practical purposes (e.g., the tropopause) set in the rundeck, to test for initiation of moist convection; determines whether cloud base is unstable; if so, calls MASS_FLUX.
+</P>
+<P>
+(2) CLOUD_TYPES: loops over the two convective plumes (<tt>ITYPE=2</tt>) into which the mass flux is partitioned to perform most of the convective physics; partitions gridbox into (convection + subsidence) and (stratiform cloud + clear sky) parts; executes CLOUD_TOP loop, DOWNDRAFT loop, environmental subsidence loop, EVAP_PRECIP loop.
+</P>
+<P>
+(3) CLOUD_TOP: loops from the level above cloud base (<tt>LMIN+1</tt>) potentially to the top model level (<tt>LM</tt>), calculating properties of the updraft, but exits when cloud top is reached (<tt>LMAX</tt>); tests whether triggering conditions for convection are satisfied; lifts parcel moist adiabatically; determines condensate phase; condenses vapor, releases latent heat; advects condensate up from below; entrains environmental air into parcel; calculates convective momentum transport; detrains air when parcel buoyancy becomes negative; checks for downdraft initiation; computes cumulus updraft speed; calls CONVECTIVE_MICROPHYSICS; removes vertically advected condensate from total convective condensate.
+</P>
+<P>
+(4) DOWNDRAFT: loops from downdraft formation level (<tt>LDRAFT</tt>) down to surface to determine how far downdraft penetrates and transport relevant properties; the downdraft is exposed to 50% the convective precipitation when <tt>FDDRT = 0.5</tt> and evaporates as much of it as necessary to remain saturated; evaporates convective condensate into downdraft; entrains environmental air; detrains mixture into environment if positively buoyant; calculates downdraft momentum transport; adds air to downdraft in next lower layer if still negatively buoyant.
+</P>
+<P>
+(5) SUBSIDENCE:  loops between <tt>LMIN</tt> and <tt>LMAX</tt> to calculate changes of heat, moisture, momentum due to compensating environmental subsidence (adiabatic warming and drying); calculates subsidence mass as difference between updraft and downdraft; uses an upwind scheme for momentum and a quadratic updraft scheme for heat and moisture.
+</P>
+<P>
+(6) EVAP_PRECIP: loops from the level below cloud top (<tt>LMAX-1</tt>) to the lowest model level to calculate precipitation flux and to evaporate falling precipitation; precipitation is allowed to evaporate into the environment above and below cloud base, and with the default setting <tt>FDDRT = 0.5</tt>, 50% of precipitation is first given a chance to evaporate into the downdraft; calls MC_CLOUD_FRACTION; defines gridbox area available for evaporation; calls MC_PRECIP_PHASE; evaporates condensate and cools air.
+</P>
+<P>
+(7) OPTICAL_THICKNESS:  loops over levels with convection to calculate the visible optical thicknesses of convective clouds and anvils that are passed to the radiation scheme; calculates optical thickness of precipitation below cloud; calls ANVIL_OPTICAL_THICKNESS.
+</P>
+<H4>Stratiform clouds</H4>
+<P>
+      The stratiform cloud parameterization subroutine LSCOND is based originally on Del Genio et al. (1996), with updates described in Schmidt et al. (2006) and further updates for CMIP5.  It calculates cloud fraction diagnostically as a function of relative humidity using a Sundqvist-type approach; cloud areal fraction is differentiated from cloud volume fraction based on convective stability in the free troposphere and the strength of cloud top entrainment in the boundary layer, i.e., in the absence of moist convection clouds are vertically subgrid-scale for estimating cloud fraction and optical thickness effects on radiation.  The threshold relative humidity for cloud formation is a function of the grid-scale vertical velocity above the boundary layer, with a scale-aware correction for layer thickness; within the boundary layer the threshold relative humidity is based on an assumed Gaussian distribution of saturation deficit; both thresholds can be multiplied by scaling parameters to bring the model into global radiation balance.  Stratiform clouds do not form in subsaturated air below cloud top in the convective portion of the gridbox or below the cloud base of a boundary layer convective cloud.  In thermodynamically unfavorable conditions, complete stratiform cloud erosion by evaporation up to the threshold relative humidity is allowed.
+</P>
+<P>
+      Cloud water content is a prognostic variable, including sources due to large-scale condensation and convective detrainment, and sinks due to cloud-top entrainment, autoconversion, accretion, and evaporation.  The microphysics is single-moment for the NINT and TCAD versions of the model; for TCADI runs, cloud-aerosol interactions responsible for the first indirect effect are accounted for with a prognostic equation for droplet number concentration based on Morrison and Gettelman (2009). There is a single prognostic equation for cloud water; the mixed phase region extends down to a temperature of -35C, and in the mixed-phase temperature range the instantaneous phase is determined stochastically with a temperature-dependent probability of ice vs. liquid.  The phase in which cloud forms is maintained until the cloud dissipates unless supercooled liquid is glaciated by the Bergeron-Findeisen process; convective snow is not permitted to glaciate a supercooled stratiform cloud.  The probability of Bergeron-Findeisen glaciation depends on temperature and on the mass of ice falling into a layer of supercooled liquid cloud.  Precipitation that forms from supercooled liquid has a temperature- and mass-dependent probability of existing as snow.  At temperatures colder than -35C the critical supersaturation for homogeneous nucleation of ice is based on Karcher and Lohmann (2002).  Cloud optical thickness is based on the predicted cloud water content, the subgrid cloud physical thickness, and an effective radius based on either assumed (NINT, TCAD) or predicted (TCADI) number concentrations; the optical thickness of precipitation is accounted for by the radiation by assuming an effective radius 5 times that of the cloud water from which it forms.  Cloud fraction and optical thickness are passed to the radiation subroutine, which uses a random number comparison to the calculated cloud fraction to assign clear or overcast conditions in each layer and timestep; the random number is varied so as to mimic the statistics of mixed maximum-random overlap.
+</P>
+
+<P>References:</P>
+
+<P>
+Del Genio, A.D., M.-S. Yao, W. Kovari and K.K.-W. Lo, 1996:  A prognostic cloud water parameterization for global climate models.  J. Climate, 9, 270-304.
+</P>
+<P>
+Schmidt, G. A., R. Ruedy, J.E. Hansen, I. Aleinov, N. Bell, M. Bauer, S. Bauer, B. Cairns, Y. Cheng, A. DelGenio, G. Faluvegi, A.D. Friend, T.M. Hall, Y. Hu, M. Kelley, N. Kiang, D. Koch, A.A. Lacis, J. Lerner, K.K. Lo, R.L. Miller, L. Nazarenko, V. Oinas, J. Perlwitz, J. Perlwitz, D. Rind, A. Romanou, G.L. Russell, M. Sato, D.T. Shindell, P.H. Stone, S. Sun, N. Tausnev, D. Thresher, and M.-S. Yao,  2006: Present day atmospheric simulations using GISS ModelE: Comparison to in-situ, satellite and reanalysis data.  J. Clim., 19, 153-192.
+</P>
+<P> SUBROUTINE LSCOND contains 3 primary physics loops:</P>
+<P>
+(1) CLOUD_FORMATION: Most stratiform cloud calculations are performed in a major loop over model layers from the 50 mb level down to the surface.  Major calculations are executed in this loop in the following sequence: Determine vertical velocity for threshold relative humidity; calculate probability of ice formation, determine phase, and determine where Bergeron-Findeisen glaciation is active; determine the appropriate saturation reference for calculating relative humidity; release latent heat in the event of a cloud phase change; calculate relative humidity for the clear-sky portion of the gridbox; calculate the autconversion rate; compare gridbox relative humidity to threshold value, and if favorable for cloud formation calculate the large-scale convergence source of cloud water; calculate rain and cloud water evaporation; calculate the net latent heating and cloud water change due to any phase changes; calculate phase changes of precipitation due to melting or glaciation of rain falling into an ice cloud layer; compute the stratiform cloud fraction.
+</P>
+<P>
+(2) CLOUD_TOP_ENTRAINMENT: Following the major loop that determines cloud existence and water content in each layer, another loop is executed from 50 mb down to the surface that identifies each cloud top and calculates the temperature and total water content jump across the cloud top to determine the amount of cloud-top entrainment mixing; the mixing rate is proportional to the magnitude of the virtual moist static energy jump based on cloud-top entrainment instability studies; temperature, humidity, and momentum within the cloud top layer; cloud water mixed upward across the interface is evaporated in the first clear layer above.
+</P>
+<P>
+(3) OPTICAL_THICKNESS: The next loop, going from the surface to 50 mb, calculates cloud particle effective radius and optical thickness based on either the assumed (NINT, TCAD) or predicted (TCADI) number concentration and the predicted cloud water content and phase.
+</P>
+<P>
+For diagnostic purposes, the model also contains options to calculate an ISCCP simulator version of the cloud fraction and radiative properties (SUBROUTINE ISCCP_CLOUD_TYPES). 
+</P>                                                                       
+
+</BODY>
+</HTML>

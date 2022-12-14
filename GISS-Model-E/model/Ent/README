@@ -1,0 +1,63 @@
+Ent modules  
+
+README - This document describes the modules for running the Ent Terrestrial Biosphere Model coupled to the GISS GCM.  Driver modules for performing off-line runs with the Ent TBM are available only to developers.
+
+COMPILING INSTRUCTIONS
+HOW-TO
+HOW-TO-devel
+Rules.make
+sfmakedepend
+makefile
+
+INPUT/OUTPUT DIRECTORIES
+entdata
+r_<run_name>
+
+GLOBAL
+ent_const.f
+ent_types.f
+ent_pfts.f
+ent_pfts_GISS.f
+ent_pfts_ENT.f
+ent_pfts_ENT_FLUXNET.f
+FBBpfts_GISS.f
+FBBpfts_ENT.f
+FBBpfts_ENT_FLUXNET.f
+
+MODEL CONTROL
+$HOME/.entrc *
+ent_input - run parameters
+r_<run_name> - rundeck
+ent_prog.f
+ent_mod.f
+ent_forcings.f
+gcm_system.f
+gcm_utils.f
+util.f
+r_<run_name> - name of executable *
+
+PRESCRIBED VEGETATION
+ent_prescribed_drv.f - initialization or update from files or prescribed calc.
+ent_prescribed_drv_geo.f - initialization routines for geographic vegetation files
+			(LAIent, HITEent, LAImaxent)
+ent_prescribed_updates.f - only entcell_vegupdate
+ent_prescr_veg.f:  pft- and cohort-level vegetation prescribed properties
+
+MAIN
+ent.f
+
+STRUCTURAL DYNAMICS
+entcells.f
+patches.f
+cohorts.f
+
+BIOPHYSICS AND BIOGEOCHEMISTRY
+biophysics.f
+FBBphotosynthesis.f
+canopyradiation.f
+growthallometry.f
+phenology.f
+reproduction.f
+disturbance.f
+soilbgc.f
+

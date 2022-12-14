@@ -1,0 +1,514 @@
+ module Test_Dictionary_mod
+  use pfunit_mod
+  use Dictionary_mod
+  use KeyValuePair_mod
+  use GenericType_mod
+  implicit none
+  private
+
+  ! tests of legacy functionality
+  public :: testSetInteger
+  public :: testSetReal
+  public :: testSetString
+
+  public :: testSetIntegerList
+  public :: testSetRealList
+  public :: testSetStringList
+
+  public :: testQuery
+  public :: testReadWrite
+  public :: testReadWriteUnformatted
+
+  ! tests of new implementation
+  public :: testKeyNotFound
+  public :: testGetValueA
+  public :: testGetValueB
+  public :: testGetValueReal64
+
+  public :: testGetNumEntries
+  public :: testHasKey
+  public :: testGetKeys
+  
+  public :: testFailDuplicateKey
+
+  public :: testEqualsA
+  public :: testEqualsB
+  public :: testEqualsC
+  public :: testEqualsD
+  public :: testEqualsE
+  public :: testEqualsF
+  public :: testEqualsG
+  public :: testEqualsH
+
+  public :: testMergeInteger
+  public :: testMergeDictionary
+
+  integer, parameter :: dp = selected_real_kind(14)
+
+contains
+
+@Test
+  subroutine testSetInteger()
+    integer :: expected
+    integer :: found
+
+    call reset()
+    expected = 1
+    call set_param('testParam_Int', expected)
+    call get_param('testParam_Int', found)
+    @assertEqual(expected, found)
+
+  end subroutine testSetInteger
+
+@Test
+  subroutine testSetReal()
+    real(kind=dp) :: expected
+    real(kind=dp) :: found
+
+    call reset()
+    expected = 1.234
+    call set_param('testParam_Real', expected)
+    call get_param('testParam_Real', found)
+    @assertEqual(expected, found)
+    
+  end subroutine testSetReal
+
+@Test
+  subroutine testSetString()
+    character(len=20) :: expected
+    character(len=20) :: found
+
+    call reset()
+    expected = 'testValue'
+    call set_param('testParam_String', expected)
+    call get_param('testParam_String', found)
+    @assertEqual(expected, found)
+    
+  end subroutine testSetString
+
+@Test
+  subroutine testSetIntegerList()
+    integer, parameter :: NUM_ELEMENTS = 2
+    integer :: expected(NUM_ELEMENTS)
+    integer :: found(NUM_ELEMENTS)
+
+    call reset()
+    expected = [1,2]
+    call set_param('testParam_IntList', expected, NUM_ELEMENTS)
+    call get_param('testParam_IntList', found, NUM_ELEMENTS)
+    @assertEqual(expected, found)
+
+  end subroutine testSetIntegerList
+
+@Test
+  subroutine testSetRealList()
+    integer, parameter :: NUM_ELEMENTS = 2
+    real(kind=dp) :: expected(NUM_ELEMENTS)
+    real(kind=dp) :: found(NUM_ELEMENTS)
+
+    expected = [1.1, 2.2]
+    call set_param('testParam_RealList', expected, NUM_ELEMENTS)
+    call get_param('testParam_RealList', found, NUM_ELEMENTS)
+    @assertEqual(expected, found)
+
+  end subroutine testSetRealList
+
+@Test
+  subroutine testSetStringList()
+    integer, parameter :: NUM_ELEMENTS = 2
+    character*(128) :: expected(NUM_ELEMENTS)
+    character*(128) :: found(NUM_ELEMENTS)
+    integer :: i
+
+    call reset()
+    expected = ['hello  ','goodbye']
+    call set_param('testParam_StringList', expected, NUM_ELEMENTS)
+    call get_param('testParam_StringList', found, NUM_ELEMENTS)
+    do i = 1, NUM_ELEMENTS
+      @assertEqual(expected(i), found(i))
+    end  do
+
+  end subroutine testSetStringList
+
+@Test
+  subroutine testQuery()
+    integer, parameter :: NUM_ELEMENTS = 2
+    integer :: values(NUM_ELEMENTS)
+
+    character(len=20) :: expectedName, foundName
+    character(len=1) :: ptype
+    integer :: dim
+
+    call reset()
+    values = [1,2]
+    expectedName = 'testquery'
+
+    call set_param(expectedName, values, NUM_ELEMENTS)
+    call query_param(1, foundName, dim, ptype)
+
+    @assertEqual(expectedName, foundName, 'check order that tests are run')
+    @assertEqual(NUM_ELEMENTS, dim)
+    @assertEqual('i', ptype)
+
+  end subroutine testQuery
+
+@Test
+  subroutine testReadWrite()
+    use FileManager
+    integer :: iounit
+    character(len=20) :: foundName
+    integer :: dim
+    character(len=1) :: pType
+
+    call reset()
+    call set_param('testReadWriteA', 2)
+    call set_param('testReadWriteB', [3,4], 2)
+
+    call openUnit('dictionary.dat',iounit,qold=.false.,qbin=.true.)
+    call write_param(iounit)
+    close(iounit)
+
+    call reset()
+    ! start with one parameter just to make sure things were cleared
+    ! before reading
+    call set_param('testReadWriteC', 'aString')
+
+    call openUnit('dictionary.dat',iounit,qold=.true.,qbin=.true.)
+    call read_param(iounit, ovrwrt = .false.)
+    call query_param(3, foundName, dim, pType)
+    close(iounit)
+
+    @assertEqual('testreadwriteb', foundname)
+    @assertEqual(2, dim)
+    @assertEqual('i', pType)
+    close(iounit, status='delete')
+
+  end subroutine testReadWrite
+
+@Test
+  subroutine testReadWriteUnformatted()
+    use FileManager
+    integer :: iounit
+    type (Dictionary) :: dictionaryA
+    type (Dictionary) :: dictionaryB
+
+    dictionaryA = Dictionary()
+    call dictionaryA%insert('key1', 1)
+    call dictionaryA%insert('key2', [.true., .false.])
+    call dictionaryA%insert('key3', [1.2d+0,2.d+0])
+    call dictionaryA%insert('key4', 'string')
+    
+    call openUnit('dictionary.dat',iounit,qold=.false.,qbin=.true.)
+    call dictionaryA%writeUnformatted(iounit)
+
+    rewind(iounit)
+    call readUnformatted(dictionaryB, iounit)
+
+    @assertTrue(dictionaryA == dictionaryB)
+    close(iounit, status='delete')
+    
+  end subroutine testReadWriteUnformatted
+
+! TODO: This test needs to be revisited
+!!!@Test
+  subroutine testKeyNotFound()
+    type (Dictionary) :: aDictionary
+    integer :: i
+
+#ifdef PFUNIT
+    aDictionary = Dictionary()
+    i = aDictionary%lookup('alpha')
+    @assertFailedAssert('GenericType_mod: nonconforming shapes.')
+    @assertFailedAssert('Key not found: <alpha>.', &
+         & 'Failed to detect missing key.')
+#endif
+
+  end subroutine testKeyNotFound
+
+@Test
+  subroutine testGetValueA()
+    type (Dictionary) :: aDictionary
+    integer :: expected, found
+
+    expected = 1
+    aDictionary = Dictionary()
+    call aDictionary%insert('key', expected)
+    found = aDictionary%lookup('key')
+    @assertEqual(expected, found)
+
+    call clean(aDictionary)
+
+  end subroutine testGetValueA
+
+@Test
+  subroutine testGetValueB()
+    type (Dictionary) :: aDictionary
+    integer :: expectedA, foundA
+    integer :: expectedB, foundB
+
+    expectedA = 1
+    expectedB = 2
+    aDictionary = Dictionary()
+    call aDictionary%insert('keyA', expectedA)
+    call aDictionary%insert('keyB', expectedB)
+
+    foundB = aDictionary%lookup('keyB')
+    @assertEqual(expectedB, foundB)
+
+    foundA = aDictionary%lookup('keyA')
+    @assertEqual(expectedA, foundA)
+
+    call clean(aDictionary)
+
+  end subroutine testGetValueB
+
+@Test
+  subroutine testGetValueReal64()
+    type (Dictionary) :: aDictionary
+    real(kind=dp) :: expected, found
+
+    expected = 1
+    aDictionary = Dictionary()
+    call aDictionary%insert('key', expected)
+    found = aDictionary%lookup('key')
+    @assertEqual(expected, found)
+
+    call clean(aDictionary)
+
+  end subroutine testGetValueReal64
+
+@Test
+  subroutine testGetNumEntries()
+    type (Dictionary) :: aDictionary
+    real(kind=dp) :: expected, found
+
+    expected = 1
+    aDictionary = Dictionary()
+
+    @assertEqual(0, aDictionary%getNumEntries())
+
+    call aDictionary%insert('key1', expected)
+    @assertEqual(1, aDictionary%getNumEntries())
+
+    call aDictionary%insert('key2', expected)
+    @assertEqual(2, aDictionary%getNumEntries())
+
+  end subroutine testGetNumEntries
+
+@Test
+  subroutine testHasKey()
+    type (Dictionary) :: aDictionary
+
+    aDictionary = Dictionary()
+    @assertFalse(aDictionary%hasKey('a'))
+
+    call aDictionary%insert('a', 1)
+    @assertTrue(aDictionary%hasKey('a'))
+    @assertFalse(aDictionary%hasKey('b'))
+
+    call aDictionary%insert('b', 1)
+    @assertTrue(aDictionary%hasKey('a'))
+    @assertTrue(aDictionary%hasKey('b'))
+
+    call clean(aDictionary)
+
+  end subroutine testHasKey
+
+@Test
+  subroutine testGetKeys()
+    type (Dictionary) :: aDictionary
+    character(len=MAX_LEN_KEY), pointer :: keys(:)
+
+    aDictionary = Dictionary()
+    call aDictionary%insert('a', 1)
+    call aDictionary%insert('b', 1)
+
+    keys => aDictionary%getKeys()
+    @assertEqual(2, size(keys))
+    @assertTrue(any(keys == 'b'))
+    @assertTrue(any(keys == 'a'))
+
+    call clean(aDictionary)
+  end subroutine testGetKeys
+
+! TODO: This test needs to be revisited
+@Test
+  subroutine testFailDuplicateKey()
+    type (Dictionary) :: aDictionary
+#ifdef USE_PFUNIT
+    aDictionary = Dictionary()
+    call aDictionary%insert('a', 1)
+    call aDictionary%insert('a', 2)
+    @assertExceptionRaised('Dictionary: duplicate key - <a>.')
+    call clean(aDictionary)
+#endif
+  end subroutine testFailDuplicateKey
+
+@Test
+  subroutine testEqualsA()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    @assertTrue(a == b)
+
+  end subroutine testEqualsA
+
+@Test
+  subroutine testEqualsB()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    call a%insert('key1', 1)
+    @assertFalse(a == b)
+
+  end subroutine testEqualsB
+
+@Test
+  subroutine testEqualsC()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    call a%insert('key1', 1)
+    call b%insert('key1', 1)
+    @assertTrue(a == b)
+
+  end subroutine testEqualsC
+
+@Test
+  subroutine testEqualsD()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    call a%insert('key1', 1)
+    call b%insert('key2', 1)
+    @assertFalse(a == b)
+
+  end subroutine testEqualsD
+
+@Test
+  subroutine testEqualsE()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    call a%insert('key1', 1)
+    call b%insert('key1', 2)
+    @assertFalse(a == b)
+
+  end subroutine testEqualsE
+
+@Test
+  subroutine testEqualsF()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    call a%insert('key1', [1,2])
+    call b%insert('key1', [2])
+    @assertFalse(a == b)
+
+  end subroutine testEqualsF
+
+@Test
+  subroutine testEqualsG()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    call a%insert('key1', [1,2])
+    call b%insert('key1', [1,2])
+    @assertTrue(a == b)
+
+  end subroutine testEqualsG
+
+@Test
+  subroutine testEqualsH()
+    type (Dictionary) :: a
+    type (Dictionary) :: b
+    
+    a = Dictionary()
+    b = Dictionary()
+    call a%insert('key1', [1,2])
+    call a%insert('key2', .true.)
+    call a%insert('key3', 'hello')
+
+    call b%insert('key3', 'hello')
+    call b%insert('key2', .true.)
+    call b%insert('key1', [1,2])
+
+    @assertTrue(a == b)
+
+    call clean(a)
+    call clean(b)
+
+  end subroutine testEqualsH
+
+@Test
+  subroutine testMergeInteger()
+    type (Dictionary) :: aDictionary
+    integer :: probe
+    integer :: two
+
+    aDictionary = Dictionary()
+    call aDictionary%insert('a', 1)
+    
+    ! 
+    probe = 2
+    call aDictionary%merge('a', probe)
+    @assertEqual(1, probe)
+    @assertTrue(all(1 == aDictionary%lookup('a')))
+
+    two = 2
+    call aDictionary%merge('b', two)
+    @assertEqual(2, two)
+    @assertTrue(all(2 == aDictionary%lookup('b')))
+
+    call clean(aDictionary)
+  end subroutine testMergeInteger
+
+@Test
+  subroutine testMergeDictionary()
+    use GenericType_mod
+    type (Dictionary) :: aDictionary
+    type (Dictionary) :: otherDictionary
+
+    integer :: expectedA
+    real(kind=dp) :: expectedB
+    logical :: expectedC
+
+    aDictionary = Dictionary()
+    otherDictionary = Dictionary()
+
+    call aDictionary%insert('a', 1)
+    call aDictionary%insert('b', 2.34d+0)
+
+    call otherDictionary%insert('a', 1) ! same
+    call otherDictionary%insert('b', 1.23d+0) ! different
+    call otherDictionary%insert('c', .true.) ! new
+
+    call aDictionary%merge(otherDictionary)
+
+    expectedA = 1
+    expectedB = 2.34d+0
+    expectedC = .true.
+
+    @assertTrue(all(expectedA == aDictionary%lookup('a')))
+    @assertTrue(all(expectedB == aDictionary%lookup('b')))
+    @assertTrue(all(expectedC == aDictionary%lookup('c')))
+
+    call clean(otherDictionary)
+    call clean(aDictionary)
+  end subroutine testMergeDictionary
+
+end module Test_Dictionary_mod

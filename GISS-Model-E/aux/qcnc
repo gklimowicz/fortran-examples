@@ -1,0 +1,41 @@
+#!/bin/ksh
+
+dump=/usr/local/other/netcdf/3.6.2_intel-10.1.013/bin/ncdump
+if [[ -s ~/.modelErc ]]
+then . ~/.modelErc ; dump=${NETCDFHOME}/bin/ncdump ; fi
+
+# options
+show_timing=0 ; show_parm=0 ; restart=0
+while [[ $1 = '-'* ]]
+do if [[ $1 = *[aA]* ]] ; then show_parm=1 ; fi
+   if [[ $1 = *[tT]* ]] ; then show_timing=1 ; fi
+   if [[ $1 = *[rR]* ]] ; then restart=1 ; fi
+   shift
+done
+itmax=0
+for x in $*
+do xlabel=`$dump -h $x | egrep xlabel`
+   label=${xlabel#*xlabel = \"} ; label=${label%\"*}
+
+   it=$( $dump -v itime $x | grep itime | tail -1 | sed 's/itime\ =\ // ; s/\;//' )
+   datei=`$dump -h $x | egrep caldate | sed 's/itime:caldate = //; s/"//g; s/\;//'`
+   if [[ $restart -eq 1 ]]
+   then if [[ $it -gt $itmax ]] ; then itmax=$it ; dmax=$datei ; fi
+   else
+     typeset -R10 itx=$it
+     echo "$itx" $datei $label
+
+     if [[ $show_timing -eq 1 ]]
+     then $dump -h $x | egrep "cputime:" | sed 's/cputime://; s/"//g; s/\;//; s/frac.. = //'
+     fi
+
+     if [[ $show_parm -eq 1 ]]
+     then echo
+        $dump -h $x | grep param | sed "s/[ric]param://g ; s/\;//g" | egrep -v "int [rci]" | sort
+     fi
+   fi
+done
+
+if [[ $restart -eq 1 ]]
+then echo "QCRESTART_DATA: $itmax $dmax"
+fi

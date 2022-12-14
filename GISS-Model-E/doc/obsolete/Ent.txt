@@ -1,0 +1,72 @@
+Working with Ent DGTEM (Dynamic Global Terrestrial Ecosystem Model) 
+===================================================================
+
+This document describes how to checkout, compile and run modelE
+coupled to Ent DGTEM.
+
+
+Getting the code
+================
+
+Ent is now part of modelE repository. All Ent code is located 
+in modelE/model/Ent subdirectory. So standard 
+
+  cvs checkout modelE
+
+works for getting modelE with Ent. One should be aware though
+that for compatibility with Ent some modelE/model code
+was moved to subdirectories. If updating from some older version
+of modelE make sure to use 
+
+  cvs update -d
+
+to force cvs to create these new subdirectories.
+
+Compiling the code
+==================
+
+Since in this new setup some of the code is located in subdirectories
+the Makefile had to be modified to be able to work with
+subdirectories. Basically a completely different makefile was written
+for this purpose. To switch to this new makefile you have to specify 
+
+  NEW_MAKEFILE_FORMAT=YES
+
+in your ~/.modelErc file. This new makefile expects two additional
+sections to be present inside the rundeck. Section "Components:" lists
+the names of the subdirectories (from now called "Components")
+containig the code which has to be compiled with the model. The
+section "Component Options:" contains the flags which have to be passed
+to each component (i.e. the flags which have to be set when local
+makefile is executed inside corresponding subdirectory). Each
+component (subdirectory) contains a makefile which in most cases is
+trivial: it contains the list of source files and includes standard
+template makefiles from config/ directory (see model/shared/Makefile
+for an example). If rundeck should be able to modify the list of
+source files in the component that can be done by passing
+corresponding "Component Options:" (see how it is done inside
+model/Ent/Makefile). Current template rundeck for modelE coupled to
+Ent is E1M20dv1.R (see it as an example of how to use "Components:"
+and "Component Options:"). The commands supported by the new makefile
+are basically the same with some small differences. To compile and set
+up a typical modelE+Ent run you would do:
+
+# remove old object files if necessary (old "vclean")
+  make clean_all
+
+# create a rundeck
+  make rundeck RUN=my_run RUNSRC=E1M20dv1
+
+# build dependencies
+  make depend RUN=my_run ESMF=YES NPES=1
+
+# compile and do setup
+  make setup RUN=my_run ESMF=YES NPES=1
+
+
+Running the model
+=================
+
+You run the model coupled to Ent as you would run any version of
+modelE. See local_info.txt for information on how to effectively run
+the model on a particular architecture.

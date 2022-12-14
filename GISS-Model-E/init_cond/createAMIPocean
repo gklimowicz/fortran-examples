@@ -1,0 +1,116 @@
+#!/bin/bash -e
+#
+# Script to create AMIP input files (OSST, SICE, ZSI) from dynamic ocean
+# ModelE output. Simply define source runid, input and output directories,
+# and year bounds.
+#
+# The method is as follows:
+#
+# OSST:
+# Use sst from aij as-is (name in OSST file: sst; units: degC)
+#
+# SICE:
+# In SICE the variable is called rsi, and uses oicefr and ocnfr from aij.
+# Calculate as follows: rsi=oicefr/ocnfr (where ocnfr/=0.), zero elsewhere.
+# Units are fraction of gridcell.
+#
+# ZSI (optional, one can use the already-existing ZSIFAC file):
+# Use ZSI from aij as-is (name in ZSI: ZSI; units: m)
+# 
+# Questions/comments/corrections:
+# Kostas Tsigaridis (kostas.tsigaridis@columbia.edu)
+
+# # # # # # #
+# definitions
+# # # # # # #
+
+# run id, essentially the name of the rundeck without .R
+runid="some_runid"
+# input directory where the aij files are to be found
+dir_in="some_directory_with_aij_files"
+# output directory where the output will be stored. Subdirectories will be
+# created in there.
+dir_out="some_directory_where_output_will_be_saved"
+# first year to be converted
+yeari=2015
+# last year to be converted
+yeare=2100
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# DO NOT MODIFY ANYTHING BELOW THIS LINE, UNLESS YOU KNOW WHAT YOU ARE DOING! #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# more definitions
+months="JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC"
+file_types="OSST SICE ZSI"
+
+# sanity check
+if [ ! -d ${dir_in} ]; then
+  echo "${dir_in} does not exist. Exiting..."
+  exit 1
+fi
+if [ ! -d ${dir_out} ]; then
+  for file_type in ${file_types}; do
+    mkdir -p ${dir_out}/${file_type}
+  done # file_type
+fi
+echo "Output will be saved in ${dir_out}"
+dir_OSST="${dir_out}/OSST"
+if [ ! -d ${dir_OSST} ]; then mkdir -p ${dir_OSST}; fi
+dir_SICE="${dir_out}/SICE"
+if [ ! -d ${dir_SICE} ]; then mkdir -p ${dir_SICE}; fi
+dir_ZSI="${dir_out}/ZSI"
+if [ ! -d ${dir_ZSI} ]; then mkdir -p ${dir_ZSI}; fi
+
+# start year loop
+for ((year=${yeari}; year<=${yeare}; year++)); do
+  echo -n "${year}"
+  file_OSST="${dir_OSST}/${year}.nc"
+  file_SICE="${dir_SICE}/${year}.nc"
+  file_ZSI="${dir_ZSI}/${year}.nc"
+
+# prepare intermediate files
+  echo -n "."
+  files_temp=""
+  for month in ${months}; do
+    file_in="${dir_in}/${month}${year}.aij${runid}.nc"
+    file_out="${dir_out}/${month}.${runid}.nc"
+    files_temp="${files_temp} ${dir_out}/${month}.${runid}.nc" # create list
+    ncks -O --no-abc -v sst,oicefr,ocnfr,ZSI ${file_in} ${file_out} # extract data
+    ncecat -O -u time ${file_out} ${file_out} # add record dimension
+  done # month
+
+# OSST
+  echo -n "."
+  ncrcat -O -v sst ${files_temp} ${file_OSST}
+
+# SICE
+  echo -n "."
+  ncrcat -O -v oicefr,ocnfr ${files_temp} ${file_SICE}
+  ncap2 -O -s 'rsi[time,lat,lon]=0.' ${file_SICE} ${file_SICE}
+  ncap2 -O -s 'where(ocnfr!=0.)rsi=oicefr/ocnfr' \
+                 ${file_SICE} ${file_SICE}
+  ncatted -O -a units,rsi,o,c,1 ${file_SICE}
+  ncks -O -x -v oicefr,ocnfr ${file_SICE} ${file_SICE}
+
+# ZSI
+  echo -n "."
+  ncrcat -O -v ZSI ${files_temp} ${file_ZSI}
+
+# create time variable
+  echo -n "."
+  for file_type in ${file_types}; do
+    file_out="file_${file_type}" # for indirect parameter expansion
+    ncap2 -O -s 'time=array(1,1,$time)' ${!file_out} ${!file_out}
+    ncatted -a units,time,a,c,"months" ${!file_out}
+    ncrename -O -d lon,longitude -d lat,latitude \
+                   -v lon,longitude -v lat,latitude ${!file_out}
+  done # file_type
+
+# delete intermediate files
+  echo -n "."
+  rm -f ${files_temp}
+
+# end year loop
+  echo "Done!"
+done # year

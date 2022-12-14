@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Downloading necessary input files</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Downloading necessary input files</H3>
+<P>
+We store all input files used in our modelE simulations on a server at
+GSFC. One can browse (and manually download) them here:
+<pre>
+    <A HREF="http://portal.nccs.nasa.gov/GISS_modelE">http://portal.nccs.nasa.gov/GISS_modelE </A>
+</pre> 
+But typically it is much more convenient to use a script which
+automatically downloads all necessary input files for a particular
+rundeck. The command (executed from modelE/decks)
+<pre>
+    ../exec/get_input_data -w &lt;RunID&gt;
+</pre>
+will download all input files needed for the run described by
+<code>&lt;RunID&gt;.R</code> and will store them in a subdirectory
+<code>&lt;RunID&gt;_data</code>. Actually, if you have write access
+to the directory which stores modelE input files on your computer, it
+is even more convenient to provide this directory to
+<code>get_input_data</code> script. In this case it will automatically
+update input files in this directory as necessary for
+<code>&lt;RunID&gt;.R</code> rundeck. If you used the default location
+for ModelE_Support directory, then modelE input files are stored in
+the directory <code>$HOME/ModelE_Support/prod_input_files/</code> on
+your computer. So, to update it for <code>&lt;RunID&gt;.R</code>
+rundeck you have to execute
+<pre>
+    ../exec/get_input_data -w &lt;RunID&gt; $HOME/ModelE_Support/prod_input_files
+</pre>
+This will download only the files which are missing
+in <code>prod_input_files</code> directory. If you want to overwrite
+some of the exhisting files, you have to delete them first.
+
+</BODY>
+</HTML>

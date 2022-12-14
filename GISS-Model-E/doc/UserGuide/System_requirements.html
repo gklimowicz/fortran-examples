@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>System requirements</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>System requirements</H3>
+<p>
+The ModelE source code is quite portable and can be installed and used
+basically on any Unix machine with enough CPU power and memory (from
+Linux clusters to Linux and Mac OS X desktops). Though one can run the
+basic serial version of the model with prescribed ocean on a single
+core with as little as 2 GB of memory, to do any useful simulations in
+reasonable time one would need a computer with at least 16 cores
+(Sandy Bridge or faster) with at least 1 GB of memory per core. To do
+dynamic ocean simulations with full atmospheric chemistry one
+typically would need 88 cores with at least 1 GB of memory per core.
+</p>
+<p>
+The source code is written mostly in Fortran 90 language with some
+elements of Fortran 2003 and can be compiled either with Intel <code>ifort</code>
+compiler (version 12.0) or with GNU <code>gfortran</code> (version 4.9 or later).
+</p>
+<p>
+For input/output we use a NetCDF library, so it has to be installed
+(version 3.6 or later).
+</p>
+<p>
+For parallel simulations on multiple cores the model needs to be
+compiled with MPI support, so an MPI library needs to be installed on
+your computer. The following MPI distributions are
+currently supported by the model: </p>
+<ul>
+  <li>OpenMPI
+  <li>Intel
+  <li>MPICH2
+  <li>MVAPICH2
+  <li>SCALI
+  <li>mpt
+</ul>
+<p>
+For desktops or small servers we would recommend OpenMPI, since it is
+the easiest one to install and configure, though MPICH2 also works
+without problems. On a cluster, typically it would be up to support
+group to make a decision on which MPI distribution is more suitable
+for a particular platform. Over the last few years we were using Intel
+MPI with great success.
+</p>
+<p>
+The compilation process is based on GNU <code>make</code> command and uses <code>perl</code>
+scripting language and <code>m4</code> preprocessor (GNU version). Typically these
+are present by default on any Linux or Mac OS X system, but if you are
+using other type on Unix you may need to install them.
+<p>
+If instead of latitude-longitude version of the model you want to work
+with cubed sphere version, then in addition to the requirements
+mentioned above you will need to install a compatible ESMF
+library. You will also need to obtain the source code for the cubed
+sphere dynamical core from the developers since it is not included in
+the standard modelE distribution.
+</p>
+
+</BODY>
+</HTML>

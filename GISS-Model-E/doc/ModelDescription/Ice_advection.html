@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Ice advection</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Ice advection</H3>
+
+<p> Ice advection is a function of the atmosphere-ice and ice-ocean
+momentum stress and the sea surface gradient. The internal ice
+pressures and rheology are estimated using the Flato-Hibler
+viscous-plastic rheology as coded by Zhang and Rothrock, 1999. Due to
+the requirement that the surface type fractions don't vary over the
+surface flux calculation we calculate the ice velocities and ice-ocean
+momentum stress at the beginning of the calculation (in DYNSI), but
+the ice mass fluxes are not applied until afterwards (in ADVSI). The
+advection is done using the linear upstream scheme in the two
+horizontal directions. This code is turned on by using the 
+ICEDYN_DRV ICEDYN modules instead of the ICEDYN_DUM module, and works with 
+any ocean configuration. </p>
+
+<p> In the fixed SST case, using the ice advection does not change the
+ice variables, but does allow the ice and energy convergences due to
+advection to be calculated, nad subsequently used in the the q-flux
+model. The q-fluxes need to be consistent with the ice advection, and
+so if ICEDYN_DRV ICEDYN is used in the spin-up, it must also be used
+in the q-flux model (and vice versa).</p>
+
+</BODY>
+</HTML>

@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Creating a rundeck</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Creating a rundeck</H3>
+
+<P>
+Each modelE run is completely described by a configuration file 
+which we call a &quot;rundeck&quot;. 
+<P>
+A rundeck can be created by copying an existing rundeck to a file with
+a different name and then modifying it. One can also create a typical
+rundeck for a particular configuration from one of the provided
+templates (files modelE/templates/*.R). To create a rundeck from a
+template just execute
+<pre>
+    make rundeck RUN=&lt;RunID&gt; RUNSRC=&lt;Template&gt;
+</pre>
+where <code>&lt;RunID&gt;</code> is the name of the new rundeck and 
+<code>&lt;Template&gt;</code> is the name of a template (both
+without <code>.R</code>).
+<P>
+When rundeck is created a copy of it is saved for permanent storage in
+&quot;decks repository&quot; under ModelE_Support. This is done so
+that one could always find the rundeck used for a particular
+production simulation even long time after this simulation was done. 
+As a result the system will not allow you to create a rundeck with the
+name which is already present in the repository. If you don't need
+this stored rundeck and want to overwrite it with a new one just
+specify OVERWRITE=YES on command line, i.e.
+<pre>
+    make rundeck RUN=&lt;RunID&gt; RUNSRC=&lt;Template&gt; OVERWRITE=YES
+</pre>
+
+<P>
+See next chapter for a detailed description of modelE rundeck.
+</BODY>
+</HTML>

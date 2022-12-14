@@ -1,0 +1,268 @@
+
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>diagnostics</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+
+<h3><A name="part2"><b>Part II: Getting information from the
+diagnostics</b></a></h3>
+
+<p><A name="part2_1"><b>1) HOW-TO look at the output</b></a></p>
+
+<p>You can look at the output in two distinct ways: using the run-time
+printout, or using the post-processing program, pdE.</p>
+<ol>
+  <li> <p>The run-time printout.</p>
+
+       <p>If you run the model using 'runE' (as opposed to 'runE -q' which
+suppresses the printout) the model will produce a $RUNID.PRT file
+which can contain copious amounts of diagnostic information. It is
+split into a number of sections: (see next question for a list). This
+is produced each month (but can be controlled using the KDIAG switches
+and NMONAV in the NAMELIST).</p>
+
+  <li> <p>Post-processed output:</p>
+       <p>Each month the program produces an 'acc' accumulated
+       diagnostics file which contains all of the diagnostic information from
+       the previous month. The program 'pdE' (in the exec directory) is an
+       alternate entry point into the model that reads in any number of these
+       files and a) creates a printout (as above) for the time period
+       concerned and b) creates binary output of many more diagnostics. This
+       can be used simply to recreate the monthly printout, but also to
+       create longer term means (annual, seasonal, monthly climatologies
+       etc.).</p>
+
+       <p>For example, to recreate the printout in /u/cmrun/$RUNID;
+       <ul>
+  <li>for a single month: pdE $RUNID JAN1987.acc$RUNID
+  <li>for all Januaries:  pdE $RUNID JAN*.acc$RUNID
+  <li>for a whole year:   pdE $RUNID *1987.acc$RUNID
+       </ul>
+       <p>
+       For pdE to work properly, the directory /u/cmrun/$RUNID has to exist
+       and contain at least ${RUNID}ln  ${RUNID}uln  ${RUNID}.exe .
+       The output files will end up in the PRESENT WORKING DIRECTORY which
+       may be /u/cmrun/$RUNID or any other directory;
+       names and order of the inputfiles are irrelevant (as long as the
+       format of the files is compatible with the model ${RUNID}).
+       </p>
+
+       <p>It is possible to use pdE to average acc-files from several runs,
+       e.g. average over an ensemble of runs. Although the numbers that
+       are produced are fine, subroutine aPERIOD will not
+       be able to create the proper labels: the runID will be taken from
+       the last file that was read in and the number of runs averaged will
+       be interpreted as successive years, so averaging years 1951-1955
+       of runs runA runB runC runD will produce the label ANN1951-1970.runD
+       rather than  ANN1951-1955.runA-D. Some titles will also suffer from
+       that 'bug', but it should be easy to fix it manually afterwards,
+       if anybody cares.</p>
+</ol>
+<p>Note that the output can be controlled (a little) by the settings in
+'Ipd' (which is created if it does not yet exist in the present working
+directory). A number of files will be created whose names contain the
+accumulated time period.  (monyear[-year] where mon is a 3-letter acronym
+for a period of 1-12 consecutive months).</p>
+<pre>
+        monyear.PRT      the printout
+        monyear.j$RUNID  zonal budget pages (ASCII Aplot format)
+        monyear.jk$RUNID latitude-height binary file
+        monyear.il$RUNID longitude-height binary file
+        monyear.ij$RUNID lat-lon binary file
+        monyear.wp$RUNID Wave power binary file
+        monyear.oij$RUNID lat-lon binary file for ocean diagnostics
+        monyear.ojl$RUNID lat-depth binary file for ocean diagnostics
+        monyear.oht$RUNID lat ASCII file for ocean heat transports
+</pre>
+<p>which can be read using the appropriate graphical software. </p>
+
+<p><A name="part2_2"><b>2) HOW-TO change what is included in the printout</b></a></p>
+
+<p>The switches KDIAG which are set in the NAMELIST control which
+subgroups of diagnostics are calculated and output. At present, there
+is no simple way to pick and choose exactly which diagnostics appear,
+although we are working on a scheme to do just that. Some of the
+following options are rarely used, and may soon be made obsolete.
+These switches can also be used in 'Ipd' input for pdE to control
+which output to produce. If QDIAG=.true. some binary files
+are created accompanying the printed output. If QDIAG_ratios=.true.
+fields which are the products of q1 and q2 and whose titles are
+of the form "q1 x q2" are replaced by the ratios field/q2, the
+title being shortened to "q1" (default).</p>
+
+<p>Current options are:
+<pre>
+KDIAG(1)  < 9 print Zonal/Regional budget pages
+   = 8 only print regional diagnostics
+   2-7 only print global zonal means
+   = 1 print all zonal diagnostics
+
+KDIAG(2)  = 0 print Latitude-height diagnostics
+          = 1 print at most fields listed in file Ijk
+              (rearranging the lines of Ijk has no effect)
+          = 8 Only print spectral analysis of standing eddies
+          = 9 skip all Latitude-height diagnostics
+          2-7 same as 1
+
+KDIAG(3)  = 0 standard printout, all binary files if QDIAG=.true.
+          = 1 ij-fields as in list Iij, all ijk-fields
+          = 2 ij and ijk fields are handled according to list Iij
+          = 7 ij-fields as in list Iij, no ijk-fields are produced
+          = 8 full list Iij of available fields is produced; this list may
+              be edited : don't touch lines starting with 'List' or 'list'
+                          you may delete any other lines
+                          you may rearrange the remaining ij-fields
+                          you may add blank maplets
+          = 9 no ij and ijk diagnostics are produced
+          3-6 same as 2
+
+KDIAG(4)  < 9 print time history table of energies
+KDIAG(5)  < 9 print spectral analysis tables
+
+KDIAG(6)  < 9 print diurnal cycle diagnostics at selected points (up to 4)
+          1-4 print out for first 4-KDIAG(6) points (will soon be obsolete)
+        -1 - -4 print out for -KDIAG(6) point only.
+
+KDIAG(7)  < 9 print wave power tables
+
+KDIAG(8)  < 9 print tracer diagnostics
+          = 0 print all tracer diagnostics
+          = 1 skip lat/lon tracer diagnostics
+          = 2 skip tracer conservation diagnostics and lat/lon diagnostics
+
+KDIAG(9)  < 9 print out conservation diagnostics
+KDIAG(10) < 9 print out Longitude-height diagnostics
+KDIAG(11) < 9 print out river runoff diagnostics
+KDIAG(12) < 9 print out ocean diagnostics (if there is an ocean)
+</pre>
+
+<p>There is also one section of special lat-lon diagnostics which can
+be optionally accumulated and output. These are the <i>isccp_diags</i>
+which calculate some cloud properties as if they were being observed
+by satellite. This is set as an option in the rundeck
+(<tt>isccp_diags=1</tt>) to calculate them. By default these diags are
+not calculated.</p>
+
+<p><A name="part2_3"><b>3) HOW-TO produce daily/monthly or seasonal
+diagnostics</b></a></p>
+
+<p>Controlling the frequency of output of the ACC files is done using the
+NAMELIST parameter NMONAV. This sets the number of months over which
+the diagnostics is accumulated. If it is set to 3, seasonal acc files
+are produced. If set to 12, you will get annual means. Higher numbers
+could be chosen, but are probably not very useful.</p>
+
+<p>Producing more frequent diagnostics is controlled by the SUBDAILY
+module. The frequency of saving is controlled by the variable
+<tt>Nsubdd</tt> which is the number of internal timesteps between each
+snapshot (i.e. <tt>Nsubdd=1</tt> implies diags every timestep, =24
+daily (if dtsrc=3600), =48 is daily for dtsrc=1800).  The variables
+saved are controlled by the strings <tt>SUBDD, SUBDD1</tt>, which are
+space seperated lists of names for the required diagnostics.  These
+are currently limited to instantaneous values (with some exceptions as
+noted below) of some standard fields (SLP, PS, SAT, PREC, QS, LCLD,
+MCLD, HCLD, PTRO QLAT, QSEN, SWD, SWU, LWD, LWU, LWT, STX, STY, ICEF,
+SNOWD, TCLD, SST, SIT, US, VS, TMIN, TMAX), the geopotential height,
+relative and specific humidity and temperature on any (or all) of the
+following fixed pressure levels (if available): 1000, 850, 700, 500,
+300, 100, 30 , 10, 3.4, 0.7, .16, .07, .03, and velocities on any
+model level. The fixed pressure level diags are set using Z850, R700
+and T100, for instance, to request the 850 mb geopotential height, 700
+mb relative humidity and 100 mb temperatures, respectively. Requests
+for ZALL or TALL, will produce individual files of all available
+levels. The velocities are set using U1, U5, U12, for instance, to get
+the 1st, 5th and 12th layer U velocities, respectively. If "ALL"
+levels are requested for a velocity, only one file per variable will
+be output, containing all requested levels.  To limit the number of
+output levels, set the <tt>LmaxSUBDD</tt> parameter in the rundeck,
+and only levels L=1,LmaxSUBDD will be output. <p>More options can be
+added as cases in subroutine get_subdd in DIAG.f if required. For
+example, including the following string in the rundeck
+(i.e. <tt>SUBDD="SLP SAT Z500 R850 U5 V5"</tt> will produce diags of
+the sea level pressure, surface air temperature, 500mb geopotential
+heights, 850 mb level relative humidity and the 5th layer U, and V
+fields. Each timeseries will be output one month at a time in files
+named SLPmmmyyyy and SATmmmyyyy (for example) for each month and
+year. Restarts will find the appropriate file and continue to append
+records as would be expected.</p>
+
+<p> There are three minor special cases to the procedure outlined
+above. i) PREC will give the accumulated precipitation over the Nsubdd
+period. ii) TMIN and TMAX are the minimum and maximum daily composite
+surface air temperatures at each grid point, and therefore can only be
+output once a day. Note that Nsubdd must divide into the daily number
+of internal timesteps for this to work properly. i.e. if dtsrc=1800s,
+there are 48 internal time steps per day. If Nsubdd=6 (denoting 3
+hourly output), TMIN and TMAX will be output correctly at midnight UTC once a
+day. However, if Nsubdd=5 (2.5 hourly output), TMIN and TMAX will only
+be output every five days as the output hour coincides with midnight UTC.</p>
+
+<p>You can easily keep track of the running average of all the
+printout diagnostics using the NIPRNT switch in the parameter
+database. By setting this to a positive number, the diagnostics will
+be printed out that number of hours. (i.e. setting NIPRNT=10, will
+print out the running average of the accumulated diagnostics at the
+end of each of the next ten hours).</p>
+
+<p><A name="part2_4"><b>4) HOW-TO control the format of the binary output
+(i.e. GISS/netcdf/hdf etc.)</b></a></p>
+
+<p>The binary output created from 'pdE' can be in a number of
+formats. Currently there are two options, the traditional GISS
+formats, and netcdf output. This is set by choosing to compile the
+model with POUT (for GISS-style output) or POUT_netcdf (for netcdf
+output). This is set in the rundeck. Note that the choice is made AT
+THE TIME OF COMPILATION OF THE MODEL EXECTUABLE. If you subsequently
+change your mind, you must edit the rundeck and recreate the
+executable (using 'gmake exe RUN=E001xyz'). </p>
+
+<p>Other formats (HDF?) could be defined as you like with a suitable
+POUT_xyz.f file.</p>
+
+<p><A name="part2_5"><b>5) HOW-TO calculate a model score</b></a></p>
+
+<p>There is an RMS.f program in the aux/ directory which calculates a
+'score' for a model run based on the RMS difference with some selected
+observations. Additionally, it calculates the Arcsin Mielke score (AMS),
+which is a non-dimensional statistic (between -1,1 (1 being perfect))
+which also includes effects of mean bias and variance. It is compiled
+whenever the 'gmake aux RUN=....'  command is run. Like CMPE001 or qc,
+it is technically model dependent (since it uses im,jm etc.), but in
+practice you will not need to recompile it for every version. The
+executable will be put into the RUNNAME_bin directory (i.e. for gmake
+aux RUN=E001xyz, the executable will be E001xyz_bin/RMS). Running RMS
+on its own gives its usage.</p>
+
+<p>You should produce diagnostic files over at least a five year mean. So
+for a particular run, use pdE to create the JAN and JUL averages</p>
+
+<pre>
+      cd E001xyz
+      pdE E001xyz JAN195[1-5].accE001xyz    # => JAN1951-1955.ijE001xyz
+      pdE E001xyz JAN195[1-5].accE001xyz    # => JUL1951-1955.ijE001xyz
+</pre>
+
+<p>Make sure that the TOPO file is linked:</p>
+
+<pre>
+      E001xyzln</pre>
+
+<p>and then run RMS</P>
+
+<pre>
+      ~/modelE/decks/E001xyz_bin/RMS E001xyz JAN1951-1955.ijE001xyz JUL1951-1955.ijE001xyz</pre>
+
+<p>This will create files 'E001xyz' in the directories
+/u/cmrun/modelE/RMS and /u/cmrun/modelE/AMS, which contain the RMS
+statistics and the Arcsin Mielke score for each selected
+field,respectively. You can then compare these scores with other
+existing versions.
+</P>
+
+</BODY>
+</HTML>

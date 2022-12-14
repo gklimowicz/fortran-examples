@@ -1,0 +1,73 @@
+module Test_OrbitUtilities_mod
+  use pfunit_mod
+  use KindParameters_mod, only: DP
+  use OrbitUtilities_mod
+
+  real(kind=DP), parameter :: pi = 2*asin(1.d0)
+
+contains
+
+@test  
+  subroutine testComputeTrueAnomaly()
+
+
+    ! True anomaly is zero when mean anomaly is zero.
+    @assertEqual(0, computeTrueAnomaly(meanAnomaly=0.d0, eccentricity=0.d0))
+    @assertEqual(0, computeTrueAnomaly(meanAnomaly=0.d0, eccentricity=0.5d0))
+
+    ! True anomaly is pi when mean anomaly is pi.
+    @assertEqual(pi, computeTrueAnomaly(pi, 0.d0), tolerance=epsilon(1.d0))
+    @assertEqual(pi, computeTrueAnomaly(pi, 0.5d0), tolerance=epsilon(1.d0))
+
+    ! True anomaly is equal to mean anomaly for eccentricity = 0.
+    ! Trivial computation, but ensures correct branch for atan()
+    @assertEqual(pi/2, computeTrueAnomaly(pi/2, eccentricity=0.d0))
+    @assertEqual(3*pi/2, computeTrueAnomaly(3*pi/2, eccentricity=0.d0))
+
+    ! Use parameterized intermediate to force special values for trig:
+    @assertEqual(2*pi/3, computeTrueAnomaly(pi/2, 0.5d0, eccentricAnomaly=pi/2))
+
+  end subroutine testComputeTrueAnomaly
+
+  ! Inverse of true anomaly ...
+@test
+  subroutine testComputeMeanAnomaly()
+    real (kind=DP) :: x
+    real (kind=DP) :: TA
+    real (kind=DP) :: eccentricity
+
+    x = 1.d0
+    eccentricity = 0.5d0
+    TA = computeTrueAnomaly(x, eccentricity)
+    @assertEqual(x, computeMeanAnomaly(TA, eccentricity), tolerance=10*epsilon(1.d0))
+  end subroutine testComputeMeanAnomaly
+
+
+@test
+  subroutine testComputeDistance()
+    real (kind=DP) :: a, r
+
+    ! circular orbit, no eccentricity
+    a = 1.d0; r = 1.d0
+    @assertEqual(r, computeDistance(a, 0.d0, 0.d0))
+    a = 2.d0; r = 2.d0
+    @assertEqual(r, computeDistance(a, 0.d0, 0.d0))
+
+    ! non-zero anomaly
+    a = 1.d0; r = 1.d0
+    @assertEqual(r, computeDistance(a, 0.d0, meanAnomaly=0.5d0))
+
+    ! non-zero eccentricity
+    a = 1.d0; r = a/2
+    @assertEqual(r, computeDistance(a, eccentricity=0.5d0, meanAnomaly=0.d0))
+    a = 1.d0; r = 3*a/2
+    @assertEqual(r, computeDistance(a, eccentricity=0.5d0, meanAnomaly=PI))
+
+    
+    ! combined - cos(ea) = 1/2;   r = a * (1-(1/2)*cos(ea)) = 3a/4
+    ! ma = pi/3 - (1/2) sqrt(3)/2
+    a = 1.d0; r = 3*a/4
+    @assertEqual(r, computeDistance(a, eccentricity=0.5d0, meanAnomaly=PI/3 -sqrt(3.d0)/4))
+  end subroutine testComputeDistance
+
+end module Test_OrbitUtilities_mod

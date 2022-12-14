@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Imposed Sea surface conditions</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Imposed Sea surface conditions</H3>
+
+<P> The simplest ocean model is one where the sea surface temperature
+is read in from a file, either a fixed (annually repeating)
+climatology, or a transient (monthly varying) realisation based on
+observations or previous simulations. Monthly means and end of month
+values are read in and a quadratic approximation used to interpolate
+to the (fixed) daily value at every grid point. This is constructed to
+ensure that the monthly mean of the daily interpolated values is equal
+to the specified mean. Along with SST, the sea ice concentration is
+also a required field. This is interpolated similarly but is
+constructed so that the minimum and maximum values are respected. Sea
+ice thickness is also fixed in these cases, but given the lack of
+reliable global observations, we set this based on a local scaling to
+the sea ice concentration. However, if the sea surface conditions come
+from the output of a coupled model simulation, sea ice thickness can
+be provided as an input, by using the ZSI file, which is interpolated
+similarly.</P>
+
+</BODY>
+</HTML>

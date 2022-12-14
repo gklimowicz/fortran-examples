@@ -1,0 +1,21 @@
+#!/bin/sh
+## clone runID creates a new rundirectory with the files needed to run the clone
+   if [ $# -eq 0 ] ; then
+     echo 'Usage: clone runID [ runID_of_clone (default c_runID)'
+     exit ; fi
+
+   CMRUNDIR='/u/cmrun'
+   if [ -f $HOME/.modelErc ]; then . $HOME/.modelErc; fi
+ 
+   clone=c_$1 ; if [ $# -gt 1 ] ; then 
+     clone=$2 ; fi 
+   
+   cd $CMRUNDIR
+   mkdir $clone
+   cp -p $1/*ln $clone/. ; cp -p $1/? $clone/.
+   cp -p $1/*exe* $clone/.
+   cp -p $1/*run* $clone/. ; cp -p $1/*wrapper* $clone/. 2> /dev/null
+   
+   echo "Please copy the necessary restart file(s) to $CMRUNDIR/$clone"
+   echo "   and modify $CMRUNDIR/$clone/I if necessary"
+   echo "The output files will have the same name as in the original run"

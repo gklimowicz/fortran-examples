@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<body bgcolor="#ffffff" text="#000000" link="#000099" vlink="#cc0000" alink="#cc0000">
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+ <TITLE>Git HOW-TO document for the GISS GCM</TITLE>
+</HEAD>
+<BODY>
+<H1>Git HOW-TO document for the GISS GCM</H1>
+
+    <h3><A name="part1_1a"><b> Git </b></A></h3>
+
+<p>
+Git is a revision control system as CVS is. The main difference
+between these two systems is that Git is a &quot;distributed&quot; revision
+control system. This means that each checked out copy of the code
+(&quot;cloned&quot; in git terms) contains the entire history of the project and 
+in theory can serve as a new repository. This allows to perform a lot
+of operations locally, without accessing the central repository. 
+These operations include looking into the history, switching between
+the branches, comparing modified code in the local directory to the
+original code etc. Local operations are much faster and one doesn't
+need network access when performing them. Particularly useful are
+local commits. &quot;git commit -a&quot; will commit changes to local
+repository, nobody will see them until they are sent to central
+repository (with &quot;git push&quot;). So while working on ones own code the
+developer can do a lot of commits to memorize the various stages 
+of the local code. These commits will not interfere with other peoples
+work and will not be visible to others until the developer sends them 
+to the central repository with &quot;git push&quot;. One should remember though
+that until the code is pushed to the central repository it is
+developers responsibility to back it up. Since by its nature Git
+doesn't force the developer to send changes to the central repository
+as often as CVS does, it is advisable that one keeps the local copy of
+the code on a filesystem which is regularly backed up.
+</p>
+
+      <h3><A name="part1_1a"><b> Setting Up </b></A></h3>
+<p>
+To work with Git you need to have it installed on your computer. 
+We are planning to use some functionality which was added in 1.7.0
+version of git. So preferably you should install version no older than
+1.7.0 . Older version will work for most operations but you may see
+some problems in the future. On Discover the latest version of Git 
+is available as a module. You can load it with:
+<pre>
+  module load other/git-1.7.3.4
+</pre>
+If you want to install it on your own workstation or laptop, 
+git is available through Mac ports on Mac and as a rpm package on
+Linux (use EPEL repository on Red Hat 5).
+ Of course, you can always compile it from
+the source (real easy) which you can get from
+<pre>
+  <a href="http://git-scm.com/download">http://git-scm.com/download</a>
+</pre>
+You also have to set the following environment variables:
+<pre>
+  export GIT_AUTHOR_NAME=&quot;<tt>your_name</tt>&quot;
+  export GIT_AUTHOR_EMAIL=<tt>your_email</tt>
+  export GIT_COMMITTER_NAME=&quot;<tt>your_name</tt>&quot;
+  export GIT_COMMITTER_EMAIL=<tt>your_email</tt>
+</pre>
+where <tt>your_name</tt> is the name Git will be using to identify you 
+(in commit info etc.), so preferably use your full name like 
+&quot;John Smith&quot; to avoid confusion. <tt>your_email</tt> is the email which will
+be stored together with your name and which people can use to contact
+you. If you are going to use Git on more than one computer make sure
+that these variable are set to identical values on all computers. 
+<\p>
+
+      <h3><A name="part1_1a"><b>Useful Git commands</b></A></h3>
+<ol>
+<p>
+(apart from the initial &quot;git clone ...&quot; all commands are executed
+from inside of modelE directory tree)
+</p>
+
+<LI> <A name="part1_1a"><b>  to check out the main branch of modelE
+</b></A>
+<p>
+  (equivalent of &quot;cvs checkout modelE&quot;)
+<pre>
+    git clone <tt>username</tt>@simplex.giss.nasa.gov:/giss/gitrepo/modelE.git
+</pre>
+where <tt>username</tt> is your username on simplex. This will create a
+directory modelE with all model code in it. It will also create a
+hidden directory modelE/.git with Git version control information
+in it (this among other things will include entire history of the
+code so that a lot of Git operations can be performed without
+access to the main server).
+</p>
+
+<LI> <A name="part1_1a"><b>   to switch to a branch </b></A>
+<p>
+(after you downloaded the code with &quot;git clone...&quot;) 
+<pre>
+    git checkout <tt>branch_name</tt>
+</pre>
+this will switch the entire directory tree to the branch
+<tt>branch_name</tt>. To see the list of available branches type 
+<pre>
+    git branch -a
+</pre>
+If you want to switch to a remote branch (prefixed with &quot;remotes&quot;)
+use a &quot;short&quot; <tt>branch_name</tt> for this branch (omitting
+&quot;<tt>remotes/origin</tt>&quot;). I.e. if you want to work with the branch 
+<tt>remotes/origin/AR5_branch</tt> just do
+<pre>
+    git checkout AR5_branch
+</pre>
+The first time you execute this command Git will say that it has 
+created a local branch <tt>AR5_branch</tt> which is &quot;tracking&quot; a remote 
+branch. Next time it will just switch the branch. 
+</p>
+
+<LI> <A name="part1_1a"><b> to update the code in your working directory to the latest code
+in the repository on simplex</b></A>
+<p>
+ (equivalent of &quot;cvs update&quot;):
+<pre>
+    git pull
+</pre>
+This will &quot;pull&quot; the latest changes from the repository you 
+cloned from (<tt>simplex.giss.nasagov:/giss/gitrepo/modelE.git</tt> in
+our case). Typically one should always use this simple command, unless 
+one needs to do something fancy, like pulling from a private
+repository of other user. In that case one can use more explicit command
+<pre>
+    git pull <it>username</it>@host_name:/path_to_modelE_dir branch_name
+</pre>
+But be carefull when using this explicit command, for example, if you 
+omit branch_name you will be pulling from the master branch, even if 
+locally you are on a different branch.
+</p>
+
+<LI> <A name="part1_1a"><b> to commit your code to the central
+repository on  simplex </b></A>
+<p>you have to execute two commands:
+<pre>
+    git commit -a
+    git push
+</pre>
+The first one commits the code &quot;locally&quot;, i.e. it stores this
+information in .git subdirectory. The second command &quot;pushes&quot; this
+information to the central repository on simplex. Once the
+information is successfully pushed to simplex Git will send a
+message to the list with the commit info (similar to commit
+messages we are getting now from CVS). So if you don't receive
+such message you may want to check if your &quot;commit&quot; and &quot;push&quot;
+went through correctly.
+</p>
+<p>
+If you are working on more than one branch, then instead of 
+&quot;git push&quot; it is more safe to execute 
+<pre>
+    git push origin HEAD
+</pre>
+This will push only your current local branch to the remote branch
+with the same name, while &quot;git push&quot; will push changes on
+all your branches which were committed but not pushed yet (and that 
+may be not what you want).
+</p>
+<p>
+It is possible that when you try to &quot;push&quot; Git will complain
+about possible conflicts and refuse to push. This situation is
+similar to trying to do &quot;cvs commit&quot; when your code in not
+up-to-date. In this case you have to do &quot;git pull&quot;, resolve
+conflicts in your local directory and then repeat &quot;git commit&quot;,
+&quot;git push&quot;.
+</p>
+<p>
+Sometimes &quot;git pull&quot; will request that you do local &quot;git commit&quot;
+first. This is to prevent your local code from being corrupted
+by conflicts with imported code. In this case do &quot;git commit -a&quot;
+as advised by Git and repeat &quot;pull&quot;. Typically Git produces
+useful messages when executing the commands. If something
+doesn't work as expected read them and most likely you will know
+what to do.
+</p>
+</OL>
+
+<p>
+This small set of commands should get you started. Eventually
+we will post a more complete list here. You can also read
+comprehensive Git manuals and tutorials at
+<pre>
+  <a href="http://git-scm.com/documentation">http://git-scm.com/documentation</a>
+</pre>
+Also, typing
+<pre>
+    git <tt>command</tt> --help
+</pre>
+will produce manual pages for the particular Git <tt>command</tt>.
+If you have questions related to Git send me an email, or,
+better, post them to Modeling Guru forum:
+<pre>
+  <a href="https://modelingguru.nasa.gov/thread/4743?tstart=0">https://modelingguru.nasa.gov/thread/4743?tstart=0</a>
+</pre>
+so that others could profit from the answers. You also may
+get your answers quicker since other people familiar with
+Git may read it.
+ 
+As with CVS we will have a Git repository viewer installed at
+<pre>
+   <a href="http://simplex.giss.nasa.gov/cgi-bin/gitweb.cgi">http://simplex.giss.nasa.gov/cgi-bin/gitweb.cgi</a>
+</pre>
+</p>
+
+
+    <h3><A name="part1_1a"><b> Working with branches </b></A></h3>
+<p>
+Git treats branches as local objects, which means that by default 
+information about a new branch is not pushed to parent repository. 
+Also, <tt>git clone ...</tt> doesn't add the branches from the 
+remote repository to the local repository. To see all local branches
+one can execute
+<pre>
+    git branch
+</pre>
+Typically for a fresh clone this will show just a <tt>master</tt>
+branch. One can though see the branches in a remote repository with
+<pre>
+    git branch -r
+</pre>
+But if one wants to work with a remote branch one has to set up a
+local branch which is &quot;tracking&quot; a remote branch. For
+example, to work with <tt>origin/AR5_branch</tt> branch one can create
+a local branch with 
+<pre>
+    git checkout --track -b AR5_branch origin/AR5_branch
+</pre>
+Starting with the Git version 1.7 this command can be shortened to
+<pre>
+    git checkout AR5_branch
+</pre>
+Once a local branch has been created one can always switch to it with 
+<pre>
+    git checkout branch_name
+</pre>
+The fact that <tt>AR5_branch</tt> we have just created is tracking a
+remote branch means that <tt>git pull</tt> will update your local
+branch from a remote repository and <tt>git push</tt> will send your
+local changes to a remote branch. One should mention that if for a
+local branch we have chosen a name which is different from the name of
+a remote branch then <tt>git pull</tt> will still update the local
+branch from the remote one, but <tt>git push</tt> will have no
+effect. One can use this functionality to create ones own branch which
+one wants to periodically update from a public remote branch.
+</p>
+<p>
+To create a simple local branch (which will start from the current
+checked out state) typically one does
+<pre>
+    git checkout -b branch_name
+</pre>
+If one wants then to commit it to central repository (to make it
+available to other users) one can do it with 
+<pre>
+    git push origin branch_name
+</pre>
+</p>
+<p>
+
+
+</p>
+
+
+    <h3><A name="part1_1a"><b> Using Git as a CVS server </b></A></h3>
+<p>
+Git is capable of simulating the behavior of CVS server, which 
+means that one can access central Git repository using &quot;cvs&quot; 
+(instead of &quot;git&quot;) on local machine. The use of such method 
+is not encouraged and should be avoided if at all possible, 
+but there may be circumstances when one can't use &quot;git&quot; 
+(you have no control over local machine and can't install Git, 
+connection is too slow to download the entire repository, 
+you use a regression script which was written for CVS and 
+was not yet converted to Git etc.). 
+</p>
+<p>
+If you decide to use this method keep in mind that only limited
+set of CVS operation is supported (pretty much just simple 
+&quot;checkout&quot;, &quot;update&quot; and &quot;commit&quot;). 
+The execution may be very 
+slow (may have to wait for several minutes) since Git has to 
+build a special database for it. Set the following environment 
+variable:
+<pre>
+  export CVS_SERVER=&quot;git cvsserver&quot;
+</pre>
+then you can check out the main branch of the model with:
+<pre>
+  cvs -d username@simplex.giss.nasa.gov:/giss/gitrepo/modelE.git \
+      checkout -d modelE master
+</pre>
+To check out a particular branch &quot;branch_name&quot; do:
+<pre>
+  cvs -d username@simplex.giss.nasa.gov:/giss/gitrepo/modelE.git \
+      checkout -d branch_name branch_name
+</pre>
+Keep in mind that &quot;cvs status&quot; will always show that you are on the 
+main trunk even if you have checked out a branch. It is up to you 
+to remember this info. Also, this &quot;simulated&quot; CVS repository has 
+nothing to do with the original CVS repository we were using before
+the switch to Git. Don't try to use these commands on the modelE 
+directory checked out from the old CVS repository - it will destroy
+your code. This method should be treated just as a temporary hack.
+</p>
+</BODY>
+</HTML>

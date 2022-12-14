@@ -1,0 +1,108 @@
+! Workaround for ifort bug with -assume protect_parens
+#ifdef PROTECT_PARENS
+#define ASSIGN_ATTR(a,b) call toType(a,b)
+#else
+#define ASSIGN_ATTR(a,b) a = b
+#endif
+
+module Test_TracerReference_mod
+  use pFUnit_mod
+  use Tracer_mod
+  use TracerPointer_mod
+  use AttributeDictionary_mod
+  use Attributes_mod
+
+  implicit none
+
+@TestCase
+  type, extends(TestCase) :: TestTracerPointer
+    type (TracerPointer) :: tracerRef
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type TestTracerPointer
+
+contains
+
+  subroutine setUp(this)
+    class (TestTracerPointer), intent(inout) :: this
+    type (Tracer) :: aTracer
+    type (TracerPointer) :: trp
+
+    aTracer = newTracer('speciesA')
+    call this%tracerRef%set(aTracer)
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (TestTracerPointer), intent(inout) :: this
+  end subroutine tearDown
+
+@test
+  subroutine testSetReference(this)
+    class (TestTracerPointer), intent(inout) :: this
+    type (Tracer) :: aTracer
+    class (Tracer), pointer :: reference => null()
+
+! TODO: Why doesn't this work when specified in setup?
+! Need to repeat here:
+    aTracer = newTracer('speciesAx')
+    call this%tracerRef%set(aTracer)
+
+!!$    call this%tracerRef%print()
+
+    reference => this%tracerRef%get()
+    ! Check if name of tracer reference is correct
+    @assertEqual('speciesAx', reference%getName())
+
+   end subroutine testSetReference
+
+@test
+  subroutine testInsertIntegerAttribute(this)
+    class (TestTracerPointer), intent(inout) :: this
+    class (Tracer), pointer :: found => null()
+    type (Tracer) :: aTracer
+   
+    integer, pointer :: pInteger => null()
+    integer, parameter :: INT_VALUE=1
+
+! TODO: Why doesn't this work when specified in setup?
+! Need to repeat here:
+    aTracer = newTracer('speciesA')
+    call this%tracerRef%set(aTracer)
+
+    call this%tracerRef%insert('A', INT_VALUE)
+    found => this%tracerRef%get()
+
+    pInteger => toPointer(found%getReference('A'), pInteger)
+    @assertEqual(INT_VALUE, pInteger)
+
+  end subroutine testInsertIntegerAttribute
+
+@test
+  subroutine testInsertLogicalAttribute(this)
+    class (TestTracerPointer), intent(inout) :: this
+    class (Tracer), pointer :: found => null()
+    type (Tracer) :: aTracer
+   
+    logical :: pLogical
+    logical, parameter :: LOG_VALUE=.true.
+
+! TODO: Why doesn't this work when specified in setup?
+! Need to repeat here:
+    aTracer = newTracer('speciesA')
+    call this%tracerRef%set(aTracer)
+
+    call this%tracerRef%insert('A', .true.)
+    call this%tracerRef%insert('B', .false.)
+
+    found => this%tracerRef%get()
+    ASSIGN_ATTR(pLogical, found%getReference('A'))
+    @assertTrue(pLogical)
+
+    ASSIGN_ATTR(pLogical, found%getReference('B'))
+    @assertFalse(pLogical)
+
+  end subroutine testInsertLogicalAttribute
+
+end module Test_TracerReference_mod

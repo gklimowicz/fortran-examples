@@ -1,0 +1,184 @@
+module Test_AssociativeArray_mod
+  use pfunit_mod
+  use Foo_mod
+  use FooAssociativeArray_mod
+  implicit none
+
+   public :: Test_AssociativeArray
+
+@TestCase
+   type, extends(TestCase) :: Test_AssociativeArray
+    type (FooAssociativeArray) :: dictionary
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+  end type Test_AssociativeArray
+
+contains
+
+  subroutine setUp(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+    this%dictionary = newFooAssociativeArray()
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+    call clean(this%dictionary)
+  end subroutine tearDown
+
+  ! An empty dictionary has 0 size
+@Test  
+  subroutine testSize_empty(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+
+    @assertEqual(0, this%dictionary%size())
+
+  end subroutine testSize_empty
+
+  ! Each insert() should increase the size by 1
+@Test  
+  subroutine testSizeAfterInsert(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+
+    call this%dictionary%insert('A', Foo(2))
+    @assertEqual(1, this%dictionary%size())
+
+    call this%dictionary%insert('B', Foo(3))
+    @assertEqual(2, this%dictionary%size())
+
+  end subroutine testSizeAfterInsert
+
+  ! has() should return FALSE if key has not been used.
+@Test  
+  subroutine testHas_missing(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+
+    @assertFalse(this%dictionary%has('A'))
+
+  end subroutine testHas_missing
+
+  ! has() should return true only for keys that have been used.
+@Test  
+  subroutine testHas(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+
+    call this%dictionary%insert('A', Foo(1))
+
+    @assertTrue(this%dictionary%has('A')) 
+    @assertFalse(this%dictionary%has('B'))
+
+  end subroutine testHas
+
+  ! getReference() returns nonassociated pointer for keys that have not been used.
+@Test  
+  subroutine testGetReference_notFound(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+    class (Foo), pointer :: p
+!    type (AbstractAttributeReference) :: attrRef
+
+    call this%dictionary%insert('A', Foo(1))
+!    attrRef = this%dictionary%getReference('B')
+    p => this%dictionary%getReference('B')
+    @assertTrue(.not. associated(p))
+
+  end subroutine testGetReference_notFound
+
+  ! getReference() returns pointer to entry.
+@Test  
+  subroutine testGetReference(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+    class (Foo), pointer :: p
+
+    call this%dictionary%insert('A', Foo(2))
+
+    p => this%dictionary%getReference('A')
+    if (.not. catch(preserve=.true.)) then
+      @assertEqual(2, p%value)
+    end if
+
+  end subroutine testGetReference
+
+  ! This test ensures that the correct entry is selected when there
+  ! are multiple entries.
+@Test  
+  subroutine testGetReferenceB(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+    class (Foo), pointer :: p
+
+    call this%dictionary%insert('A', Foo(1))
+    call this%dictionary%insert('B', Foo(2))
+    call this%dictionary%insert('C', Foo(3))
+
+    p => this%dictionary%getReference('B')
+    if (.not. catch(preserve=.true.)) then
+      @assertEqual(2, p%value)
+    end if
+
+    p => this%dictionary%getReference('A')
+    p => this%dictionary%getReference('C')
+
+  end subroutine testGetReferenceB
+
+@Test  
+  subroutine testMerge(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+    type (FooAssociativeArray) :: otherDictionary
+
+    call this%dictionary%insert('A', Foo(1))
+    otherDictionary = newFooAssociativeArray()
+    call otherDictionary%insert('B', Foo(2))
+    
+    call otherDictionary%merge(this%dictionary)
+    @assertTrue(otherDictionary%has('A'))
+
+  end subroutine testMerge
+
+@Test  
+  subroutine testMergeFail(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+    type (FooAssociativeArray) :: otherDictionary
+
+    call this%dictionary%insert('A', Foo(1))
+    call this%dictionary%insert('B', Foo(2))
+    otherDictionary = newFooAssociativeArray()
+    call otherDictionary%insert('B', Foo(2))
+    
+    call otherDictionary%merge(this%dictionary)
+    call assertExceptionRaised('AssociativeArray::merge() failed due to duplicate keys: <b>.')
+
+ end subroutine testMergeFail
+
+@Test  
+  subroutine testStress(this)
+    class (Test_AssociativeArray), intent(inout) :: this
+
+    integer :: i, j
+    integer, parameter :: NUM_ENTRIES = 10
+    integer, parameter :: NUM_CHAR = 16
+    real :: x
+    class (Foo), pointer :: f
+    integer :: c0, c1, cr
+
+    character(len=NUM_CHAR) :: key
+
+    call system_clock(c0,cr)
+    do i = 1, NUM_ENTRIES
+
+      key = ' '
+      
+      do j = 1, NUM_CHAR
+        call random_number(x)
+        key(j:j) = char(ichar('a') + floor(x*26))
+      end do
+
+      call this%dictionary%insert(key, Foo(i))
+      f => this%dictionary%getReference(key)
+
+      @assertEqual(i, f%value)
+
+    end do
+    call system_clock(c1)
+
+  end subroutine testStress
+
+end module Test_AssociativeArray_mod
