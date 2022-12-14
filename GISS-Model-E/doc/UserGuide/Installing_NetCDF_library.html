@@ -1,0 +1,60 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Installing NetCDF library in your computer</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Installing NetCDF library in your computer</H3>
+<p>
+On Linux and Mac OS X machines typically you can install NetCDF from
+the main software repositories (with &quot;yum&quot; or similar
+package manage on Linux or MacPorts on Mac). You can try it, but we
+don't recommend this approach. The problem is that for a library to be
+compatible with your Fortran compiler it has to be compiled with the
+same compiler and with the same flags you will be using and that may
+be not the case when you get a precompiled library from a repository. 
+If you install NetCDF with MacPorts, at least make sure that you have
+installed the Fortran compiler before you start the installation of
+NetCDF and that MacPorts recognizes it as a default compiler.
+</p>
+<p>
+The safer way, though, is to install NetCDF from the source code. You
+can download the gzipped tar file with the source code from 
+<pre>
+http://www.unidata.ucar.edu/downloads/netcdf/index.jsp
+</pre>
+To install it do the following. Untar the downloaded file and enter
+the directory with downloaded code:
+<pre>
+tar -xzf netcdf-3.6.3.tar.gz
+cd netcdf-3.6.3
+</pre>
+Choose a directory where you want to install NetCDF, say
+&quot;/opt/netcdf/3.6.3&quot; (make sure that directory above it
+exists and is writable to you). Make sure that Fortran compiler is
+installed and is functional. Now, start the installation process.
+<p>
+Inform the system which Fortran compiler you are going to use
+<pre>
+export FC=gfortran
+</pre>
+Configure the package giving it the desired location for installation
+<pre>
+./configure --prefix=/opt/netcdf/3.6.3
+</pre>
+Compile and install the package
+<pre>
+make
+make install
+</pre>
+Netcdf library should now be functional on your system. To inform
+modelE about its location you need to add the following line to your
+<code>~/.modelErc</code> file:
+<pre>
+NETCDFHOME=/opt/netcdf/3.6.3
+</pre>
+</BODY>
+</HTML>

@@ -1,0 +1,151 @@
+module Test_JulianCalendar_mod
+  use pfunit_mod
+  use AbstractCalendar_mod
+  use JulianCalendar_mod
+  use Rational_mod
+  use BaseTime_mod
+  use TimeInterval_mod
+  use Time_mod, only: Time, newTime
+  implicit none
+
+contains
+
+@test
+   subroutine testConvertToTimeA()
+     type (BaseTime) :: t
+     type (JulianCalendar) :: calendar
+
+     calendar = JulianCalendar()
+     t = calendar%convertToTime(year=1,month=1,date=1,hour=0)
+
+     @assertEqual(1, calendar%getYear(t))
+     @assertEqual(1, calendar%getMonth(t))
+     @assertEqual(1, calendar%getDate(t))
+     @assertEqual(0, calendar%getHour(t))
+
+   end subroutine testConvertToTimeA
+
+@test
+   subroutine testConvertToTimeB()
+     type (BaseTime) :: t
+     type (JulianCalendar) :: calendar
+
+     calendar = JulianCalendar()
+     t = calendar%convertToTime(year=1, month=1, date=1, hour=1)
+
+     @assertEqual(1, calendar%getYear(t))
+     @assertEqual(1, calendar%getMonth(t))
+     @assertEqual(1, calendar%getDate(t))
+     @assertEqual(1, calendar%getHour(t))
+
+   end subroutine testConvertToTimeB
+
+@test
+   subroutine testConvertToTimeC()
+     type (BaseTime) :: t
+     type (JulianCalendar) :: calendar
+
+     calendar = JulianCalendar()
+     t = calendar%convertToTime(year=1996, month=9, date=25, hour=17)
+
+     @assertEqual(1996, calendar%getYear(t))
+     @assertEqual(9, calendar%getMonth(t))
+     @assertEqual(25, calendar%getDate(t))
+     @assertEqual(17, calendar%getHour(t))
+
+   end subroutine testConvertToTimeC
+
+@test
+   subroutine testGetSeconds()
+     type (BaseTime) :: t
+     type (TimeInterval) :: dt
+     type (JulianCalendar) :: calendar
+
+     calendar = JulianCalendar()
+     t = calendar%convertToTime(year=1996,month=9,date=25, hour=17)
+     dt = TimeInterval(Rational(17,5))
+     t = newBaseTime(t + dt)
+
+     @assertTrue(Rational(17,5) == calendar%getSeconds(t))
+   end subroutine testGetSeconds
+
+@test
+   subroutine testDaysInYear()
+     type (JulianCalendar) :: calendar
+     type (Time) :: t
+
+     calendar = JulianCalendar()
+     @assertEqual(365, calendar%getDaysInYear())
+     @assertEqual(365, calendar%getDaysInYear(2000))
+     @assertEqual(365, calendar%getDaysInYear(t))
+   end subroutine testDaysInYear
+
+@test
+   subroutine testGetDaysInMonth()
+     type (JulianCalendar) :: calendar
+
+     calendar = JulianCalendar()
+     
+     @assertEqual(31, calendar%getDaysInMonth(1, 2000))
+     @assertEqual(31, calendar%getDaysInMonth(1))
+
+   end subroutine testGetDaysInMonth
+
+@test
+   subroutine testGetSecondsPerHour()
+     use TimeConstants_mod, only: INT_SECONDS_PER_HOUR
+     type (JulianCalendar) :: calendar
+     type (TimeInterval) :: expected
+
+     calendar = JulianCalendar()
+     expected = TimeInterval(INT_SECONDS_PER_HOUR)
+     @assertTrue(calendar%getSecondsPerHour() == expected)
+
+   end subroutine testGetSecondsPerHour
+
+@test
+   subroutine testGetSecondsPerDay()
+     use TimeConstants_mod, only: INT_SECONDS_PER_DAY
+     type (JulianCalendar) :: calendar
+     type (TimeInterval) :: expected
+
+     calendar = JulianCalendar()
+     expected = TimeInterval(INT_SECONDS_PER_DAY)
+
+     @assertTrue(calendar%getSecondsPerDay() == expected)
+
+   end subroutine testGetSecondsPerDay
+
+@test
+   subroutine testGetSecondsPerYear()
+     use TimeConstants_mod, only: INT_SECONDS_PER_YEAR
+     type (JulianCalendar) :: calendar
+     type (TimeInterval) :: expected
+
+     calendar = JulianCalendar()
+     expected = TimeInterval(INT_SECONDS_PER_YEAR)
+
+     @assertTrue(calendar%getSecondsInYear() == expected)
+
+   end subroutine testGetSecondsPerYear
+
+@test
+   subroutine testGetCalendarMonth()
+     use CalendarMonth_mod
+     type (JulianCalendar) :: calendar
+     type (CalendarMonth) :: cMonth
+
+
+     calendar = JulianCalendar()
+     cMonth = calendar%getCalendarMonth(10, 2000)
+
+     @assertEqual(31, cMonth%daysInMonth)
+     @assertEqual(365-(31+30+31)+1, cMonth%firstDayInMonth)
+     @assertEqual(365-(31+30), cMonth%lastDayInMonth)
+     @assertEqual('OCT ', cMonth%abbreviation)
+     @assertEqual('October ', cMonth%fullName)
+
+   end subroutine testGetCalendarMonth
+
+       
+ end module Test_JulianCalendar_mod

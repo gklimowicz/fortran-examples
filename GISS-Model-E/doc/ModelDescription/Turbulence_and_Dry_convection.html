@@ -1,0 +1,261 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Turbulence and Dry convection</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Turbulence and Dry convection</H3>
+
+<p> There are two methods of vertical mixing outside of the surface
+layer: Complete mixing is performed if two boxes are statically
+unstable (using the virtual potential temperature) (DRYCNV); otherwise a
+turbulence closure is used to estimate the amount of mixing based on
+the grid-scale properties and available TKE (ATURB). </p>
+<P>
+Turbulence effectively transfers heat, moisture, and momentum between the surface and the lower atmosphere,
+ and modifies the atmospheric stability and vertical distributions of these quantities.
+In earlier GISS GCMs, dry convective adjustment (using DRYCNV.f instead of ATURB_E1.f or ATURB.f, in the rundeck) 
+ was applied to perform the role of turbulence (Hansen et al. 1983).
+Since the 1990's turbulence scheme (second order closure scheme plus semi-empirical scheme)
+have been implemented in the GISS GCM. There are two versions of the turbulence scheme
+currently in use. The older version is contained in ATURB_E1,f, the newer version is in ATURB.f. 
+They are characterized by:
+  1) a nonlocal vertical transport scheme for virtual potential temperature,
+  specific humidity, and other scalars following Holtslag and Moeng (1991) in ATURB_E1.f, and following
+  Holtslag and Boville (1993) in ATURB.f; 
+  2) employment of the second-order closure (SOC) scheme of Cheng et al. (2002) 
+  that improves several aspects of the standard Mellor-Yamada model (Mellor and Yamada 1982) 
+  and in particular, allows mixing at weak turbulence levels (Canuto et al., 2008); 
+  3) diagnosis and use of the nonlocal
+  vertical profile of the turbulent kinetic energy (TKE) according to the large eddy simulation (LES)
+  studies of Moeng and Sullivan (1994); 
+  4) a formulation of the turbulence length scale that is similar to (in ATURB_E1.f), or 
+  a generalization of (in ATURB.f), that of  Holtslag and Boville (1993); ATURB.f also 
+  employs  a length scale formula for different stabilities by 
+   Nakanishi(2001) based on the Large Eddy Simulation (LES) data;
+  5) calculation of the PBL height using the TKE criterion (in ATURB_E1.f),
+   or the bulk Richardson number criterion (in ATURB.f).
+  ATURB.f has significant improvements in cloud and radiation simulations,
+   especially over the subtropical eastern oceans and the southern oceans, over ATURB_E1.f,
+   while the latter yields deeper vertical transports of heat and moisture in the
+   tropics (Yao and Cheng, 2012).
+</P>
+
+<h4>References:</h4>
+
+<P>
+Cheng, Y., V.M. Canuto, and A.M. Howard, 2002: An improved model for the turbulent PBL. J. Atmos. Sci., 59, 1550-1565.
+</P>
+<P>
+Canuto, V.M., Y. Cheng, A.M. Howard, and E.N. Essau, 2008: Stably stratified flows: A model with no Ri(cr). J. Atmos. Sci., 65, 2437-2447, 
+</P>
+<P>
+Hansen, J. E., G. L. Russell, D. Rind, P. Stone, A. Lacis, R. Ruedy,
+and L. Travis, 1983: Efficient three-dimensional models for
+climate studies. Mon. Wea. Rev., 111, 609-662.
+</P>
+<P>
+Holtslag, A. A. M., and C.-H. Moeng, 1991: Eddy diffusivity and countergradient transport 
+in the convective atmospheric boundary layer. J. Atmos. Sci., 48, 1690-1700.
+</P>
+<P>
+Holtslag, A. A. M., and B. A. Boville, 1993: Local versus nonlocal boundary layer diffusion in a global climate model. J. Climate, 6, 1825-1842.
+</P>
+<P>
+Mellor, G. L., and T. Yamada, 1982: Development of a turbulence closure model for geophysical fluid problems. Rev. Geophys. Space Phys., 20, 851-875.
+</P>
+<P>
+Moeng, C.-H., and P. P. Sullivan, 1994: A comparison of shear- and buoyancy-driven planetary boundary layer flows. J. Atmos. Sci., 51, 999-1022.
+</P>
+<P>
+Nakanishi, M., 2001: Improvement of the Mellor-Yamada turbulence closure model based on large-eddy simulation data. Bound.-Layer Meteor., 99, 349-378.
+</P>
+<P>
+Yao, M.-S., and Y. Cheng, 2012: Cloud simulations in response to turbulence
+parameterizations in the GISS Model E GCM. J. Climate, 25, 4963-4974.
+</P>
+
+<h4>Description of ATURB.f:</h4>
+
+<P>
+ SUBROUTINE ATM_DIFFUS - 
+ updates the mean velocity components, potential temperature,
+ and specific humidity (u,v,t and q) due to turbulent
+ transport throughout all GCM layers,
+ using turbulence models
+ for the turbulent transport of momentum, heat and moisture. 
+ It is called from within the subroutine SURFCE.
+ ATM_DIFFUS consists of the following subroutines:
+<pre>
+ getdz,dout,de_solver_main,de_solver_edge,l_gcm,k_gcm,
+ e_gcm,find_pbl_top,zze,apply_fluxes_to_atm
+</pre>
+</P>
+
+<P>
+ SUBROUTINE ZZE -
+ finds the layer middle and edge heights, z and ze
+ Note that z(L) is between ze(L) and ze(L+1).
+</P>
+<P>
+ SUBROUTINE L_GCM -
+ calculates the turbulent length scale
+ (lscale, in meters). Within the PBL, it is according
+ to Nakanishi(2001); above the PBL, we generalized and
+ employed a formula by Holtslag and Boville (1993).
+</P>
+<P>
+ SUBROUTINE K_GCM -
+ computes the turbulent stability functions Km (for momentum)
+ and Kh (for heat and moisture), as well as the fluxes
+ (local and non-local).
+ Within the convective PBL, it is according to
+ Holtslag and Boville (1993); within the stable PBL or above
+ the PBL, it is according to Cheng et al. (2002).
+</P>
+<P>
+ SUBROUTINE E_GCM -
+ finds the turbulent kinetic energy (e, in m^2/s^2). 
+ Within the PBL, e is determined according to the
+ parameterization of the Large Eddy Simulation (LES) data
+ (Moeng and Sullivan, 1994), above the PBL, e is calculated
+ by the second order closure model of Cheng et al. (2002).  
+</P>
+<P>
+ SUBROUTINE FIND_PBL_TOP - 
+ finds the PBL height (dbl, in meters)
+ and the closest corresponding main level (ldbl),
+ using the bulk Richardson number criterion
+ (Holtslag and Boville, 1993).
+</P>
+<P>
+ SUBROUTINE GETDZ - 
+ computes the 3-d finite difference dz and dze
+ as well as the 3-d density rho (at layer middle)
+ and rhoe (at layer edge).
+ It is called at the primary grid (A-grid).
+</P>
+<P>
+ SUBROUTINE DOUT - 
+ writes out monitoring diagnostics at i=itest,j=jtest
+ if call_diag=.true.
+</P>
+<P>
+ SUBROUTINE DE_SOLVER_MAIN -
+ differential equation solver using tridiagonal method.
+ The differential equation is expressed as
+<pre>
+ d/dt x = d/dz (P1 d/dz x) + P4
+</pre>
+ where x is the unknown to be solved,
+ x and P4 are at the layer middle z, while
+ P1 is at the layer edge ze.
+</P>
+<P>
+ SUBROUTINE DE_SOLVER_EDGE -
+ differential equation solver using tridiagonal method.
+ The differential equation is expressed as
+<pre>
+ d/dt x = d/dz (P1 d/dz x) - P3 x + P4
+</pre>
+ where x is the unknown to be solved,
+ x, P3 and P4 are at the layer edge ze, while
+ P1 is at the layer middle z.
+</P>
+<P>
+ SUBROUTINE APPLY_FLUXES_TO_ATM -
+ a dummy subroutine that replaces the real one needed by DRYCNV.
+</P>
+
+<h4>Description of ATURB_E1.f:</h4>
+
+<P>
+ SUBROUTINE ATM_DIFFUS - 
+ updates the mean velocity components, potential temperature,
+ and specific humidity (u,v,t and q) due to turbulent
+ transport throughout all GCM layers,
+ using turbulence models
+ for the turbulent transport of momentum, heat and moisture. 
+ It is called from within the subroutine SURFCE.
+ ATM_DIFFUS consists of the following subroutines:
+<pre>
+ getdz,dout,de_solver_main,de_solver_edge,l_gcm,k_gcm,
+ e_gcm,find_pbl_top,zze,apply_fluxes_to_atm
+</pre>
+</P>
+<P>
+ SUBROUTINE ZZE -
+ finds the layer edge height, ze.
+ Note that z(L) is between ze(L) and ze(L+1).
+</P>
+<P>
+ SUBROUTINE L_GCM -
+ calculates the turbulent length scale
+ (lscale, in meters)
+ according to Holtslag and Boville (1993).
+</P>
+<P>
+ SUBROUTINE K_GCM -
+ computes the turbulent stability functions Km (for momentum)
+ and Kh (for heat and moisture), as well as the fluxes
+ (local and non-local).
+ Within the PBL, it is according to
+ Holtslag and Moeng (1991); above
+ the PBL, it is according to Cheng et al. (2002).
+</P>
+<P>
+ SUBROUTINE E_GCM -
+ finds the turbulent kinetic energy (e, in m^2/s^2). 
+ Within the PBL, e is determined according to the
+ parameterization of the Large Eddy Simulation (LES) data
+ (Moeng and Sullivan, 1994), above the PBL, e is calculated
+ by the second order closure model of Cheng et al. (2002).  
+</P>
+<P>
+ SUBROUTINE FIND_PBL_TOP - 
+ finds the pbl height, dbl=z(ldbl), in meters,
+ where ldbl is a main layer number, using the TKE criterion.
+</P>
+<P>
+ SUBROUTINE GETDZ - 
+ computes the 3-d finite difference dz and dze
+ as well as the 3-d density rho (at layer middle)
+ and rhoe (at layer edge).
+ It is called at the primary grid (A-grid).
+</P>
+<P>
+ SUBROUTINE DOUT - 
+ writes out monitoring diagnostics at i=itest,j=jtest
+ if call_diag=.true.
+</P>
+<P>
+ SUBROUTINE DE_SOLVER_MAIN -
+ differential equation solver using tridiagonal method.
+ The differential equation is expressed as
+<pre>
+ d/dt x = d/dz (P1 d/dz x) + P4
+</pre>
+ where x is the unknown to be solved,
+ x and P4 are at the layer middle z, while
+ P1 is at the layer edge ze.
+</P>
+<P>
+ SUBROUTINE DE_SOLVER_EDGE -
+ differential equation solver using tridiagonal method.
+ The differential equation is expressed as
+<pre>
+ d/dt x = d/dz (P1 d/dz x) - P3 x + P4
+</pre>
+ where x is the unknown to be solved,
+ x, P3 and P4 are at the layer edge ze, while
+ P1 is at the layer middle z.
+</P>
+<P>
+ SUBROUTINE APPLY_FLUXES_TO_ATM -
+ a dummy subroutine that replaces the real one needed by DRYCNV.
+</P>
+
+</BODY></HTML>

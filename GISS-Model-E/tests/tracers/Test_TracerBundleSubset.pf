@@ -1,0 +1,286 @@
+! Workaround for ifort bug with -assume protect_parens
+#ifdef PROTECT_PARENS
+#define ASSIGN_ATTR(a,b) call toType(a,b)
+#else
+#define ASSIGN_ATTR(a,b) a = b
+#endif
+
+module Test_TracerBundleSubset_mod
+  use pFUnit_mod
+  use Tracer_mod
+  use TracerPointer_mod
+  use TracerBundle_mod
+  use TracerBundleSubset_mod
+  use Attributes_mod
+
+  implicit none
+
+@TestCase
+  type, extends(TestCase) :: TestTracerBundleSubset
+    type (Tracer) :: H2O17
+    type (Tracer) :: strange
+    type (Tracer) :: charm
+    type (Tracer) :: CO2
+    type (TracerBundle) :: bundle
+    type (TracerBundleSubset) :: subsetEven
+    type (TracerBundleSubset) :: subsetOdd
+    type (TracerBundleSubset) :: subsetHasMM
+    type (TracerBundleSubset) :: subsetBundleCopy
+    integer :: numTracers
+
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type TestTracerBundleSubset
+
+  abstract interface
+    function func (t)
+      import
+      class (Tracer), intent(in) :: t
+      logical :: func
+    end function func
+  end interface
+
+  procedure (func), pointer :: fptr => null ()
+
+contains
+
+  subroutine setUp(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+    class (Tracer), pointer :: tp
+    type (TracerBundle), pointer :: tmp
+
+    this%CO2 = newTracer('CO2')
+    call this%CO2%insert('molecularMass', 4.4d+1)
+    call this%CO2%insert('fromFossilFuel', .true.)
+    call this%CO2%insert('doesDecay', .false.)
+    call this%CO2%insert('ntmPower', -6)
+
+    this%H2O17 = newTracer('H2O17')
+    call this%H2O17%insert('molecularMass', 1.9d+1)
+    call this%H2O17%insert('fromFossilFuel', .false.)
+    call this%H2O17%insert('doesDecay', .true.)
+    call this%H2O17%insert('ntmPower', -7)
+
+    this%strange = newTracer('strange')
+    call this%strange%insert('molecularMass', 95.0d+0)
+    call this%strange%insert('doesDecay', .true.)
+    call this%strange%insert('parity', 1)
+    call this%strange%insert('ntmPower', -13)
+
+    this%charm = newTracer('charm')
+    call this%charm%insert('molecularMass', 1.29d+0)
+    call this%charm%insert('doesDecay', .true.)
+    call this%charm%insert('parity', 2)
+    call this%charm%insert('ntmPower', -13)
+
+    this%bundle = newTracerBundle()
+
+    call this%bundle%insert(this%CO2%getName(), this%CO2)
+    call this%bundle%insert(this%H2O17%getName(), this%H2O17)
+    call this%bundle%insert(this%strange%getName(), this%strange)
+    call this%bundle%insert(this%charm%getName(), this%charm)
+    this%numTracers = 4
+
+    fptr => hasMM
+    ! create a subset of tracers with molecularMass attributes
+
+    this%subsetHasMM = TracerBundleSubset(this%bundle, fptr)
+
+    fptr => isEven
+    ! create a subset of tracers with even parity
+    this%subsetEven = TracerBundleSubset(this%bundle, fptr)
+
+    fptr => isOdd
+    ! create a subset of tracers with odd parity
+    this%subsetOdd = TracerBundleSubset(this%bundle, fptr)
+
+    this%subsetBundleCopy = TracerBundleSubset(this%bundle)
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+
+    call clean(this%CO2)
+    call clean(this%H2O17)
+    call clean(this%strange)
+    call clean(this%charm)
+
+    call clean(this%bundle)
+
+  end subroutine tearDown
+
+  function hasMM(t)
+    use AttributeHashMap_mod
+    use Tracer_mod
+    class (Tracer), intent(in) :: t
+    logical :: hasMM
+    type (AttributeHashMapIterator) :: iter
+
+    hasMM = .true.
+    iter = t%begin()
+    do while (iter /= t%last())
+      if (hasMM) return
+      call iter%next()
+    end do
+  end function hasMM
+
+  function isEven(t)
+    use AttributeHashMap_mod
+    use Tracer_mod
+    class (Tracer), intent(in) :: t
+    logical :: isEven
+    integer :: i
+
+    ! if tracer parity is even then return true
+    if (t%has('parity')) then
+      ASSIGN_ATTR(i, t%getReference("parity"))
+      isEven = (mod(i,2) == 0)
+    else
+      isEven = .false.
+    end if
+
+  end function isEven
+
+  function isOdd(t)
+    use AttributeHashMap_mod
+    use Tracer_mod
+    class (Tracer), intent(in) :: t
+    logical :: isOdd
+    integer :: parity
+
+    ! if tracer parity is odd then return true
+    if (t%has('parity')) then
+      ASSIGN_ATTR(parity, t%getReference("parity"))
+      isOdd = (mod(parity,2) == 1)
+    else
+      isOdd = .false.
+    end if
+
+  end function isOdd
+
+@test
+  subroutine testSubsetCopy(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+    type (Tracer) :: t
+    class (Tracer), pointer :: tp
+
+! test inserting a new tracer entry into subset copy
+    t = newTracer('Ox')
+    call this%subsetBundleCopy%insert(t)
+! get reference to recently inserted tracer and check name
+    tp => this%subsetBundleCopy%getReference('Ox')
+    @assertEqual('Ox', tp%getName())
+
+  end subroutine testSubsetCopy
+
+@test
+  subroutine testGetEvenSubset(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+    class (Tracer), pointer :: tp
+
+! Only charm tracer has even parity
+    tp => this%subsetEven%getReference('charm')
+    @assertTrue(this%subsetEven%has('charm'))
+
+  end subroutine testGetEvenSubset
+
+@test
+  subroutine testGetReference(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+    class (Tracer), pointer :: tp
+
+! get reference from fixture object
+    tp => this%subsetHasMM%getReference('CO2')
+    @assertEqual('CO2', tp%getName())
+
+  end subroutine testGetReference
+
+@test
+  subroutine testInsert(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+    type (Tracer) :: t
+    class (Tracer), pointer :: tp
+
+! test inserting a new tracer entry into subsetHasMM
+    t = newTracer('Ox')
+    call this%subsetHasMM%insert(t)
+! get reference to recently inserted tracer and check name
+    tp => this%subsetHasMM%getReference('Ox')
+    @assertEqual('Ox', tp%getName())
+
+  end subroutine testInsert
+
+@test
+  subroutine testMergeSubset(this)
+    use AbstractAttribute_mod
+    class (TestTracerBundleSubset), intent(inout) :: this
+    class (Tracer), pointer :: tp
+    character(len=MAX_LEN_ATTRIBUTE_STRING) :: name
+
+    tp => this%subsetOdd%getReference('strange')
+! Merge even and odd subsets
+    call this%subsetEven%merge(this%subsetOdd)
+    tp => this%subsetEven%getReference('strange')
+    name = tp%getName()
+    @assertEqual('strange', name)
+
+  end subroutine testMergeSubset
+
+
+@test
+  subroutine testSetAttribute(this)
+    use Attributes_mod, only: newAttribute
+! Under gfortran we need to use Attributes_mod and then run crashes
+! with seg fault - else we get compilation errors
+    use Attributes_mod
+    class (TestTracerBundleSubset), intent(inout) :: this
+    integer :: expected
+    integer :: found
+
+    call this%subsetHasMM%setAttribute('CO2', 'parity',newAttribute(0))
+    expected = 0
+    ASSIGN_ATTR(found, this%subsetHasMM%getAttribute('CO2', 'parity'))
+    @assertEqual(expected, found)
+
+  end subroutine testSetAttribute
+
+@test
+  subroutine testGetAttribute(this)
+! Under gfortran we need to use Attributes_mod and then run crashes
+! with seg fault - else we get compilation errors
+    use Attributes_mod
+    class (TestTracerBundleSubset), intent(inout) :: this
+    real(kind=DP) :: expected
+    real(kind=DP) :: found
+
+    expected = 4.4d+1
+    ASSIGN_ATTR(found, this%subsetHasMM%getAttribute('CO2', 'molecularMass'))
+    @assertEqual(expected, found)
+
+  end subroutine testGetAttribute
+
+  subroutine testFindAttribute(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+    real(kind=DP) :: expected
+    real(kind=DP), pointer :: found
+
+    expected = 4.4d+1
+    ASSIGN_ATTR(found, this%subsetHasMM%findAttribute('CO2', 'molecularMass'))
+    @assertEqual(expected, found)
+
+  end subroutine testFindAttribute
+
+@test
+  subroutine testHasAttribute(this)
+    class (TestTracerBundleSubset), intent(inout) :: this
+
+    ! check that all tracers in bundle have 'molecularMass' attribute
+    @assertAll(this%subsetEven%hasAttribute('molecularMass'), 'missing attribute')
+
+  end subroutine testHasAttribute
+
+end module Test_TracerBundleSubset_mod
+
+! TODO: Need to fix merge implementation

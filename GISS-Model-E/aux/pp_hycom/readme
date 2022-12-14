@@ -1,0 +1,218 @@
+===============================================================================================================
+makefile 
+
+Get executable:
+
+make avg
+make pltov_mon
+make latlonz
+
+===============================================================================================================
+(1) avg:
+ --- output key monthly mean variables in mon_[runid]_[ny1-ny2].txt
+ --- output key annual  mean variables in ann_[runid]_[ny1-ny2].txt
+ --- output MOC in lat/rho space in 4 basins averaged over year ny1:ny2  
+     in avg_ov_[runid]_[ny1-ny2].txt: flux(idm,kdm,4)
+ --- output northward heatflux as a function of lat in "heatfl(idm,4)"
+     in 4 basins averaged over year ny1:ny2 in avg_hf_[runid]_[ny1-ny2].txt
+
+Get executable: 
+make avg
+
+Input data namelist file  "hdiag.nml" :
+
+&hdiag_nml
+  ! You can add more parameter. Look at DEFAULT's values in file const_proc.f
+  ! Definitions namelist hdiag_nml are in  avg.f pltov_mon.f
+
+      runid="EhCld0",      ! Name run id
+      ny1=2380,            ! Start year
+      ny2=2389,            ! Last  year for processing
+      path1="/discover/nobackup/ntausnev/RUNS_ME/EhCld0/z_OUT/outEhCld0_2380-2389/", ! Dir with input .out files
+      path2="/discover/nobackup/ntausnev/Z_Deleted_Files/Z_PP_CVS/EhCld0/RESULTS/",  ! Dir output results
+/
+
+ATTENTION: directory path2 should exist !
+
+User defines runid, ny1, ny2, path1, path2 
+and gets the results files 
+
+ann_runid_ny-ny2.txt 
+mon_runid_ny1-ny2.txt
+avg_hf_runid_ny1-ny2.txt
+avg_ov_runid_ny1-ny2.txt
+
+
+at the path2 directory.
+
+For example ann_Eh127f9a_1980-1989.txt:
+Time     SST         SSS         Tavrg       Savrg       SSH         Ocean Heat  Atl (45N)   Indonesian  Drake
+----     Surf_Temp   Surf_Saln   Glob_Temp   Glob_Saln   Srf_Hght    Content     Max Overt   Throughfl   Passage
+Year     degC        PSU         degC        PSU         cm          *1.E6 J/m2  Sv          Sv          Sv
+1980.50  +1.950E+01  +3.544E+01  +4.403E+00  +3.522E+01  -1.002E+03  +6.772E+04  +2.063E+01  +1.701E+01  +1.448E+02
+1981.50  +1.956E+01  +3.544E+01  +4.406E+00  +3.522E+01  -1.001E+03  +6.776E+04  +2.193E+01  +1.522E+01  +1.459E+02
+....
+
+For example mon_Eh127f9a_1990-1999.txt
+Time     NINO3         Ice Extent    Ice Extent    Ocean Heat    Sea Surface   Sea Surface   Global Ocean  Global Ocean
+----     Index         Arctic        Antarctic     Content       Temperature   Salinity      Temperature   Salinity
+Year                   Mln.Sq.km     Mln.Sq.km     *1.E6 J/m2    degC          PSU           degC          PSU
+1990.08  +2.81487E+01  +1.28051E+01  +5.43580E-01  +6.80928E+04  +2.01434E+01  +3.54413E+01  +4.42694E+00  +3.52225E+01
+1990.16  +2.84030E+01  +1.37411E+01  +1.94616E-01  +6.81337E+04  +2.04332E+01  +3.54410E+01  +4.42961E+00  +3.52226E+01
+1990.25  +2.88451E+01  +1.39138E+01  +2.79965E-01  +6.81601E+04  +2.03904E+01  +3.54392E+01  +4.43132E+00  +3.52228E+01
+
+
+For example avg_hf_Eh127f9a_1990-1999.txt:
+North Poleward Ocean Heat Transport
+ Num Latitude  Atlantic    Indian      Pacifiq     Global
+     degr(N)   pWatts      pWatts      pWatts      pWatts
+   1  +67.1    +0.000E+00  +0.000E+00  +0.000E+00  +0.000E+00
+   2  +67.5    +0.000E+00  +0.000E+00  +0.000E+00  +1.253E-03
+   3  +67.9    +0.000E+00  +0.000E+00  +0.000E+00  +1.019E-03
+   4  +68.3    +0.000E+00  +0.000E+00  +0.000E+00  +7.175E-04
+   5  +68.8    +0.000E+00  +0.000E+00  +0.000E+00  +9.356E-04
+
+
+
+Use script "plot_hyc_msf.ksh"  for production ps file
+from  avg_ov_runid_ny1-ny2.txt (see below).
+
+
+===============================================================================================================
+(2) pltov_mon: instead of annual or multi-year mean in (1), flux and
+    heatfl here are calculated on the monthly base in binary format.
+
+Get executable:
+make pltov_mon
+
+Input file:  hdiag.nml
+
+Run: pltov_mon
+
+Output files in the path2 directory: 
+mon_hf_runid_ny1-ny2.tbin
+mon_ov_runid_ny1-ny2.tbin
+
+Use qdf to look at titles in these files.
+
+
+===============================================================================================================
+(3) latlonz.ksh convert monthly hycom output files (*.out) from native grid to
+          1x1 deg lat/lon grid and 33 Levitus levels
+          by averaging monthly input data. 
+          This is analog pdE for acc files. 
+
+The usage of the script latlonz.ksh is as follows:
+usage:   latlonz.ksh [-h]  -o outFile  -t "title" -i file1 [ file2 [file*] .... ]
+
+example: ( input files can be zip files !!! )
+   latlonz.ksh \
+     -o /discover/nobackup/ntausnev/Z_Deleted_Files/JAN2280_82.zoutEhMay2 \
+     -t "RunId=EhMay2 Mon=JAN YEAR=2280-82" \
+     -i /discover/nobackup/ntausnev/RUNS_ME/EhMay2/00HYC/outEhMay2_2280-2289/JAN228[0-2].outEhMay2.gz
+
+
+Options:
+-o output file
+-t title in output file
+-i input files.  
+
+If output file has extention ".nc" result will be at netcdf format !
+
+Output fields:
+sea surface height (cm)  
+mixed layer depth (m)    
+sea ice coverage [0:1]   
+eastward  velocity (cm/s)
+northward velocity (cm/s)
+temperature (deg C)     
+salinity (psu)      
+density (sigma2) 
+
+Look at content of the result file use
+qdf ot ncdump according the chosen format
+
+===============================================================================================================
+(4) plot_hyc_msf.ksh 
+Here is wraper Shun Sun matlab script for ploting meredional stream function
+prepared program avg.f
+
+User chanhes only next lines:
+num_files=1 % how many plots (1-4)
+and  abs path input files:
+pathname_1=/discover/nobackup/ntausnev/Z_Deleted_Files/z_trash/Eh127f9a/OUT/avg_ov_Eh127f9a_1980-1989.txt
+pathname_2=/discover/nobackup/ntausnev/RUNS_ME/Eh113_06/z_hdiag/avg_ov_Eh113_06_2020-2029.txt
+pathname_3=/discover/nobackup/ntausnev/RUNS_ME/EhCld0/z_00HYC/avg_ov_EhCld0_239.txt
+pathname_4=/discover/nobackup/ntausnev/RUNS_ME/EhMay2/z_00HYC/avg_ov_EhMay2_239.txt
+
+plot_hyc_msf.ksh will generate matlab file matlab_plot_msf.m
+and if matlab is available then starts an execution and produce
+post script file avg_ov_Eh127f9a_1980-1989.ps.
+If num_files is more the one then the nme of an output file 
+forms on the base pathname_1 changing suffix .txt to .ps.
+
+ 
+===============================================================================================================
+(5) get_out4archive.pl copy *.acc or *out files from archive to local directory   
+
+    get_out4archive.pl -h
+    get_out4archive.pl -r RunId -f acc|out -s startYear -l lastYear  [ -d dir_out ]
+
+Options: -r runId, 
+         -f acc | out  select which type acc or hycom out files need to copy
+         -s start year
+         -l last  year  and directory destination
+         -d directory deatination
+
+Example:
+
+    get_out4archive.pl -r Eh127f9c -f out -s 1983 -l 1997 -d /discover/nobackup/ntausnev/Z_Deleted_Files/Eh127f9c
+    
+Caution: need additioanal adjustment for specific user data.
+        
+===============================================================================================================
+===============================================================================================================
+===============================================================================================================
+(5) get2d: read monthly output from "latlonz" and generate 2d fields 
+           of ij,ik,jk section. 
+
+Note: one needs to add the name of runid, starting/ending year 
+and if multi-year monthly mean is required before conversion
+in "input" and run it under the dir where the data are. The location
+of the data on the native grid is in "path1" in const_proc.f, and 
+is set to be the current directory by default. Also make sure the 
+number of tracer "ntrcr" in hycom_dimen.f is consistent with that 
+in the dataset. 
+
+To run the code:
+
+Please, look at file hdiag.nml
+Here is a minimum input parameters that user should 
+define for post processing. Default values are in 
+const_proc.f . Edit parameters and save file hdiag.nml .
+
+Program assumes that user has input files in directory with
+abs path=path1(see hdiag.nml) as MMMYYYY.out{RunId}
+
+===============================================================================================================
+
+$ make avg
+$ avg 
+
+$ make pltov_mon
+$ pltov_mon 
+
+$ make latlonz
+Change parameters after -o output file
+                       -t "This title will be at output files"
+                       -i input files for averages and transfer on Levitus grid: 
+EXAMPLE:
+latlonz.ksh \
+     -o /discover/nobackup/ntausnev/Z_Deleted_Files/JAN2280_82.zoutEhMay2 \
+     -t "RunId=EhMay2 Mon=JAN YEAR=2280-82" \
+     -i /discover/nobackup/ntausnev/RUNS_ME/EhMay2/00HYC/outEhMay2_2280-2289/JAN228[0-2].outEhMay2.gz
+
+     If output file has suffix ".nc" result is written in netcdf format
+
+$ make get2d
+$ get2d <input

@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Compiling the model</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Compiling the model and setting up a directory for model run</H3>
+
+<P>
+Compilation of the model and preparation of a directory for the model
+run is performed by combination of make and perl scripts. They are
+designed to automatically detect model configuration and resolve
+dependencies between Fortran modules. Typical user would never need to
+modify any of these scripts. 
+<P>
+Typical command for compiling the model and setting up a directory for
+model run is
+<pre>
+     make setup RUN=&lt;RunID&gt;
+</pre>
+This command will read model configuration from
+<code>&lt;RunID&gt;.R</code> rundeck and compile the corresponding
+executable. It will also create a directory for the run and link it to
+the current directory with the name <code>&lt;RunID&gt;</code>. The
+executable will be put into this run directory 
+together with all the scripts which are needed to run the model. 
+This command compiles the model for serial run. If one wants to
+compile the model for parallel run (using MPI) one has to append a
+flag <code>MPI=YES</code> on the command line, i.e.
+<pre>
+     make setup RUN=&lt;RunID&gt; MPI=YES
+</pre>
+<P>
+Normally, once the model is compiled and before you start a long run,
+you want to perform a &quot;cold start&quot;, i.e. you want to start
+your simulations from initial conditions, run the model for 1 hour of
+model time and save its state into a checkpoint file (restart file). 
+This can be done with a command
+<pre>
+    ../exec/runE &lt;RunID&gt; -np &lt;NP&gt; -cold-restart
+</pre>
+where <code>&lt;NP&gt;</code> is the number of MPI threads you want to
+use (typically the number of available cpu cores). Keep in mind that
+on big computers you may not be allowed to run MPI jobs
+interactively. In this case you have to set a variable QSUB_STRING
+in your ~/.modelErc file to a command which would submit your task as
+a batch job (see next section). Once first-hour run finishes
+successfully your model is ready for longer runs. 
+<P>
+If you really want to, you can request <code>make</code> to
+automatically run the model for the first hour after it finishes the
+setup. To do this use the target &quot;setup-run&quot; instead of
+&quot;setup&quot;, i.e.
+<pre>
+    make setup-run RUN=&lt;RunID&gt; MPI=YES NPES=&lt;NP&gt;
+</pre>
+where <code>&lt;NP&gt;</code> is the number of MPI threads for the
+first hour run.
+<P>
+Typically <code>make</code> resolves dependencies well when code
+changes and recompiles only those files which have to be recompiled. 
+But when one switches to a completely different rundeck or checks out
+a different branch from the git repository, it may be safer to delete
+all precompiled object files and start a fresh compilation. To do it
+just execute
+<pre>
+    make clean
+</pre>
+before starting a new compilation.
+<P>
+If for some reason you want to compile the model, but don't want to
+set up a run directory you can do it by using a target
+&quot;gcm&quot; instead of &quot;setup&quot;.
+
+
+</BODY>
+</HTML>

@@ -1,0 +1,46 @@
+#!/bin/ksh
+. ~/.modelErc
+
+if [[ $1 != RES* ]] 
+then echo "usage: ${0##*/} RES*.f [ B|C dlat_dg (to be executed in ../init_cond)"
+     echo "no action" ; exit ; fi
+
+RES=${1%.f} ; shift
+gmake mkAIC.bin RES_FILE=${RES} 
+
+if [[ $GCMSEARCHPATH = "" ]] ; then
+    echo "Please specify GCMSEARCHPATH in your ~/.modelErc"
+    exit 1
+fi
+
+base=$GCMSEARCHPATH
+
+# pick appropriate fortran compiler and data file directory
+#FC=f90 ; base=/u/cmrun
+#if [[ $( hostname ) = charney* ]] ;  then FC='f90 -convert big_endian'
+#    base=/work/gcm ; fi
+#if [[ $( hostname ) = palm* ]] ;     then FC='ifort -convert big_endian'
+#   base=/explore/nobackup/projects/GISS/prod_input_files ; fi
+#if [[ $( hostname ) = discover* ]] ; then FC='ifort -convert big_endian'
+#   base=/discover/nobackup/projects/giss/prod_input_files ; fi
+
+ln -s $base/NCARIC.144x73.D7712010 .
+
+#cd ../model
+#ls -1 RES*.f ; echo "pick a resolution file"
+#read RES ; cd -
+
+cd $base
+ls -1 Z* ; echo "pick a topography file"
+read TOP
+cd - ; ln -s ${base}/$TOP TOPO
+
+#$FC ../model/${RES} AIC.D771201.f HNTRPS.f
+./mkAIC.bin $1 $2
+
+ofile=$( ls -1t OUT* | head -1 )
+sfx=${ofile#OUT}
+mv $ofile AIC.${RES[0]%.f}.D771201_${TOP[0]}_$sfx
+rm -f TOPO
+rm -f NCARIC.144x73.D7712010
+

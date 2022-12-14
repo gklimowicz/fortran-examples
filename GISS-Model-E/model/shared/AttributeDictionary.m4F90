@@ -1,0 +1,229 @@
+#include "rundeck_opts.h"
+changequote([,])dnl
+include([m4Iteration.m4])dnl
+define([downcase], [translit([$*], [A-Z], [a-z])])dnl
+
+define([m4_KIND_TYPES],
+ [(Integer,,1,),
+  (Integer,,0,),
+  (Logical,,1,),
+  (Logical,,0,),
+  (Real,(kind=DP),1,RealDP),
+  (Real,(kind=DP),0,RealDP),
+  (Character,(len=MAX_LEN_ATTRIBUTE_STRING),1,String),
+  (Character,(len=MAX_LEN_ATTRIBUTE_STRING),0,String)])dnl
+
+define([m4_type], [$1])dnl
+define([m4_kind], [$2])dnl
+define([m4_rank], [$3])dnl
+define([m4_dimensions],[ifelse($1,0,,ifelse($1,1,(:),(:,:)))])dnl
+define([m4_shape],[ifelse($1,0,,ifelse($1,1,(size($2,1)),(size($2,1),size($2,2))))])dnl
+
+define([m4_attributeType],[ifelse($4,,$1,$4)[]ifelse($3,0,,$3d)Attribute])dnl
+
+module AttributeDictionary_mod
+  use Attributes_mod
+  use AttributeHashMap_mod
+  implicit none
+  private
+
+  public :: AttributeDictionary
+  public :: newAttributeDictionary
+  public :: assignment(=)  !, copyIt
+  public :: toPointer
+  public :: clean
+
+  type, extends(AttributeHashMap) :: AttributeDictionary
+    private
+  contains
+    procedure :: writeUnformatted
+    procedure :: readUnformatted
+    procedure :: writeFormatted
+    procedure :: equals
+!!$    generic :: operator(==) => equals
+    foreachq([case], [m4_KIND_TYPES], 
+         [ procedure :: insert[]_cat([m4_attributeType],case)
+])dnl
+    foreachq([case], [m4_KIND_TYPES], 
+         [ generic :: insert => insert[]_cat([m4_attributeType],case)
+])dnl
+  end type AttributeDictionary
+
+  interface assignment(=)
+    module procedure copyIt
+  end interface assignment(=)
+
+  ! TODO make type-bound when ifort is fixed - compilation slows to craws for higher-level modules
+  interface operator(==)
+    module procedure equals
+  end interface operator(==)
+
+  interface clean
+    module procedure clean_
+  end interface clean
+
+  ! Prototypes used for distinguishing types - must include all possible attribute types
+  foreachq([case], [m4_KIND_TYPES], 
+       [ type (_cat([m4_attributeType],case)), target :: _cat([m4_attributeType],case)Prototype
+])dnl
+
+
+  integer, parameter :: NUM_TYPES = 8 
+  type (AttributePointer) :: prototypes(NUM_TYPES)
+
+contains
+
+  function newAttributeDictionary() result(this)
+    type (AttributeDictionary) :: this
+
+    this%AttributeHashMap = newAttributeHashMap(100)
+    
+    ! Initialize the prototypes
+    define([iter],1)
+    foreachq([case], [m4_KIND_TYPES], 
+    [prototypes(iter)%p => _cat([m4_attributeType],case)Prototype
+   ][define([iter],incr(iter))])dnl
+
+   undefine([iter])
+
+  end function newAttributeDictionary
+
+  logical function equals(this, b)
+    class (AttributeDictionary), intent(in) :: this
+    class (AttributeDictionary), intent(in) :: b
+
+    type (AttributeHashMapIterator) :: iter
+    class (AbstractAttribute), pointer :: p1
+!!$    type (AbstractAttributeReference) :: p2
+    class (AbstractAttribute), pointer :: p2
+
+    equals = .true.
+    if (this%size() /= b%size()) then
+      equals = .false. 
+      print*,'different size',this%size(), b%size()
+      return
+    end if
+
+    iter = this%begin()
+    do while (iter /= this%last())
+
+      if (.not. b%has(iter%key())) then
+        equals = .false.
+        print*,'different key'
+        return
+      end if
+      
+      p1 => iter%value()
+      p2 => b%getReference(iter%key())
+
+!!$      if (.not. (p1%equals(p2%ptr))) then
+      if (.not. (p1%equals(p2))) then
+        equals = .false.
+        print*,'different value for key <',trim(iter%key()),'>'
+        call p1%print()
+        call p2%print()
+        return
+      end if
+
+      call iter%next()
+
+    end do
+
+  end function equals
+
+  ! 
+  subroutine readUnformatted(this, unit)
+    class (AttributeDictionary),intent(inout) :: this
+    integer, intent(in) :: unit
+
+    integer :: n
+    integer :: i
+    class (AbstractAttribute), pointer :: p, q
+    character(len=MAX_LEN_KEY) :: key
+    integer :: attributeType
+
+    read(unit) n
+    do i = 1, n
+      read(unit) key
+      read(unit) attributeType
+      p => prototypes(attributeType)%p
+      q => p%readUnformatted(unit)
+      call this%insert(trim(key), q)
+    end do
+
+  end subroutine readUnformatted
+
+define([m4_insert],
+[
+  subroutine insert[]m4_attributeType($1,$2,$3,$4)(this, key, value)
+    class (AttributeDictionary), intent(inout) :: this
+    character(len=*), intent(in) :: key
+    downcase($1)[]ifelse($1,Character,(len=*),$2), intent(in) :: value m4_dimensions($3)
+
+    call this%insert(key, newAttribute(value))
+  end subroutine insert[]m4_attributeType($1,$2,$3,$4)
+])dnl
+
+foreachq([case],[m4_KIND_TYPES],[_cat([m4_insert],case)])
+
+  subroutine copyIt(a, b)
+    type (AttributeDictionary), intent(out) :: a
+    type (AttributeDictionary), intent(in) :: b
+
+    a%AttributeHashMap = b%AttributeHashMap
+  end subroutine copyIt
+
+  subroutine writeUnformatted(this, unit)
+    class (AttributeDictionary), intent(in) :: this
+    integer, intent(in) :: unit
+
+    type (AttributeHashMapIterator) :: iter
+    class (AbstractAttribute), pointer :: p
+
+    write(unit) this%size()
+    iter = this%begin()
+    do while (iter /= this%last())
+
+      write(unit) iter%key()
+      p => iter%value()
+      write(unit) getAttributeType(p)
+      call p%writeUnformatted(unit)
+
+      call iter%next()
+    end do
+
+  contains
+
+    integer function getAttributeType(p) result(attributeType)
+      class (AbstractAttribute), pointer :: p
+      integer :: i
+
+      do i = 1, NUM_TYPES
+        if (same_type_as(p, prototypes(i)%p)) then
+          attributeType = i
+          return
+        end if
+      end do
+      
+      call stop_model('No prototype for attribute in AttributeDictionary writeUnformatted.',255)
+
+    end function getAttributeType
+
+  end subroutine writeUnformatted
+
+  subroutine writeFormatted(this, unit)
+    class (AttributeDictionary), intent(in) :: this
+    integer, intent(in) :: unit
+
+
+  end subroutine writeFormatted
+
+  subroutine clean_(this)
+    type (AttributeDictionary), intent(inout) :: this
+    call clean(this%AttributeHashMap) ! parent
+  end subroutine clean_
+
+end module AttributeDictionary_mod
+
+
+

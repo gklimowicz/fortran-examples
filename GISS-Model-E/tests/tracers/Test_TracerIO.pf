@@ -1,0 +1,133 @@
+module Test_TracerIO_mod
+  use pFUnit_mod
+  use Tracer_mod
+  use TracerBundle_mod
+  use Dictionary_mod, only: Dictionary
+  use AttributeDictionary_mod, only: AttributeDictionary
+  implicit none
+
+  public :: Test_TracerIO
+
+@TestCase
+   type, extends(TestCase) :: Test_TracerIO
+    type (TracerBundle) :: bundle
+    type (Dictionary) :: defaultValues
+    type (AttributeDictionary) :: newDefaultValues
+    integer :: iounit
+    integer :: numTracers
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+   end type Test_TracerIO
+
+contains
+
+  subroutine setUp(this)
+    use Dictionary_mod, only: Dictionary
+    use AttributeDictionary_mod
+    use FileManager
+    class (Test_TracerIO), intent(inout) :: this
+    integer :: iounit
+
+    call openUnit('testTracers.txt', iounit, qold=.false., qbin=.false.)
+    this%iounit = iounit
+
+    write(iounit,'(a)')'{'
+    write(iounit,'(a)')' name = speciesA'
+    write(iounit,'(a)')' molecularMass = 1.2 ! g'
+    write(iounit,'(a)')' optionA = True'
+    write(iounit,'(a)')' optionC = False'
+    write(iounit,'(a)')'}'
+    write(iounit,'(a)')' '
+    write(iounit,'(a)')'{'
+    write(iounit,'(a)')' name = speciesB'
+    write(iounit,'(a)')' molecularMass = 2.3 ! g'
+    write(iounit,'(a)')' optionB = False'
+    write(iounit,'(a)')'}'
+
+    rewind(iounit)
+
+    this%numTracers = 2
+
+    this%defaultValues = Dictionary()
+    call this%defaultValues%insert('optionC', .true.)
+    call this%defaultValues%insert('optionD',  1)
+
+    this%newDefaultValues = newAttributeDictionary()
+    call this%newDefaultValues%insert('optionC', .true.)
+    call this%newDefaultValues%insert('optionD', 1)
+
+    this%bundle = newTracerBundle()
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    use Dictionary_mod, only: clean
+    class (Test_TracerIO), intent(inout) :: this
+
+    close(this%iounit, status='delete')
+    this%iounit = -1
+    call clean(this%defaultValues)
+    call clean(this%newDefaultValues)
+    call clean(this%bundle)
+
+  end subroutine tearDown
+
+@Test  
+  subroutine testReadFromText(this)
+    class (Test_TracerIO), intent(inout) :: this
+    type (TracerBundle) :: bundle
+
+    integer :: iounit
+
+    iounit = this%iounit
+    bundle = readFromText(iounit, this%newDefaultValues)
+    @assertEqual(this%numTracers, bundle%size(), 'Incorrect number of tracers found.')
+
+  end subroutine testReadFromText
+
+  ! support routine
+  subroutine readTracers(this)
+    class (Test_TracerIO), intent(inout) :: this
+    this%bundle = readFromText(this%iounit, this%newDefaultValues)
+  end subroutine readTracers
+
+@Test  
+  subroutine testWriteFormatted(this)
+    use FileManager
+    class (Test_TracerIO), intent(inout) :: this
+    type (TracerBundle) :: bundle
+    integer :: iounit
+
+    call openUnit('testTracersOut.txt', iounit, qold=.false., qbin=.false.)
+    call this%bundle%writeFormatted(iounit)
+    rewind(iounit)
+
+    bundle = readFromText(iounit)
+    @assertTrue(bundle == this%bundle)
+
+    close(iounit, status ='delete')
+    call clean(bundle)
+    
+  end subroutine testWriteFormatted
+
+@Test  
+  subroutine testWriteUnformatted(this)
+     use FileManager
+    class (Test_TracerIO), intent(inout) :: this
+    type (TracerBundle) :: bundle
+    integer :: iounit
+
+    call openUnit('testTracersOut.bin', iounit, qold=.false., qbin=.true.)
+    call this%bundle%writeUnformatted(iounit)
+    rewind(iounit)
+
+    bundle = readUnformattedBundle(iounit)
+    @assertTrue(bundle == this%bundle, 'should be ==')
+
+    close(iounit, status ='delete')
+    call clean(bundle)
+    
+  end subroutine testWriteUnformatted
+
+end module Test_TracerIO_mod

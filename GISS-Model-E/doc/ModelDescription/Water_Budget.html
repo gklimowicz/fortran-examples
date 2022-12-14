@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Salt Water Budget in GISS ModelE</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>(Salt) Water Budget in GISS ModelE</H3>
+Variables defined on atmosphere grid are not preceeded by 'a'.
+Variables defined on ocean grid are preceeded by 'o'.<BR><BR>
+
+The section "<B>Without Fluxes</B>" indicates the prognostic variables that
+contribute to the salt water mass (kg) for each reservoir.<BR><BR>
+
+After many subroutines, water mass has been removed from some reservoirs
+but not yet been added to the next reservoirs; water mass is temporarily
+stored in a "flux" array.  After each subroutine, reservoirs which do not
+have unadded fluxes are not mentioned; for other reservoirs flux arrays
+are indicated.<BR><BR>
+
+<B>Without Fluxes</B><BR>
+AtmosQ  = Q*AM*DXYP<BR>
+Clouds  = WM*AM*DXYP<BR>
+LandIce = (SNOWLI+ACE1LI+ACE2LI)*FLICE*DXYP<BR>
+Ground  = GRNDW = see formula below<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP<BR>
+LiqLake = MWL<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP<BR><BR>
+
+NSNB = NSN_IJ(1)<BR>
+NSNV = NSN_IJ(2)<BR>
+WIJ  = FB * {Sum[W_IJ(1:NGM,1)] + FR_SNOW_IJ(1) * Sum[WSN_IJ(1:NSNB,1)]} +<BR>
+     + FV * {Sum[W_IJ(1:NGM,2)] + FR_SNOW_IJ(2) * Sum[WSN_IJ(1:NSNV,2)]}<BR>
+GRNDW = RHOW * {FEARTH * WIJ + FLAKE * Sum[W_IJ(1:NGM,3)]} * DXYP<BR><BR>
+
+<B>After MELT_SI</B>:  MELTI removed from LakeIce and SeaIce<BR>
+LiqLake = MWL + MELTI(non ocean)<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean)<BR><BR>
+
+<B>After CONDSE</B>:  PREC removed from AtmosQ<BR>
+LandIce = (SNOWLI+ACE1LI+ACE2LI)*FLICE*DXYP + PREC*FLICE*DXYP<BR>
+Ground  = GRNDW + PREC*FEARTH*DXYP<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + PREC*RSI*FLAKE*DXYP<BR>
+LiqLake = MWL + MELTI(non ocean) + PREC*(1-RSI)*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP + PREC*RSI*FOCEAN*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) + PREC*(1-RSI)*FOCEAN*DXYP<BR><BR>
+
+<B>After PRECIP_SI</B>:  PREC added to and RUNPSI removed from LakeIce and SeaIce,<BR>  
+LandIce = (SNOWLI+ACE1LI+ACE2LI)*FLICE*DXYP + PREC*FLICE*DXYP<BR>
+Ground  = GRNDW + PREC*FEARTH*DXYP<BR>
+LiqLake = MWL + MELTI(non ocean) + PREC*(1-RSI)*FLAKE*DXYP + RUNPSI*RSI*FLAKE*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) + PREC*(1-RSI)*FOCEAN*DXYP + RUNPSI*RSI*FOCEAN*DXYP<BR><BR>
+
+<B>After PRECIP_LI</B>:  PREC added to and RUNOLI removed from Landice<BR>
+Ground  = GRNDW + PREC*FEARTH*DXYP<BR>
+LiqLake = MWL + MELTI(non ocean) + PREC*(1-RSI)*FLAKE*DXYP + RUNPSI*RSI*FLAKE*DXYP + RUNOLI(use 1)*FLICE*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) + PREC*(1-RSI)*FOCEAN*DXYP + RUNPSI*RSI*FOCEAN*DXYP<BR><BR>
+
+<B>After PRECIP_LK</B>:  PREC, RUNPSI and RUNOLI added to LiqLake<BR>
+Ground  = GRNDW + PREC*FEARTH*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) + PREC*(1-RSI)*FOCEAN*DXYP + RUNPSI*RSI*FOCEAN*DXYP<BR><BR>
+
+<B>After PRECIP_OC</B>:  PREC and RUNPSI added to LiqOcen<BR>
+Ground  = GRNDW + PREC*FEARTH*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean)<BR><BR>
+
+<B>After EARTH</B>:  EVAPOR(4) added to AtmosQ; PREC added to and RUNOE removed from Ground<BR>
+Ground  = GRNDW + EVAPOR(4)*FEARTH*DXYP<BR>
+LiqLake = MWL + RUNOE*FEARTH*DXYO<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean)<BR><BR>
+
+<B>After ATM_DIFFUS</B>:  EVAPOR(1:3) added to AtmosQ<BR>
+LandIce = (SNOWLI+ACE1LI+ACE2LI)*FLICE*DXYP - EVAPOR(3)*FLICE*DXYP<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP - EVAPOR(2)*RSI*FLAKE*DXYP<BR>
+LiqLake = MWL + RUNOE*FEARTH*DXYO - EVAPOR(1)*(1-RSI)*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP - EVAPOR(2)*RSI*FOCEAN*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP<BR>
+
+<B>After SURFCE</B><BR>
+LandIce = (SNOWLI+ACE1LI+ACE2LI)*FLICE*DXYP - EVAPOR(3)*FLICE*DXYP<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP - EVAPOR(2)*RSI*FLAKE*DXYP<BR>
+LiqLake = MWL + RUNOE*FEARTH*DXYO - EVAPOR(1)*(1-RSI)*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP - EVAPOR(2)*RSI*FOCEAN*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP<BR>
+
+<B>After UNDERICE</B><BR>
+LandIce = (SNOWLI+ACE1LI+ACE2LI)*FLICE*DXYP - EVAPOR(3)*FLICE*DXYP<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP - EVAPOR(2)*RSI*FLAKE*DXYP<BR>
+LiqLake = MWL + RUNOE*FEARTH*DXYO - EVAPOR(1)*(1-RSI)*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP - EVAPOR(2)*RSI*FOCEAN*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP<BR><BR>
+
+<B>After GROUND_SI</B>:  EVAPOR(2) and RUNOSI removed from LakeIce and SeaIce<BR>
+LandIce = (SNOWLI+ACE1LI+ACE2LI)*FLICE*DXYP - EVAPOR(3)*FLICE*DXYP<BR>
+LiqLake = MWL + RUNOE*FEARTH*DXYO - EVAPOR(1)*(1-RSI)*FLAKE*DXYP + RUNOSI*RSI*FLAKE*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP + RUNOSI*RSI*FOCEAN*DXYP<BR><BR>
+
+<B>After GROUND_LI</B>:  EVAPOR(3) and RUNOLI removed from LandIce<BR>
+LiqLake = MWL + RUNOE*FEARTH*DXYO - EVAPOR(1)*(1-RSI)*FLAKE*DXYP + RUNOSI*RSI*FLAKE*DXYP + RUNOLI*FLICE*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP + RUNOSI*RSI*FOCEAN*DXYP<BR><BR>
+
+<B>After GROUND_LK</B>:  EVAPOR(3) and DMSI removed from and RUNOE, RUNOSI and RUNOLI added to LiqLake<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + DMSI(1)*(1-RSI)*FLAKE*DXYP + DMSI(2)*RSI*FLAKE*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP + RUNOSI*RSI*FOCEAN*DXYP<BR><BR>
+
+<B>After RIVERF</B>:  river flow removed from LiqLake and added to LiqOcen<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + DMSI(1)*(1-RSI)*FLAKE*DXYP + DMSI(2)*RSI*FLAKE*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP + RUNOSI*RSI*FOCEAN*DXYP + FLOWO<BR>
+
+<B>After GROUND_E</B><BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + DMSI(1)*(1-RSI)*FLAKE*DXYP + DMSI(2)*RSI*FLAKE*DXYP<BR>
+LiqOcen = oMO*oDXYP + MDWNIMP + MELTI(ocean) - EVAPOR(1)*(1-RSI)*FOCEAN*DXYP + RUNOSI*RSI*FOCEAN*DXYP + FLOWO<BR><BR>
+
+<B>After GROUND_OC</B>:  MELTI and RUNOSI added to and EVAPOR(1) oDMSI removed from LiqOcen<BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + DMSI(1)*(1-RSI)*FLAKE*DXYP + DMSI(2)*RSI*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP + oDMSI(1)*(1-oRSI)*oFOCEAN*oDXYP + oDMSI(2)*oRSI*oFOCEAN*oDXYP<BR>
+
+<B>After OCONV</B><BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + DMSI(1)*(1-RSI)*FLAKE*DXYP + DMSI(2)*RSI*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP + oDMSI(1)*(1-oRSI)*oFOCEAN*oDXYP + oDMSI(2)*oRSI*oFOCEAN*oDXYP<BR>
+
+<B>After ODYNAM</B><BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + DMSI(1)*(1-RSI)*FLAKE*DXYP + DMSI(2)*RSI*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP + oDMSI(1)*(1-oRSI)*oFOCEAN*oDXYP + oDMSI(2)*oRSI*oFOCEAN*oDXYP<BR>
+
+<B>After OCEANS</B><BR>
+LakeIce = (SNOWI+ACE1I+MSI)*RSI*FLAKE*DXYP + DMSI(1)*(1-RSI)*FLAKE*DXYP + DMSI(2)*RSI*FLAKE*DXYP<BR>
+SeaIce  = (SNOWI+ACE1I+MSI)*RSI*FOCEAN*DXYP + oDMSI(1)*(1-oRSI)*oFOCEAN*oDXYP + oDMSI(2)*oRSI*oFOCEAN*oDXYP<BR><BR>
+
+<B>After FORM_SI</B>:  DMSI added to LakeIce and oDMSI added to SeaIce<BR>
+
+<B>After ADVSI</B><br><br>
+
+Notes:<BR>
+EVAPOR is positive for dew and is negative for evaporation.
+RUNOLI array is used twice, to carry flux generated in PRECIP_LI and in GROUND_LI .<BR><BR>
+
+<!--#config timefmt="%Y/%m/%d/%T"--><!--#echo var="LAST_MODIFIED"-->
+
+</BODY></HTML>

@@ -1,0 +1,163 @@
+module Test_AssociativeArrayIterator_mod
+  use pfunit_mod
+  use Foo_mod
+  use FooAssociativeArray_mod
+  implicit none
+
+  public :: Test_AssociativeArrayIterator
+
+@TestCase
+   type, extends(TestCase) :: Test_AssociativeArrayIterator
+     type (FooAssociativeArray) :: dictionary
+   contains
+     procedure :: setUp     ! overides generic
+     procedure :: tearDown  ! overrides generic
+  end type Test_AssociativeArrayIterator
+
+contains
+
+  subroutine setUp(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    this%dictionary = newFooAssociativeArray()
+    call this%dictionary%insert('A', Foo(1))
+    call this%dictionary%insert('B', Foo(2))
+    call this%dictionary%insert('C', Foo(3))
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    call clean(this%dictionary)
+  end subroutine tearDown
+  
+  ! hasNext() returns false for empty associative array
+@Test  
+  subroutine testIteratorHasNext_empty(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    type (FooAssociativeArray) :: emptyDictionary
+    type (FooAssociativeArrayIterator) :: iterator
+
+    emptyDictionary = newFooAssociativeArray()
+    iterator = emptyDictionary%begin()
+
+    @assertFalse(iterator%hasNext())
+
+    call clean(iterator)
+    call clean(emptyDictionary)
+    
+  end subroutine testIteratorHasNext_empty
+
+  ! iter /= end() returns false for empty array
+@Test  
+  subroutine testIteratorNotEqual_empty(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    type (FooAssociativeArray) :: emptyDictionary
+    type (FooAssociativeArrayIterator) :: iterator
+
+    emptyDictionary = newFooAssociativeArray()
+    iterator = emptyDictionary%begin()
+
+    @assertFalse(iterator /= emptyDictionary%last())
+
+    call clean(iterator)
+    call clean(emptyDictionary)
+    
+  end subroutine testIteratorNotEqual_empty
+
+  ! hasNext() returns true for non-empty associative array
+@Test  
+  subroutine testIteratorHasNext(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    type (FooAssociativeArrayIterator) :: iterator
+
+    iterator = this%dictionary%begin()
+    @assertTrue(iterator%hasNext())
+
+    call clean(iterator)
+    
+  end subroutine testIteratorHasNext
+
+  ! hasNext() returns false for non-empty associative array after
+  ! multiple calls to next()
+@Test  
+  subroutine testIteratorHasNext_multi(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    type (FooAssociativeArrayIterator) :: iterator
+
+    iterator = this%dictionary%begin()
+    call iterator%next() ! 2nd element of 3
+    @assertTrue(iterator%hasNext())
+    call iterator%next() ! 3rd element of 3
+    @assertFalse(iterator%hasNext())
+
+    call clean(iterator)
+    
+  end subroutine testIteratorHasNext_multi
+
+  ! Use iterator in a loop context.
+@Test  
+  subroutine testLoop(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    type (FooAssociativeArrayIterator) :: iterator
+    type (FooAssociativeArrayIterator) :: iterEnd
+
+    integer :: counter
+
+    counter = 0
+    iterator = this%dictionary%begin()
+    iterEnd  = this%dictionary%last()
+    do while (iterator /= iterEnd)
+      call iterator%next()
+      counter = counter + 1
+    end do
+
+    @assertEqual(this%dictionary%size(), counter)
+
+    call clean(iterator)
+    
+  end subroutine testLoop
+
+@Test  
+  subroutine testKeyValue(this)
+    class (Test_AssociativeArrayIterator), intent(inout) :: this
+    type (FooAssociativeArrayIterator) :: iterator
+    
+    logical :: foundA
+    logical :: foundB
+    logical :: foundC
+
+    class (Foo), pointer :: valueA
+    class (Foo), pointer :: valueB
+    class (Foo), pointer :: valueC
+
+    iterator = this%dictionary%begin()
+
+    foundA = .false.
+    foundB = .false.
+    foundC = .false.
+
+    do while (iterator .ne. this%dictionary%last())
+      select case (iterator%key())
+      case ('a')
+        foundA = .true.
+        valueA => iterator%value()
+      case ('b')
+        foundB = .true.
+        valueB => iterator%value()
+      case ('c')
+        foundC = .true.
+        valueC => iterator%value()
+      end select
+      call iterator%next()
+    end do
+
+    @assertTrue( all([ foundA, foundB, foundC ]) )
+    @assertEqual([1,2,3], [ valueA%value,valueB%value,valueC%value ])
+
+    call clean(iterator)
+    nullify(valueA)
+    nullify(valueB)
+    nullify(valueC)
+
+  end subroutine testKeyValue
+
+end module Test_AssociativeArrayIterator_mod

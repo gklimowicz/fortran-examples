@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Main time stepping loop</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Main time stepping loop</H3>
+
+<P>The main loop is contained wholly within the MAIN routine. The
+order of calling to the physics routines is quite tightly controlled
+and cannot be changed arbitrarily. Some calls are dummy calls
+depending on how the model is coupled and which 'plug-and-play'
+options are in effect. Currently the calling order is: DYNAM
+(atmospheric dynamics), MELTSI (sea ice lateral melt), CONDSE (moist
+convection and large scale condensation), RADIA (radiative transfer),
+ PRECIP_XYZ application of precipitation to submodules, SURFCE
+(calculation of  surface heat, water and momentum fluxes),  DYNSI
+(calculation of advective tendencies in sea ice), UNDERICE
+(calculation of ice-ocean heat, mass and salt fluxes),  GROUND_XYZ
+application of surface fluxes to land surface submodules (earth, land
+ice, lakes),  RIVERF (calculation of river routing), OCEANS
+(application of surface fluxes and rivers to ocean code), FORM_SI
+(update of ice module to account for any ice formation in lakes or
+oceans), ADVSI (advection of sea ice), DISSIP (add heat from
+atmospheric dissipation to atmosphere), FILTER (pressure filter). At
+the end of the day calls are made to various daily_XYZ routines that
+calculate changes (such as in climatologies) that only need be done
+daily.</P>
+
+</BODY>
+</HTML>

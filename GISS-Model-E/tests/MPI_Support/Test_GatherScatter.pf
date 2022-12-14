@@ -1,0 +1,155 @@
+module Test_GatherScatter_mod
+  use pFUnit_mod
+  use dist_grid_mod, only: setCommunicator, dist_grid, init_grid, destroy_grid, &
+    getDomainBounds
+  use GatherScatter_mod, only: pack_data, unpack_data
+  implicit none
+
+  public :: Test_GatherScatter
+
+@TestCase
+  type, extends(MpiTestCase) :: Test_GatherScatter
+    integer :: ibeg, iend, jbeg, jend      ! local dimensions
+    type (DIST_GRID) :: distGrid
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type Test_GatherScatter
+
+  public :: test_GatherReal
+  public :: test_ScatterReal
+  public :: test_GatherInteger
+  public :: test_ScatterInteger
+
+  integer, parameter :: IM = 4 
+  integer, parameter :: JM = 10
+  integer, parameter :: LM = 2
+
+contains
+
+  subroutine setUp(this)
+    class (Test_GatherScatter), intent(inout) :: this
+
+    call setCommunicator(this%getMpiCommunicator())
+    call init_grid(this%distGrid, IM, JM, LM)
+
+    call getDomainBounds( this%distgrid, &
+      I_STRT=this%ibeg, &
+      I_STOP=this%iend, &
+      J_STRT=this%jbeg, &
+      J_STOP=this%jend  )
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_GatherScatter), intent(inout) :: this
+    call destroy_grid(this%distGrid)
+  end subroutine tearDown
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_GatherReal(this)
+    class (Test_GatherScatter), intent(inout) :: this
+    real(8), allocatable, dimension(:,:) :: distArray
+    real(8), allocatable, dimension(:,:) :: globalArray
+    integer :: j
+
+    allocate (distArray(this%ibeg:this%iend, this%jbeg:this%jend))    
+    allocate (globalArray(IM, JM)) 
+    do j = this%jbeg, this%jend   
+      distArray(:,j) = j
+    end do
+
+    ! test gather (pack_data)
+    call pack_data(this%distgrid, distArray, globalArray)
+
+    if (this%getProcessRank()==0) then
+      do j = 1, JM
+        @assertEqual(j, globalArray(:,j) )
+      end do
+    end if
+
+    deallocate(distArray, globalArray)
+
+  end subroutine test_GatherReal
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_GatherInteger(this)
+    class (Test_GatherScatter), intent(inout) :: this
+    integer, allocatable, dimension(:,:) :: distArray
+    integer, allocatable, dimension(:,:) :: globalArray
+    integer :: j
+
+    allocate (distArray(this%ibeg:this%iend, this%jbeg:this%jend))    
+    allocate (globalArray(IM, JM)) 
+    do j = this%jbeg, this%jend   
+      distArray(:,j) = j
+    end do
+
+    ! test gather (pack_data)
+    call pack_data(this%distgrid, distArray, globalArray)
+
+    if (this%getProcessRank()==0) then
+      do j = 1, JM
+        @assertEqual(j, globalArray(:,j) )
+      end do
+    end if
+
+    deallocate(distArray, globalArray)
+
+  end subroutine test_GatherInteger
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_ScatterReal(this)
+    class (Test_GatherScatter), intent(inout) :: this
+    real(8), allocatable, dimension(:,:) :: distArray
+    real(8), allocatable, dimension(:,:) :: globalArray
+    integer :: j
+
+    allocate (distArray(this%ibeg:this%iend, this%jbeg:this%jend))    
+    allocate(globalArray(IM, JM))
+
+    if (this%getProcessRank()==0) then
+      do j=1,JM
+        globalArray(:,j) = j
+      end do
+    end if
+
+    ! test scatter (unpack_data)
+    call unpack_data(this%distGrid, globalArray, distArray)
+
+    do j = this%jbeg, this%jend   
+      @assertEqual(j, distArray(:,j) )
+    end do
+
+    deallocate(distArray, globalArray)
+
+  end subroutine test_ScatterReal
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_ScatterInteger(this)
+    class (Test_GatherScatter), intent(inout) :: this
+    integer, allocatable, dimension(:,:) :: distArray
+    integer, allocatable, dimension(:,:) :: globalArray
+    integer :: j
+
+    allocate (distArray(this%ibeg:this%iend, this%jbeg:this%jend))    
+    allocate (globalArray(IM, JM)) 
+
+    if (this%getProcessRank()==0) then
+      do j=1,JM
+        globalArray(:,j) = j
+      end do
+    end if
+
+    ! test scatter (unpack_data)
+    call unpack_data(this%distGrid, globalArray, distArray)
+
+    do j = this%jbeg, this%jend   
+      @assertEqual(j, distArray(:,j) )
+    end do
+
+    deallocate(distArray, globalArray)
+
+  end subroutine test_ScatterInteger
+
+end module Test_GatherScatter_mod

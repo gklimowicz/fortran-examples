@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<body bgcolor="#ffffff" text="#000000" link="#000099" vlink="#cc0000" alink="#cc0000">
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+ <TITLE>Options for running the GISS GCM</TITLE>
+</HEAD>
+<BODY>
+<H1>Options for running the GISS GCM</H1>
+
+<p>There are a number of 'plug and play' options available for ModelE,
+and there will be more soon. The essence of this is that by a simple
+change of filename in the rundeck, a new model will be compiled and
+run, without any further coding necessary. (A good thing!).  Remember
+that you must recompile the model and replace the executable for any
+change to be effected. (i.e. 'gmake exe RUN=E001xyz')</p>
+
+<p>This is a brief list of the current options:</p>
+<ul>
+<li> Example Resolutions (horizontal and vertical)
+
+<pre>
+RES_M12   ! 4x5 (medium resolution) 12 vertical layers 
+RES_M20A  ! 4x5 (medium resolution) 20 vertical layers (up to 0.1mb)
+RES_M23   ! 4x5 (medium resolution) 23 vertical layers (incl. stratosphere)
+RES_F12   ! 2x2.5 (fine resolution) 12 vertical layers 
+</pre>
+
+<p>Other resolutions (such as M18, F18 etc. with or without
+stratospheric code) can be used as required. Note that these files
+also contain some dummy routines that can be replaced by other options
+(see below).</p>
+
+<li> Momentum advection scheme:<P>
+<pre>
+MOMEN2ND  !  2nd order advection scheme (12 layer DT = 450 sec)
+MOMEN4TH  !  4th order advection scheme (12 layer DT = 300 sec)
+</pre>
+
+<li> Binary output from postprocessing<P>
+
+<pre>
+POUT    ! Standard GISS output 
+	! ij arrays: TITLE*80,DATA(IM,JM)*R4,ZMEAN(JM)*R4,GLOB*R4
+	! jl/jk arrays: TITLE*80,IX,IY,IZ,IT,X(IX,IY,IZ,IT),XCOOR(IX),
+        !               YCOOR(IY),ZCORR(IZ),TCORR(IT),CX,CY,CZ,CT,'NASAGISS',
+        !               ASUM(IX),GLOB,ZMEAN(IZ)
+	! j arrays: (ASCII) aplot format 
+POUT_netcdf: Full netcdf format for all fields
+</pre>
+
+<p>Other output methods may also be defined.</p>
+
+<li> Ocean model treatment
+
+<p>The ocean treatment is set in a couple of ways. For the basic
+(no-dynamics) ocean, there are three options: a) fixed SST, b) Mixed
+layer ocean (with fixed ocean heat transports, and c) Mixed layer
+ocean with fixed transports and deep diffusion into the next few thousand m).
+The fixed SST run is set by using KOCEAN = 0 in the rundeck, while the
+Qflux ocean is set by KOCEAN = 1. Whether this gives the simple mixed
+layeer ocean or the deep diffusing ocean, depends on the following
+'plug and play' options:</p>
+
+<pre>
+OCEAN OCNML !  fixed SST ocean or simple Qlfux
+OCEAN ODEEP !  fixed SST ocean or deep diffusing Qflux 
+</pre>
+The fixed SST ocean requires the following files: OSST, SICE, OCNML, MLMAX<br>
+The Qflux ocean requires in addition: OHT <br>
+The deep diffusion Qflux model also requires: EDDY and TG3M<br>
+
+<p>For dynamic oceans, the only current option is to use  </p>
+
+<pre>
+ODIAG_COM OCEAN_COM OSTRAITS_COM OGEOM !
+OCNDYN OSTRAITS OCNGM OCNKPP OCNFUNTAB ! - Russell Dynamic Ocean
+ODIAG_PRT                              ! 
+</pre>
+
+<p>In time, other ocean models will also be incorporated.</p>
+
+<li> Dynamic Ice treatment 
+
+<p>The advection of sea ice can be used with all ocean models
+(including the qflux ocean). If a qflux version with advective ice is
+required, the spin-up where the qfluxes are calculated must include
+the dynamic ice modules so that the heat convergence from horizontal
+ice motion can be included in the vertical flux calculations. Ice
+dynamics can be switched off by using the dummy 'plug-and-play'
+option: </p>
+
+<pre>
+ICEDYN_DUM        !  dummy ice dynamics
+ICEDYN_DRV ICEDYN !  ice dynamics 
+</pre>
+
+<p>Please note that for the qflux models, you must be consistent in
+your choice (i.e. if dynamics are in the spin up, they must be in the
+qflux run also).</p>
+
+<li> Atmospheric mixing<P>
+
+<pre>
+DRYCNV   ! original scheme. complete mixing of dry statically unstable column.
+ATURB    ! turbulence scheme that diffuses tracers as a function of second
+         ! order colsure calulations of effective diffusivity.
+</pre>
+
+<li> Stratospheric diagnostics<P>
+
+<pre>
+STRAT_DIAG  ! calculates full set of zonally averaged EP-fluxes. Must be
+            ! used in conjunction with a suitable RES_Xnn file. 
+            ! (i.e. one that does not have dummy routines EP*, and sets
+            ! KEP to be non-zero).
+</pre>
+
+<li> Stratosphere dynamics (Gravity wave drag)<P>
+
+<pre>
+STRATDYN  ! Calculates and applies gravity wave drag in the
+          ! dynamics. This MUST be used for all strat models, but can
+          ! also be used for tropospheric models. Note that a suitable
+          ! RES_Xnn file must be used in conjunction. (i.e. One that
+          ! does not have a dummy GWDRAG, VDIFF or io_strat).
+</pre>
+
+<li> Fast fourier transforms<P>
+
+<pre>
+FFT36: Suitable for IM=36 models 
+FFT72: Suitable for IM=72 models 
+FFT144: Suitable for IM=144 models
+</pre>
+
+<li>General diagnostics<P>
+
+<pre>
+nradfrc=0: No radiative forcing diagnostics are printed in the output, saving
+           many radiation calls (thus CPU time). These are mostly tracer and 
+           cloud related diagnostics. For optical depth, no band[1-6] are
+           generated, saving further radiation calls, but only band6 is saved
+           in the output (and is named tau).
+nradfrc=1 (default): Radiation diagnostics are saved for both tracers and
+                     clouds, as well as band[1-6] diagnostics. Essentially any
+                     value nradfrc>1 falls in the nradfrc=1 group.
+</pre>
+
+<li> Tracers <P>
+
+<ul> 
+
+<li> General Tracers <p>
+<p>
+Tracers are implemented through a combination of 'plug and play' and user 
+routines.  Some tracer code is embedded in the main model through the use 
+of pre-processing directives.  To activate the directives, change the 
+rundeck line: </p>
+<pre>
+!#define TRACERS_ON                  ! include tracers code
+to 
+#define TRACERS_ON                  ! include tracers code
+</pre>
+
+Three preprocessing directives have been defined so far: TRACERS_ON is
+for all tracers, TRACERS_WATER is used if any tracers interact with
+the hydrologic cycle in the atmopshere/sea-ice/lakes and rivers, and
+TRACERS_OCEAN if tracer advection in the ocean is required (currently
+only functional with the the GISS OCEAN option).  Also, 'plug in':
+<pre>
+TRACER_COM TRACERS_DRV              ! configurable tracer code
+TRACERS                             ! generic tracer code
+TRDIAG_COM TRACER_PRT               ! tracer diagnostic printout
+</pre>
+<p> 
+
+TRACERS, TRDIAG_COM and TRACER_PRT were written to be independent of
+tracer type.  For most users, only TRACER_COM need be changed to alter
+the number of tracers, and their physical type. The tracer library is
+included in TRACERS_DRV only needs editing if a brand new tracer is to
+be incorporated, or the properties of one of the existing tracers
+needs changing. The tracers in these routines are for illustrative
+purposes only. However, the 'Air' and 'Water' tracers are very useful
+as diagnostic tools since they are designed to mimic the movement of
+air and water mass. The user is responsible for checking that tracer
+subroutines are called at the appropriate times in MAIN for his
+purpose.  Be sure to check that .f files with tracer directives start
+with #include "rundeck_opts.h" Tracers parameters that can be changed
+in the rundeck: </p>
+
+<pre> 
+to_volume_MixRat=1: tracer concentration printout in volume mixing ratio
+to_volume_MixRat=0: tracer concentration printout in mass mixing ratio
+to_per_mil=1: tracer concentration in per mil units (for water tracers)
+itime_tr0: the model time at which each tracer 'turns on'.</pre>
+</pre>
+
+<p> Note that tracer code involving the ocean needs the OCN_TRACER
+module, in addtion to those specified above.  </p>
+
+<li> Regional Tracers <p>
+
+The preprocessor directive <code>#regional_Ox_tracers</code> will turn on tracers
+which can be defined by a geographic domain.  In the present implementation, 
+there are 6 regional Ox tracers (named OxREG1, ... OxREG6), which interact
+with the Drew Shindell chemistry if #TRACERS_SPECIAL_Shindell is turned on
+as well. Therefore Ox should also be a tracer and should be defined before
+the regional tracers. The number of regional Ox tracers is controlled by
+the NregOx parameter in TRACER_COM, and their 3D geographic regions are
+defined in TRACERS_DRV, by setting the varaibles:
+<pre>
+regOx_n = northern limit in degrees
+regOx_s = southern limit in degrees
+regOx_w = western limit in degrees
+regOx_e = eastern limit in degrees
+regOx_b = bottom limit in hPa
+regOx_t = top limit in hPa
+</pre>
+
+</ul>
+</ul>
+</BODY>
+</HTML>
+<P><HR><p>

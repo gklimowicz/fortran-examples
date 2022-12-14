@@ -1,0 +1,980 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+	<TITLE>GISS ModelE Description</TITLE>
+	<META NAME="GENERATOR" CONTENT="StarOffice/5.2 (Linux)">
+	<META NAME="CREATED" CONTENT="20021113;13584500">
+	<META NAME="CHANGEDBY" CONTENT=" ">
+	<META NAME="CHANGED" CONTENT="20021113;15131900">
+	<STYLE>
+	<!--
+		H1 { color: #000000 }
+		TD P { color: #000000 }
+		H2 { color: #000000 }
+		H3 { color: #000000 }
+		H4 { color: #000000 }
+		P { color: #000000 }
+		A:link { color: #000099 }
+		A:visited { color: #cc0000 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY TEXT="#000000" LINK="#000099" VLINK="#cc0000" BGCOLOR="#ffffff">
+<H1>GISS ModelE Description</H1>
+<P><FONT SIZE=2>This document is a short description of what GISS
+ModelE does and gives some references and descriptions of how it does
+it. Hopefully this will eventually morph into a full technical paper
+given enough time and resources!</FONT></P>
+<P>Model development is an ongoing task. As new physics is
+introduced, old bugs found and new applications developed, the code
+is almost continually undergoing minor, and sometimes major,
+reworking. Thus any fixed description of the model is liable to be
+out of date the day it is printed. Understanding this, we will
+endeavour to maintain the web version of the document as closely as
+we can to the current release, however in is inevitable that some
+discussion here will on occasion fall behind development. 
+</P>
+<P>The GISS GCM model development process is over 25 years old (for a
+very readable description of the historical development see <A HREF="#ref_hansen00">Hansen
+et al (2000)</A>). Inevitably, decisions that were made and
+constraints that existed early on in the process have had influences
+that are still apparent. While much of the subsequent reworking of
+the model has led to a reduction in these historical influences, some
+parts of the model still hark back to the days of punch cards,
+fortran 66 and line printer output. A charitable interpretation would
+be that while embracing the new (Fortran 90/95, multi-processing,
+netcdf, etc.), we endeavour to maintain some of the more harmless
+GISS traditions (which some might call eccentricities) in a spirit of
+continuity with those who have previously worked on the model. On the
+other hand, some of those early decisions (for instance regarding
+diagnostics, or conservation properties) turned out to be very
+far-sighted and are a principle reason why the GISS series of models
+continue to play a useful and important role in the world of GCM
+simulations. We hope that by continuing to make the GISS models a
+more accessible and better documented, we will be able to carry on in
+that vein for at least another 25 years. 
+</P>
+<P><B>CREDITS:</B> This document was mostly written by Gavin Schmidt,
+with input from Reto Ruedy, Gary Russell, Ye Cheng (PBL physics), M.
+S. Yao (cloud physics) and Andy Lacis (Radiation). Thanks as always
+to Jim Hansen and David Rind for supporting the whole ModelE project.</P>
+<H2>Table of contents</H2>
+<OL>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1">Model files and
+	directory structure </A>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_1"><TT>aux</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_2"><TT>cmor</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_3"><TT>config</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_4"><TT>decks</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_5"><TT>doc</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_6"><TT>exec</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_7"><TT>init_cond</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_8"><TT>model</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_9"><TT>templates</TT> </A></P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part1_A"><TT>tests</TT> </A></P>
+	</OL>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#part2">Overall model
+	structure and main time stepping loop </A>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part2_1">Initialisation
+		</A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part2_2">Main loop </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part2_3">Diagnostics </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part2_4">Input/Output </A>
+		</P>
+	</OL>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3">Atmospheric model
+	</A>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_1">Dynamics </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_2">Cloud
+		processes </A>
+		</P>
+		<OL>
+			<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_2_1">Moist
+			convection </A>
+			</P>
+			<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_2_2">Large scale
+			condensation </A>
+			</P>
+		</OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_3">Radiation </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_4">Surface fluxes
+		(incl. planetary boundary layer physics) </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_5">Turbulence and
+		Dry convection </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part3_6">Stratospheric
+		processes (incl. gravity wave drag) </A>
+		</P>
+	</OL>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#part4">Sea ice model </A>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part4_1">Basic
+		thermodynamics </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part4_2">Ice advection </A>
+		</P>
+	</OL>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#part5">Land Surface
+	model </A>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part5_1">Soil physics </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part5_2">Snow model </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part5_3">Lake model </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part5_4">Rivers </A>
+		</P>
+	</OL>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#part6">Ocean models </A>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part6_1">Imposed Sea
+		surface conditions </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part6_2">Q-flux (mixed
+		layer model) </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part6_3">Russell ocean model</A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part6_4">HYCOM (Bleck
+		and Sun) </A>
+		</P>
+	</OL>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#part7">Tracers </A>
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part7_1">Air mass
+		Tracers </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part7_2">Soluble and
+		Water mass Tracers </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part7_3">Aerosol and Chemistry
+		Tracers </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part7_4">Ocean Tracers </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part7_5">Carbon Cycle
+		Tracers </A>
+		</P>
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#part7_6">Special
+		Tracers </A>
+		</P>
+	</OL>
+	<LI><P><A HREF="#part8">References </A>
+	</P>
+</OL>
+<HR>
+<H2><A NAME="part1"></A>1. Model files and directory structure 
+</H2>
+<P>The distribution of modelE has a top directory which contains the
+following sub-directories: <TT>aux</TT>,  <TT>cmor</TT>,  <TT>config</TT>,  <TT>decks</TT>,  <TT>doc</TT>, <TT>exec</TT>,  <TT>init_cond</TT>,  <TT>model</TT>,  <TT>templates</TT>,  <TT>tests</TT>. </P>
+<H3><A NAME="part1_1"></A><TT>modelE/model</TT> 
+</H3>
+<P>This directory contains all the model source code used in all
+possible configurations. The names of the files are relatively
+self-explanatory, and each contains groups of subroutines that
+pertain to a particular function. For instance, <TT>SEAICE.f</TT>
+contains modules and subroutines that control the column model for
+sea ice. The associated file <TT>SEAICE_DRV.f</TT> contains the
+interface routines that translate GCM variables to the column model
+and store the resulting fluxes and diagnostics. Some shared components are in separate sub_directories. 
+</P>
+<P>Since the model supports a number of 'plug-and-play' options,
+there may be a number of files that contain subroutines or entry
+points (for dummy routines) with the same name. To find out which is
+relevant for your particular configuration, we recommend
+automatically generating the documentation for your rundeck using 
+</P>
+<P><TT>gmake htmldoc RUN=E001xyz</TT> 
+</P>
+<P>This will generate a file <TT>index.html</TT>. From here you can
+access lists of: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">Source Files 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">Fortran Modules 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">Database Variables 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">NAMELIST Variables 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">Global Variables ( LONG! ) 
+	</P>
+	<LI><P>ALL Variables ( LONG! ) 
+	</P>
+</UL>
+<P>relevant for your rundeck. By descending in to the (highly
+cross-referenced) tree, you can go from the source file to the
+routine, to the module whose variables are used to the variable
+definitions (unfortunately not 100% complete), sideways and back
+again. (The database variables are the relevant options that you
+could use in the rundeck to control more aspects of the model's
+behaviour. NAMELIST variables control the degree of runtime debugging
+information and diagnostic output and the start and stop dates for
+the model. These are all fully documented. Trying to work anything
+out by going directly to the list of all variables is not recommended
+for the novice!).</P>
+<P>To help you get an idea of what is where, here is a brief overview
+of the source code files: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><TT>ATMDYN.f, ATMDYN_COM.f:</TT>
+	Code for the calculation of atmospheric pressure gradients, and
+	dynamic time stepping. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>ATURB.f:</TT> Calculation of
+	vertical diffusion by atmospheric turbulence 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>CLOUDS2.f, CLOUDS_COM.f,
+	CLOUDS2_DRV.f:</TT> Column model, common variables and driver
+	routines for moist convection and large scale condensation 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>CONST.f:</TT> Physical
+	constants 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>DEFACC.f, DIAG.f, DIAG_COM.f,
+	DIAG_PRT.f:</TT> Definitions, calculations, common variables and
+	print out routines for the diagnostics 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>DRYCNV.f:</TT> Dry convection
+	(can be used instead of ATURB.f) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>FFT144.f, FFT72.f, FFT36.f:</TT>
+	Fast fourier transforms for the most common longitudinal resolutions
+		</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>FLUXES.f:</TT> Module
+	containing all fluxes and variables that need to be passed between
+	physical modules. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>GEOM_B.f:</TT> B-grid geometry
+		</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>GHY.f, GHY_COM.f, GHY_DRV.f:</TT>
+	Ground hydrology column model, common variables and driver routines.
+		</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>ICEDYN.f, ICEDYN_DRV.f:</TT>
+	Ice dynamics (<TT>ICEDYN_DUM.f</TT> is a dummy version)
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>IORSF.f:</TT> Controls I/O for
+	reading and writing restart files and monthly diagnostics 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>LAKES.f, LAKES_COM.f:</TT>
+	Two-layer lake code 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>LANDICE.f, LANDICE_DRV.f:</TT>
+	Calculations for the temperature profile in glacial (land) ice. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>MODELE.f:</TT> Main time
+	stepping loop and driver for the initialisation 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>MODEL_COM.f:</TT> Basic model
+	variables 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>MOMEN2ND.f, MOMEN4TH.f:</TT>
+	Different momentum equation calculations 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OCEAN.f, OCNML.f, ODEEP.f :</TT>
+	Fixed sea surface conditions, and mixed layer ocean code (with
+	optional diffusion into deep ocean). 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OCEAN_COM.f:</TT> Common
+	variables for Russell dynamic ocean code 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OCNDYN.f:</TT> Russell dynamic
+	ocean time stepping and advection 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OCNFUNTAB.f:</TT> Ocean
+	functions (equ. of state etc.) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OCNGM.f:</TT> Implementation
+	of Gent and McWilliams mesoscale eddy parameterisation in Russell
+	Ocean</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OCNKPP.f:</TT> KPP scheme for
+	vertical mixing in Russell ocean model 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OCN_TRACER.f:</TT> Tracer code
+	for initialising ocean tracers 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>ODIAG_COM.f, ODIAG_PRT.f:</TT>
+	Dynamic ocean diagnostic routines and output (Russell) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OGEOM.f:</TT> Russell ocean
+	geometry definitions 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>OSTRAITS.f, OSTRAITS_COM.f:</TT>
+	Russell ocean Straits definitions and calculations 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>PARAM.f:</TT> Controls access
+	to database parameters 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>PARSER.f:</TT> Used to scan
+	the rundeck for options 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>PBL.f, PBL_COM.f, PBL_DRV.f:</TT>
+	Code for column model of planetary boundary layer physics 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>POUT.f, POUT_netcdf.f:</TT>
+	Options that control the binary format for the diagnostic
+	post-processing. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>QUSDEF.f, QUS_COM.f,
+	QUS_DRV.f, TQUS_DRV.f:</TT> Quadratic upstream scheme for tracers
+	(including T,Q) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>RADIATION.f, RAD_COM.f,
+	RAD_DRV.f:</TT> Radiation column model, variables and driver 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>RES_*.f:</TT> Definitions for
+	vertical and horizontal resolution, inclusion of stratosphere etc. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>SEAICE.f, SEAICE_DRV.f:</TT>
+	Seaice thermodynamics 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>SNOW.f:</TT> Land snow model 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>STRATDYN.f:</TT> Gravity wave
+	drag schemes 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>STRAT_DIAG.f:</TT> Special E-P
+	flux diagnostics if required 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>SURFACE.f:</TT> Surface flux
+	calculations 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>SYSTEM.f:</TT> System
+	dependent code for random numbers, exit codes, file handling etc. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>TRACER.f, TRACERS.f,
+	TRACER_COM.f, TRACER_PRT.f, TRDIAG_COM.f:</TT> Generic code for
+	defining tracers, and controlling their diagnostic output. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>TRACERS_DRV.f:</TT> Library
+	definitions for commonly used tracers 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>TRACERS_SPECIAL_Lerner.f:</TT>
+	Special physics needed for suite of Lerner/Rind tracers 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>TRACERS_SPECIAL_Shindell.f,
+	TRCHEM_*.f:</TT> Special physics needed for atmospheric chemistry
+	tracers 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>TRACERS_O18.f:</TT> Special
+	physics needed for water isotope tracers 
+	</P>
+	<LI><P><TT>UTILDBL.f:</TT> Utilities used throughout the model (i.e.
+	saturation vapour pressure calculations, tri-diagonal solvers etc.) 
+	</P>
+</UL>
+<P>You will note a couple of modelE conventions. Firstly,
+declarations of variables and arrays are in modules called <TT>*_COM</TT>. Column models and local
+routines do not have a suffix, but the driver routines that mediate
+between the GCM code and the local physics are call <TT>*_DRV.f</TT>.
+Sometimes the <TT>_COM</TT> declarations are included in the local
+physics routine. The <A HREF="OPTIONS.html">OPTIONS</A> document
+explains how the current set of 'plug-and-play' options can be used.</P>
+<P>Also in this directory are some template rundecks <TT>E001*.R</TT>
+which can be used to generate your own particular configurations. The
+<TT>.depend_E001*</TT> are generated by <TT>gmake</TT> to work out
+dependencies between source code files so that the proper compilation
+can be done if one part of the code or rundeck specifications change.
+Also generated by <TT>gmake</TT> are the <TT>*.sig</TT> which are a
+hack to ensure the time stamps for modules (usually <TT>*.mod</TT>,
+but can depend on the compiler) do not lead to circular dependencies.</P>
+
+<H3><A NAME="part1_2"></A><TT>modelE/decks</TT> </H3>
+
+<P>This directory should contain all of the user's rundecks, links to
+run directories, and some useful auxiliary binaries. Since all of
+these are rundeck dependent, this directory is empty in the
+distribution (except for the Makefile). 
+</P>
+<P>Once you have generated your own rundecks and compiled the model,
+and/or some auxiliary files, the directory may contain 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><TT>E001xyz.R:</TT> A personal
+	rundeck, 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>E001xyz:</TT> A link to the
+	run directory (which does not need to be in the same filesystem for
+	instance), 
+	</P>
+	<LI><P><TT>E001xyz_bin:</TT> A directory containing binaries for
+	rundeck-specific auxiliary files. 
+	</P>
+</UL>
+<H3><A NAME="part1_3"></A><TT>modelE/exec</TT> 
+</H3>
+<P>The <TT>exec</TT> directory is where all of the perl and shell
+scripts that are used are kept. Some of these are called directly
+from the Makefile and therefore not used directly by a user, but
+others are used for running, stopping and checking on the run.</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><TT>gcmdoc.pl:</TT> perl script
+	for generating automatic documentation (called from within <TT>gmake</TT>).
+		</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>get_input_data:</TT> A useful
+	script used to make a directory of all input data files required for
+	a particular model run, downloading the data from the central online repository if needed.
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>modelErc:</TT> Default modelE
+	run-commands file 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>pdE:</TT> script that calls
+	model to produce binary output from <TT>*.acc*</TT> files 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>runE:</TT> Used to start
+	running the model (after initial setup). 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>runpmE:</TT> Used to start
+	running the model if automatic fall back to a smaller timestep is
+	required for certain crashes. This is not called directly by the
+	user. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>setup_e.pl:</TT> Perl script
+	for setting up a model run (called from within <TT>gmake</TT>). 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>sfmakedepend:</TT> Perl script
+	to work out dependencies of source code on modules and include files
+	(called from within <TT>gmake</TT>). 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>sswE:</TT> Used to stop the
+	model gently at end of next hour. 
+	</P>
+	<LI><P><TT>sumacc_nc:</TT> Can be used to sum netcdf acc files. Will
+	not work off-site. 
+	</P>
+</UL>
+<H3><A NAME="part1_4"></A><TT>modelE/aux</TT> 
+</H3>
+<P>This directory contains a number of auxiliary programs that are
+useful for the GCM. Many will not be of direct use to most users, but
+they also give a flavour for how to read and write standard model
+output. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><TT>CMPE001.f:</TT> Compares two
+	rsf files and prints out limited information if any arrays are
+	different. Useful for finding restart errors. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>qc.f:</TT> Query rsf, acc and
+	history files for information on date, options and timing. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>RMS.f:</TT> Calculates root
+	mean square statistics of model output compared to observations. The
+	observation files are not part of the distribution and so must be
+	downloaded separately for this program to work. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>acc2nc.f:</TT> Transforms acc
+	file into netcdf format if required. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>conv_gic.f, conv_rsf.f,
+	conv_strat_rsf.f:</TT> These are used to convert old format rsf
+	files to modelE compatible versions. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>ocnIC.E001.f, vertflux.E001.f,
+	otspec.E001.f, MAPS.f:</TT> Suite of programs used to calculate
+	ocean heat transports from a fixed SST run. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT>mkdeep.f:</TT> Estimates
+	initial conditions for a mixed layer ocean run with deep diffusion. 
+	</P>
+	<LI><P><TT>rsf2gic.f:</TT> Extracts ground initial conditions from a
+	full rsf file (useful for initialising a model with different
+	vertical resolution). 
+	</P>
+</UL>
+<H3><A NAME="part1_5"></A><TT>modelE/doc</TT> 
+</H3>
+<P>As the name suggests, all of the HTML and other documentation can be
+found here. This includes this files that come with the distribution,
+but also those that constructed automatically (see <A HREF="#part1_1">above</A>).</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><TT>modelE.html:</TT> This file. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT><A HREF="index.html">index.html</A>:</TT>
+	Index for all documentation (including that automatically
+	generated). Note that this file is created only once <TT>gmake
+	htmldoc RUN=E001xyz</TT> has been run. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT><A HREF="HOWTO.html">HOWTO.html</A>:</TT>
+	HOW-TO achieve most commonly required things. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT><A HREF="FAQ.html">FAQ.html</A>:</TT>
+	Some answers to frequently asked questions about the GISS GCM. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT><A HREF="OPTIONS.html">OPTIONS.html</A>:</TT>
+	Description of 'plug-and-play' options for the GCM. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><TT><A HREF="coupling.txt">coupling.txt</A>:</TT>
+	Information on coupling the atmospheric model to an ocean model. 
+	</P>
+	<LI><P><TT><A HREF="CHANGES.txt">CHANGES.txt</A>:</TT> Brief list of
+	major changes between releases. 
+	</P>
+</UL>
+<H3><A NAME="part1_6"></A><TT>modelE/prtdag</TT> 
+</H3>
+<P>Prior to the current incarnation of <TT>pdE</TT> and <TT>POUT_netcdf</TT>,
+it was necessary to have separate post-processing programs to get
+netcdf format output for the diagnostics. While this is now no longer
+really necessary, these programs are left in the distribution as
+guides to how you could produce specialty diagnostics without
+altering the model code. We do not recommend this in general, but it
+may be applicable in certain circumstances. Note that keeping these
+programs up to date has not been a priority, and thus they are not
+guaranteed to even compile. 
+</P>
+<HR>
+<H2><A NAME="part2"></A>2. Overall model structure and main time
+stepping loop 
+</H2>
+<H3><A NAME="part2_1"></A>Initialisation 
+</H3>
+<P>Initialisation is handled almost exclusively by the call to
+subroutine <TT>INPUT</TT>. This routine
+will initialise all prognostic variables depending on the value of
+<TT>ISTART</TT>. Submodules (for
+instance, ocean, ice, radiation etc.) are initialised through calls
+to various   <TT>init_XYZ</TT>
+routines. Most input files will be opened  and read at this point.  
+</P>
+<H3><A NAME="part2_2"></A>Main loop</H3>
+<P>The main loop is contained wholly within the MAIN routine. The
+order of calling to the physics routines is quite tightly controlled
+and cannot be changed arbitrarily. Some calls are dummy calls
+depending on how the model is coupled and which 'plug-and-play'
+options are in effect. Currently the calling order is: DYNAM
+(atmospheric dynamics), MELTSI (sea ice lateral melt), CONDSE (moist
+convection and large scale condensation), RADIA (radiative transfer),
+ PRECIP_XYZ application of precipitation to submodules, SURFCE
+(calculation of  surface heat, water and momentum fluxes),  DYNSI
+(calculation of advective tendencies in sea ice), UNDERICE
+(calculation of ice-ocean heat, mass and salt fluxes),  GROUND_XYZ
+application of surface fluxes to land surface submodules (earth, land
+ice, lakes),  RIVERF (calculation of river routing), OCEANS
+(application of surface fluxes and rivers to ocean code), FORM_SI
+(update of ice module to account for any ice formation in lakes or
+oceans), ADVSI (advection of sea ice), DISSIP (add heat from
+atmospheric dissipation to atmosphere), FILTER (pressure filter). At
+the end of the day calls are made to various daily_XYZ routines that
+calculate changes (such as in climatologies) that only need be done
+daily.</P>
+<H3><A NAME="part2_3"></A>Diagnostics</H3>
+<P>Almost all diagnostics in the model are accumulated and only
+averaged in the post-processing (or for the end of month printout).
+Budget page diagnostics are accumulated in the relevant (atmospheric
+or sea ice) routines, along with relevant atmospheric lat-lon diags.
+Constant pressure lat-height diagnostics are only calculated in
+<TT>DIAGA</TT>, called from within
+<TT>DYNAM</TT>.  Calculation and print
+out of the diagnostics is done from print_diags.     
+</P>
+<H3><A NAME="part2_4"></A>Input/Output</H3>
+<P>Apart from boundary condition files that are controlled by
+individual modules, restart file input and output is controlled by
+<TT>IORSF</TT>. This is a driver
+routine that calls individual <TT>io_XYZ</TT>
+routines for each module. This allows different versions of each
+module to control the I/O of the required prognostic variables.
+Depending on the value of <TT>iaction</TT>
+in the call, different kinds of I/O can be set (read or write, double
+or single precision, with or without tracers, with diagnostics or
+not).  
+</P>
+<H2><A NAME="part3"></A>3. Atmospheric model 
+</H2>
+<H3><A NAME="part3_1"></A>Dynamics</H3>
+<P>The solution of the momentum equations is done within the DYNAM.
+The scheme is leap frog in time with an initial 2/3 time step every 8
+leap-frog steps to prevent solution splitting. The dynamics are based
+on the dry physics (no water vapour effects in the pressure gradient
+calculation) and use potential temperature as the advected variable.
+Water vapour and tracers are advected outside the dynamics loop (once
+every source time step). All temperature, water and tracer advection
+is done using the quadratic upstream scheme to minimise numerical
+diffusion.</P>
+<H3><A NAME="part3_2"></A>Cloud processes</H3>
+<P>CONDSE is a driver that sets up the vertical arrays for the column
+models for moist convection and large scale condensation, and
+accumulates diagnostics and output for the radiation and other
+modules.</P>
+<H4><A NAME="part3_2_1"></A>Moist convection</H4>
+<P>The moist convection routine is a plume based model (Yao and Del
+Genio, 1995) that incorporates entraining and non-entraining plumes,
+downdrafts (which can also entrain environmental air), subsidence
+(using the quadratic upstream scheme).  
+</P>
+<H4><A NAME="part3_2_2"></A>Large scale condensation</H4>
+<P>The main cloud generating  routine LSCOND is based on Del Genio et
+al 1996, with some modifications to improve the simulation of the
+nucleation of super-cooled precipitation and the estimate of
+near-surface cloud formation in very shallow pbl conditions.</P>
+<H3><A NAME="part3_3"></A>Radiation </H3>
+
+<p> The radiation code is based on the k-correlation methodology using
+33 correlated spectral intervals in the solar and long wave bands
+(Lacis and Oinas, 1991, Oinas et al, 2001) </p>
+
+<H3><A NAME="part3_4"></A>Surface fluxes (incl. planetary boundary
+layer physics) 
+</H3>
+
+<p> Surface fluxes are calculated separately for each land surface
+type (open water, ice, earth and land ice). For each type, a different
+high resolution PBL calculation is done to extrapolate the first layer
+atmospheric properites to the surface (defined as 10m above the
+ground). The diffusion parameters in the PBL layers are functions of
+the local turbulence closure scheme (Cheng et al, 2002) and are
+iterated to get a robust estimate of the surface properties
+(temperature, humidity, and tracer concentration) and
+fluxes. Generally, 2 or 4 surface flux time steps are done every hour,
+depending on the vertical resolution.</p>
+
+<H3><A NAME="part3_5"></A>Turbulence and Dry convection 
+</H3>
+
+<p> There are two methods of vertical mixing outside of the surface
+layer: Either, complete mixing is performed if two boxes are statically
+unstable (using the virtual potential temperature) (DRYCNV), or a
+turbulence closure is used to estimate the amount of mixing based on
+on the grid-scale properties and available TKE (ATURB). </p>
+
+<H3><A NAME="part3_6"></A>Stratospheric drag (incl. Gravity Wave Drag
+schemes) 
+</H3>
+
+<p> Stratopsheric drag is applied in two ways. Firstly, using a simple
+formulation as a Rayleigh damping near the top of the model (SDRAG).
+Secondly, and generally only if the stratsophere is being properly
+resolved, we have a physically-based estimate of gravity-wave drag
+detemined from the model simulation of moist convection, mountain
+waves, shear and deformation (in STRATDYN) (Rind et al, 1988). When
+gravity waves break, there is also some vertical mixing associated
+with that. Both GWDRAG and SDRAG are applied within the dynamical leap
+frog tiome steps to improve stability.</p>  
+
+<HR>
+<H2><A NAME="part4"></A>4. Sea ice model </H2>
+
+<p>The sea ice model is configured so that it works suitably for the
+fixed sea ice concentration cases, and also for fully prognostic ocean
+code. A full calculation is always done for lake ice. Ice advection can
+be optionally turned on for both dynamic oceans and the Qflux model.  </P> 
+
+<H3><A NAME="part4_1"></A>Basic thermodynamics </H3>
+
+<P> The sea ice model can be thought of as consisting of two mass
+layers made up of an upper layer which has a constant thickness (10cm)
+ice layer and an arbitrary snow amount. The second layer mass has a
+minimum thickness of 10 cm, but can grow arbitrarily thick. There are
+two thermal layers in each mass layer which consist of a fixed ratio
+of the mass. Salinity and tracer values are also calculated on the
+same mass ratio, with the exception that salinity is assumed to be
+zero in the snow.  At the surface, heat and mass fluxes calculated in
+the SURFCE routine and the precipitation are applied
+first to the snow layer and then to the ice. There is advection of
+heat, salt and mass as a function of the regridding of the mass layers
+in order to preserve the fixed ratios, i.e. there is a
+sigma-coordinate for sea ice properties.</P>
+
+<p>The basal fluxes are calculated in the ocean only for the
+configurations where ice thickness is prognostic (i.e. not for the
+fixed SST cases). This is done in routine UNDERICE. The fluxes are
+then  applied to both the ice and ocean modules. Similarly, lateral
+fluxes are calculated in MELT_SI. This is done prior to any surface
+fluxes calculation to avoid the problem of changing the surface type
+fractions in the midst of the calculation. </P>
+
+<p>Frazil ice formation can occur in the ocean and lakes in open water
+conditions and under ice. This ice mass formation rate (and it's
+associated salt (for the ocean) and energy flux are calculated in
+either the lake or ocean component and added to the sea ice by routine
+FORM_SI. There is a minimum lead fraction which is a function of the
+ice thickness. </P>
+
+<p> Snow can be compacted into ice by accumulating over a maximum
+thickness, or by rain or surface melting. Surface melting is kept
+track of since it is used to estimate melt pond formation for the
+albedo calculation. No specific snow-ice formation is yet included. </p>
+
+<H3><A NAME="part4_2"></A>Ice advection </H3>
+
+<p> Ice advection is a function of the atmosphere-ice and ice-ocean
+momentum stress and the sea surface gradient. The internal ice
+pressures and rheology are estimated using the Flato-Hibler
+viscous-plastic rheology as coded by Zhang and Rothrock, 1999. Due to
+the requirement that the surface type fractions don't vary over the
+surface flux calculation we calculate the ice velocities and ice-ocean
+momentum stress at the beginning of the calculation (in DYNSI), but
+the ice mass fluxes are not applied until afterwards (in ADVSI). The
+advection is done using the linear upstream scheme in the two
+horizontal directions. This code is turned on by using the 
+ICEDYN_DRV ICEDYN modules instead of the ICEDYN_DUM module, and works with 
+any ocean configuration. </p>
+
+<p> In the fixed SST case, using the ice advection does not change the
+ice variables, but does allow the ice and energy convergences due to
+advection to be calculated, nad subsequently used in the the q-flux
+model. The q-fluxes need to be consistent with the ice advection, and
+so if ICEDYN_DRV ICEDYN is used in the spin-up, it must also be used
+in the q-flux model (and vice versa).</p>
+
+<HR>
+<H2><A NAME="part5"></A>5. Land Surface model </H2>
+<H3><A NAME="part5_1"></A>Soil physics </H3>
+
+<p> The soils are modelled separately for bare and vegetated
+soil. Additionally, there is a canopy layer over the vegetated
+portion. The soils are modelled using 6 variable depth
+layers. Evapotransiration takes water from the surface pools, and from
+below as a function of rooting depths. Runoff is calculated using a
+TOPmodel approach.
+</p>
+
+<H3><A NAME="part5_2"></A>Snow model </H3>
+
+<p> The snow model (over land) is a 3-layer snow model (Stieglitz,
+1994), that can have a variable extent. </p>
+
+<H3><A NAME="part5_3"></A>Lake model </H3>
+
+<p> The lakes are modelled using a two layer code. The first layer has
+a minimum depth of 1m, while the second layer is unlimited. Lake mass
+is effected by precipitation, evporation and lake ice melt and
+freeze. In addition, river inflow from upstream boxes and outflow to
+the downstream box modify the first layer properties. There is a small
+amount of heat diffusion at the interface, and convective overturning
+occurs if the temperature stratification is unstable.<p>
+
+<H3><A NAME="part5_4"></A>Rivers </H3>
+
+<p> Rivers exist in all land grid boxes and collect runoff from the
+soil and land ice models. Where there is a lake fraction, the water is
+considered a lake (as above). Where there is not, there is no
+intereaction with the atmosphere. Tranpsort of river water depends on
+the (fixed) downstream direction file and mean slope, and the depth of
+the upstream river/lake above a predefined sill depth. Some boxes do
+not contain an outlet, and so can accumulate water indefinitely. As
+the river water reaches an ocean box, the water is deposited uniformly
+within that box. </p>
+
+<HR>
+<H2><A NAME="part6"></A>6. Ocean models </H2>
+
+<H3><A NAME="part6_1"></A>Imposed Sea surface conditions </H3>
+
+<P> The simplest ocean model is one where the sea surface temperature
+is read in from a file, either a fixed (annually repeating)
+climatology, or a transient (monthly varying) realisation based on
+observations or previous simulations. Monthly means and end of month
+values are read in and a quadratic approximation used to interpolate
+to the (fixed) daily value at every grid point. This is constructed to
+ensure that the monthly mean of the daily interpolated values is equal
+to the specified mean. Along with SST, the sea ice concentration is
+also a required field. This is interpolated similarly but is
+constructed so that the minimum and maximum values are respected. Sea
+ice thickness is also fixed in these cases, but given the lack of
+reliable global observations, we set this based on a local scaling to
+the sea ice concentration.</P>
+
+<H3><A NAME="part6_2"></A>Q-flux (mixed layer model) </H3>
+
+<P>We can calculate the total freshwater mass and heat fluxes into the
+ice/ocean component from a spin up run with fixed SST. Given a
+climatology of ocean mixed layer depths, we can calculate the implied
+ocean heat convergence at the base of the mixed layer. This will
+incorporate the actual ocean heat transports, but also a residual
+component related to any errors in the surface heat or mass fluxes.
+This ocean heat convergence can be input into a thermodynamic mixed
+layer to give a Q-flux model. Depending on whether ice advection is
+turned on (see <a href="#part4_2">above</a>), the horizontal transport
+of the sea ice is or is not incorporated into the ocean heat
+convergence. A full sea  ice thermodynamic calculation is performed
+for this model. Generally this model takes 20 to 30 years to come into
+thermal equilibrium with any change in forcing, but this can be
+changed by specifying the maximum mixed layer depth (smaller implies a
+faster equilibration).</P>
+
+<P> There is an option to allow diffusion into the deep ocean by
+replacing OCNML with ODEEP in the run deck. This requires a 10 year
+spin up of the Q-flux model in order to properly set the deeper layers
+(12 layers, down to 5000m).</P>
+
+<H3><A NAME="part6_3"></A>GISS Dynamic ocean model (Russell) </H3>
+
+<P> This model is a fully dynamic, non-Boussinesq, mass-conserving
+free surface ocean model (Russell et al, 1995, 2000, Liu et al 2002,
+2003). The dynamics is based on a modified Arakawa scheme on the
+C-grid, with a linear upstream scheme for advecting tracers. Vertical
+mixing uses the KPP scheme of Large et al (1996). Momentum mixing is
+modelled as a spatically varying laplacian as in Wajsowicz (1993). The
+effects of mesoscale eddies and isopycnal diffusion are parameterised
+as in Gent and McWilliams (1996), but using variable coefficients
+(Visbeck et al, 1997), and coded as in Griffies (1998).
+</P>
+
+<p> The model contains up to 12 variable depth subgrid scale straits
+which contect ocean grid boxes, which would not be connected at the
+resolution used. In particular, the Straits of Gibraltar, Hormuz, and
+Nares straits are so modelled. All ocean components are fluxed through
+these straits as a function of the end to end pressure gradients,
+balanced against a drag proportional to the straits 'width' which
+serves as a tuning parameter to get reasonable fluxes. </p>
+
+<H3><A NAME="part6_4"></A>HYCOM</H3>
+
+<p> HYCOM is an isopyncal model based on MICOM that has a hybrid mixed
+layer scheme near the surface. This has been fully coupled to the
+modelE atmosphere. For more details contact <a
+mailto="ssun@giss.nasa.gov">ssun@giss.nasa.gov</a>. </p> 
+
+<H3><A NAME="part6_5"></A>MOM3 </H3>
+
+<p> MOM3 is the Modular Ocean Model version 3 from GFDL. For more
+details on the coupled version please contact <a
+mailto="ntausnev@giss.nasa.gov">ntausnev@giss.nasa.gov</a>.
+
+<HR>
+<H2><A NAME="part7"></A>7. Tracers</H2>
+
+<p> ModelE comes with a full complement of tracer code that follows
+all mass transports in the model. All tracer fields are computed in
+mass units (not concentration) and thus are perfectly conserved (with
+one exception explained below). There is a library of pre-coded
+physics for some common tracers that have been used historically with
+the GISS models. For the simplest applications, the relevant tracer
+code needs to be turned on using pre-processor directives in the
+rundeck (details below), and then by editing TRACER_COM.f the specific
+tracer can be coded for. Some generic code is allowed for any tracers
+(such as radioactive decay, diagnostics etc.). Some specific tracers
+require special physics and these require some extra code (for
+instance water isotopes or chemistry).</p>
+
+<p>The tracers break naturally into four groups:
+atmospheric tracers that follow air mass, tracers that are either
+purely water based or have a soluble component, particulate tracers
+that may interact with the hydrologic cycle, and tracers that are
+purely oceanic. These are dealt with in turn below.</p>
+
+<H3><A NAME="part7_1"></A>Air mass Tracers </H3>
+
+<p>The code for tracers of mass transport in the atmosphere is
+initialised by setting <tt>#define TRACERS_ON</tt> in the rundeck.
+These tracers are mostly insoluble gases or ideal tracers such as air
+mass age or source. All changes in air mass (by advection, convection,
+the sea level pressure filter) and parameterised mixing (stratospheric
+diffusion, atmospheric turbulence) are followed by the tracers. There
+is one exception for the pure 'Air' tracer: this must follow the mass
+field identically, but during the operation of the sea level pressure
+filter, a conservation of mass implies a change in concentration. For
+most tracers, conservation of mass is more important, but for 'Air'
+concentration is conserved.
+</p>
+
+<H3><A NAME="part7_2"></A>Soluble and Water mass Tracers </H3>
+
+<p> If the tracer interacts with the hydrologic cycle the preprocessor
+directive <tt>#define TRACERS_WATER</tt> should be set in the rundeck
+in addition to <tt>#define TRACERS_ON</tt>. This allows for a separate
+tracer budget in all water reservoirs (cloud liquid water,
+precipitation, sea ice, lakes, ground water, glaciers and oceans (if
+a non-trivial ocean model is used)). There can be complicated
+interactions in the clouds between the in air and in water tracers,
+and any tracer amount in precip is followed through it's subsequent
+travels. These tracers are useful for soluble gases and water tracers
+themselves (isotopes, age, source).</p>
+
+<H3><A NAME="part7_3"></A>Aerosol Tracers </H3>
+<H3><A NAME="part7_4"></A>Ocean Tracers (Russell Ocean only)</H3>
+
+<p>These are turned on using <tt>#define TRACERS_OCEAN</tt>. If no
+other directives are set, then the tracer code will only be used in
+the ocean, but if the atmospheric water tracers are also turned on,
+then tracers can be used throughout the whole system.</p>
+
+<H3><A NAME="part7_5"></A>Special Tracers</H3>
+
+<p>Some special tracer physics come as standard in the model. These
+relate to tracers that are of special interest to some of the
+developers.</p>
+<ul>
+  <li><tt>#define TRACERS_SPECIAL_O18</tt> sets up special
+       physics for water isotopes. It requires <tt>#define TRACERS_ON</tt>
+       and <tt>#define TRACERS_WATER</tt> to be set as well, and that
+       <tt>TRACERS_O18</tt> be included in the object modules.
+  <li><tt>#define TRACERS_SPECIAL_Shindell</tt> sets up the tracers
+       for atmospheric chemistry.
+  <li><tt>#define TRACERS_SPECIAL_Lerner</tt> tracers for looking at
+       stratospheric/tropospheric exchange.
+</ul>
+       
+<HR>
+<H2><A NAME="part8"></A>8. References </H2>
+<UL>
+	<LI><P>Del Genio, A. D., M. S. Yao, W. Kovari and K. K. Lo,
+	1996. A prognostic cloud water parameterization for General
+	Circulation Models, <em> J. Clim. </em>, <em> 9 </em>, 270-304
+	</P>
+	<LI><P>Hansen, J., R. Ruedy, A. Lacis, Mki. Sato, L. Nazarenko, N.
+	Tausnev, I. Tegen, and D. Koch, 2000. Climate modeling in the global
+	warming debate. In General Circulation Model Development (D.
+	Randall, Ed.), pp. 127-164. Academic Press. San Diego. 
+	</P>
+	<LI><P>Hansen, J. E.  ,Mki. Sato ,L. Nazarenko ,R. Ruedy,
+        A. Lacis ,I. Tegen ,T. Hall, D. Shindell , P. Stone , T. Novakov,
+        L. Thomason , R. Wang , Y. Wang, D.J. Jacob , S. Hollandsworth-Frith,
+        L. Bishop , J. Logan , A. Thompson, R. Stolarski , J. Lean ,
+        R. Willson, S. Levitus , J. Antonov , N. Rayner, D. Parker and
+        J. Christy. 2002. Climate forcings in Goddard Institute for
+        Space Studies SI2000 simulations, <em> J. Geophys. Res.</em>,
+        <em>107</em>, 4347, DOI 10.1029/2001JD001143 
+	</P>
+	<LI><P>Liu, J., G. A. Schmidt, D. G. Martinson, D. Rind,
+	G. L. Russell and X. Yuan, Sensitivity of sea ice to physical
+	parameterisations in the GISS global climate model, <em>
+	J. Geophys. Res. </em>, (in press) 
+	</P>
+	<LI><P>Liu, J., G. A. Schmidt, D. G. Martinson, D. Rind and
+	G. L. Russell, Sensitivity of sea ice to physical
+	parameterisations in the GISS global climate model: Part
+	II. Sea ice thermodynamics, <em>J. Geophys. Res.</em>, (in preparation)
+	</P>
+	<LI><P>Russell, G.L., J. R. Miller, D. H. Rind,1995. A coupled
+	atmosphere-ocean model for transient climate change,
+	<em>Atmos. Ocean</em>, <em>33 </em>,683-730
+	</P>
+	<LI><P>Russell, G.L., J. R. Miller, D. H. Rind, R. A. Ruedy,
+	G. A. Schmidt and S. Sheth, 2000. Comparison of model and observed
+	regional temperature changes during the past 40 years,
+	<em>J. Geophys. Res.</em>, <em>105</em>, 14,891-14,898
+	</P>
+	<LI><P>Yao, M.S. and A. D. Del Genio, 1989. Effects of cumulus
+	Entrainment and multiple cloud types on a January global
+	climate model simulation, <em> J. Clim.</em>,  <em> 2</em>, 850-863 
+	</P>	
+	<LI><P>Zhang, J. and D. Rothrock, 2000. Modeling Arctic sea
+	ice with an efficient plastic solution, <em>J. Geophys. Res.</em>, 
+	<em>105</em>, 3325-3338
+	</P>
+</UL>
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,76 @@
+Prescribed and Interactive Ocean Biology in modelE
+(by Natassa Romanou, Watson Gregg and Gavin Schmidt)
+=========================================
+
+This document describes the steps and methodology for
+running (non)interactive chlorophyll and interactive carbon
+cycle etc.
+
+step 1: Check out the model from CVS as usual
+cvs checkout modelE 
+
+step 2: Choose which ocean model to use if any at all
+
+step 3: Choose whether you want to do 
+        i) chlorophyll-radiation feedbacks
+       ii) real or prescribed chlorophyll and ocean biology
+      iii) CO2 gas exchange with the atmosphere
+       iv) prognostic alkalinity
+
+Then in the decks directory use the appropriate rundeck.
+=========================================
+
+Description of CPPs to be used in the rundecks
+
+#define CHECK_OCEAN_HYCOM           ! HYCOM ocean: needed for CMPE002 only
+#define HYCOM_RESOLUTION_2deg       ! HYCOM ocean: use 2deg resolution for HYCOM ocean
+
+#define CHECK_OCEAN                 ! RUSSELL ocean: needed to compile aux/file CMPE002
+
+#define TRACERS_OCEAN               ! RUSSELL ocean: ocean tracers activated
+#define TRACERS_OCEAN_INDEP         ! RUSSELL ocean: independently defined ocn tracers
+
+#define OBIO_ON_GARYocean           ! RUSSELL ocean: prognostic ocean biology
+#define CHL_from_SeaWIFs            ! RUSSELL ocean: read in SeaWIFs
+
+#define TRACERS_OceanBiology        ! ANY ocean: Watson Gregg's ocean bio-geo-chem model
+
+#define OBIO_RAD_coupling           ! ANY ocean: radiation -- ocean biology coupling
+#define pCO2_ONLINE                 ! ANY ocean: pCO2_seawater computed online
+
+#define TRACERS_ON                  ! ANY ocean: ATMOS tracers: include tracers code
+
+#define TRACERS_GASEXCH_ocean       ! ANY ocean: special tracers to be passed to ocean
+#define TRACERS_GASEXCH_ocean_CO2   ! ANY ocean: special tracers to be passed to ocean
+
+#define CHL_from_OBIO               ! ANY ocean: interactive CHL
+
+#define TRACERS_GASEXCH_CFC_Natassa ! ANY ocean: CFC-11 or CFC-12
+
+#ifdef TRACERS_Alkalinity           ! ANY ocean: prognostic alkalinity
+
+=========================================
+
+Rundecks to be used for each case: 
+
+E1ar_prescrocn.R   ! for prescribed ocean + seawifs
+
+E1arobio_h.R       ! hycom ocean + obio 
+    .... (more to come)
+
+E1arobio_g.R       ! russell ocean + obio  
+E1arseawifs.R      ! russell ocean + seawifs
+E1arseawifs_2deg.R ! russell ocean + seawifs
+E1arobiogasx.R     ! russell ocean + obio + gas exchange
+E1arobio_alk.R     ! russell ocean + obio + alkalinity
+
+=========================================
+Important:
+
+when using Russell ocean model **even without interctive gas exchange*
+you need to compile the following routines that refer to TRACERS_OCEAN
+
+TRACER_COM  TRACERS_DRV              ! configurable tracer code
+TRACERS                             ! generic tracer code
+
+

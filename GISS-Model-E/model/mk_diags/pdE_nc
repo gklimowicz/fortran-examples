@@ -1,0 +1,194 @@
+#!/bin/ksh
+
+#---------------------------+                                                                                                                                   
+# discover-specific section |
+#---------------------------+
+   exe='/discover/nobackup/projects/giss/exec'    ; # Directory containing Max's pdE utilities
+
+   do_sumfiles=$exe/sumfiles                  ; # other options: do_sumfiles=$exe/sumfiles_himem
+                                                #                do_sumfiles="mpirun -np 4 $exe/sumfiles_mpi"
+
+   ncdump_deflt='/usr/local/other/netcdf/3.6.2_intel-10.1.013/bin/ncdump'
+
+# pick the proper version of ncdump
+#----------------------------------
+  a=$( which ncdump ) ; ncdump='ncdump'
+  if [[ $a != *'ncdump' ]] ; then ncdump=${ncdump_deflt} ; fi
+
+#----------------------+
+# command line options |
+#----------------------+
+  sum_only=0 ; full_lats='' ; select_jl_gc='traditional' ; selected_jl_gc='' ; #defaults
+  if [[ $# -gt 0 ]]
+  then while [[ $1 != *.acc* && $# -gt 0 ]]
+     do a=${1#-} ; shift
+        if   [[ $a = [sS]* ]] ; then sum_only=1
+        elif [[ $a = [fF]* ]] ; then full_lats=all_lats
+        elif [[ $a = [zZ]* ]] ; then select_jl_gc='special' ; selected_jl_gc=${a#?}
+        elif [[ $a = [pP]* ]] ; then select_jl_gc=''
+        fi
+     done
+  fi
+
+#------------------------------+
+# existence/consistency checks |
+#------------------------------+
+  n=0
+  for x in $*
+  do if [[ -s $x ]] ; then (( n = n+1 )) ; else echo "$x not found" ; fi
+  done
+
+  if [[ $n -eq 0 ]]
+  then echo "Usage: pdE [ -s(um_only) | print_args ] set_of_one-or-more_acc_files"
+       echo "       print_args:       -f(ull_lats) -p(rint_all) -z'fname' ; default: traditional output"
+       echo " "
+       echo " -z provides option to select/rearrange printed zonal means tables using the list fname"
+       echo " the full list is produced if -p is used: full_jl_gc_list.txt"
+       echo " You may create your own selection file by deleting/rearranging lines" 
+    exit  ;
+  fi
+
+  if [[ $# -eq 1 && $sum_only -eq 1 ]]
+  then echo 'no action - -sum_only expects more than 1 file'
+    exit
+  fi
+
+#---------+
+# Staging |
+#---------+
+# collect acc_files and uncompress, if necessary
+  wdir=__temp_dir_${PPID}
+  rm -rf ${wdir} 2> /dev/null  ; mkdir ${wdir} ; chmod ugo+rx ${wdir} ; chmod ug+w ${wdir}
+  for x in $*
+  do if [[ $x = *.gz ]]
+     then cp -p $x ${wdir}/. ; gunzip ${wdir}/$( basename $x )
+     elif [[ $x = '/'* ]]
+     then ln -s $x ${wdir}/.
+     else ln -s $PWD/$x ${wdir}/.
+     fi
+  done
+
+  if [[ $selected_jl_gc != '' ]]
+  then if [[ ! -a $selected_jl_gc ]]
+       then echo "$selected_jl_gc not found - using traditional selection"
+            selected_jl_gc=''
+       elif [[ $selected_jl_gc != '/'* ]]
+       then selected_jl_gc="../$selected_jl_gc" 
+       fi
+  fi
+ 
+  chmod -R ugo+rx ${wdir} ; chmod -R ug+w ${wdir}
+  cd ${wdir} ; pwd=$PWD
+  if [[ $pwd != */${wdir} ]]
+  then echo "${wdir} was destroyed - program aborted"
+       exit
+  fi
+
+#------------------------------++
+# Add up acc-files :  sumfiles ||
+#------------------------------++
+  if [[ $# -gt 1 ]]
+  then ls -rt *.acc* > __list ; echo "combining:" ; cat __list
+
+    ${do_sumfiles} [!_]*
+    # remove stray parentheses from the generated file name
+      ${exe}/rmparen
+    # clean up
+    while read a ; do rm -f ${pwd}/$a ; done < __list ; rm -f __list
+
+    echo "sumfiles created: " ; ls -t | head -1
+
+    if [[ $sum_only -eq 1 ]]
+    then mv * ../. ; cd .. ; rm -rf ${pwd} ; exit ; fi
+  fi
+
+# Preliminaries: parse filename -> averaging period, runid
+  acc_file=$( ls * )
+  period=${acc_file%%.acc*}
+  runid_nc=${acc_file#${period}.acc} ; runid=${runid_nc%.nc}
+  PRT_fname=${period}.${runid}.PRT ; rm -f ${pwd}/${PRT_fname}
+  types_list='list_of_diag_types_'${runid}
+
+  speca=${ ${ncdump} -h ${acc_file} | grep nlspeca | head -1 }
+
+#------------------------------------------------------------++
+# extract/scale individual diagnostic file types :  scaleacc ||
+#------------------------------------------------------------++
+  echo "processing $acc_file"
+
+  ${exe}/scaleacc $acc_file all > list_of_diag_types
+
+  sed "s/processing //g" < list_of_diag_types > ${types_list}
+
+  aocn=$( grep olnst ${types_list} )  ; qocn=$?  ; # coupled model ?
+  atra=$( grep taijl ${types_list} )  ; qtra=$?  ; # tracers ?
+
+#-----------------------------------------------------++
+# complete jl standing eddy diag. etc from ijl  files ||
+#-----------------------------------------------------++
+  ${exe}/agcstat ${runid} ${period} > /dev/null
+
+#-------------------------------------------------------------++
+# option to merge/rearrange/select ajl/agc files for printout ||
+#-------------------------------------------------------------++
+  ajlagc="ajl agc"
+  if [[ $select_jl_gc != '' ]]
+  then ${exe}/fuse_ajlagc ${period}.ajl${runid_nc} ${period}.agc${runid_nc} ${period}.ajlagc${runid_nc} $selected_jl_gc
+       ajlagc="ajlagc"
+  else $ncdump -h ${period}.ajl${runid_nc} | grep long_name | while read a ; do echo "ajl:${a%%:*}         "  "${a##*long_name = }" ; done  > full_jl_gc_list.txt
+       $ncdump -h ${period}.agc${runid_nc} | grep long_name | while read a ; do echo "agc:${a%%:*}         "  "${a##*long_name = }" ; done >> full_jl_gc_list.txt
+  fi
+
+#------------------------------------------------++
+# create standard printout :  prtaj, prtajl, ... ||
+#------------------------------------------------++
+  prt_types="aj areg ${ajlagc} consrv adiurn"
+  if [[ $qocn -eq 0 ]] ; then prt_types="${prt_types} otj olnst" ; fi
+  if [[ $qtra -eq 0 ]] ; then prt_types="${prt_types} tconsrv tajl" ; fi
+
+  for typ in ${prt_types}
+  do prtUtil=$exe/prt${typ#t} ; if [[ ! -s $prtUtil ]] ; then prtUtil=$exe/prtajl ; fi
+     opt='' ; if [[ $prtUtil = prtajl ]] ; then opt=${full_lats} ; fi
+     $prtUtil ${period}.${typ}${runid_nc} $opt >> ${PRT_fname} ; echo '1' >> ${PRT_fname}
+  done
+
+  if [[ $qocn -eq 0 ]] ;          # produce ocean model diagnostics
+  then ${exe}/prtostat ${runid}  ${period}  > ocn
+       line=0
+       while read a
+       do if [[ $a = ${runid}* ]]
+          then line=1 ; a="1$a"
+          elif [[ line -gt 0 ]]
+          then a=" $a"
+          fi
+          if [[ line -gt 0 ]] ; then echo "$a" >> ${PRT_fname} ; fi
+       done < ocn
+  fi
+
+  ${exe}/prtrvr  ${acc_file} > rvr  ;  line=1
+  while read a
+  do if [[ line -eq 1 ]] ; then a='1'$a ; else a=' '$a ; fi
+     echo "$a" >> ${PRT_fname} ; (( line = line + 1 ))
+  done < rvr
+
+
+  ${exe}/prtisccp ${acc_file} > isccp ; a=$( grep NaN isccp | head -1 )
+  if [[ $a = '' ]]
+  then line=1
+       while read a
+       do if [[ line -eq 1 ]] ; then a='1'$a
+          elif [[ line -eq 2 ]] ; then a=' '$a
+          fi
+          echo "$a" >> ${PRT_fname} ; (( line = line + 1 ))
+       done  < isccp
+  fi
+
+  if [[ $speca != '' ]]
+  then ${exe}/prtspeca ${runid} ${period} >> ${PRT_fname}
+  fi
+
+# clean up
+  mv ${PRT_fname} ../. ; if [[ $# -eq 1 ]] ; then rm -f ${pwd}/$acc_file ; fi
+  mv -f *.nc ${types_list} *.giss* *.txt ../. 2> /dev/null
+  cd ..
+  rm -rf ${wdir}

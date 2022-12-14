@@ -1,0 +1,447 @@
+! This module contains tests of the Halo_mod module. 
+module Test_Halo_mod
+  use pFUnit_mod
+  use dist_grid_mod, only: setCommunicator, dist_grid, init_grid, &
+    destroy_grid, getDomainBounds, NORTH, SOUTH
+  use Halo_mod
+  implicit none
+
+  public :: Test_Halo
+
+@TestCase
+  type, extends(MpiTestCase) :: Test_Halo
+    integer :: ibeg, iend, jbeg, jend      ! local dimensions
+    integer :: ibegh, iendh, jbegh, jendh  ! local dimensions + halo
+    type (DIST_GRID) :: distGrid
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type Test_Halo
+
+  public :: test_HaloUpdateSouthPole1D
+  public :: test_HaloUpdateNorthPole1D
+  public :: test_HaloUpdateSouthPole2D
+  public :: test_HaloUpdateNorthPole2D
+  public :: test_HaloUpdateSouthPole3D
+  public :: test_HaloUpdateNorthPole3D
+  public :: test_HaloUpdate1d ! j
+  public :: test_HaloUpdate2d ! i,j
+  public :: test_HaloUpdate2dint ! i,j
+  public :: test_HaloUpdateJ2d ! j,LM
+  public :: test_HaloUpdateColumn ! k,i,j
+  public :: test_HaloUpdateColumnInt ! k,i,j
+  public :: test_HaloUpdateBlock ! k,LM,i,j
+
+  integer, parameter :: IM = 4
+  integer, parameter :: JM = 10
+  integer, parameter :: LM = 2
+
+contains
+
+  subroutine setUp(this)
+    class (Test_Halo), intent(inout) :: this
+
+    call setCommunicator(this%getMpiCommunicator())
+    call init_grid(this%distGrid, IM, JM, LM)
+
+    CALL getDomainBounds( this%distgrid, &
+      I_STRT=this%ibeg, &
+      I_STOP=this%iend, &
+      J_STRT=this%jbeg, &
+      J_STOP=this%jend, &
+      I_STRT_HALO=this%ibegh, &
+      I_STOP_HALO=this%iendh, &
+      J_STRT_HALO=this%jbegh, &
+      J_STOP_HALO=this%jendh  )
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_Halo), intent(inout) :: this
+    call destroy_grid(this%distGrid)
+  end subroutine tearDown
+
+@mpiTest(npes=[1,2,9,10])
+  subroutine test_HaloUpdateSouthPole1D(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: distArray
+    integer :: rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (J)
+    allocate (distArray(this%jbegh:this%jendh))     
+    distArray = rank
+
+    call halo_update_south_pole(this%distGrid, distArray)
+
+    if (this%jend == 1) &
+      @assertEqual(1, distArray(this%jendh))
+
+    if (this%jbeg == 2) &
+      @assertEqual(0, distArray(this%jbegh))
+
+! Do not update halos except at SP
+    if (this%jend > 1) &
+       @assertEqual(rank, distArray(this%jendh))
+
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateSouthPole1D
+
+@mpiTest(npes=[1,2,9,10])
+  subroutine test_HaloUpdateNorthPole1D(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: distArray
+    integer :: rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (J)
+    allocate (distArray(this%jbegh:this%jendh))     
+    distArray = rank
+
+    call halo_update_north_pole(this%distGrid, distArray)
+
+    if (this%jbeg == JM) then 
+      @assertEqual(rank-1, distArray(this%jbegh))
+    else if (this%jend == JM-1) then
+      @assertEqual(rank+1, distArray(this%jendh))
+    end if
+
+! Do not update halos except at NP
+    if (this%jbeg < JM) &
+       @assertEqual(rank, distArray(this%jbegh))
+
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateNorthPole1D
+
+@mpiTest(npes=[1,2,9,10])
+  subroutine test_HaloUpdateSouthPole2D(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:) :: distArray
+    integer :: rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (I,J)
+    allocate (distArray(this%ibegh:this%iendh, this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update_south_pole(this%distGrid, distArray)
+
+    if (this%jend == 1) &
+      @assertEqual(1, distArray(:,this%jendh))
+
+    if (this%jbeg == 2) &
+      @assertEqual(0, distArray(:,this%jbegh))
+
+! Do not update halos except at SP
+    if (this%jend > 1) &
+       @assertEqual(rank, distArray(:,this%jendh))
+
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%ibeg:this%iend, this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateSouthPole2D
+
+@mpiTest(npes=[1,2,9,10])
+  subroutine test_HaloUpdateNorthPole2D(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:) :: distArray
+    integer :: rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (I,J)
+    allocate (distArray(this%ibegh:this%iendh, this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update_north_pole(this%distGrid, distArray)
+
+    if (this%jbeg == JM) then 
+      @assertEqual(rank-1, distArray(:,this%jbegh))
+    else if (this%jend == JM-1) then
+      @assertEqual(rank+1, distArray(:,this%jendh))
+    end if
+
+! Do not update halos except at NP
+    if (this%jbeg < JM) &
+       @assertEqual(rank, distArray(:,this%jbegh))
+
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%ibeg:this%iend, this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateNorthPole2D
+
+@mpiTest(npes=[1,2,9,10])
+  subroutine test_HaloUpdateSouthPole3D(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:,:) :: distArray
+    integer :: rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (I,J,K)
+    allocate (distArray(this%ibegh:this%iendh, this%jbegh:this%jendh, LM))    
+    distArray = rank
+
+    call halo_update_south_pole(this%distGrid, distArray)
+
+    if (this%jend == 1) &
+      @assertEqual(1, distArray(:,this%jendh,:))
+
+    if (this%jbeg == 2) &
+      @assertEqual(0, distArray(:,this%jbegh,:))
+
+! Do not update halos except at SP
+    if (this%jend > 1) &
+       @assertEqual(rank, distArray(:,this%jendh,:))
+
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%ibeg:this%iend, this%jbeg:this%jend,:))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateSouthPole3D
+
+@mpiTest(npes=[1,2,9,10])
+  subroutine test_HaloUpdateNorthPole3D(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:,:) :: distArray
+    integer :: rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (I,J,K)
+    allocate (distArray(this%ibegh:this%iendh, this%jbegh:this%jendh, LM))    
+    distArray = rank
+
+    call halo_update_north_pole(this%distGrid, distArray)
+
+    if (this%jbeg == JM) then 
+      @assertEqual(rank-1, distArray(:,this%jbegh,:))
+    else if (this%jend == JM-1) then
+      @assertEqual(rank+1, distArray(:,this%jendh,:))
+    end if
+
+! Do not update halos except at NP
+    if (this%jbeg < JM) &
+       @assertEqual(rank, distArray(:,this%jbegh,:))
+
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%ibeg:this%iend, this%jbeg:this%jend,:))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateNorthPole3D
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_HaloUpdate1d(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:) :: distArray
+    integer :: peSouth, peNorth, rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (J)
+    allocate (distArray(this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update(this%distGrid, distArray)
+
+    peSouth = rank - 1 
+    peNorth = rank + 1 
+
+    if (rank > 0) then
+       @assertEqual(peSouth, distArray(this%jbegh))
+    end if
+    if (rank < this%getNumProcesses()-1) then
+      @assertEqual(peNorth, distArray(this%jendh))
+    end if
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdate1d
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_HaloUpdate2d(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:) :: distArray
+    integer :: peSouth, peNorth, rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (J)
+    allocate (distArray(this%ibegh:this%iendh, this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update(this%distGrid, distArray)
+
+    peSouth = rank - 1 
+    peNorth = rank + 1 
+
+    if (rank > 0) then
+      @assertEqual(peSouth, distArray(:,this%jbegh))
+    end if
+    if (rank < this%getNumProcesses()-1) then
+       @assertEqual(peNorth, distArray(:,this%jendh))
+    end if
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(this%ibeg:this%iend, this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdate2d
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_HaloUpdate2dint(this)
+    class (Test_Halo), intent(inout) :: this
+    integer, allocatable, dimension(:,:) :: distArray
+    integer :: peSouth, peNorth, rank
+
+    rank = this%getProcessRank()
+    ! real array with dimensions (J)
+    allocate (distArray(this%ibegh:this%iendh, this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update(this%distGrid, distArray)
+
+    peSouth = rank - 1 
+    peNorth = rank + 1 
+
+    if (rank > 0) then
+       @assertEqual(peSouth, distArray(:,this%jbegh))
+    end if
+    if (rank < this%getNumProcesses()-1) then
+      @assertEqual(peNorth, distArray(:,this%jendh))
+    end if
+    ! also test that interior does not change
+    @assertEqual(real(rank), real(distArray(this%ibeg:this%iend, this%jbeg:this%jend)))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdate2dint
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_HaloUpdateJ2d(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:) :: distArray
+    integer :: peSouth, peNorth, rank
+   
+    rank = this%getProcessRank()
+    ! array (column) with dimensions (J,L)
+    allocate (distArray(this%jbegh:this%jendh,LM))    
+    distArray = rank
+
+    call halo_updatej(this%distGrid, distArray)
+
+    peSouth = rank - 1 
+    peNorth = rank + 1 
+
+    if (rank > 0) then
+       @assertEqual(peSouth, distArray(this%jbegh, :))
+    end if
+    if (rank < this%getNumProcesses()-1) then
+       @assertEqual(peNorth, distArray(this%jendh,:))
+    end if
+    ! also test that interior does not change
+    @assertEqual(real(rank), real(distArray(this%jbeg:this%jend, :)))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateJ2d
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_HaloUpdateColumn(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:,:) :: distArray
+    integer :: peSouth, peNorth, rank
+   
+    rank = this%getProcessRank()
+    ! real array with dimensions (L,I,J)
+    allocate (distArray(LM, this%ibegh:this%iendh,this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update_column(this%distGrid, distArray)
+
+    peSouth = rank - 1 
+    peNorth = rank + 1
+
+    if (rank > 0) then
+       @assertEqual(peSouth, distArray(:,:,this%jbegh))
+    end if
+    if (rank < this%getNumProcesses()-1) then
+       @assertEqual(peNorth, distArray(:,:,this%jendh))
+    end if
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(:, this%ibeg:this%iend,this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateColumn
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_HaloUpdateColumnInt(this)
+    class (Test_Halo), intent(inout) :: this
+    integer, allocatable, dimension(:,:,:) :: distArray
+    integer :: peSouth, peNorth, rank
+   
+    rank = this%getProcessRank()
+    ! integer array with dimensions (L,I,J)
+    allocate (distArray(LM, this%ibegh:this%iendh,this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update_column(this%distGrid, distArray)
+
+    peSouth = rank - 1 
+    peNorth = rank + 1
+
+    if (rank > 0) then
+       @assertEqual(real(peSouth), real(distArray(:,:,this%jbegh)))
+    end if
+    if (rank < this%getNumProcesses()-1) then
+       @assertEqual(real(peNorth), real(distArray(:,:,this%jendh)))
+    end if
+    ! also test that interior does not change
+    @assertEqual(real(rank), real(distArray(:, this%ibeg:this%iend,this%jbeg:this%jend)))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateColumnInt
+
+@mpiTest(npes=[1,3,5])
+  subroutine test_HaloUpdateBlock(this)
+    class (Test_Halo), intent(inout) :: this
+    real(8), allocatable, dimension(:,:,:,:) :: distArray
+    integer :: peSouth, peNorth, rank
+   
+    rank = this%getProcessRank()
+    ! array  with dimensions (K,L,I,J)
+    allocate (distArray(LM, LM, this%ibegh:this%iendh,this%jbegh:this%jendh))    
+    distArray = rank
+
+    call halo_update_block(this%distGrid, distArray)
+
+    peSouth = rank - 1 
+    peNorth = rank + 1
+
+    if (rank > 0) then
+      @assertEqual(peSouth, distArray(:,:,:,this%jbegh))
+    end if
+    if (rank < this%getNumProcesses()-1) then
+      @assertEqual(peNorth, distArray(:,:,:,this%jendh))
+    end if
+    ! also test that interior does not change
+    @assertEqual(rank, distArray(:, :, this%ibeg:this%iend,this%jbeg:this%jend))
+
+    deallocate(distArray)
+
+  end subroutine test_HaloUpdateBlock
+
+end module Test_Halo_mod

@@ -1,0 +1,31 @@
+module Test_MPIPlaceholder_mod
+   use pFUnit_mod
+   implicit none
+
+   public :: Test_MPIPlaceholder
+   integer, parameter :: dp = selected_real_kind(14)
+
+@TestCase
+   type, extends(TestCase) :: Test_MPIPlaceholder
+   contains
+      procedure :: setUp     ! overides generic
+      procedure :: tearDown  ! overrides generic
+   end type Test_MPIPlaceholder
+
+contains
+
+   subroutine setUp(this)
+      class (Test_MPIPlaceholder), intent(inout) :: this
+   end subroutine setUp
+
+   subroutine tearDown(this)
+      class (Test_MPIPlaceholder), intent(inout) :: this
+   end subroutine tearDown
+
+@Test   
+   subroutine test_foo(this)
+      class (Test_MPIPlaceholder), intent(inout) :: this
+
+   end subroutine test_foo
+
+end module Test_MPIPlaceholder_mod

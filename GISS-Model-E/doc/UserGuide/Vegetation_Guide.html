@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Vegetation Model User Guide</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Vegetation Model User Guide</H3>
+
+This document describes rundeck specifications required to run different configurations of the Ent Terrestrial Biosphere Model coupled to ModelE2.
+This includes different initialization options for different levels of dynamics.  These options include:<br>
+<br>(1) Ent biophysics (suface fluxes) only, with Matthews (1983) and Rosenzweig & Abramopoulos (1997) 
+prescribed seasonality of leaf area index (LAI) by vegetation type.  This requires only cover initilization (VEG and CROPS) and other vegetation structure is prescribed.
+<br><br>(2) (AVAILABLE TO DEVELOPERS) Ent biophysics and Ent prognostic phenology (interactive seasonal plant growth). 
+ This configuration can be initialized as in (1), but it is best to initialize additionally with geographically 
+ varying files for initial LAI, canopy height, and canopy maximum LAI.  Data sets for these values can be obtained from Nancy Kiang.
+
+<H4>Sample rundecks in templates directory:</H4>
+E1M20iEnt.R <br>
+E4F40iEnt.R
+
+<H4>Components:</H4>
+Ent giss_LSM
+
+<H4>Component Options:</H4>
+OPTS_Ent = ONLINE=YES PS_MODEL=FBB  PFT_MODEL=ENT
+<br><br>
+Description:<br>
+OPTS_Ent:  compile options for Ent physics modules in model/Ent/
+<br>&nbsp;&nbsp;&nbsp;PS_MODEL (FBB):  FBB=Farquhar/Ball-Berry biophysics for Ent	; this will soon be the default.  If not set, the Friend & Kiang (2005) biophysics scheme is still available in the code.
+<br>&nbsp;&nbsp;&nbsp;PFT_MODEL (ENT):  Ent 16 plant functional types are run.  If not set, the Matthews (1983) 8 biome types are still available, but the Ent 16 PFTs have current support.
+<br>
+OPTS_giss_LSM:  compile options for land hydrology physics modules in model/giss_LSM/
+<br>
+<H4>INPUT_FILES required include all the ground hydrology boundary conditions required for any ModelE runs:</H4>
+TOPO - Fractions of ocean, lake, ground, ice, thicknesses, topography. GISS layer format.
+<br>SOIL - ModelE soil boundary conditions file.  Binary file of grid arrays, no titles.
+<br>TOP_INDEX = topographic index if for TOP_MODEL run-off.  GISS layer format.
+<br>VEG - global arrays for cover fraction by each plant functional type (PFT).  GISS layer format.
+<br>CROPS - global arrays of historical crop cover by year. GISS layer format.
+<br>CD_coef - global array of surface roughness length.  GISS layer format.
+
+<H4>Additional INPUT_FILES required for Ent </H4>
+soil_textures - global arrays of soil textures (sand, silt, clay fractions) for top 30 cm of soil for soil biogeochemistry.
+<br>SOILCARB_global (optional) - global array of total soil carbon per m<sup>2</sup> for intialization of soil biogeochemistry.
+   Used if PARAMETER do_soilinit=.true.
+<br>LAImax - global arrays by PFT of geographic maximum annual canopy LAI. Required for setting plant population density. Used if PARAMETER do_phenology_activegrowth=TRUE or do_init_geo=TRUE.
+<br>LAIinit - global arrays by PFT of initial leaf area index (LAI) if running prognostic seasonality.  Required if PARAMETER do_phenology_activegrowth=TRUE or do_init_geo=TRUE.
+<br>HITEent - global arrays by PFT of geographic canopy heights. Used if PARAMETER do_phenology_activegrowth=TRUE or do_init_geo=TRUE.
+
+<H4>PARAMETERS</H4>
+force_VEG - logical whether to force LAI from a file (set to .false. if running prognostic phenology)
+<br>do_soilinit - logical, initialize soil carbon from file (.true. (default) or .false)
+<br>do_phenology_activegrowth - logical, simulate seasonal growth (leaf, fine roots, sapwood) and LAI (default=.true.)
+<br>do_structuralgrowth - logical, simulate woody structure growth (stem, coarse root) and height change (default=.false.)
+<br>do_init_geo - logical, initialize from file for geographic variation in canopy heights and maximum LAI (default=.true.).  
+These are used to calculate canopy structure (plant geometry and density).
+Otherwise, the Rosenzweig & Abrampoulos (1983) prescriptions of PFT canopy heights and maximum LAI are used (no geographic variation)	.
+
+<H4> Diagnostics</H4>
+The diagnostics for Ent include:<br>
+<br>
+Carbon fluxes (mass/area/time)<br>
+GPP - gross primary productivity, gross uptake of carbon<br>
+IPP - isoprene emission from veg<br>
+RAUTO - autotrophic respiration, respiration by vegetation<br>
+SOILRESP - soil respiration<br>
+<br>
+Carbon stocks (mass/area)<br>
+CLAB - plant labile carbon, carbon reserves in the plants<br>
+SOILCPOOLSUM - soil organic carbon<br>
+<br>
+LAI - leaf area index (area foliage/area ground)<br>
+
+<H4>References</H4>
+Friend, A. D. and N. Y. Kiang (2005). "Land Surface Model Development for the GISS GCM: Effects of Improved Canopy Physiology on Simulated Climate." Journal of Climate 18(15): 2883-2902.
+<br><br>
+Rosenzweig, C. and F. Abramopoulos (1997). "Land-surface model development for the GISS GCM." Journal of Climate 10: 2040-2054.
+<br>
+
+</BODY>
+</HTML>

@@ -2,25 +2,28 @@ FORTRAN_LANG_URL = https://fortran-lang.org/en/packages
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" -o -iname "*.ftn" \)
 
 all:	all-projects all-files all-fortran-files \
-	all-projects-lc all-fortran-files-lc provenance stats
+	all-projects-lc all-fortran-files-lc stats
 
 
 # Create a list of all Fortran projects we have,
 # all files, and all Fortran files.
-all-projects:	Makefile
-	/bin/ls -d */ | sed -e 's;/$$;;' >"$@"
+all-projects:	Makefile provenance .gitmodules
+	(git submodule foreach -q 'echo $$sm_path'; \
+	 sed -n -e 's/#.*//' -e 's/:.*//p' <provenance) \
+    | sort > "$@"
 
-all-files:	. Makefile
-	find * ! -path ".git*" -a -type f -print \
+all-files:	Makefile all-projects
+	find `cat all-projects` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
 all-fortran-files:	. Makefile
-	find * ${FIND_IS_FORTRAN} -print \
+	find `cat all-projects` ${FIND_IS_FORTRAN} -print \
 	| sort >"$@"
 
 # Word count each Fortran file
 all-fortran-files-lc:	all-fortran-files Makefile
-	cat all-fortran-files | tr '\n' '\0' \
+	cat all-fortran-files \
+	| tr '\n' '\0' \
 	| xargs -0 wc -l \
 	| grep -v 'total$$' >"$@"
 
@@ -40,11 +43,7 @@ stats: FORCE
 	@printf "%'11d Fortran lines\n" $$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc)
 	@printf "%'11d cpp directive lines\n" $$(cat all-fortran-files | tr '\n' '\0' | xargs -0 cat | grep '^#' | wc -l)
 	@echo "Largest projects:"; \
-	 sort -rn -k 2 all-projects-lc | head -10 | awk $$'{ printf "  %-10s %\'10d\\n", $$1, $$2}'
-
-provenance:	FORCE
-	git submodule foreach --quiet \
-		'echo "$sm_path: git clone $(git remote get-url origin)"' >"$@"
+	 sort -rn -k 2 all-projects-lc | head -10 | awk $$'{ printf "  %-18s %\'10d\\n", $$1, $$2}'
 
 
 # Add new projects we may find lying about.

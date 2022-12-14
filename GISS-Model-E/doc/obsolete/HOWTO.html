@@ -1,0 +1,2046 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<body bgcolor="#ffffff" text="#000000" link="#000099" vlink="#cc0000" alink="#cc0000">
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+ <TITLE>HOW-TO document for the GISS GCM</TITLE>
+</HEAD>
+<BODY>
+<H1>HOW-TO document for the GISS GCM</H1>
+
+<P> This document outlines how to achieve some commonly sought results
+with GISS modelE. As in any ongoing development project, the
+procedures will change through time, but the basic approach is static.
+If there are any omissions or errors in this document, please feel
+free to suggest edits.</P>
+
+<P>This is only part of the documentation, you can find additional
+information in the glossary of terms (not yet available), the
+<a href="FAQ.html">Frequently Asked Questions (FAQ) file</a>, the
+description of current functionality and
+<a href="OPTIONS.html">options</a>, or the index of all
+prognostic variables (determined using 'gmake htmldoc' (see
+<a href="#part3_1">below</a>).</P>
+
+<P>The document is set up in four parts: Part 0 deals with getting the
+code, Part I deals with running the model for basic users who do not
+need to know how to alter the code. Part II dealing with examining the
+diagnostics, while Part III deals with more technical issues involved
+in adding functionality or diagnostics.</P>
+
+<P><A HREF="#part0">PART 0: Getting the code and configuring the model</A></P>
+<OL>
+  <LI><A HREF="#part0_1a"> HOW-TO get the frozen model code</A>
+  <LI><A HREF="#part0_1"> HOW-TO get the code from the Git repository</A>
+  <LI><A HREF="#part0_2"> HOW-TO configure modelE on your machine</A>
+  <LI><A HREF="#part0_3"> System requirements</A>
+</OL>
+<P><A HREF="#part1">PART I: Basic user information</A></P>
+<OL>
+  <LI><A HREF="#part1_1"> HOW-TO setup and run the GISS GCM</A>
+     <OL>
+       <LI> <A HREF="#part1_1a"> How to select a rundeck name </A>
+       <LI> <A HREF="#part1_1b"> How to compile the model </A>
+       <LI> <A HREF="#part1_1c"> How to interact with Git to make sure
+       the run is reproducible</A>
+       <LI> <A HREF="#part1_1d"> How to run the model </A>
+       <LI> <A HREF="#part1_1e"> How to run the model on multiple
+       processors</A>
+       <LI> <A HREF="#part1_1f"> How to specify individual compilation
+       options for certain files</A>
+       <LI> <A HREF="#part1_1g"> How to specify the stack size for a
+       particular run</A>
+     </OL>
+  <LI><A HREF="#part1_2"> HOW-TO set rundeck parameters</A>
+     <OL>
+       <LI> <A HREF="#part1_2a"> How to tune a specified ocean run
+     (using U00ice/HRMAX) </A>
+       <LI> <A HREF="#part1_2b"> How to set up a Q-flux model with a
+     single ocean layer </A>
+       <LI> <A HREF="#part1_2c"> How to set up a Q-flux model with
+     diffusion into a deep ocean </A>
+       <LI> <A HREF="#part1_2d"> How to use them to control numerical
+     instabilities </A>
+       <LI> <A HREF="#part1_2e"> How to use IRANDI to create an
+     ensemble of runs </A>
+       <LI> <A HREF="#part1_2f"> How to fall back to a smaller time step
+     automatically</A>
+       <LI> <A HREF="#part1_2g"> How to choose which ISTART to use</A>
+     </OL>
+  <LI> <A HREF="#part1_3"> HOW-TO stop and restart the GCM</A>
+  <LI> <A HREF="#part1_4"> HOW-TO change boundary conditions</A>
+       <OL>
+       <LI> <A HREF="#part1_4a"> HOW-TO alter the topography file
+       consistently</A>
+       <LI> <A HREF="#part1_4b"> HOW-TO run the model with a new land mask </A>
+       </OL>
+  <LI> <A HREF="#part1_5"> HOW-TO change trace gas amounts</A>
+  <LI> <A HREF="#part1_6"> HOW-TO have a perpetual winter</A>
+  <LI> <A HREF="#part1_7"> HOW-TO travel back/forward in time</A>
+  <LI> <A HREF="#part1_8"> HOW-TO move to Mars</A>
+  <LI> <A HREF="#part1_9"> HOW-TO move to Wonderland</A>
+  <LI> <A HREF="#part1_10"> HOW-TO report a problem</A>
+  <LI> <A HREF="#part1_11"> HOW-TO keep up-to-date</A>
+  <LI> <A HREF="#part1_12"> HOW-TO move the model offsite</A>
+  <LI> <A HREF="#part1_13"> HOW-TO add to this documentation</A>
+</OL>
+<P><A HREF="#part2">Part II: Getting information from the
+diagnostics</A></P>
+<OL>
+<LI><A HREF="#part2_1"> HOW-TO look at the output</A>
+<LI><A HREF="#part2_2"> HOW-TO change what is included in the
+     printout</A>
+<LI><A HREF="#part2_3"> HOW-TO produce daily/monthly or seasonal
+     diagnostics</A>
+<LI><A HREF="#part2_4"> HOW-TO control the format of the binary output
+     (i.e. GISS/netcdf/hdf etc.)</A>
+<LI><A HREF="#part2_5"> HOW-TO calculate a model score
+</OL>
+
+<P><A HREF="#part3">Part III: The model code</A></P>
+<OL>
+  <LI><A HREF="#part3_1"> HOW-TO find where a variable is defined</A>
+  <LI><A HREF="#part3_2"> HOW-TO follow the program structure</A>
+  <LI><A HREF="#part3_3"> HOW-TO use or add to the automatic
+       documentation</A>
+  <LI><A HREF="#part3_4"> HOW-TO ensure that your code meets the new
+       standards</A>
+  <LI><A HREF="#part3_5"> HOW-TO add functionality</A>
+       <ul>
+  <li><A HREF="#part3_5a"> A: Variations on existing code</A>
+  <LI><A HREF="#part3_5b"> B: Introducing new sub-modules</A>
+  <LI><A HREF="#part3_5c"> C: Introducing a new parameter</A>
+  <LI><A HREF="#part3_5d"> D: Adding new diagnostics</A>
+  <LI><A HREF="#part3_5e"> E: Adding extra timing information</A>
+  <LI><A HREF="#part3_5f"> F: Coupling an ocean model</A>
+       </ul>
+  <LI><A HREF="#part3_9"> HOW-TO read in an external file</A>
+  <LI><A HREF="#part3_10"> HOW-TO add new variables to the restart
+       files</A>
+  <LI><A HREF="#part3_11"> HOW-TO access variables that are already
+       calculated somewhere else</A>
+  <LI><A HREF="#part3_12"> HOW-TO deal with the inevitable bugs you
+       introduce</A>
+  <LI><A HREF="#part3_13"> HOW-TO deal with restart problems
+       (non-reproducibility of results)</A>
+  <LI><A HREF="#part3_14"> HOW-TO get an innovation included in
+       everybody's versions</A>
+</OL>
+
+<P>Finally, CREDITS where CREDITS are due:
+<UL>
+  <LI>For ongoing development:<BR>
+       G. A. Schmidt, R. Ruedy, L. Nazarenko, G.L. Russell, M. Kelley, I. Aleinov, S. Bauer, M.K. Bhat, R. Bleck, V. Canuto, Y Chen, Y. Cheng, T. Clune, A. Del Genio, W. Gregg, R. de Fainchtein, G. Faluvegi, J.E. Hansen, R.J. Healy, N.Y. Kiang, Y. Kim, D. Koch, A.A. Lacis, A. N. LeGrande, J. Lerner, K.K. Lo, J. Marshall, S. Menon, R.L. Miller, V. Oinas, A.O. Oloso, J. Perlwitz,  M.J. Puma, W.M. Putman, D. Rind, A. Romanou, M. Sato, D.T. Shindell,  S. Sun, R.A. Syed, N. Tausnev, K. Tsigaridis, N. Unger, A. Voulgarakis, M.-S. Yao, and J. Zhang 
+  <LI>Historical development:<BR>
+       Bob Suozzo, Suki Sheth, Hans-Peter Zinn, Rick Healy,
+       Frank Abramopoulos, Greg Hartke
+</UL>
+
+<hr>
+
+<h3><A name="part0">Part 0: Getting the code and configuring the model</A></h3>
+
+<p><A name="part0_1a"><b>1) HOW-TO get the frozen model code</b></a></p>
+
+<p> Two frozen model versions are currently available: The AR4 version of the code (Feb 2004), and the AR5 version of code (Feb 2011). Tarballs of the code and data files (AR4) and code (AR5) are available from the <a href="http://www.giss.nasa.gov/tools/modelE">GISS ModelE website</a>. Data for the AR5 code is available via the <a href="http://portal.nccs.nasa.gov/GISS_modelE/index.pl">NCCS data portal</a>, any through using the <tt>exec/get_input_data</tt> program.  
+
+<p><A name="part0_1"><b>1) HOW-TO get the code from the Git repository</b></a></p>
+
+<p>The modelE code includes source code, scripts and some
+documentation. It is stored in a Git repository on a dedicated GISS server
+<tt>simplex.giss.nasa.gov</tt>. To access the code you need an account 
+on this machine (if you need to set one contact Igor Aleinov). More 
+information on accessing the GISS server from NASA machines can be found at 
+<A HREF="http://simplex.giss.nasa.gov/giss/">
+http://simplex.giss.nasa.gov/giss/</A> (Accessible only from GISS machines).
+
+Once you have an account with enabled access from your machine you can
+check-out a copy of the code using instructions for using Git can be
+found <a href="http://simplex.giss.nasa.gov/modelE/doc/git_howto.html">here</a>.
+
+<p>Please subscribe to the mailing list 'giss-gcm-users-l@giss.nasa.gov'
+by sending a message to Majordomo@giss.nasa.gov with a line</P>
+
+<tt>SUBSCRIBE giss-gcm-users-l</tt>
+
+<p>in the body of the text. This is to ensure that you are notified of
+bug fixes and new releases. Also this is a forum for you to ask
+questions about the model. If you are a developer, then please subscribe to
+the <tt>giss-gcm-develop-l</tt> list. This will make sure that you are
+notified of all changes to the code and any specific messages related
+to the development process.</p>
+
+<p><A name="part0_2"><b>2) HOW-TO configure modelE on your machine</b></a></p>
+
+For modelE to work properly you have to create a configuration file
+<tt>.modelErc</tt> in your home directory. This file keeps some system-wide
+information (such as your directory structure) which is common to all
+modelE runs you do on current machine. To create this file go to the
+directory <tt>modelE/decks</tt> and execute:</p>
+<tt>
+gmake config<br>
+</tt>
+<p>This will create <tt>.modelErc</tt> file in your home directory.
+It will contain default settings, which
+are adjusted for the local GISS computing environment. On all other
+machines you should edit the file <tt>~/.modelErc</tt> to describe your
+working environment. <tt>.modelErc</tt> also allows you to set some
+personal preferences like to which email address you want the notifications
+to be sent when the program stops or whether you want a verbose
+output during the compilation. It contains short descriptions for all
+configurable parameters.</p>
+<p>Here is the list of currently supported options (with their default values)
+which one can set in <tt>~/.modelErc</tt>:</p>
+<UL>
+<li><tt>DECKS_REPOSITORY</tt> - a directory for permanent storage of run info.
+  All rundecks that you create will be copied to this directory. This
+  directory exists mostly for archival purposes.<br>
+  (default: <tt>DECKS_REPOSITORY=/u/cmrun/modelE/decks</tt>)<br>
+
+<li>  <tt>CMRUNDIR</tt> - directory to which all run directories will be linked.
+  This directory will be searched by most scripts for locations of
+  specific runs. It can coincide with <tt>SAVEDISK</tt><br>
+  (default: <tt>CMRUNDIR=/u/cmrun</tt>)<br>
+
+<li>  <tt>GCMSEARCHPATH</tt> - directory to search for gcm input files.
+  All necessary input files should be copied or linked to this directory.<br>
+  (default: <tt>GCMSEARCHPATH=/u/cmrun</tt>)<br>
+
+<li>  <tt>EXECDIR</tt> - path to directory with modelE scripts. This directory
+  should contain the scripts from <tt>modelE/exec</tt>. Auxiliary binaries
+  which are not run-dependent should also be put into this directory.<br>
+  (default: <tt>EXECDIR=/u/exec</tt>)<br>
+
+<li>  <tt>NETCDFHOME</tt> - path to directory which contains netcdf library.
+  If netcdf is not installed on your computer you should leave it blank.
+  modelE will work fine without netcdf but you will not able to compile some
+  auxiliary binaries.<br>
+  (default: <tt>NETCDFHOME=/usr/local/netcdf-3.4/lib64</tt>)<br>
+
+<li>  <tt>SAVEDISK</tt> - a directory where all run directories will be created.
+  These run directories will contain all files written by the model during the
+  run (i.e. rsf, acc, PRT etc.). So <tt>SAVEDISK</tt> should be big enough to
+  accommodate all model output.<br>
+  (default: <tt>SAVEDISK=/raid1</tt>)<br>
+
+<li>  <tt>MAILTO</tt> - email address of the user. When the program ends/crashes
+  all notifications will be sent to this address. If not specified
+  `whoami` will be used.<br>
+  (default: <tt>MAILTO=</tt> )<br>
+
+<li>  <tt>OVERWRITE</tt> - if set to <tt>YES</tt> it will allow gmake to
+  overwrite certain files (like rundecks in repository) which by default
+  are protected. It may be useful when you do a lot of testing and don't
+  want to add <tt>OVERWRITE=YES</tt> on the command line all the time.
+  In general it should be always set to <tt>NO</tt>. Leave it at its
+  default unless you know what you are doing.<br>
+  (default: <tt>OVERWRITE=NO</tt>)<br>
+
+<li>  <tt>OUTPUT_TO_FILES</tt> - if set to <tt>YES</tt> all errors and warnings
+  will be sent to files with the names <tt>source_name.ERR</tt>. This is
+  user's preference and can be set according to personal taste.<br>
+  (default: <tt>OUTPUT_TO_FILES=YES</tt>)<br>
+
+<li>  <tt>VERBOSE_OUTPUT</tt> - if set to <tt>YES</tt> gmake will show
+  compilation commands and some other information while compilation is in
+  process. Otherwise most of the output will be suppressed. Set it according
+  to your taste.<br>
+  (default: <tt>VERBOSE_OUTPUT=NO</tt>)<br>
+
+<li>  <tt>MP</tt> - 
+  OpenMP multiprocessing support. If set to <tt>YES</tt> gmake will
+  compile the code with OpenMP instructions. Don't set it to <tt>YES</tt>
+  unless you are really planning to run the model on several processors,
+  otherwise it will be unnecessary waste of resources (and your model can
+  actually run slower on one cpu). Also keep in mind that one can not compile
+  OpenMP objects with an non-OpenMP linker, so if you change from
+  <tt>MP=YES</tt> to <tt>MP=NO</tt> you have to recompile the entire
+  model. This option has effect only for OpenMP-supporting compilers.
+  If you are planning to use MPI parallelization set this to <tt>NO</tt>
+  <br> (default: <tt>MP=NO</tt>)<br>
+
+<li>  <tt>UMASK</tt> - permissions for files in your run directory.
+  This is an equivalent of Unix <tt>umask</tt>.<br> 
+  (default: <tt>UMASK=002</tt>)<br>
+
+<li>  <tt>COMPILER</tt> - distribution of fortran compiler you are
+  using. This has no effect on systems that have only proprietary
+  compilers. Currently supported options:<br>
+  <tt>Absoft</tt> - Absoft compiler<br> 
+  <tt>Intel</tt> - Intel compiler (versions up to 7)<br> 
+  <tt>Intel8</tt> - Intel compiler (versions 8 and 9)<br> 
+  <tt>Lahey</tt> - Lahey compiler<br> 
+  <tt>PGI</tt> - PGI compiler<br> 
+  <tt>G95</tt> - GNU g95 compiler<br> 
+  <tt>gfortran</tt> - GNU gfortran compiler<br> 
+  <tt>XLF</tt> - IBM XLF compiler<br> 
+  (default: not set)<br>
+
+<li>  <tt>ESMF_DIR</tt> - path to ESMF library. Needed only to 
+  compile MPI-parallelized version.<br> 
+  (default: not set)<br>
+
+</UL>
+The options listed above are the only supported <tt>~/.modelErc</tt>
+options. You can include there something else if you think it
+appropriate, but keep in mind that you are doing it at your own
+risk! 
+
+<p><A name="part0_3"><b>3) System requirements</b></a></p>
+
+<p> The set-up code and automatic compilation rely heavily on
+<tt>gmake</tt> (version 3.79 or higher) and <tt>perl</tt> (version
+5.005 or higher). Both of these programs are public domain and
+available for almost all platforms. Up-to-date versions are required
+to be able to set up and compile the model.</p>
+
+<p> The code requires a <em>FORTRAN 90/95</em> compiler. It has been
+tested with the SGI, IBM, and COMPAQ/DEC compilers on their respective
+workstations. For Linux, Macs or PCs, the choice of compiler is wider,
+and we have not been able to test all possibilities. The Absoft
+ProFortran compiler works well, as do the Lahey/Fujitsu and Portland
+Group compilers. We have been unable (as yet) to get the model to
+compile with the VAST compilers due to internal errors in those
+products. For the NAG and Intel compilers (versions 7.1.037, and
+version 8) some support is offered, but there are a couple of issues
+(see below). GNU gfortran has been tested and should work. Please let
+us know if you succeed (or more importantly, fail) in compiling the
+code using any other compiler.</p>
+
+<p> Note that the parallelization used in the code has been through a
+number of iterations. Currently, MPI is the default, but
+OpenMP directives are still present in much of the code. This is not
+necessarily functional, and any use of an OpenMP architecture will
+require substantial testing and validation (apologies!). </p>
+
+<p> Many GCM subroutines declare temporary arrays which, in FORTRAN,
+reside in a part of the computer's memory known in computer parlance
+as the "stack."  It is essential that a user's stack size be large
+enough to accommodate these arrays (particularly for simulations using
+a lot of tracers). It is recommended that the stack is set to at
+least 32768 KB for the basic 12 layer 4x5 grid run. Runs with higher
+resolutions and/or tracers may require bigger stack.  Default stack
+sizes vary among different computing environments, but can be easily
+adjusted. Stack size is set by commands native to a user's $SHELL; for
+example, a <tt>bash</tt> user would type <tt>ulimit -s 32768</tt> to
+set a stack size of 32768 kb. Mysterious crashes in the radiation are
+quite often related to a too small stack. It is possible to declare
+the required stack size inside the GCM configuration files in which
+case the GCM scripts will attempt to allocate appropriate stack before
+running the model (see the section <A HREF="#part1_1g"> How to specify
+the stack size for a particular run</A> of this document).</p>
+
+<p>
+<ul> <bf>Compiler peculiarities</bf>
+<li> <ul>Intel (version 7.1.037): 
+	<li> In RAD_COM.f comment out line 10 "SAVE"
+	<li> function mark in DIAG.f does not work. Replace 
+	whole routine with mark=" ". 
+	<li> If on a little-endian machine, the reading and writing of
+	the Param derived type in read_param, write_param (and
+	read_param_comp01) (PARAM.f) must be replaced with reading/writing of
+	the individual elements. i.e. replace 
+<pre>
+      read( kunit, err=10 ) HEADER,
+	....
+     *     (LParams(n), n=1,min(lnum_param,MAX_PARAMS) ),
+</pre>
+	with
+<pre>
+     *     (LParams(n)%name,LParams(n)%indx,LParams(n)%dim,
+     *       LParams(n)%attrib, n=1,min(lnum_param,MAX_PARAMS) ),
+</pre>
+	and similarly for the writes.
+     </ul>
+
+<li> <ul>Intel (version 8.0.046):	
+	<li> While the model compiles, some automatic arrays are not 
+	properly dimensioned and so hard coding of array sizes is 
+        necessary. Many (all?) <tt>(grid%j_strt:grid%j_stop)</tt> type 
+        constructions need to be replaced with <tt>(JM)</tt> etc. We
+	have not verified that this does actually fix all problems.
+     </ul>	
+</ul>
+
+<p>The code now makes heavy use of <tt>netcdf</tt> for i/o, though it is not
+compulsory. We strongly recommend installing a version of this
+software (versions 3.6 and up) from <a
+href="http://www.unidata.ucar.edu/software/netcdf/">UCAR
+Unidata</a>. Note that some pre-compiled versions don't play happily
+with all fortran compilers (and locations of needed files can be
+confusing). We recommend that the user download the source code and
+compile the binaries themselves. The location of the include files
+("netcdf.inc") are assumed to be in <tt>$NETCDFHOME/include/<tt> and
+the libraries in <tt>$NETCDFHOME/lib/<tt>. If this isn't where they
+are you may need to edit <tt>config/rules.mk</tt>, but compiling and
+installing them yourself should work better.</P>
+
+<P>If netcdf is not available, then neither <tt>NEW_IO/IO_DRV</tt> nor
+<tt>POUT_netcdf</tt> can be used.</p>
+
+<hr>
+
+<h3><A name="part1">Part I: Basic user tasks</a></h3>
+
+<p><A name="part1_1"><b>1) HOW-TO setup and run the GISS GCM</b></a></p>
+
+In order to run the GCM a 'rundeck' file (with a suffix .R) must be
+created. This contains information about the run you would like to
+perform, the fortran code that you intend to use, pre-processing
+options that are required, the boundary and initial conditions and any
+run-specific parameters (such as the time step, length of run
+etc.). Most of the specifics have been automated using 'gmake'.
+
+The sub-directory 'decks' is the main control directory, most commands
+will be issued in this directory. Typing 'gmake' will produce some
+documentation.
+
+There are a number of sample rundecks in the model/ directory:
+The default rundeck E1M20.R may be used after a little editing 
+for a standard fixed SST atmosphere (1880 or 1979) or for a
+annually varying SST (AMIP style) run starting in 1880 or 1979;
+it may also be used for a Qflux run (based on a preliminary
+fixed SST run) (M20 indicates, that it uses a Medium, i.e.
+4x5 degree horizontal resolution and 20 atmospheric layers).
+E1F20 uses a 2x2.5 (fine) horizontal grid, and E1oM20 is the coupled
+ocean-atmosphere version. Further examples represent qflux models with
+deep diffusion (E001qd.R), a stratospheric model (E001M23.R), a tracer
+model (E001tr.R) etc. These can be used as templates for any runs
+you do; unlike the E1... examples, the E0... are not tested for
+radiative balance. 
+
+Please note that gmake is not very happy about 'TAB' characters in the
+file, this might lead to strange errors like:
+
+<pre><tt>
+f77 ERROR:  no source or object file given
+gmake: *** [.f] Error 2
+</tt></pre>
+
+<OL>
+   <LI> <A name="part1_1a"><b> How to select a rundeck name </b></A>
+
+<p>In order to make a rundeck that you can use and modify, you must
+first select a unique name for your run. <em> Note that there is a 16 character
+limit on the length of the rundeck name due to limitations in the
+batch processing system we normally use</em>. There is a central database
+for storing user's rundecks (along with other pertinent information
+such as the time of compilation, the compiler version, and the current
+Git branch) in <tt>ra:/u/cmrun/modelE/decks</tt> (configurable in
+<tt>~/.modelErc</tt>). This allows us to automatically tell whether a
+rundeck name has already been used.  However, in order to
+minimise any confusion, we propose the following naming convention:
+</p>
+ <ul>
+ <li> Each rundeck should start with 'E' (to distinguish it
+             from other models in the building)
+ <li> The next three characters should be a counter (starting
+             at '001') which the individual user will update as they perform
+             successive runs.
+        <li> The next part consists of the users initials (or other
+             unique identifier.
+ <li> If the user is experimenting with variable resolutions,
+             it may be helpful to add 'M12' or 'M23' or 'F40' etc. to
+             the end of the name to distinguish between the Medium
+             resolution 12 or 23 layer model, or the Fine resolution,
+             40 layer model etc.
+ </ul>
+
+
+   <LI> <A name="part1_1b"><b> How to compile the model </b></A>
+
+<p> Once a rundeck name has been chosen (for example E001xyz), the
+rundeck will be created using
+
+<pre>
+     gmake rundeck RUN=E001xyz
+</pre>
+
+This will make a rundeck E001xyz.R, that will be a copy of E1M20.R. To
+make a copy based on another of the sample decks, use, for instance,
+<pre>
+     gmake rundeck RUN=E001xyz RUNSRC=E1oM20
+</pre>
+
+A copy of the new rundeck will be stored in the rundeck depository on
+ra. If there is a clash with an existing rundeck name (including
+perhaps one of your previous runs), there will be an error message. If
+you want to insist on overwriting a previous version say, then give
+the command
+<pre>
+     gmake rundeck RUN=E001xyz OVERWRITE=YES
+</pre>
+If you create a rundeck in any other fashion, ie. by directly copying
+one. There is no chance to verify its uniqueness. However, a secondary
+check is made when you attempt a 'setup' (see below) which should
+catch any inadvertent duplication. </p>
+
+<p> When making a new rundeck, <b>please add a documentation line, and
+edit the label to reflect your model experiment!</b></p>
+
+<p>
+The list of fortran files within the rundeck determines which files
+are compiled into the executable. The compilation is automatic, and
+will take account of all dependencies, so that if a file is modified
+it will be re-compiled, along with any files that directly or
+indirectly depend on modules or routines within it. The executable is
+made using
+<pre>
+     gmake gcm RUN=E001xyz
+</pre>
+To actually run the model, you must first 'setup' the run by running
+the first hour (or specifically the first source time step).
+<pre>
+    gmake setup RUN=E001xyz
+</pre>
+
+If this runs successfully there will be a message saying so. Likewise
+if there is a problem.</p>
+
+<p>You can specify additional options for the compilation process 
+(assuming that you know what you are doing) by appending
+<tt>option=value</tt> to the <tt>gmake</tt> line. In particular, you
+can over-write the options specified in your <tt>~/.modelErc</tt>
+file. For example, if you have <tt>MP=NO</tt> in <tt>~/.modelErc</tt>
+you can compile OpenMP-parallelized run with:</p>
+<pre>
+     gmake gcm RUN=E001xyz MP=YES
+</pre>
+
+   <LI> <A name="part1_1c"><b> How to interact with Git to make sure
+     the run is reproducible</b></A>
+<p>
+
+It is of some importance that runs be reproducible, either by other
+people, or later on by the users themselves. With version control now
+using the Git system, it implies that Git <B> MUST </B> know about any
+code variations that make it into any production run (i.e. one that is
+not simply a compilation test or debugging). We know that test runs
+and production runs are not necessarily easily distinguishable a
+priori (i.e. a run is a test run until it works, at which point it
+retroactively turned out to be the production run).  So the best way
+to ensure thats the relevant information is saved is through frequent
+'commits' to the cvs repository of all substantial changes you make to
+the code. By this we mean at minimum all changes that have effects on
+the prognostic variables (as opposed to diagnostic printout).  </P>
+
+<p> You can also define tags within the Git tree that can be personal
+to you, which just mark a particular set of code as a branch point,
+which can then be retrieved at any point.</p>
+
+<p> There is no cost to this procedure (although you should be careful
+to ensure that code at least compiles before any commits are made.) </p>
+
+<p> At the 'setup' stage (or at the 'exe' stage if you are recreating
+an executable files) further information is added to the rundeck
+depository indicating any changes to the rundeck since it was made,
+along with full Git information on what was actually compiled. To
+retrieve this exact code, it is sufficient to know the time the run
+was compiled, and the Git branch that the user was on.</p>
+
+   <LI> <A name="part1_1d"><b> How to run the model </b></A>
+
+<p> Once a successful 'setup' is done, use the command
+<pre>
+  runE E001xyz
+</pre>
+to set the model running for the specified length of the run.</p>
+
+<p> If you need to stop the run at any point, use the 'sswE E001xyz'
+command to do it in a controlled fashion (ensuring that all variables
+are saved correctly, and that no printout gets stuck in a buffer).
+Using 'runE E001xyz' subsequently picks up from where you left off.
+</p>
+
+<p> If you would like to update the executable (putting in new
+printout, or fixing an error etc.) without starting from 'setup' all
+over again, you can use
+<pre>
+  gmake exe RUN=E001xyz
+</pre>
+which will recompile the fortran, and replace the executable file in
+the run directory. Then 'runE E001xyz' will pick up from where you
+stopped previously, but with the new code. Any changes to the Git
+information between the initial setup and the new code will be
+recorded in the central rundeck repository.</p>
+
+   <LI> <A name="part1_1e"><b> How to run the model on multiple
+       processors</b></A>
+
+<p>ModelE uses OpenMP application program interface. It consists in a set
+of instructions (starting with <tt>C$OMP</tt>) which tell the compiler
+how to parallelize the code. To be able to run the model on multiple
+processors one has to compile it with enabled OpenMP. This is done by
+appending <tt>MP=YES</tt> to the compile line, i.e.
+<pre>
+  gmake gcm RUN=E001xyz MP=YES
+</pre>
+It is important to keep in mind that one can't mix OpenMP objects with
+a non-OpenMP compilation. This means that one has to do <tt>gmake
+vclean</tt> when switching from OpenMP to non-OpenMP compilation. The
+option <tt>MP=YES</tt> can be set in <tt>~/.modelErc</tt> file (see <A
+HREF="#part0_2"> Part 0.2</A>).  In that case one can skip it on the
+command line.</p>
+
+<p> In the setup stage, the number of OpenMP processors is set to 1 unless
+you specify it explicitly with <tt>NPROC=number</tt>. For example to
+run setup on 4 processors one executes:
+<pre>
+  gmake setup RUN=E001xyz MP=YES NPROC=4
+</pre>
+The model is run with <tt>runE</tt> in a similar way to the
+non-OpenMP model, except that one has to specify the number of
+processors as a second argument to <tt>runE</tt>. For instance if one
+wants to run the model E001xyz on 4 processors one starts it with
+<pre>
+  runE E001xyz 4
+</pre>
+On batch systems (such as halem or charney),
+the number of processors is more automatic, and currently, only four
+can be used (since that is the number of processors per shared-memeory
+node. No additional argument is therefore needed. Slightly different
+run commands are available on those systems related to the different
+possible queues.<p>
+
+   <LI> <A name="part1_1f"><b> How to specify individual compilation
+       options for certain files </b></A>
+
+<p>In some circumstances you may need to specify individual compilation
+options for certain files. For example, you may want to compile some
+files with debugging information or with <tt>REAL*8</tt> for default
+reals etc. This can be done inside the rundeck by adding all necessary
+options in vertical slashes (<tt>||</tt>) right after the name of the file.
+All options specified between the slashes will be appended to the
+compile line during compilation. For instance, the following line in
+the rundeck
+<pre>
+  GHY_COM GHY_DRV|-g| GHY|-g -r8|
+</pre>
+will tell gmake to compile <tt>GHY_COM.f</tt> with default options, compile
+<tt>GHY_DRV.f</tt> with debugging information and compile <tt>GHY.f</tt>
+with debugging information and with default reals set to <tt>REAL*8</tt>.</p>
+
+<p>One should keep in mind that changing an option inside the rundeck
+doesn't force automatic recompilation. One needs to 'touch' corresponding
+source files to tell gmake that they need to be recompiled.</p>
+
+
+   <LI> <A name="part1_1g"><b> How to specify the stack size for a
+   particular run</b></A>
+
+<p>When running the model one should make sure that the stack size is
+big enough for the allocation of all temporary (automatic) arrays and
+variables. One can set it for the current SHELL session by executing
+<tt>ulimit -s stack_size_in_KB</tt>, but one should keep in mind that
+once the stack size is set it can not be increased (one has to start a
+new SHELL session to increase the numbers set by <tt>ulimit</tt>). 
+The GCM scripts provide an option to specify the stack size which will
+be set for a particular model run at the execution time. To utilize this
+option one should add to the rundeck
+a section <tt>Run Options</tt> right before
+the section <tt>Object modules</tt> and inside this section include a
+line <tt>STACKSIZE=stack_size_in _KB</tt>. For example, for the stack
+size to be set to 64M the corresponding part of the rundeck should look
+<pre>
+...
+End Preprocessor Options
+
+Run Options
+STACKSIZE=65536
+
+Object modules: (in order of decreasing priority)
+...
+</pre>
+The GCM script will attempt to set the stack size to the specified
+number and will give a warning if it can't do this, but will continue
+execution anyway. This option will not change the stack size of your
+current shell session.
+
+ </ol>
+
+
+<p><A name="part1_2"><b>2) HOW-TO set rundeck parameters</b></a></p>
+
+    There are 2 types of parameters that may be set in the rundeck:
+    DATA BASE (dp) parameters and NAME LIST (nl) parameters
+    The dp-params are set between &amp;&amp;PARAMETERS and &amp;&amp;END_PARAMETERS
+    The nl-params are set between  &amp;INPUTZ     and  &amp;END
+
+    The dp-params are saved in record 3 of the save files (acc,rsf)
+       They are tuning or control parameters.
+    the nl-params are not saved except for IYEAR1 (which is saved in
+       record 1). Most of the others set start and stop
+       date for the run: (YEAR/MONTH/DATE/HOUR)I or E or IHOURE
+       or determine the (debug) printout: KDIAG,QDIAG,IWRITE,...,QCHECK
+       ISTART determines whether this is an initial- or restart
+       IRANDI may be used to perturb the current temperatures.
+       See <a href="nlparams.txt">NL-PARAMS</a> for more information.
+
+    When a run starts, parameters not set in the rundeck take their
+    default values. On restarts, YEAR/MONTH/DATE/HOURI are ignored;
+    all other parameters are determined first by the rundeck, then
+    by the restart file if they were saved, else use the defaults.
+    So the priorities are: 1. rundeck, 2. restart file, 3. defaults.
+
+    To start a run, the following parameters HAVE to be explicitly
+    set: ISTART=2 | 4 5 6 7 or 8 to start from obs | model Initial State
+         YEARI    = year in which model starts
+         YEARE (or IHOURE) = year (or hour) at which model stops
+
+    To change parameters after a run was started, do the following:
+         1:    edit the file 'I' in the run directory,
+         2:    stop and restart the run,
+         3:    re-edit I to ready it for the next restart
+       (If the change affects the results, attach a log of all such
+        changes to the end of the rundeck)
+
+<p><A name="part1_2a"><b>A: How to TUNE a specified ocean run (using
+U00ice/HRMAX)</b></a></p>
+<P>    It is desirable to run a specified ocean model in such a way that
+       it is in RADIATIVE BALANCE, i.e. that the net flux of energy into
+       the ocean (which has no effect, since ocean data are specified)
+       is zero if averaged over a whole year. One way to roughly achieve
+       this goal is to pick the right values for
+       U00ice/U00wtrX/HRMAX. These parameters influence the cloud
+       formation where the temperature is below/above 0C and the cloud
+       formation in the boundary layer respectively, and can therefore be
+       used to change the radiative balance.</p>
+
+<p>    Run the model for a year and find the annual mean net heating at
+       the ground (GLOBAL: NET HEAT AT Z0, or OCEAN: NET HEAT Z0+RVR
+       budget pages). That quantity can change from year to year within
+       .5 W/m<sup>2</sup>. Increasing U00ice by .01 decreases the cloud
+       cover and planetary albedo. Increasing U00wtrX to be larger
+       than 1 reduces cloud cover in the low latitudes.
+       HRMAX can vary between 200 and 1000 m. Increasing HRMAX
+       increases the cloud cover in the boundary layer
+       which has a warming effect. Note HRMAX is only affective if the
+       do_BLU00 option is set (which is not be default). Rerun that year with
+       the new values and hope that the annual mean net heating at the ground averages
+       out to less than .3 W/m<sup>2</sup> in absolute value over the next
+       few years.</P>
+
+<p>    Other obsolete ways to handle the rad. balance problem: Change the solar
+       constant until rad. balance results (most people hate that way),
+       change the solar irradiance into the ocean when running the
+       Qflux model (using the old SRCOR parameter) offsetting the
+       imbalance (advantage: no need to repeat the control run,
+       disadvantage: Jim hated it, no longer part of the code).</p>
+
+<p><A name="part1_2b"><b>B: How to set up a Q-flux model with a single
+ocean layer</b></a></p>
+
+<p>    To run the Q-flux model it is necessary to supply the implied
+       horizontal heat transports and proper initial condition as
+       input files. To calculate the horizontal ocean heat transports
+       it is necessary to run the model with prescribed ocean mixed
+       layer temperature and sea ice extent for 5-6 years. It is
+       desirable to have this control run well balanced (Net Heat at
+       z0 is supposed to be close to 0 for annual mean. This Net
+       Heat at z0 can be found on the first budget page for the global
+       quantities. To get the balanced control run, you can adjust
+       U00ice/HRMAX (see 1b). In your control run-decks, you have to have
+       Kvflxo=1. Then the model will save the data for the heat
+       transport. Note that if you would like to have dynamic ice in
+       the Q-flux model, you must include the dynamic ice modules in the
+       climatological SST run, otherwise the implied fluxes will be
+       wrong. </P>
+
+<p>    Based on the saved VFLXOmmmyyyy data, a new input file (OTSPEC...)
+       has to be created that specifies the horizontal heat transports
+       in the ocean; in addition, the ocean temperatures at the annual
+       maximum mixed layer depth and the mean temperature between that
+       level and the bottom of the current mixed layer depth have to be
+       computed for the final time of the preliminary run and added to
+       the final restart file of that preliminary run. That augmented
+       restart file will serve as initial state file for the new run. </p>
+
+<p>    For the ocean heat transport calculation, it is necessary to
+       skip the first year of this control run because of the spin-up
+       of the atmosphere. For this calculation you need to do next
+       (suppose your control run is RunIDcontrol):</p>
+<ol>
+  <li> Go to the ../decks directory and do
+       gmake auxqflux RUN=RunIDcontrol. This will create executables
+       for the ocean heat transport calculation and it will put
+       them to the directory ../modelE/decks/RunIDcontrol_bin.
+
+  <li> Go to the ../aux directory and run the script
+<pre>
+    mkOTSPEC RunIDcontrol first_month first_year last_month last_year
+</pre>
+      where months and years are integers and span the months
+      that you wish to be used for the heat transport calculation.
+      Usually first_month=1, first_year=1951, last_month=12,
+      last_year=1955 if your control model went for 6 years
+      starting Jan.1 1950. Note that the surface heat imbalance number
+      is the ratio of the incoming energy to the outgoing. A number
+      less than one denotes a net heating of the ocean. If the number is
+      with 1% of unity, there is no need to worry. You will be asked
+      to enter the desired mixed layer depth (in m). Recommended values
+      are  65 for sensitivity runs, 250 to prepare for runs with
+      diffusion into the deep ocean.
+
+<li> After this you will get two files (in the original
+run directory) which you will use as input data for your Q-flux
+model:
+       <ol>
+       <li> <tt>OTSPEC.RunIDcontrol.MXL65m.first_year-last_year</tt>
+          This file is the implied ocean heat transport data. In your
+          Q-flux run-deck the input file OHT has to have this name, in
+          other words OHT=OTSPEC.RunIDcontrol.MXL65m.first_year-last_year.
+          You should move this file to /u/cmrun directory.
+       <li> <tt>IMJAN.RunIDcontrol.MXL65m </tt> is the modified restart for the
+          Q-flux model. This restart is basically is the same restart as your
+          control model restart but it also has corrected temperatures of
+          the ocean which were not used in the control run. These
+          temperatures are the temperature between the mixed layer and the
+          annual maximal mixed layer depths (TOCEAN(2,im,jm)) and the
+          temperature at annual maximal mixed layer depth (TOCEAN(3,im,jm)).
+          You have to specify AIC=IMJAN.RunIDcontrol.MXL65m in your Q-flux
+          run-deck. You have to move this file to /u/cmrun directory as well.
+       <LI> In your control run directory you will also get the line-plot
+   file <tt>ohtRunIDcontrol.first_year-last_year.lpl </tt>
+          which you can plot and compare with observational data if you like.
+   You will also get few PRT files which you can remove.
+     </ol>
+     In your Q-flux model run-decks (modified copy of control rundeck), you have to
+     <ol>
+       <LI> change runID e.g. from E001...M20 to E001...qM20 (in 3 places)
+       <LI> specify KOCEAN=1;
+       <LI> specify Kvflxo=0;
+       <LI> make sure that U00ice/HRMAX are the same as in your
+     control run. Then your Q-flux model will be as well balanced
+     as your control run.
+       <LI> specify AIC and OHT as described above.
+       <LI> use ISTART=8, etc as indicated in the sample rundeck E1M20.R
+     </ol>
+
+<p>
+    During the first few years of the q-flux run, monitor the time
+    series of global annual means of Ocean Ice Cover and Surface Air
+    Temperature.  Hopefully, they will no longer change after a few years
+    (10-25).  The model is said to be in balance as soon as that
+    happens. </p>
+
+</ol>
+
+<p><A name="part1_2c"><b>C: How to set up a Q-flux model with diffusion
+into a deep ocean </b></a></p>
+
+<p> Qflux model with Diffusion into the deep ocean
+
+<p>    Such a run needs a preliminary Q-flux model running for 10 years
+       in equilibrium, saving (KCOPY=3) the data necessary for diffusion
+       computations. A new
+       file has to be created ('TG3M' in the rundeck) using 'gmake
+       auxdeep RUN=E001xyz' and then running 'mkdeep *.oda.*'. This
+       creates the initial conditions and climatology at the base of the
+       mixed layer. Use E001qd.R as a rundeck template.</p>
+
+<p> The deep ocean layers 2-LMOM (currently = 12) start at the annual
+maximal mixed layer depth. The thickness of layer 2 (DZ2) is 10m and
+the layer thicknesses increase geometrically s.t.
+DZ1X+DZ2+DZ3+...+DZlmom=5000m (lmom=12); i.e. DZ1X=10/Q,
+DZ3=10*Q, DZ4=DZ3*Q, ...  and DZ1=ann.max.mixed layer depth
+DZ1X is not used; the dzo's to compute the vertical gradients are
+given by : dzo1=10/sqrt(Q) , dzo2=dzo1*Q , dzo3=dzo2*Q , etc Q=1.701...</p>
+
+<p> The diffusion into the deep ocean is computed once every day using
+the temperature anomaly with respect to 'climatology' as tracer. The
+climatology is found by taking a 10-year mean of the Qflux model without
+a deep ocean. That run is also used to initialize the deep ocean run. </p>
+
+<p> More detailed description:
+<pre>
+T1 = temperature of mixed layer (C)                       =TOCEAN(1)
+T2 = T between mixed layer and ann.max mixed layer depth  =TOCEAN(2)
+T3 = temperature at annual maximal mixed layer depth.     =TOCEAN(3)
+
+RTGO(L=1->lmom) is set to 0 at the beginning of the run
+
+RTGO(L=2->LMOM) = temperature anomaly for deep ocean layer L
+RTGO(1)=12-month-mean anomaly of T3 w.r. to climatology, i.e.:
+    before the diffusion computation it is reset to the difference
+    dT3ann="mean_T3_over_last_12_full_months - 10year_mean_of_prel.run";
+    dT3ann is kept constant throughout the month. The diffusion
+    computation changes RTGO(1); that change is added to T1,T2,T3,
+    Before the next diffusion computation, RTGO(1) is reset to dT3ann.
+
+The heat flux at interface of layers L and L+1 is given by
+    EDO*(RTGO(L)-RTGO(L+1))/dzo(L)  L=1,...,8
+however, a semi-implicit scheme is used to compute these fluxes.
+
+The following auxiliary arrays are used to carry out this scheme:
+STG3 is set to 0 at the beginning of each month, at the end of
+    each day  T3  is added; i.e. STG3=SumD_T3 (summed over days)
+
+TG3M(M) initially contains a 10-year mean of SumD_T3 for month M
+    (the sum is taken over each day of month M, not averaged yet)
+    of the Q-flux run without deep ocean that is used to start
+    up the current run, at the end of month M it is set to STG3.
+    From month 13 on, TG3M contains SumD_T3 for each of the last
+    12 months.
+
+DTG3 is set to 0 initially and is updated at the end of month M
+    by adding (STG3-TG3M(M)). Then STG3 overwrites TG3M(M), so
+    that next year this STG3 will be subtracted and cancels out:
+    after 1 year: DTG3 = (sumD_T3_for_yr1 - SumM orig.TG3M) and
+    after that the oldest month is subtracted, the newest added,
+    hence DTG3 = (sumD_T3 over last 12 months - SumM orig.TG3M); so:
+ADTG3 = DTG3/365 = 12-month running mean of T3 - T3clim ;
+    this is used to initialize RTGO(.,.,1) before the diffusion.
+</pre>
+
+<p> Compared to the Qflux model without deep ocean, the model with
+deep ocean needs one extra input file (EDDY = diffusivity
+coefficients) and uses the ODEEP module instead of OCNML. If starting from a
+restart file from the qflux run, you must use ISTART=4.</p>
+
+<p><A name="part1_2d"><b>D: How to use parameters to control numerical
+instabilities</b></a></p>
+<p>
+       Parameter   affects:                   depends on:<br>
+       DT          stability at poles         hor. resolution, AVRX<br>
+       NIsurf      stability at the surface   vert.resolution near surf<br>
+       XcdLM       stability at the top       model top pressure PMTOP<br>
+       M/NFILTR    checker board patterns     dynamics scheme<br>
+</p>
+
+<p><A name="part1_2e"><b>E: How to use IRANDI to create an ensemble of
+runs</b></a></p>
+<p>    If ISTART<10 and IRANDI/=0, all atmospheric initial temperatures
+       are randomly perturbed by at most 1C . The perturbations depend
+       on the value of IRANDI.</P>
+<p>    So to create an ensemble of N runs whose only difference is the
+       initial state they start up from, pick N (odd) numbers and
+       create N copies of the rundeck that only differ in the runID and
+       the value set for IRANDI.</p>
+<p>    It is good practice to put IRANDI on the same line as ISTART
+       so it will not affect later extensions or reruns, since it is
+       then automatically removed from the file 'I'.</p>
+
+<p><A name="part1_2f"><b>F: How to fall back to a smaller time step
+automatically</b></a></p>
+<p>    The atmospheric dynamics code uses a fixed time step which is
+       defined by the rundeck parameter DT. If the program stops because
+       of the atmospheric instability due to the fact that DT is too big,
+       one has to restart it with a smaller time step, then stop and restart
+       it again with a normal time step.</p>
+<p>    This process can be done automatically. To set the model for an
+       automatic restart one has to add to the rundeck a line</p>
+<p>
+       DTFIX=<i>new_time_step</i>
+</p>
+<p>    after the label but before the &amp;&amp;PARAMETERS instruction.
+       If such line is present and the model stops due to too big DT
+       then the model will restart with DT=<i>new_time_step</i>, compute
+       48 hours of model time, then stop and restart with the normal time
+       step. Corresponding .PRT files will be saved.</p>
+
+<p><A name="part1_2g"><b>G: How to choose which ISTART to use</b></a></p>
+
+<p> ISTART controls how the model first picks up the initial
+conditions to start the run. We have a number of options depending on
+how much information is already available.</P>
+
+<ol>
+ <li> <tt>ISTART=1</tt> Default start. This sets atmospheric
+ variables to constants and requires input files for ground values (a
+ GIC file), and ocean values (OIC) if required.
+ <li> <tt>ISTART=2</tt> Observed start. This sets atmospheric
+values to observations, based on a particular format of AIC file. As
+for ISTART=1, input files are required for ground and ocean variables.
+ <li> <tt>ISTART=3</tt> Not used.
+ <li> <tt>ISTART=4</tt> A restart from an rsf file from a
+previous run, but the ocean is reinitialised. Needs an initial OIC
+file (for fully coupled models).
+ <li> <tt>ISTART=5</tt> A restart from an rsf file from a
+previous run, but no tracers. This is only useful for tracer runs that
+need to be initialised with a particular model state.
+ <li> <tt>ISTART=6</tt> A restart from an rsf file from a
+previous run that might not have had the same land-ocean mask. This
+makes sure to reset snow values, pbl values and ocean values
+accordingly.
+ <li> <tt>ISTART=7</tt> A restart from an rsf file from a
+previous run with the same land-ocean mask. This still makes sure to
+set snow values and ocean values. This is used mainly for converted
+model II' data.
+ <li> <tt>ISTART=8</tt> This is a restart from a model
+configuration identical to the run now starting. This is for
+perturbation experiments etc. See note below.
+ <li> <tt>ISTART=9</tt> This is a restart from this model
+run. (i.e. a continuation, or a backtrack to an older rsf file).
+ <li> <tt>ISTART=10</tt> This is used internally to pick up
+from the instantaneous rsf file (the later of fort.1 and fort.2). Does
+not ever need to be set in the rundeck.
+ <li> <tt>ISTART=11</tt> This is used internally to pick up
+from an instantaneous rsf file (fort.1). Only rarely used.
+ <li> <tt>ISTART=12</tt> This is used internally to pick up
+from an instantaneous rsf file (fort.2). Only rarely used.
+ <li> <tt>ISTART=13</tt> This is used internally to pick up
+from the instantaneous rsf file (the earlier of fort.1 and
+fort.2). Only rarely used.
+ <li> <tt>ISTART<0</tt> This option is used by the
+post-processing program to run the model to generate nice
+diagnostics. This should never need to be set manually.
+</ol>
+
+Please note that if you get this wrong i.e. you use an ISTART that is
+not compatible with the AIC, GIC or OIC files in the rundeck, the
+model is not guaranteed to crash nicely. In fact, the opposite is
+likely. Strange crashes on start up are very often related to this.
+
+Note for ISTART=8: Since itime_tr0 defaults to Itime, tracers will be
+reinitialized. To have them keep their setttings from the rsf file,
+set itime_tr0 to < ItimeI (e.g. 0) for all tracers in the rundeck 
+parameters. If you use tracers that depend on (Itime-itime_tr0), you need
+to set itime_tr0 to the starting time of the rsf file for continuity.
+
+<p><A name="part1_3"><b>3) HOW-TO stop and restart the GCM</b></a></p>
+
+<p>Use the command 'sswE E001xyz' to stop the model run in a controlled
+fashion. Restart it with the command 'runE E001xyz'. If you would like
+the run-time printout to be suppressed (to save filespace) use the
+command 'runE -q E001xyz'. The monthly/seasonal/annual printout can
+always be recreated if needed.</p>
+
+<p><A name="part1_4"><b>4) HOW-TO change boundary conditions</b></a></p>
+
+<p>Simply alter the file declarations in the rundeck appropriately!</p>
+
+<ol>
+  <li><A name="part1_4a"><b>HOW-TO alter the topography file
+       consistently</b></a>
+       <p> The topography file (TOPO) in the rundeck, must have a
+       degree of internal consistency. Therefore if changes are made
+       to the ocean mask (FOCEAN), for instance, other changes are
+       required for the other fields (FLAKE,FGRND,FGICE etc.). Note
+       that in the model FGRND=FEARTH, and FLICE=FGICE for historical
+       reasons not worth going into. This file is made up of 9 fields
+       (in the standard TITLE*80,DATA(IM,JM) format):
+       <ol>
+  <li> FOCEAN   fraction of ocean
+  <li> FLAKE    fraction of lake
+  <li> FGRND (or FEARTH) fraction of non-glaciated land
+  <li> FGICE (or FLICE)  fraction of glaciated land
+  <li> ZATMO    mean topography (m)
+  <li> HOCEAN   depth of ocean (m)  (not used except for GISS ocean)
+  <li> HLAKE    depth of lake  (m)
+  <li> HGICE    depth of glacier (m)(not yet used)
+  <li> ZSOLID   not sure!           (not used except for GISS ocean)
+       </ol>
+       In particular:
+       <pre>
+       IF (FOCEAN(I,J).gt.0) THEN
+         FLAKE(I,J)=0.   ! lake and ocean cannot co-exist at the same grid point
+         HLAKE(I,J)=0.
+         FLAND=1.-FOCEAN(I,J)
+       ELSE
+         FLAND=1.-FLAKE(I,J)
+  HLAKE(I,J)=MAX(1.,HLAKE(I,J))
+       END IF
+       FGRND(I,J)=MAX(0.,FLAND-FGICE(I,J))! land ice fraction takes precedence over ground
+       FGICE(I,J)=FLAND-FGRND(I,J)
+       </pre>
+       If land boxes are added close to the Antarctica or Greenland
+       ice sheets, FGICE should be set to FLAND (i.e. 1-FOCEAN),
+       FGRND, FLAKE, and HLAKE to zero. Note as well that the polar
+       boxes must be homogeneous (i.e. FOCEAN(2:IM,JM)=FOCEAN(1,JM)
+       etc.)  </p>
+
+       <p>Note that if FLAKE(I,J)>0, then HLAKE must be greater than 1.</p>
+
+  <li><A name="part1_4b"><b>HOW-TO run the model with a new land mask</b></a>
+    <p>If you changed the topography file you may have created new land cells.
+    These cells are missing both boundary conditions and prognostic variables
+    related to the land surface model. One has to extend the land surface
+    data to these cells before the model can run.
+
+    <p>To remedy this problem we created a set of &quot;extended&quot; boundary
+    conditions files. These files are the same as original ones except
+    the data was spread all over the ocean cells using a nearest-neighbor
+    algorithm, so that each cell contains some reasonable land surface
+    data. If you are working on Ra then these files are at the same location
+    and have the same name as originals with the suffix <tt>.ext</tt> appended
+    to them. Here is the list of the files which needed extension as they
+    would appear in the rundeck:
+    <pre>
+     CDN=CD4X500S.ext                     ! - roughness length
+     RVR=RD4X525.RVR.ext                  ! - river routing
+     SOIL=S4X50093.ext                    ! - soil data
+     VEG=V72X46.1.cor.ext                 ! - vegetation data
+     TOP_INDEX=top_index_72x46.ij.ext     ! - topographic index
+    </pre>
+    The above files provide boundary conditions. One also needs to use a
+    compatible restart file with extended prognostic variables, currently
+    <pre>
+    AIC=DEC1958.rsfB394M12.modelE.17.ext  ! - initial conditions
+    </pre>
+    One should keep in mind that the data should be extended in a compatible
+    way. At least the data in <tt>SOIL</tt> and <tt>AIC</tt> should be
+    extended from the same &quot;nearest neighbors&quot;. To preserve the
+    information about this &quot;extension&quot; process the file
+    <tt>conv_index.ext</tt> was created (located on Ra in <tt>/u/cmrun</tt>).
+    It contains the coordinates of &quot;nearest neighbors&quot; used when
+    extending the data. More precisely, the data <tt>array</tt> is extended
+    as follows:
+    <pre>
+    integer :: conv_index(im,jm,2)
+    open(1,file='conv_index.ext')
+    read(1) conv_index
+    do j=1,jm
+      do i=1,im
+        if ( conv_index(i,j,1) .ne. 0 ) then
+          i0 = conv_index(i,j,1)
+          j0 = conv_index(i,j,2)
+          array(i,j)=array(i0,j0)
+        endif
+      end do
+    end do
+    </pre>
+    One can use this algorithm to extend any land surface data if necessary.
+    To create a new extended <tt>AIC</tt> file with <tt>conv_rsf</tt> one
+    has to pass to it <tt>conv_index.ext</tt>  as a third parameter. For
+    current setup on Ra it will look:
+    <pre>
+    conv_rsf /u/cmrun/DEC1958.rsfB394M12 new_rsf_file /u/cmrun/conv_index.ext
+    </pre>
+
+    <p>To summarize, when using a non-standard land mask one has to replace
+    the above mentioned files in the rundeck with their <tt>.ext</tt>
+    equivalents. One also has to use ISTART=6 (instead of ISTART=7) to
+    force regeneration of PBL data.
+</ol>
+
+<p><A name="part1_5"><b>5) HOW-TO change trace gas amounts</b></a></p>
+
+<p> Trace gas amounts can be set in two ways. Firstly from a scenario
+(or historical data) as a function of time. This is useful for
+transient experiments. Secondly, you can set most trace gas amounts as
+multiples of the default values in order to look at equilibrium
+sensitivities for instance.
+
+<ol>
+<li> Setting the Trace Gas Year:
+
+<p> The file GHG in the rundeck can be used to define a trace gas
+scenario (the default file gives observed values from 1850 to
+2000). However, any other scenario can be defined and used. If the
+variable 'ghg_yr' is set in the rundeck, then that year's values are
+used throughout the run. If a transient scenario is required, set
+ghg_yr=0 and the years will be taken from the model year. (A similar
+procedure works for aerosols (Aero_yr), solar forcing (sol_yr),
+volcanoes (volc_yr) and ozone (O3_yr) as well). Note that stratospheric
+water vapour amounts are related to the ghg_yr (and the methane
+concentration) if H2ObyCH4=1 (the default is not to include the
+methane related flux). </P>
+
+<li> Changing fixed trace gas concentrations:
+
+<p> If you want to test the sensitivity to various hypothetical trace
+gas amounts, there are some multiplier parameters that can be used for
+the three principle greenhouse gases (CO2, CH4 and stratospheric water
+vapour). These variables CO2X, CH4X and H2OstratX are by default
+1. Since the default ghg_yr is 1951, changing the values of these
+multipliers gives a tracer gas concentration of (CO2X) times the 1951
+CO2 level. These defaults for reference are, CO2=311.098 and
+CH4=1.10298 (but really depend on the 1951 values in the GHG
+file). H2OstratX multiplies whatever the stratospheric water vapour
+amount is. </p>
+
+<li> For other gases (CFCs, N2O, O3) there are no rundeck parameters
+available, but they can be changed based on the 'FULGAS' array in
+init_RAD in a similar way to CO2.
+
+</ol>
+
+<p><A name="part1_6"><b>6) HOW-TO have a perpetual winter</b></a></p>
+
+<p>Orbital parameters must be fixed and so 'ORBIT' in DAILY should be
+given the same JDAY every day. (i.e. JDAY0=1 for JAN 1st conditions).
+Though this will have consequences for the polar regions (since there
+will be no seasonality there). Possibly there is another way....</p>
+
+<p><A name="part1_7"><b>7) HOW-TO travel back/forward in time</b></a></p>
+
+<p>A number of things can change depending on the time period concerned.
+
+<ol>
+  <li> orbital parameters. These can be changed directly in CONST.f,
+ or by setting 'calc_orb_par=1' in the rundeck, and then using
+ 'paleo_orb_yr' to define a year (Before Present (i.e. 1950)) from
+ which the values can be calculated.
+  <li> trace gas amounts. (see Q6) Note that for really large changes,
+       the mean atmospheric composition will change (and thus so will RVAP
+       etc. See CONST.f for details)
+  <li> continental configuration. Change the boundary condition files
+       in the run deck. (Also for land use/cover changes, ice sheets etc.)
+  <li> Mean atmospheric pressure. Change PSF etc. in the RES_xyz file.
+  <li> Speed of rotation. A little tricky since this effects OMEGA (in
+       CONST.f) but also SDAY, and depending on how you define an 'hour', the
+       number of seconds in an hour, or the number of hours in the
+       day. Remember that dtsrc must divide into sday exactly.
+  <li> Solar constant. This can be set by the multiplicative factor S0X
+       within the rundeck.
+  <li> Aerosol/dust amounts. These can be changed within RAD_DRV.f or by
+       changing the RADN input files.
+</ol>
+
+<p><A name="part1_8"><b>8) HOW-TO move to Mars</b></a></p>
+
+<p>Like travelling back in time, only more complicated. Oh, and no water.
+Note that the length of year is set by EDPERY in CONST.f. </p>
+
+<p><A name="part1_9"><b>9) HOW-TO move to Wonderland</b></a></p>
+
+<p>The wonderland model is a sector version of the GCM that is used for
+very fast or very long runs that do not have to be as true to the real
+climate as normal. Essentially, the globe is split into three sectors,
+and only one sector is prognostically calculated. You must alter the
+resolution (IM will be 24), change the definition of DLON (in
+GEOM_B.f), and make sure that the radiation calculation has been
+modified to synchronise the diurnal cycle over the sector. Note that
+this has never been tested.</p>
+
+<p><A name="part1_10"><b>10) HOW-TO get help or report a problem</b></a></p>
+
+<p>There is a mailing list 'giss-gcm-users-l@giss.nasa.gov' where queries,
+problems and comments on the gcm can be aired. Sending a message here
+is probably more likely to get a quick response than emailing any one
+person.</p>
+
+<p>Subscribe to this by sending a message to Majordomo@giss.nasa.gov with
+a line "SUBSCRIBE giss-gcm-users-l" in the body of the text.</p>
+
+<p><A name="part1_11"><b>11) HOW-TO keep up-to-date</b></a></p>
+
+<p>Periodically, we will release new, and hopefully improved versions of
+the model code. You will be notified through the mailing list, and you
+can decide whether to upgrade your code, or wait until a more suitable
+time. None of your changes will be lost if you upgrade. However, some
+conflicts may occur, though they should be minor. Detailed
+instructions will be given at the time.</p>
+
+<p><A name="part1_12"><b>12) HOW-TO move the model offsite</b></a></p>
+
+<p>The model code itself is self-contained. Thus it should be
+transportable offsite. However, certain directories and scripts need
+to be configured for the local set up. Use 'gmake config' to create
+the '.modelErc' file in your home directory. Edit this to customise
+your structure, including the central directory (which is /u/cmrun/ by
+default). The input data files are not part of the release, and will
+need to be downloaded separately. </P>
+
+<p>The biggest problem may be if the machine you wish to run the code
+on has a different fortran compiler. Some variation has been fully
+allowed for (i.e. the standard SGI or IBM compilers, Absoft Profortran
+on a Linux system and the DEC/COMPAQ version), however, we do not have
+a stable testbed for any other compilers and therefore cannot
+guarantee it will always work.</P>
+
+<p>General problems will arise due to arbitrary compiler decisions on
+what to name compiled module files (which affects the determination of
+the inter-routine dependencies). Edit model/Rules.make to fix this.
+The code is compilable without using the 'static' option, which
+removes many of the problems that used to occur. Most of the compiler
+dependent code (that we have discovered) can be found in
+SYSTEM.f. These involve system calls to the CPU clock, the calculation
+of pseudo-random numbers, and the setting of exit codes. We would be
+very interested in further compiler dependencies if found. Different
+compilers are dealt with using preprocessor directives from the
+Makefile. </p>
+
+<p><A name="part1_13"><b>13) HOW-TO add to this documentation</b></a></p>
+
+<p>This documentation is part of the model code, and so changes to files
+in the modelE/doc directory can be uploaded to the main repository.
+Please contact one of the developers if you have some changes that you
+would like to commit.</p>
+
+<p><A name="part1_14"><b>14) HOW-TO keep up-to-date with the latest
+releases of the model</b></a></p>
+
+<p> From time to time relatively stable versions of the model will be
+&quot;released&quot;, i.e. that they will be marked and assigned some
+specific name, or &quot;tag&quot; by which they can be checked out from Git.
+The typical name for such released versions will be &quot;modelE-x-y&quot;,
+where x and y are some numbers. It is recommended that those who are
+not involved into active development on the main trunk of the Git use
+only these &quot;released&quot; versions. </p>
+
+<p> If you are currently working on your private branch and want to upgrade
+the model to a new release, you can do it automatically, provided that for
+your previous update you also used a &quot;released&quot; version. To
+upgrade your model to the release modelE-a-b go to <tt>decks</tt> directory
+and execute
+<pre>
+    gmake update RELEASE=modelE-a-b
+</pre>
+This will merge into your branch all the changes which were introduced into
+the model since your last update until the release modelE-a-b. Automatic
+update doesn't mean automatic resolution of all conflicts. If such arise
+they have to be checked and fixed manually.</p>
+
+
+<p><A name="part1_14"><b>9) HOW-TO nudge the model </b></a></p>
+
+<p>The model can be run in a nudged mode, whereby the horizontal
+wind components are nudged towards reanalysis data sets (NUDGE.f).
+The following nudging formula is used:
+<pre>
+f(n+1) = f(n) + a delta b / (1 + a delta)
+</pre>
+where f(n+1) is the variable to be nudged at the new timestep (n+1)
+and at the old timestep f(n), respectively. delta is the model time
+step and b is the reanalysis value. a is the nudging coefficient.
+a depends on the model timestep and a nudging timescale ANUDGEU,
+ANUDGEV (for the u and v-velocities, respectively) </P>
+
+<p>ANUDGEU and ANUDGEV are set in the input parameter list in the rundeck file.
+ANUDGEU=0.01 ANUDGEV=0.01 was tested to give reasonable results.
+The preprocessor directive #define NUDGE_ON must be set to turn the nudging on.</P>
+
+<p>The reanalysis data sets must be available at the horizontal grid
+resolution of the model an a 6 hourly time step. The vertical
+interpolation is done in the model, so that the same reanalysis input
+files can be used for different vertical model resolutions.  Netcfd
+input is required.  </p>
+
+<hr>
+
+<h3><A name="part2"><b>Part II: Getting information from the
+diagnostics</b></a></h3>
+
+<p><A name="part2_1"><b>1) HOW-TO look at the output</b></a></p>
+
+<p>You can look at the output in two distinct ways: using the run-time
+printout, or using the post-processing program, pdE.</p>
+<ol>
+  <li> <p>The run-time printout.</p>
+
+       <p>If you run the model using 'runE' (as opposed to 'runE -q' which
+suppresses the printout) the model will produce a $RUNID.PRT file
+which can contain copious amounts of diagnostic information. It is
+split into a number of sections: (see next question for a list). This
+is produced each month (but can be controlled using the KDIAG switches
+and NMONAV in the NAMELIST).</p>
+
+  <li> <p>Post-processed output:</p>
+       <p>Each month the program produces an 'acc' accumulated
+       diagnostics file which contains all of the diagnostic information from
+       the previous month. The program 'pdE' (in the exec directory) is an
+       alternate entry point into the model that reads in any number of these
+       files and a) creates a printout (as above) for the time period
+       concerned and b) creates binary output of many more diagnostics. This
+       can be used simply to recreate the monthly printout, but also to
+       create longer term means (annual, seasonal, monthly climatologies
+       etc.).</p>
+
+       <p>For example, to recreate the printout in /u/cmrun/$RUNID;
+       <ul>
+  <li>for a single month: pdE $RUNID JAN1987.acc$RUNID
+  <li>for all Januaries:  pdE $RUNID JAN*.acc$RUNID
+  <li>for a whole year:   pdE $RUNID *1987.acc$RUNID
+       </ul>
+       <p>
+       For pdE to work properly, the directory /u/cmrun/$RUNID has to exist
+       and contain at least ${RUNID}ln  ${RUNID}uln  ${RUNID}.exe .
+       The output files will end up in the PRESENT WORKING DIRECTORY which
+       may be /u/cmrun/$RUNID or any other directory;
+       names and order of the inputfiles are irrelevant (as long as the
+       format of the files is compatible with the model ${RUNID}).
+       </p>
+
+       <p>It is possible to use pdE to average acc-files from several runs,
+       e.g. average over an ensemble of runs. Although the numbers that
+       are produced are fine, subroutine aPERIOD will not
+       be able to create the proper labels: the runID will be taken from
+       the last file that was read in and the number of runs averaged will
+       be interpreted as successive years, so averaging years 1951-1955
+       of runs runA runB runC runD will produce the label ANN1951-1970.runD
+       rather than  ANN1951-1955.runA-D. Some titles will also suffer from
+       that 'bug', but it should be easy to fix it manually afterwards,
+       if anybody cares.</p>
+</ol>
+<p>Note that the output can be controlled (a little) by the settings in
+'Ipd' (which is created if it does not yet exist in the present working
+directory). A number of files will be created whose names contain the
+accumulated time period.  (monyear[-year] where mon is a 3-letter acronym
+for a period of 1-12 consecutive months).</p>
+<pre>
+        monyear.PRT      the printout
+        monyear.j$RUNID  zonal budget pages (ASCII Aplot format)
+        monyear.jk$RUNID latitude-height binary file
+        monyear.il$RUNID longitude-height binary file
+        monyear.ij$RUNID lat-lon binary file
+        monyear.wp$RUNID Wave power binary file
+        monyear.oij$RUNID lat-lon binary file for ocean diagnostics
+        monyear.ojl$RUNID lat-depth binary file for ocean diagnostics
+        monyear.oht$RUNID lat ASCII file for ocean heat transports
+</pre>
+<p>which can be read using the appropriate graphical software. </p>
+
+<p><A name="part2_2"><b>2) HOW-TO change what is included in the printout</b></a></p>
+
+<p>The switches KDIAG which are set in the NAMELIST control which
+subgroups of diagnostics are calculated and output. At present, there
+is no simple way to pick and choose exactly which diagnostics appear,
+although we are working on a scheme to do just that. Some of the
+following options are rarely used, and may soon be made obsolete.
+These switches can also be used in 'Ipd' input for pdE to control
+which output to produce. If QDIAG=.true. some binary files
+are created accompanying the printed output. If QDIAG_ratios=.true.
+fields which are the products of q1 and q2 and whose titles are
+of the form "q1 x q2" are replaced by the ratios field/q2, the
+title being shortened to "q1" (default).</p>
+
+<p>Current options are:
+<pre>
+KDIAG(1)  < 9 print Zonal/Regional budget pages
+   = 8 only print regional diagnostics
+   2-7 only print global zonal means
+   = 1 print all zonal diagnostics
+
+KDIAG(2)  = 0 print Latitude-height diagnostics
+          = 1 print at most fields listed in file Ijk
+              (rearranging the lines of Ijk has no effect)
+          = 8 Only print spectral analysis of standing eddies
+          = 9 skip all Latitude-height diagnostics
+          2-7 same as 1
+
+KDIAG(3)  = 0 standard printout, all binary files if QDIAG=.true.
+          = 1 ij-fields as in list Iij, all ijk-fields
+          = 2 ij and ijk fields are handled according to list Iij
+          = 7 ij-fields as in list Iij, no ijk-fields are produced
+          = 8 full list Iij of available fields is produced; this list may
+              be edited : don't touch lines starting with 'List' or 'list'
+                          you may delete any other lines
+                          you may rearrange the remaining ij-fields
+                          you may add blank maplets
+          = 9 no ij and ijk diagnostics are produced
+          3-6 same as 2
+
+KDIAG(4)  < 9 print time history table of energies
+KDIAG(5)  < 9 print spectral analysis tables
+
+KDIAG(6)  < 9 print diurnal cycle diagnostics at selected points (up to 4)
+          1-4 print out for first 4-KDIAG(6) points (will soon be obsolete)
+        -1 - -4 print out for -KDIAG(6) point only.
+
+KDIAG(7)  < 9 print wave power tables
+
+KDIAG(8)  < 9 print tracer diagnostics
+          = 0 print all tracer diagnostics
+          = 1 skip lat/lon tracer diagnostics
+          = 2 skip tracer conservation diagnostics and lat/lon diagnostics
+
+KDIAG(9)  < 9 print out conservation diagnostics
+KDIAG(10) < 9 print out Longitude-height diagnostics
+KDIAG(11) < 9 print out river runoff diagnostics
+KDIAG(12) < 9 print out ocean diagnostics (if there is an ocean)
+</pre>
+
+<p>There is also one section of special lat-lon diagnostics which can
+be optionally accumulated and output. These are the <i>isccp_diags</i>
+which calculate some cloud properties as if they were being observed
+by satellite. This is set as an option in the rundeck
+(<tt>isccp_diags=1</tt>) to calculate them. By default these diags are
+not calculated.</p>
+
+<p><A name="part2_3"><b>3) HOW-TO produce daily/monthly or seasonal
+diagnostics</b></a></p>
+
+<p>Controlling the frequency of output of the ACC files is done using the
+NAMELIST parameter NMONAV. This sets the number of months over which
+the diagnostics is accumulated. If it is set to 3, seasonal acc files
+are produced. If set to 12, you will get annual means. Higher numbers
+could be chosen, but are probably not very useful.</p>
+
+<p>Producing more frequent diagnostics is controlled by the SUBDAILY
+module. The frequency of saving is controlled by the variable
+<tt>Nsubdd</tt> which is the number of internal timesteps between each
+snapshot (i.e. <tt>Nsubdd=1</tt> implies diags every timestep, =24
+daily (if dtsrc=3600), =48 is daily for dtsrc=1800).  The variables
+saved are controlled by the strings <tt>SUBDD, SUBDD1</tt>, which are
+space seperated lists of names for the required diagnostics.  These
+are currently limited to instantaneous values (with some exceptions as
+noted below) of some standard fields (SLP, PS, SAT, PREC, QS, LCLD,
+MCLD, HCLD, PTRO QLAT, QSEN, SWD, SWU, LWD, LWU, LWT, STX, STY, ICEF,
+SNOWD, TCLD, SST, SIT, US, VS, TMIN, TMAX), the geopotential height,
+relative and specific humidity and temperature on any (or all) of the
+following fixed pressure levels (if available): 1000, 850, 700, 500,
+300, 100, 30 , 10, 3.4, 0.7, .16, .07, .03, and velocities on any
+model level. The fixed pressure level diags are set using Z850, R700
+and T100, for instance, to request the 850 mb geopotential height, 700
+mb relative humidity and 100 mb temperatures, respectively. Requests
+for ZALL or TALL, will produce individual files of all available
+levels. The velocities are set using U1, U5, U12, for instance, to get
+the 1st, 5th and 12th layer U velocities, respectively. If "ALL"
+levels are requested for a velocity, only one file per variable will
+be output, containing all requested levels.  To limit the number of
+output levels, set the <tt>LmaxSUBDD</tt> parameter in the rundeck,
+and only levels L=1,LmaxSUBDD will be output. <p>More options can be
+added as cases in subroutine get_subdd in DIAG.f if required. For
+example, including the following string in the rundeck
+(i.e. <tt>SUBDD="SLP SAT Z500 R850 U5 V5"</tt> will produce diags of
+the sea level pressure, surface air temperature, 500mb geopotential
+heights, 850 mb level relative humidity and the 5th layer U, and V
+fields. Each timeseries will be output one month at a time in files
+named SLPmmmyyyy and SATmmmyyyy (for example) for each month and
+year. Restarts will find the appropriate file and continue to append
+records as would be expected.</p>
+
+<p> There are three minor special cases to the procedure outlined
+above. i) PREC will give the accumulated precipitation over the Nsubdd
+period. ii) TMIN and TMAX are the minimum and maximum daily composite
+surface air temperatures at each grid point, and therefore can only be
+output once a day. Note that Nsubdd must divide into the daily number
+of internal timesteps for this to work properly. i.e. if dtsrc=1800s,
+there are 48 internal time steps per day. If Nsubdd=6 (denoting 3
+hourly output), TMIN and TMAX will be output correctly at midnight UTC once a
+day. However, if Nsubdd=5 (2.5 hourly output), TMIN and TMAX will only
+be output every five days as the output hour coincides with midnight UTC.</p>
+
+<p>You can easily keep track of the running average of all the
+printout diagnostics using the NIPRNT switch in the parameter
+database. By setting this to a positive number, the diagnostics will
+be printed out that number of hours. (i.e. setting NIPRNT=10, will
+print out the running average of the accumulated diagnostics at the
+end of each of the next ten hours).</p>
+
+<p><A name="part2_4"><b>4) HOW-TO control the format of the binary output
+(i.e. GISS/netcdf/hdf etc.)</b></a></p>
+
+<p>The binary output created from 'pdE' can be in a number of
+formats. Currently there are two options, the traditional GISS
+formats, and netcdf output. This is set by choosing to compile the
+model with POUT (for GISS-style output) or POUT_netcdf (for netcdf
+output). This is set in the rundeck. Note that the choice is made AT
+THE TIME OF COMPILATION OF THE MODEL EXECTUABLE. If you subsequently
+change your mind, you must edit the rundeck and recreate the
+executable (using 'gmake exe RUN=E001xyz'). </p>
+
+<p>Other formats (HDF?) could be defined as you like with a suitable
+POUT_xyz.f file.</p>
+
+<p><A name="part2_5"><b>5) HOW-TO calculate a model score</b></a></p>
+
+<p>There is an RMS.f program in the aux/ directory which calculates a
+'score' for a model run based on the RMS difference with some selected
+observations. Additionally, it calculates the Arcsin Mielke score (AMS),
+which is a non-dimensional statistic (between -1,1 (1 being perfect))
+which also includes effects of mean bias and variance. It is compiled
+whenever the 'gmake aux RUN=....'  command is run. Like CMPE001 or qc,
+it is technically model dependent (since it uses im,jm etc.), but in
+practice you will not need to recompile it for every version. The
+executable will be put into the RUNNAME_bin directory (i.e. for gmake
+aux RUN=E001xyz, the executable will be E001xyz_bin/RMS). Running RMS
+on its own gives its usage.</p>
+
+<p>You should produce diagnostic files over at least a five year mean. So
+for a particular run, use pdE to create the JAN and JUL averages</p>
+
+<pre>
+      cd E001xyz
+      pdE E001xyz JAN195[1-5].accE001xyz    # => JAN1951-1955.ijE001xyz
+      pdE E001xyz JAN195[1-5].accE001xyz    # => JUL1951-1955.ijE001xyz
+</pre>
+
+<p>Make sure that the TOPO file is linked:</p>
+
+<pre>
+      E001xyzln</pre>
+
+<p>and then run RMS</P>
+
+<pre>
+      ~/modelE/decks/E001xyz_bin/RMS E001xyz JAN1951-1955.ijE001xyz JUL1951-1955.ijE001xyz</pre>
+
+<p>This will create files 'E001xyz' in the directories
+/u/cmrun/modelE/RMS and /u/cmrun/modelE/AMS, which contain the RMS
+statistics and the Arcsin Mielke score for each selected
+field,respectively. You can then compare these scores with other
+existing versions.
+</P>
+
+<hr>
+<h3><A name="part3"><b>Part III: The model code</b></a></h3>
+
+<p><A name="part3_1"><b>1) HOW-TO find where a variable is defined</b></a></p>
+
+<p>Variables (other than purely local variables) are defined in three
+main ways. Physical constants (real constants, not tuning parameters),
+are defined in const.f, model related variables (i.e. variables to do
+with how the model is run) are defined in MODEL_COM.f, and all other
+variables are defined in the physics MODULES. Variables that are on
+the model grid will be defined in the PHYS_COM module, while
+parameters and options for the local physics will be defined in the
+PHYS module. Thus decide to which physics module your variable is most
+related to and look there.</p>
+
+<p>For more brute force efforts, run the command 'gmake htmldoc
+RUN=RUNNAME'. This will create a html document that indexes and
+defines all important variables (well not all, but most, ok
+some!). Alternatively grep -i "varname.*=" *.[fSU] will probably find
+it for you.</p>
+
+<p><A name="part3_2"><b>2) HOW-TO follow the program structure</b></a></p>
+
+<p>The model is essentially on three levels. MAIN in MODELE.f is the
+top level and controls the time-stepping and deals with most of the
+model overhead. The time-step loop in MAIN is the principal path that
+the model follows. This is a very linear loop, and therefore is not
+difficult to understand.</p>
+
+<p>The level below this is the level of the drivers. These are routines
+that translate model variables (ie. those defined on the model grid),
+to local variables (usually, but not always, vertical arrays), save
+diagnostics and save variables/fluxes for later use.</p>
+
+<p>Finally the third level is the level at which the actual physics gets
+done. This level generally is oblivious to the previous two levels and
+is code that could be used in many different contexts. It is very
+important to keep this true. DO NOT write directly to model arrays
+within a local physics subroutine. (Some outstanding cases may appear
+to do that, but this is being written out of the model).</p>
+
+<p><A name="part3_3"><b>3) HOW-TO use or add to the automatic
+documentation</b></a></p>
+
+<p>You will have noticed that modelE has multiple documentation
+directives such as !@var or !@sum. These are key words that can be
+read by a script and turned into useful documentation. Each
+subroutine, and each important variable should have such a declaration
+(which should include a definition, units, etc.). The command 'gmake htmldoc'
+makes html output from a rundeck containing (and sorting out) all this
+information. The various directives are all defined in the main model
+common block. If you introduce new variables or subroutines, you MUST
+define similar documentation.</p>
+
+<p>Currently defined keywords and syntax are:</P>
+<pre>
+@sum     UNITNAME Brief summary/description of the current program unit or file
+@auth    Author
+@ver     Version (a number plus any relevant comments)
+@calls   List of routines called in this program unit
+@cont    List of program units contained within a file or module + other info.
+@fun     FUNCNAME Denotes a function
+@param   PARAMNAME Denotes a parameter (in the FORTRAN sense)
+@var     VARNAME Denotes a variable (in the FORTRAN sense)
+@dbparam VARNAME Denotes a database parameter (in the modelE sense)
+@nlparam VARNAME Denotes a NAMELIST parameter (in the modelE sense)
+@+       Continuation line for @sum/@calls/@cont
+</pre>
+
+<p><A name="part3_4"><b>4) HOW-TO ensure that your code meets the new
+standards</b></a></p>
+
+<p>Please check the document
+<a href="http://www.giss.nasa.gov/~gavin/modelE_develop.html">Coding
+standards for ModelE</a> and try to conform as nearly as possible to
+the (not very onerous) conditions. Unfortunately, we do not have
+anybody whose job it is to make sure that added code
+conforms. However, every time this happens it makes it harder to keep
+the model consistent, and leads to the creation of unnecessary
+complications in keeping things straight.</p>
+
+<p><A name="part3_5"><b>5) HOW-TO add functionality</b></a></p>
+
+<ul>
+  <li><A name="part3_5a"><b>A: Variations on existing code</b></a>
+
+<p>Since all code is now kept within Git, code history is preserved and
+can be retrieved at any time. So for minor modifications to the code
+(i.e. slightly different formulation of a particular term), go
+straight ahead and modify your version. Compare the results from that
+with a standard control run. As you extend your modifications, make
+sure to 'commit' your changes at appropriate points (on your branch
+only) so that you can retrieve the code from any intermediate (but
+functional) point. </p>
+
+  <li><A name="part3_5b"><b>B: Introducing new sub-modules</b></a>
+
+<p>If you want to add a completely new physical module or radically
+change an existing one, you will be best off creating a new 'plug and
+play' option. Follow the example of the ATURB code (which can replace
+DRYCNV if required). The issue is mainly one of keeping the interface
+clean and consistent. Unless what you propose will directly influence
+multiple parts of the model, it is best to keep your new code as
+modular (single column for instance) as possible, and only interact
+with the main code through the relevant drivers. </p>
+
+<p>In particular, if there is an existing call to an equivalent routine,
+keep the call statement the same for the old and new versions (and you
+can add dummy arguments to the old code if required). If you want to
+add a new call for which there is no analog, you may want to add a
+dummy routine for use in the old version (i.e as in RES_M12.f with
+regard to some of the stratospheric code). Put this in a file that you
+are making obsolete, or even create a new dummy file.</p>
+
+<p>Another way to do this is by using pre-processing directives set from
+the rundeck. This is not encouraged except where it would make
+inserting a new option much more straightforward. If it is used, limit
+its use to the absolute minimum (i.e. to decide whether to call the
+new routine or not). We specifically do not want multiply threaded
+options with any of the physics routines since that makes maintenance
+much more problematic. </p>
+
+<p>In any file where the directive is to used, there must be an </p>
+
+<tt>#include &quot;rundeck_opts.h&quot;</tt><br>
+
+<p>statement at the top of the file. The coding then follows standard
+practice: </p>
+
+<tt>#ifdef NEW_FUNCTION<br>
+      call new_function(a,b,c)<br>
+#endif<br></tt>
+
+<p>To set this option, add a line to the preprocessing option part of the
+rundeck.</p>
+
+<tt>
+Preprocessor Options<br>
+#define NEW_FUNCTION                  ! do new function <br>
+End Preprocessor Options<br>
+</tt>
+
+<p>The gmake command will recompile the relevant routines every time you
+change the option. Note that if options become too commonplace, the
+entire model will need to be recompiled every time. Therefore, our
+preferred solution is 'plug and play'.</P>
+
+<p>Note that for each new sub-module or pre-processor directive you
+create, you should modify the <a href = "OPTIONS.html"> OPTIONS.html
+</a> file to document the details.</p>
+
+  <li><A name="part3_5c"><b>C: Introducing a new parameter</b></a>
+
+<p>Introduce a new parameter if you would like to be able to vary
+it's value at run time without recompiling the model (i.e. an
+adjustable parameter, or an option switch for instance). Firstly,
+decide who should own the parameter. That is likely to be one of the
+physics modules. Since it is likely to be a fundamental part of a
+local physics process, it should be declared and defined in the local
+physics module. You MUST give it a default value, and ensure it is
+tagged with a '@dbparam' comment that explains what it does.</p>
+
+<p>In the initialisation for this module, you need to add a line </p>
+<pre>
+ call sync_param("NEWPARAM",newparam)
+</pre>
+<p>which will set the value of newparam from the parameter database, if
+it has been set from the input rundeck, or from a restart. (see
+the <a href="FAQ.html">FAQ</a> for more details on how this works). </p>
+
+<p>In the rundeck you need only add to the &&PARAMETERS...&&END_PARAMETERS
+block a line like this:</p>
+<pre>
+NEWPARAM=1        ! NEWPARAM sets something for XYZ
+</pre>
+<p>Of course, you should use a more obvious name! If no value is set in
+the rundeck, the default value will be used. </p>
+
+  <li><A name="part3_5d"><b>D: Adding new diagnostics</b></a>
+
+<p>The diagnostic system that the GCM uses is very sophisticated and is
+almost certainly sufficient for any new need for diagnostics that
+arises. However, it can seem complex and difficult to use. As
+improvements in ease of use occur, it will get easier to modify.</p>
+
+<p><b> Adding a new conservation diagnostic: </b> These arrays keep
+track of the zonal average of any quantity, and note which routines
+change those values. They are useful in understanding the overall
+mass/energy/tracer budgets. To add a new conservation quantity, first
+write a routine that returns the zonally averaged quantity in
+question. Secondly, in the 'init' subroutine for the relevant physical
+module, insert a call to 'SET_CON' this sets up the points at which
+the diagnostic is called, and how it is output. (see init_DIAG for
+more detailed instructions). Thirdly, you must increase NQUANT by 1,
+and KCON by 2+number of points at which you are saving the value.
+Setting the equivalent for tracer conservation diagnostics is similar
+to the above.  </p>
+
+<p><b> Adding a new lat-lon diagnostic: </b> These are the most common
+diagnostics to add and are relatively straightforward. There are three
+components to a new AIJ diagnostic: the declaration, the definition,
+and the accumulation. Everything else is done automatically. First of
+all, define a variable in DIAG_COM.f which will be an index for this
+diagnostic such as ij_xyz (where xyz is some clear mnemonic for your
+new diagnostic). Secondly, in DEFACC.f (subroutine ij_defs), add a definition:
+<pre>
+      k=k+1 ! new diagnostic XYZ
+      ij_xyz = k
+      lname_ij(k) = 'XYZ DIAGNOSTIC'
+      units_ij(k) = 'XYZ_UNIT'
+      name_ij(k) = 'XYZ'
+      ia_ij(k) = ia_src
+      scale_ij(k) = 1.
+</pre>
+
+<p> The counter k ensures that each ij diagnostic has a unique index
+(which you don't need to know) which is set to the variable you
+previously defined. The lname and name are a long and short name
+strings which are used in TITLEs and 'get-by-name' code
+respectively. The units should be the units for the scaled output. The
+ia_ij index denotes how often the diagnostic is accumulated (in this
+case once every source time step, although this can very depending on
+where in the code it is done).  </p>
+
+<p> The ij diagnostics can also be weighted (by surface type area,
+cloud amount, pressure etc.). This is signified by a string such as '
+x POICE' in the long name of the array for a variable weighting, or by
+setting iw_ij(k) for a fixed weighting. Look in ij_defs for
+examples.</p>
+
+<p> The ij diagnostics can optionally appear in the ascii printout as
+well as the binary output. For this to happen, you must set a
+'colorbar' for the pritnout by setting ir_ij to a suitable bar. Look
+at the LEGEND array in DIAG_COM.f for possible values. For the output
+to appear, you need to specifically ask for that to happen in
+DIAG_PRT.f. The array 'iord' in DIAGIJ defines all the ij
+printouts. You can either add to it (and make sure to increase the
+number of 'kmaplets' accordingly), or simply replace an existing
+maplet. </p>
+
+<p> Finally, put in the code that accumulates your chosen variable
+somewhere in the model. Make sure to USE the correct index from
+DAGCOM. Remember that all ij diagnostics will appear in the
+*.ijE001xyz file after using 'pdE'.</p>
+
+<p><b> Adding a new zonal 'budget' page diagnostic: </b> These
+diagnostics store the zonal mean of various quantities and fluxes. The
+routine 'j_defs' in DEFACC.f controls their printout. The diags are
+output in the order they appear in the listing, with the exception of
+derived composite ratios which appear where specified in
+DIAG_PRT.f. If you want to add a simple scaled diag, define the index
+'J_XYZ' in DIAG_COM.f, set up the meta-information in DEFACC.f, and
+accumulate it at the relevant point in the code. The output format for
+the values can be optionally changed in DIAG_PRT.f using the name you
+give the diagnostic. Ratios are a little more complicated.</p>
+
+<p>Other diagnostics will be explained if and when we work them out.</P>
+
+  <li><A name="part3_5e"><b>E: Adding extra timing information</b></a>
+
+       <p> If you want more information on how long each part of the
+       code takes (for instance if you put in some tracer code, or
+       extra physics) the way to do it is to increase the number of
+       timing variables such as are output by the program 'qc'. </p>
+
+       <p> Initially, call the routine
+       <pre>
+       CALL SET_TIMER("NEW PHYSICS",MPHYS)
+       </pre>
+       Where the text is what will appear in the printout, and MPHYS is
+       a locally defined integer variable. At the beginning of
+       code you want to profile, add a call to TIMER(MNOW,MORIG) where
+       MORIG refers to the timing counter current at this point (in
+       order to zero the counter for your routine. At the end of your
+       code, call TIMER(MNOW,MPHYS). That's it. </p>
+
+  <li><A name="part3_5f"><b>F: Coupling an ocean model</b></a>
+
+       <p> Please read <a href="coupling.txt">the coupling
+        documentation</a> for details of the fluxes, fields and entry points
+ required for any ocean code.  </p>
+</ul>
+
+<p><A name="part3_9"><b>9) HOW-TO read in an external file</b></a></p>
+
+<p>ModelE has introduced a FILEMANAGER system that controls the
+assignment of unit numbers and the opening of files. To add a new file
+to be read in, first define a short mnemonic for the file
+(i.e. "TRSRC" for the tracer source file). This is the name that you
+will assign in the rundeck to the file you wish to open. Secondly,
+prior to reading in the file, use the routine 'openunit' to assign a
+unit number for the file using the mnemonic you gave it. ie.</p>
+<pre>
+     USE FILEMANAGER
+     INTEGER iu_trc1
+     ....
+     call openunit("TRSRC",iu_trc1,.TRUE.,.TRUE.)
+     READ(iu_trc1) DATA1,DATA2....
+     call closeunit(iu_trc1)
+</pre>
+<p>The first logical variable argument is true if the file is to be
+opened for unformatted (binary) read/write, .FALSE. for ASCII
+input. The second logical variable denotes whether this is an already
+existing file or not. These arguments are optional, and default to
+TRUE. The line in the rundeck should look something like (depending
+on the filename of course):</p>
+<pre>
+TRSRC=tracer_sources.1970_1980.dat
+</pre>
+<p>The setup script looks automatically in /u/cmrun, /u/raid and in the
+current directory. If the file is elsewhere an absolute or relative
+pathname is needed.</p>
+
+<p><A name="part3_10"><b>10) HOW-TO add new variables to the restart
+files</b></a></p>
+
+<p>Each module now has only one place that needs to be changed to
+accommodate extra variables in the rsf files: io_xyz (where xyz is a
+descriptor for the module like ocean, rad, lakes etc.). All
+input/output is controlled by these routines. Thus to add a new
+variable, simply add it to the list of variables for both the read and
+the write statements. Note that you MUST change the MODULE_HEADER
+character string if you change what is in the rsf (ie. increment the
+number by 1 each time you do this). This is necessary to ensure that
+we can distinguish various versions.</p>
+
+<p>There are some complications for variables that can be set in the
+NAMELIST, namely, you must decide how this variable gets set as a
+function of the initialisation method. Look at io_rad as an example to
+follow.</p>
+
+<p><A name="part3_11"><b>11) HOW-TO access variables that are already
+calculated somewhere else</b></a></p>
+
+<p>One of the main changes to modelE was to replace common blocks with
+Fortran 90 modules. The functionality is much the same, but since they
+do not assume anything about where in memory variables are kept, many
+of the problems associated with common blocks are alleviated. In order
+to make use of a variable from somewhere else in the code, that
+variable must be in the relevant MODULE (usually called PHYS_COM, for
+ease of remembering). Then in the routine of the module where you wish
+to use it you must specifically declare what you want using the USE
+statement. For clarity, we are insisting upon using 'USE, only' so
+that each variable that you require is explicitly declared, ie.</p>
+<pre>
+    USE PHYS_COM, only : var1,var2
+</pre>
+<p>If the name of the variable conflicts with a local variable, you can
+use the 'points-to' feature to map the PHYS_COM variable to a new name
+(as you may have done with common blocks), i.e.</p>
+<pre>
+    USE PHYS_COM, only : var1,var2_phys=>var2
+</pre>
+<p>The arrow should be read as 'points to', and thus var2_phys will be an
+alias for var2 in this routine/module only.</p>
+
+<p><A name="part3_12"><b>12) HOW-TO deal with the inevitable bugs you
+introduce</b></a></p>
+
+<p>Nobody's code is perfect (least of all ours) and so when coding it is
+inevitable that errors are introduced. Some are minor and cause no
+obvious sign of distress (these are very difficult to find!), while
+others cause the model to crash and burn.</p>
+
+<p>Let's say you've changed something in the model that seemed innocuous,
+and then the model crashes. There are three common points that seem to
+trap errors: the dynamics, the radiation and the PBL scheme. These
+errors will be flagged as either "A>1 in AADVTX" or similar (for
+crashes in the dynamics), "In Radia: TL out of range" or similar (in
+the radiation), and finally a "stop rtsafe", for a
+crash in the PBL.</p>
+
+<p>Do not go looking for errors in any of these routines. What has
+generally happened is that you have introduced some wild fluctuation
+in some main variable (the temperature, humidity or velocities), or
+overwritten some the model variables that control advection and the
+like. Check that coming out of the routine you modified, everything is
+as it should be (set QCHECK in the rundeck, and include a call to
+CHECKT immediately before and after). Also do not bother commenting
+out the routine that actually crashed to see if the model can continue
+on okay. This routine is the symptom, not the disease.</P>
+
+<p>One additional problem that arises mainly with tracer code is that the
+advection code can sometimes produce wild oscillations of the tracer
+concentration, which for sensitive tracer physics, can cause no end of
+problems. Again, the advection is not to blame! What has happened here
+is that the second order moments for the tracer field (the first and
+second derivatives at the centre of the grid-box) have somehow become
+uncoupled from the mean tracer amount, giving rise to an implied
+sub-grid scale profile that is seriously wrong. The biggest mistake is
+not to reduce the gradients by the same fraction by which the mean was
+reduced in some process. See the document
+<a href="http://www.giss.nasa.gov/~gavin/slopes.html">Using the GISS
+GCM tracer moments</a> for more details on how to do this
+properly. The CLOUDS.f tracer code is a good example of what to do.</P>
+
+<p><A name="part3_13"><b>13) HOW-TO deal with restart problems
+(non-reproducibility of results)</b></a></p>
+
+<p>Occasionally after making coding changes the model ceases to be able
+to reproduce results. For instance, after a crash, a restart from the
+last fort.[12] file does not crash at all, or does so at a different
+point. This is a symptom of a restart problem. It should definitely be
+fixed, since it is clear evidence that the prognostic code has a real
+bug (one that could change the results).</p>
+
+<p>These problems can arise in a number of circumstances:
+<ol>
+<li> the rsf file is incomplete (a prognostic variable has not been
+    saved). This is quite easy to spot and fix.
+<li> a variable is not being properly initiallised. This is
+    quite tricky to find. What happens is that the first time it is used,
+    it is zero, but subsequently it is not. Thus at a restart it is set to
+    zero again, changing the results. Try compiling with an option
+    (-DEBUG:trap_uninitialized=ON on the SGI compiler) that sets all
+    un-initialised numbers to NaN, therefore causing a crash if they are
+    used.
+<li> out of bounds memory addressing. Occasionally this can also
+    result in a restart problem if the memory that is being overwritten is
+    used prior to the over-writing. Thus the first time through it is
+    clean, but subsequently has the value from the incorrectly addressed
+    array. Unfortunately, you cannot set the compiler to catch this,
+    since overwriting of arrays, is sometimes done on purpose in the code
+    (though we are trying to eliminate that).
+<li> parallelisation issues. This is a little trickier and is to do
+    with the essentially random order in which calculations are done
+    across the processors. For instance, if a random number is used inside
+    a parallel loop, the results are irreproducible since random numbers
+    are produced in sequence and thus are dependent on the order in which
+    they are used.
+</ol>
+<p>Restart problems can be caught though. There are three times at which
+they occur, on the source time step cycle, on the radiation time-step
+cycle, or at the daily cycle. Occasionally problems can arise
+mid-month if any climatologies are being used. However, most problems
+can be detected within the first two hours. </p>
+
+<p>Start from a any fort.[12] file. Save it, and call it rsf0. In the
+rundeck (the 'I' file in the run directory), set NDISK=1 in the
+database parameter list. This will produce an rsf file every source
+time step. Set the end time to be two hours from later than rsf0.
+Copy rsf0 to both fort.1 and fort.2. Run the model and save the two
+final rsf files as rsf1 and rsf2. Copy rsf1 to both fort.1 and fort.2,
+and run the model again. Save the new restart files as rsf1a and rsf2a.</p>
+
+<p>Now you have two copies of the first and second hour rsf files. In
+order to compare them, use the program CMPE001 (compiled using 'gmake
+aux RUN=E001xyx'). </p>
+<pre>
+CMPE001 rsf1 rsf1a
+</pre>
+<p>will go through the rsf files array by array and output any
+discrepancies. If no numbers are output, the arrays are identical. If
+the first hour rsf files are different, the error must be within INPUT
+(or one of the init_XYZ routines). Look at the relevant routine for
+the arrays that are highlighted. If however, the first hour checks out
+fine, but the second does not, then the error is in the main loop
+somewhere. Again, judge by the arrays that are affected which routine
+it is likely to be in. If neither set of rsf files differ, then you
+need to do this procedure again either starting at hour 4 (assuming a
+radiation related problem and a 5 hour radiation time step), or at
+hour 23 (assuming a daily related problem). </P>
+
+<p><A name="part3_14"><b>14) HOW-TO get an innovation included in
+everybody's versions</b></a></p>
+
+<p>Since you are working on the code within Git, it is possible to
+upload your changes to the main development branch. However, this is
+highly unrecommended for the average user, and so I am not going to
+tell you how to do it! Instead, please discuss it with one of the
+development team. If you wish to make a lot of changes and be part of
+the ongoing development of modelE, then please read the
+<a href="http://www.giss.nasa.gov/~gavin/modelE_develop.html">developers
+guide</a> and then come and talk to me (gavin@giss.nasa.gov).</p>
+
+
+</BODY>
+</HTML>
+<P><HR><p>
+

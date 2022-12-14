@@ -1,0 +1,703 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<body bgcolor="#ffffff" text="#000000" link="#000099" vlink="#cc0000" alink="#cc0000">
+<HEAD>
+ <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+ <TITLE>Frequently asked questions about the GISS model</TITLE>
+</HEAD>
+<BODY>
+<H1>Frequently asked questions about the GISS model</H1>
+<P>Here are some frequently asked questions and some standard
+responses, please feel free to add new questions (and answers!), or
+amend the response to make it clearer or more complete.</P>
+
+<H3><A HREF="#Q1">1. General questions</A></H3>
+<OL>
+  <LI><A HREF="#Q1_1">Why has all the coding been moved out of main?
+       </A>
+  <LI><A HREF="#Q1_2">Why is modular code so great anyway? </A>
+  <LI><A HREF="#Q1_3">Why are there three files for every module,
+       why not just one?</A>
+  <LI><A HREF="#Q1_4">How do I know where do find definitions and
+       declarations then?</A>
+  <LI><A HREF="#Q1_5">Why doesn't the model produce 'nice' output as
+       it runs? </A>
+  <LI><A HREF="#Q1_6">Something is wrong with the advection, my
+       tracers are going haywire! </A>
+  <LI><A HREF="#Q1_7">The model crashed in the dynamics near the
+       pole. What should I do?</A>
+  <LI><A HREF="#Q1_8">Why should I switch to using modelE? </A>
+  <LI><A HREF="#Q1_9">Why do I get single precision answers from
+       double precision variables?, and what are all those 'd0'
+       doing?</A>
+  <LI><A HREF="#Q1_14">The model core dumps!</A>
+</OL>
+
+<H3><A HREF="#Q2">2. FAQs about the Parameter database</A></H3>
+<OL>
+  <LI><A HREF="#Q2_1">What did we do? </A>
+  <LI><A HREF="#Q2_2">Why did we do this?</A>
+  <LI><A HREF="#Q2_3"> How was it done? </A>
+  <LI><A HREF="#Q2_4"> How does it work? </A>
+  <LI><A HREF="#Q2_5"> So what are the actual interfaces? </A>
+  <LI><A HREF="#Q2_6"> Any examples?</A>
+</OL>
+
+<H3><A HREF="#Q3">3. FAQs about Preprocessing instructions</A></H3>
+<OL>
+  <LI><A HREF="#Q3_1"> What is preprocessing?</A>
+  <LI><A HREF="#Q3_2"> How to set up global preprocessing options in
+       a rundeck </A>
+  <LI><A HREF="#Q3_3"> How to use global preprocessing options in a
+       source file </A>
+  <LI><A HREF="#Q3_4"> How does it work?</A>
+  <LI><A HREF="#Q3_5"> Any recommendations on usage?</A>
+</OL>
+
+<HR>
+
+<H3><A NAME="Q1"> General Questions </A></H3> 
+
+<P><A NAME="Q1_1"><b> 1) Why has all the coding been moved out of main?
+</b></a> </P>
+
+<P> In order to increase the modularity of the code, many tasks that
+were previously in main and input (input/output, initialisations,
+diagnostics etc.) have been moved to the relevant physical
+module. Thus, main should not vary as much between model
+versions. Also, changes to a module (to the number of prognostic
+variables, the functionality etc.) should now only concern that module
+and not the rest of the model. This should make it easier to 'plug and
+play' new functionality.  </P>
+
+<P><A NAME="Q1_2"><b> 2) Why is modular code so great anyway?</b></a></P>
+
+<P>
+So that if you want to change something, you only need to do it in
+the part of the code directly affected. There should be much less
+unforseen consequences to seemingly minor changes.
+</P>
+
+<P><A NAME="Q1_3"><b> 3) Why are there three files for every module, why
+not just one?</b></a></P>
+
+<P>
+There are generally three logical parts of each module: a common
+block (that owns the variables on the main model grid and/or saves
+output from a module that might be used by another part of the code),
+the local physics (for instance, the pure 1D column physics) and the
+drivers (the programs that access the local physics routines, do
+initiallisation etc.). The reason that they are in seperate files is
+mainly because of the logical dependencies between the main model and
+module variables. Consider a situation where the module needs
+information from another module - i.e. there is a USE statement in
+one of the drivers. Conceivably, that module might USE a variable
+from this module also. Since we now use an automatically generated
+list of dependencies in the makefile, this would create a circular
+dependency if the USE statements and the variable definitions were in
+the same file. Therefore, at minimum the common block and the drivers
+must be seperated. We choose generally to make the local physics a
+seperate file also because it is not usually dependent on anything
+except the CONSTANT module and possibly the main model common block.
+Thus it does not need to be recompiled everytime something in the
+drivers or common block changes. However, sometimes the local physics
+is in the same file as the COM module.
+</P>
+
+<P><A NAME="Q1_4"><b> 4) How do I know where do find definitions and
+declarations then?</b></a></P> 
+
+<P>The rules are relatively simple (but not yet implemented 100% of
+the time). 
+<UL>
+  <LI>Variables defined on the model grid are in the COM file.
+  <LI>Module specific parameters are in the local physics module. 
+  <LI>local variables are defined wherever they are needed. 
+  <LI>Variables from other parts of the code are listed in the USE only
+       statements. 
+</UL>
+One exception to this is when local parameters are required by another
+part of the model (i.e. for the input NAMELIST), then the variable
+might be defined in the local physics module, USE'd by the COM module
+and only accessed through COM. - Drivers can USE both the COM
+variables and the local physics parameters.
+</P>
+
+<P><A NAME="Q1_5"><b> 5) Why doesn't the model produce 'nice' output as
+it runs?</b></a></P> 
+
+<P>The GISS GCM output is of the form of accumulation files, and
+since the accumulated quantities are neither averaged or scaled,
+looking directly at these 'acc' files is not very illuminating. So it
+is a fact that the running output is not 'nice'. However there are a
+number of reasons why we do it this way. Firstly, the accumulated
+arrays are generally the basic model values. The 'nice' diagnostics
+that are required are generally a function of a number of these
+variables. Accumualted arrays and files can be concatenated very
+easily (and thus averaged trivially) without having to worry about
+the length of time each array was accumulated (say a different number
+of days in two different months). The average of derived quantities
+(such as the albedo) is not the same as the quantity derived from the
+average (which is usually what is required). Accumulated arrays allow
+you to do both depending on what is needed. A great many diagnostics
+can be derived after the fact, without having to have thought about
+them ahead of time. 
+</P>
+
+<P><A NAME="Q1_6"><b> 6) Something is wrong with the advection, my
+tracers are going haywire!</b></a></P>
+
+<P>This is not a problem in the advection. The GISS dynamical core is
+unique in that it uses more information than just the mean tracer
+amount in a particular grid-box. We currently use two flavours of
+tracer advection, the linear and the quadratic upstream schemes. The
+linear scheme carries 3 first order moments along with the mean,
+while the quadratic scheme carries an additional 6 second order
+moments. These can be thought of as representing the spatial
+gradients of the tracer concentration at the centre of a gridbox.
+Thus a higher degree of accuracy for the tracer distribution in the
+box can be found as a Taylor series expansion in the moments. This is
+used in the advection routines to accurately move tracer
+mass from box to box. However, as should be clear, if the moments are
+incorrect or corrupted in any way, the advection will be compromised,
+even to the point where negaitve tracer amounts might appear. This is
+usually what has happened when the model crashes after advecting
+tracers. 
+</P>
+
+<P>What could cause the the moments to be corrupted? Generally, the
+coding of the tracers did not consider the effects on the moments of
+a particular physical process. The most serious omission is not to
+reduce the moments in the same proportion as the tracer mass is
+reduced. This omission can leave tracer moments significantly larger
+than the mean tracer amount, and implies a sub-grid scale tracer
+profile that is not positive definite. Please read the document
+<A HREF="http://www.giss.nasa.gov/~gavin/slopes.html"> Using tracer
+moments in the GISS GCM </A> for further
+information on how to use the moments in a useful fashion.</P>
+
+<p><A NAME="#Q1_7"><b> 7) The model crashed in the dynamics near the
+pole. What should I do?</b></A></p>
+
+<P>Occasionally (every 15-20 model years), the model will produce very
+fast velocities in the lower stratosphere near the pole (levels 7 or 8
+for the standard layering). This will produce a number of warnings
+from the advection (such as <tt>limitq warning: abs(a)>1</tt>) and then
+finally a crash (<tt>limitq error: new sn &lt; 0</tt>"). There are a number of
+things you can do to get past such an error: i) Go back to the last
+monthly rsf file and use ISTART=4, ii) change DT to a smaller value
+(like 180 sec), run past the crash for a couple of days, and then
+increase DT back to normal afterwards.</P>
+
+<P>The second option is more straightforward and can be dealt with
+automatically (see <a href="HOWTO.html#part1_2f"> here </a> for more
+details). The first option is not guaranteed to work unless
+the number of hours that have elapsed from the start of the run to the
+end of the last month are <em>not</em> an integer multiple of
+NRAD. (This is to ensure that the model will follow a different
+path). If there is a problem, then going back to the previous months
+restart file generally works.</P>
+
+<P>Please make a note in the rundeck that this happened, and how you
+fixed it.</P>
+
+<P><A NAME="Q1_8"><b> 8) Why should I switch to using modelE?</b></a></P>
+
+<P>It is of course up to you. However, there are a number of reasons
+why it makes sense for you to make the effort involved in upgrading.
+<UL>
+  <LI> modelE fixed a number of bugs (some major, some minor) that may
+       still exist in your code. 
+  <LI> subsequent changes and upgrades for modelE will be significantly
+       easy than it was for model II' 
+  <LI> adding diagnostics is much more straightforward 
+  <LI> acc files now have more information (NOT YET IMPLEMENTED) and
+       'pd'-like programs are now more robust 
+  <LI> modelE is double precision throughout
+  <LI> modelE will eventually be the only model version supported by the
+       programmers. 
+  <LI> modelE is more modular, more flexible and easier to understand 
+  <LI> modelE has made explicit most of the dependencies that were
+       hidden in model II'. Thus minor changes are less likely to have
+       devastating knock on effects. 
+  <LI> modelE is written using a lot of Fortran 90, and a lot less Fortran
+       66. 
+  <LI> modelE comes with automatic Makefile generation from the rundeck. 
+  <LI> modelE comes ready for parallelisation, coupling and tracers.
+</UL>
+</P>
+
+<P><A NAME="Q1_9"><b> 9) Why do I get single precision answers from
+double precision variables?, and what are all those 'd0'
+doing?</b></a></P>
+
+<P>All numbers in the GCM should be accurate to the degree of their
+representation, however, many are not. This mostly stems from the
+automatic conversion that takes place when a single precision or
+integer number is converted to a double precision variable. In the
+following examples the double precision variables will only be
+accurate to 6 or so decimal places (instead of the 12 or so
+expected).</P>
+
+<pre>
+      REAL*8 X
+      X = 0.1 =&gt; 0.10000000149011612
+      X = 1/3 =&gt; 0. (integer division)
+      X = 1./3. =&gt; 0.3333333432674408 
+      X = 1./3 =&gt; 0.3333333432674408 
+      X = 0.3333333333333333 =&gt; 0.3333333432674408 (!!!!)
+</pre>
+<P>To get double precision results you must use 'd' ie. X=0.1d0 or
+1d-1 X=1d0/3d0 or 1./3d0 or even 1d0/3  
+</P>
+
+<P>Note that for decimals expressable exactly in binary formulation,
+there are no problems, ie. X=0.5 is the same as X=5d-1. Where integer
+division is concerned, the integer is converted to the type of the
+numerator (I think). Thus <tt>1./IM </tt>gives only single precision. 
+<tt>REAL*8 :: FIM = IM, BYIM = 1./FIM </tt> gives double precision
+(since the denominator is already double precision).</P>
+
+<P>On some compilers there is a compiler option (such as -r8) that
+removes these problems, but not all. Hence for maximum portability we
+are trying to be explicit about writing those 'd0's out.</P>
+
+<P><A NAME="Q1_14"><b>14) The model core dumps!</b></a></P>
+<p>
+This problem can arise from a multitude of causes; only the most
+common ones unrelated to (heretofore undetected) programming errors
+can be outlined here.</p>
+
+<ul>
+<li>
+The disk on which your simulation is running has filled up.
+</li>
+<li>
+If you are running a model version known to work in a computing environment
+other than yours, check that your "stack" is large enough.
+See the stacksize discussion of the
+<a href="HOWTO.html#part0_3">System Requirements</a> section for
+details.  Linux systems in particular have small stack defaults.
+</li>
+</ul>
+
+<hr>
+
+<H3><A NAME="Q2"><b> 2. FAQs about the Parameter database.</b></a></H3>
+
+<P><A NAME="Q2_1"><b> 1) What did we do? </b></a></P>
+
+<P> We replaced parameter lists JC and RC and corresponding common blocks
+with a Parameter Database.</P>  
+
+<P><A NAME="Q2_2"><b> 2) Why did we do this? </b></a></P>
+
+<P>The following goals were pursued: 
+<UL>
+  <LI> make restart files more universal, so that they would remain
+       compatible if some parameters are added or removed 
+  <LI> make introduction of new parameters more simple and
+       straightforward 
+  <LI> allow each module to work with its own parameters independently,
+       i.e. add/remove parameters without editing any source code outside of
+       the module which is using them 
+  <LI> make the code more readable and more self-documenting and get rid
+       of structures like BLOCK DATA which are not in Fortran 90 style
+</UL>
+</P>
+
+<P><A NAME="Q2_3"><b>3) How was it done? </b></a></P>
+
+<P>We created a module which keeps a database of all parameters used
+in the model and provided a library of interface routines. These
+interface routines are used to get the values of parameters from the
+database (or to set new parameters in the database). Rundeck
+parameters are loaded automatically (with one call in INPUT) into this
+database when the program starts. This database is saved to restart
+file each time when restart file is written.</P>
+
+<P><A NAME="Q2_4"><b>4) How does it work? </b></a></P>
+
+<P>For each parameter the database keeps its name as a character
+string and its value (or list of values for an array). To get a value
+of a parameter <code>&quot;my_param&quot;</code> and assign it to the 
+variable <code>var</code>
+one would do: 
+<P><pre>
+      call get_param( &quot;my_param&quot;, var )
+</pre><P> 
+If one wants
+to create a new parameter in the database with the name
+<code>&quot;new_par&quot;</code> and set it to the value var one would do: 
+<P><pre>
+      call set_param( &quot;new_par&quot;, var ) 
+</pre><P>
+It is recommended that you use
+the same name for the variable and for its name in the database, i.e.:
+<P><pre>
+     call set_param( &quot;new_par&quot;, new_par ) 
+     call get_param( &quot;my_param&quot;, my_param ) 
+</pre><P>
+This will improve the readability of
+the code.</P>
+
+<P>At the restart first all parameters from the rundeck are loaded to
+the database with the names as they appear in the rundeck. Then the
+restart file is read and those parameters which were saved to it and
+were not present in the rundeck are added to the database. If some
+parameter was present both in the rundeck and in the restart file then
+preference will be given to the rundeck and restart file value will be
+ignored. This is done so that you can always overwrite certain
+parameters using rundeck.</P>
+
+<P><A NAME="Q2_5"><b> 5) So what are the actual interfaces?</b></a></P>
+
+<P>Rundeck: All parameters have been moved out of the namelist block
+to a new block which starts with <code>&amp;&amp;PARAMETERS</code> and ends with
+<code>&amp;&amp;END_PARAMETERS</code> This block is being read by a special parser
+(not a namelist). The syntax of this block is similar to that of the
+namelist with following restrictions: 
+<UL>
+<LI> only one parameter per line can be specified 
+<LI> character strings should be single quoted (like <code>'abc'</code>) 
+<LI> arrays can be assigned only as a whole, no support for single
+elements 
+<LI> all elements of an array should be on the same line 
+<LI> repeaters (i.e. expressions like <code>2*123</code>) are not supported 
+<LI> only linear arrays are supported 
+<LI> the only types supported are: <code>integer, real*8, character*1</code> to
+<code>character*16</code> 
+</UL>
+Since the parser reads parameters from the rundeck right into the
+database there is no need to describe those parameters in advance in
+any part of the code. The drawback is that the parser has to derive
+the type of the data and the size of arrays from the information
+provided in the rundeck. The following convention is used: 
+<UL>
+<LI> if single quoted (<code>'</code>) strings are present on the line then the
+data are <code>character</code> strings 
+<LI> else if decimal points (<code>.</code>)  are present then the data is <code>real*8</code>
+<LI> else the data is <code>integer </code>
+<LI> The number of data entries on the
+line specifies the dimension of the array. If only one data entry is
+present then the parameter is a scalar (or an array of dimension one
+which is equivalent).
+</UL></P>
+
+<P>PARAM library: 
+
+<P>The library utilizes Fortran 90 interface blocks in
+such a way that the type of parameters (i.e. <code>integer, real*8,
+character</code>) is recognized automatically, so the the names of
+subroutines are the same for all types. If the dimension of the
+parameter is given then it is treated as an array. If dimension is
+omitted then it is a scalar. Beware that Fortran 90 treats scalars
+and arrays of dimension one differently, so if you confuse them it
+may generate an error.</P>
+
+<P>The formal arguments in the subroutines below are: 
+<UL>
+  <LI> <code>name</code> - <code>character*(*)</code> - the name of the parameter which is a
+       character string no longer than 32 bytes 
+  <LI> <code>value</code> - a scalar variable or a linear array of type: <code>integer,
+       real*8,character*1 to character*16</code>
+  <LI> <code>dim</code> - <code>integer</code> - dimension of an array, should be omitted for
+       scalars 
+  <LI> <code>opt</code> - <code>character*1</code> - an optional &quot;option&quot; (<code>opt='o'</code>
+       means &quot;overwrite&quot;) 
+  <LI> <code>kunut</code> - <code>integer</code> - unit number for reading/writing 
+  <LI> <code>flag</code> - <code>logical</code> - reading &quot;overwrite&quot; option
+</UL>
+</P>
+
+<P>Simple copy routines to copy parameters to/from database:
+<UL>
+  <LI><code>set_param( name, value, dim, opt )</code> - put a parameter with the name
+       &lt;name&gt; and the value &lt;value&gt; to the database
+  <LI><code>get_param( name, value, dim )</code> - copy the value of the parameter
+       &lt;name&gt; from the database to the variable &lt;value&gt;
+</UL>
+<P>These functions will check if the parameter is present in the
+database and will generate an error if you are trying to get
+parameter which is not in the database or if you are trying to set
+parameter which is already set. If you really need to overwrite
+parameter which is already in the database use opt='o'. Otherwise
+&lt;opt&gt; should be omitted.</P>
+
+<P>Query logical function:
+<UL>
+  <LI><code>is_set_param( name )</code> - returns <code>.true.</code> if parameter &lt;name&gt; is
+       present in the database, <code>.false.</code> otherwise 
+</UL></P>
+
+<P>A convenient function which is a combination of those above:
+<code>sync_param( name, value, dim )</code> - literally consists of the following
+lines:</P>
+<P><pre>
+      if( is_set_param( name ) ) then
+        get_param( name, value, dim ) 
+      else
+        set_param( name, value, dim )
+      endif
+</pre>
+
+<P>So what it does, it checks if parameter &lt;name&gt; is in
+database and if so copies it to the &lt;value&gt;. Otherwise it
+leaves &lt;value&gt; unchanged and copies it to the database with the
+name &lt;name&gt;. This function is provided as a convenient tool,
+since this is what you will do most often. At the restart each module
+will check if certain parameters were provided in the rundeck or in
+the restart file (i.e. they are in the database already) and use
+those values. If not then it will use default values and will also
+copy them to the database so that they are saved to the restart file
+for future reference.</P>
+
+<P>Subroutines to work with pointers:</P>
+
+<P><code>alloc_param( name, pvalue, initval, dim )</code> - allocates space in the
+database for the parameter &lt;name&gt;, fills it with data provided
+in &lt;initval&gt; and returns pointer to it in &lt;pvalue&gt;</P>
+<P><code>get_pparam( name, pvalue, dim )</code> - returns pointer &lt;pvalue&gt;
+to the parameter data of the parameter &lt;name&gt; in the database</P>
+
+<P>These functions are provided as an additional tool and actually
+are not needed if parameters in the database are treated as
+&quot;parameters&quot;, i.e. they are set only once at the beginning
+of the run and then used as constants. But it appeared that some data
+which was in &quot;parameters&quot; common block was changed during
+the run (some actually quite often and in different places). To keep
+the parameter database up-to-date with those changes one would have
+to call &quot;set_param&quot; each time after the data is changed
+which is rather awkward. Instead one can use pointers to the
+parameter data in the database. Pointers in Fortran 90 are nothing
+else but aliases of the objects they point to. So if you get a
+pointer to a parameter from the database and then work with it as if
+it were a regular variable, you will automatically update it in the
+database and there will be no need to call &quot;set_param&quot;. So
+this subroutines can be used if one wants to keep a dynamic variable
+in the database (so that it is automatically saved to the restart
+file).</P>
+
+<P>Reading/writing subroutines:</P>
+<P><code>read_param( kunit, ovrwrt )</code> - reads the parameter database from
+the unit &lt;kunit&gt;</P>
+<P><code>write_param( kunit )</code> - writes the parameter database to the unit
+&lt;kunit&gt;</P>
+<P>The arguments: 
+<ul>
+<li><code>kunit</code> - <code>integer</code> - the unit number from/to
+reading/writing is performed 
+<li><code>ovrwrt</code> - logical - if .true. then
+reading overwrites those parameters that are already in the database.
+If .false. then those parameters which are already in the database
+are left unchanged and only new parameters are added.
+</ul>
+
+<P>Other useful subroutines:</P>
+<P><code>print_param( kunit )</code> - does formatted output to the unit &lt;kunit&gt;
+in a way similar to namelist</P>
+<P>The argument: 
+<ul>
+<li><code>kunit</code> - <code>integer, inetnt(in)</code> - the unit number
+corresponding to the file to which we want print the database
+</ul>
+<P><code>query_param( n, name, dim, ptype )</code> - returns the the information
+about the parameter by its number in the database &lt;n&gt;. It
+returns 'EMPTY' in the &lt;name&gt; if parameter with such &lt;n&gt;
+doesn't exist (i.e. if &lt;n&gt; is bigger then the number of
+parameters)</P>
+<P>The name is always converted to the low case. It
+returns 'EMPTY' (upper case) if &lt;n&gt; doesn't correspond to any
+parameter
+<ul>
+<li><code>dim</code> - <code>integer, intent(out)</code> - returns the dimension of the
+parameter (i.e. &lt;dim&gt; = 1 for scalars, &lt;dim&gt; &gt; 1 for
+arrays) 
+<li><code>ptype</code> - <code>character*1, intent(out)</code> - returns the type of the
+parameter: <code>'i'</code> - for <code>integer 'r'</code> - for <code>real*8 
+'c'</code> - for <code>character</code></P>
+</ul>
+<P>Parser subroutine:</P>
+<P><code>parse_params( kunit )</code> - parse the information in the file &lt;kunit&gt;
+and load the parameters into the database. It overwrites the existing
+parameters.</P>
+<P>The argument: 
+<ul>
+<li><code>kunit</code> - <code>integer</code> - the unit number corresponding to
+the file with the rundeck information (it should contain a block
+starting with &amp;&amp;PARAMETERS and ending with &amp;&amp;END_PARAMETERS)</P>
+</ul>
+<P>This subroutine is actually located in a separate module PARSER,
+but it seemed logical to describe it here.</P>
+
+<P><A NAME="Q2_6"> 6) Any examples?</P>
+
+<P>Here is an example of typical usage of &quot;query_param&quot;.
+One should keep in mind that though &quot;get_param&quot; is a
+generic interface one should call it with the arguments of correct
+type to extract the information. That's why one needs to use &quot;select
+case&quot; below.</P>
+
+<P>
+<pre>
+      subroutine ex_param 
+! this is an example subroutine which shows how to loop
+! over all parameters in the database
+! it does the same thing as print_param
+      USE PARAM integer, parameter :: MAXDIM=64
+      character*32 name
+      integer n, dim
+      character*1 ptype
+      integer ic(MAXDIM)
+      real*8 rc(MAXDIM)
+      character*16 cc(MAXDIM)
+      n = 1
+      print *, 'printing parameter database'
+      do call query_param( n, name, dim, ptype )
+        if (name == 'EMPTY' ) exit
+        if ( dim &gt; MAXDIM ) then
+          print *, 'dim of param ',name,' is &gt; MAXDIM'
+          stop 'MAXDIM too small'
+        endif
+        select case( ptype )
+        case ('i') !integer
+          call get_param( name, ic, dim )
+          print *, name, ( ic(i), i=1, dim )
+        case ('r') !real
+          call get_param( name, rc, dim )
+          print *, name, ( rc(i), i=1, dim )
+        case ('c') !character
+          call get_param( name, cc, dim )
+          print *, name, (cc(i), i=1, dim )
+        end select
+        n = n + 1
+      enddo
+      end subroutine ex_param
+</pre>
+
+<hr>
+<H3><A NAME="Q3"><b> 3. FAQs about Preprocessing instructions.</b></a></H3>
+
+<P><A NAME="Q3_1"><b>1) What is preprocessing?</b></a></P>
+
+<P>The preprocessor is a program that runs before the actual compiler 
+starts and does certain editing to the source code according to
+preprocessing instructions. All preprocessing instructions start with
+# in the first column. The most typical example of preprocessor usage
+in Fortran code would be:</P>
+
+<pre>
+      ...............
+      some fortran code
+      ..............
+#ifdef OPTION_A
+      ...............
+      fortran code specific for OPTION_A
+      ..............
+#endif
+      ..............
+      more fortran code
+      ..............
+</pre>
+
+<P>In the above example the code between <tt>#ifdef OPTION_A</tt>
+and <tt>#endif</tt> will be taken into account only if the name
+<tt>OPTION_A</tt> was defined (with the instruction <tt> #define
+OPTION_A</tt>) somewhere earlier in the file. Otherwise it will be
+treated as commented out. So preprocessor allows you to optionally
+include/exclude certain parts of the code. There are also other
+useful preprocessing commands, like name substitution. Though with
+name substitutions one should be very careful in fixed format
+Fortran, since it is easy to create a line which after substitutions
+will be longer then 72 characters. The following is a list of typical
+preprocessing instructions:
+<tt> #define #undef #include #ifdef #ifndef
+#if #else #endif </tt>
+SGI manual pages provide good explanations to those
+instructions. On SGI type <tt>man cpp</tt>.</P>
+
+<P><A NAME="Q3_2"><b>2) How to set up global preprocessing options in a
+rundeck?</b></a></P>
+
+<P>Your rundeck may contain an optional block which starts with a
+line <em>Preprocessor Options</em> and ends with a line <em>End
+Preprocessor Options</em>. Everything between those lines is treated
+as a set of preprocessing definitions and will be included into
+corresponding source files. Here is a simple example of preprocessing
+block:</P> 
+<pre>
+Preprocessor Options
+#define TRACERS_ON ! include tracers code
+End Preprocessor Options
+</pre>
+<P>It defines the name <tt>TRACERS_ON</tt>. The text which starts
+from <tt>'!'</tt> is considered as comment and is ignored. Trailing spaces and
+empty lines are also ignored.</P>
+
+<P><A NAME="Q3_3"><b> 3) How to use global preprocessing options in a
+source file?</b></a></P>
+
+<P>If you want to use global preprocessing options in a certain
+source file you should include a line:</P>
+
+<tt>#include &quot;rundeck_opts.h&quot;</tt></BR>
+
+<P>
+at the very beginning of such file. Otherwise all global
+preprocessing names will stay undefined (the compiler will not give any
+warnings about this). A typical use of a preprocessing option would
+be: </P>
+<pre>
+#include &quot;rundeck_opts.h&quot;
+      .......... some code
+#ifdef TRACERS_ON
+      some tracers code here
+#endif
+      some code
+</pre>
+
+<P>The code between <tt>#ifdef TRACERS_ON</tt> and <tt>#endif</tt>
+will be included only when global name <tt>TRACERS_ON</tt> is defined in a
+rundeck. Otherwise this code will be ignored by the compiler.</P>
+
+<P><A NAME="Q3_4"><b> 4) How does it work?</b></a></P>
+
+<P>When the Makefile starts to compile the model it reads the global
+preprocessing options block from the rundeck and compares it to the
+contents of the file <tt>rundeck_opts.h</tt>. If they are
+identical the file <tt>rundeck_opts.h</tt> is left unchanged.
+Otherwise it is overwritten with the new preprocessing block. File
+<tt>rundeck_opts.h</tt> should be included into each source file
+which wants to use global preprocessing options. This is done by
+putting a line</P>
+<tt>#include &quot;rundeck_opts.h&quot;</tt>
+<P>in the beginning of the source file. Note that one should use CPP
+include (i.e. <tt>#include</tt>, which starts from the first
+position), and not the Fortran <tt>include</tt>. When the Makefile
+checks dependencies it takes into account dependency on
+<tt>rundeck_opts.h</tt>, so that when <tt>rundeck_opts.h</tt> is changed
+all files which <tt>#include</tt> it are automatically recompiled.</P>
+
+<P><A NAME="Q3_5"><b> 5) Any recommendations on usage?</b></a></P>
+
+<P>There is an understanding that global preprocessing options should
+be used only when there is no other convenient way to reach the same
+goal. One should keep in mind that once the global preprocessing
+block in a rundeck is changed, all files that include
+<tt>rundeck_opts.h</tt> will be recompiled which most probably 
+will force the recompile of the entire model. So one should limit
+such options to those which would not change too often from rundeck
+to rundeck. This functionality is introduced mainly for the options
+which are global (i.e. used in many source files at the same time)
+and which need to be documented (that's why this block is in a
+rundeck). Typical example would be an option which controls inclusion
+of tracers code into the model (as in example above). There is also a
+general convention that the names defined by preprocessor are
+constructed of capital letters only with '_' introduced for
+readability, like: <tt>USE_OPTION_A</tt> . I suggest that we
+observe it. This helps to distinguish them from the rest of the code
+which is usually in lower case. And yes, names used by preprocessor
+are case-sensitive (unlike names in Fortran).</P>
+</BODY>
+</HTML>
+<P><HR><p>

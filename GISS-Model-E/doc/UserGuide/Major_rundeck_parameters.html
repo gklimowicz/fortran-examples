@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Major rundeck parameters</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Major rundeck parameters</H3>
+
+<p>
+A number of parameters are critical in setting up a simulation via the rundeck.
+These include:
+</p>
+
+<ul>
+  <li><a href="#year">Definition of the year(s) to be simulated</a>
+</ul>
+
+<h4><a name="year">Definition of the year(s) to be simulated</a></h4>
+
+<p>In order to select which year to simulate, the variable <tt>master_yr</tt>
+must be defined in the rundeck. The model will not run without it. This
+variable can equal to a) the numerical year of simulation, e.g.
+<tt>master_yr=1850</tt> where the year in question will be repeated for
+every simulation year, or b) <tt>master_yr=0</tt> where the model
+will perform a transient simulation, starting from the year defined by
+the variable <tt>YEARI</tt> in the rundeck and ending at the year defined by
+<tt>YEARE</tt>. The year currently being simulated in the model code can be
+accessed via the variable <tt>JYEAR</tt>.</p>
+
+<p>One can run a simulation with mixed year configurations. When this is
+the case, <tt>master_yr</tt> defines the basic configuration, and several
+other variables declare the deviations from the <tt>master_yr</tt> setting.
+Similar with the <tt>master_yr</tt> case, they can either take the numeric
+value of a specific year that will be repeated every year, or the value zero,
+meaning a transient simulation. These are:</p>
+
+<ul>
+  <li><tt>aero_yr</tt>: Tropospheric aerosol distribution year for radiation.
+      This applies when aerosols and radiation are not coupled, or for
+      non-tracer simulations.
+  <li><tt>aer_int_yr</tt>: Aerosol emissions year.
+  <li><tt>albsn_yr</tt>: Year of BC deposition used for snow albedo.
+  <li><tt>crops_yr</tt>: Crops distribution year.
+  <li><tt>ghg_yr</tt>: Greenhouse gases concentrations year.
+  <li><tt>o3_yr</tt>: O3 precursor emissions year.
+  <li><tt>s0_yr</tt>: Solar constant year.
+  <li><tt>volc_yr</tt>: Stratospheric volcanic aerosol year. Other options
+      are: -1, for a 150-year mean (1850-1999); -2010, for the current year
+      up to 2010 and then repeat volcanoes from 100 years ago; -2000, for
+      using the old way of creating future volcanoes.
+  <li><tt>orb_par_year_bp</tt>: Offset from 1950 for orbital calculations
+      when a single year is being repeated in every simulated year (case
+      <tt>variable_orb_par=0</tt>; see next point), or zero for transient.
+  <li><tt>variable_orb_par</tt>: Equals to 0 for constant orbital parameters,
+      1 for transient orbital parameters. Other options are -1, where orbital
+      parameters from the rundeck (variable <tt>orb_par</tt>) are being used,
+      and -2 for selecting the in-code orb_par defaults.
+  <li><tt>PI_run</tt>: Equals to 1 for a preindustrial (year 1850) simulation,
+      and to 0 otherwise. This sets scaling factors of initial conditions
+      for long-lived gases taken from the rundeck (<tt>PIratio_XXXX</tt>).
+  <li><tt>aircraft_Tyr1</tt>: Define the first year of data in the aircraft
+      emissions file. If <tt>aircraft_Tyr1</tt> == <tt>aircraft_Tyr2</tt>,
+      the file is assumed to not be transient.
+  <li><tt>aircraft_Tyr2</tt>: Define the first year of data in the aircraft
+      emissions file. If <tt>aircraft_Tyr1</tt> == <tt>aircraft_Tyr2</tt>,
+      the file is assumed to not be transient.
+  <li><tt>biomass_Tyr1</tt>: Define the first year of data in the biomass
+      emissions file. If <tt>biomass_Tyr1</tt> == <tt>biomass_Tyr2</tt>,
+      the file is assumed to not be transient.
+  <li><tt>biomass_Tyr2</tt>: Define the first year of data in the biomass
+      emissions file. If <tt>biomass_Tyr1</tt> == <tt>biomass_Tyr2</tt>,
+      the file is assumed to not be transient.
+</ul>
+
+<p>In addition to the year definition, three parameters have also day-of-year
+definitions. These are the solar constant (<tt>s0_day</tt>), greenhouse
+gases (<tt>ghg_day</tt>) and stratospheric volcanic aerosols
+(<tt>volc_day</tt>). These can be explicitly defined from the rundeck, or
+not. When not defined, they take their default value defined in the model's
+code (182 - the middle of the year) or zero when their corresponding
+<tt>_yr</tt> value is zero.</p>
+
+<p>Please be aware that this process is NOT smart enough to alter the input
+files provided by the used via the rundeck. One should take additional care
+in providing to the model the appropriate input files for the desired
+simulation (e.g. SST, sea ice, emissions, etc.) via the rundeck.</p>
+
+<p>Consider the following example case:
+<pre>
+master_yr=0
+aero_yr=1850
+O3_yr=1850
+variable_orb_par=0
+orb_par_year_bp=2000
+</pre>
+Here the model will perform a transient simulation from the year <tt>YEARI</tt>
+to the year <tt>YEARE</tt> by using constant aerosol and O3 precursor emissions
+from the year 1850, and non-interannually varying orbital parameters from the
+year 2000. Note that stratospheric volcanic aerosols will be transient, since
+<tt>volc_yr</tt> is not defined, thus it defaults to
+<tt>volc_yr=master_yr=0</tt>.</p>
+
+</BODY>
+</HTML>

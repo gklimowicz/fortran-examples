@@ -1,0 +1,12 @@
+#ifndef __tmplbase_inc
+#define __tmplbase_inc
+
+#define __QUOTE(x) x
+#ifdef __INTEL_COMPILER
+#  define __ALLOC_SET(x, y) if(allocated(x))deallocate(x);allocate(x,source=y)
+#else
+#  define __ALLOC_SET(x, y) x=y
+#endif
+
+
+#endif /* #ifndef __tmplbase_inc */

@@ -1,0 +1,448 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Surface fluxes</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Surface fluxes</H3>
+
+<p> Surface fluxes are calculated separately for each land surface
+ type (open water, ice, earth and land ice). For each type, a different
+ high resolution PBL calculation is done to extrapolate the first layer
+ atmospheric properties to the surface (defined as 10m above the
+ ground). The diffusion parameters in the PBL layers are functions of
+ the local turbulence closure scheme
+ (Hartke and Rind, 1997; Cheng et al, 2002) and are
+ iterated to get a robust estimate of the surface properties
+ (temperature, humidity, and tracer concentration) and
+ fluxes. Generally, 2 or 4 surface flux time steps are done every hour,
+ depending on the vertical resolution.
+ Between the surface and the middle of the first GCM layer,
+ instead of applying the usual interpolation scheme
+ using the similarity laws,  the model integrates closure equations
+ for velocity, potential temperature, humidity and other scalars over
+ the subgrid levels, to find their surface values.
+ This procedure, which is unique among the GCMs,
+ is convenient for adding more physics and allows coarse vertical
+ resolutions near the surface.
+</P>
+
+<h4>References:</h4>
+
+<P>
+Brutsaert, W.H., 1982, Evaporation into the Atmosphere, D. Reidel, Norwell, Mass., 1982.
+</P>
+<P>
+Cheng, Y., V.M. Canuto, and A.M. Howard, 2002: An improved model for the turbulent PBL. J. Atmos. Sci., 59, 1550-1565.
+</P>
+<P>
+Emanuel KA and Zivkovic-Rothman M, 1999: Development and evaluation
+ of a convection scheme for use in climate models, J. Atmos. Sci., 56, 1766-1782.
+</P>
+<P>
+Hartke, G.J., and D. Rind, 1997: Improved surface and boundary layer
+ models for the Goddard Institute for Space Studies general
+ circulation model. J. Geophys. Res., 102, 16407-16442.
+</P>
+<P>
+Moeng, C.-H., and P. P. Sullivan, 1994: A comparison of shear- and
+ buoyancy-driven planetary boundary layer flows. J. Atmos. Sci., 51, 999-1022.
+</P>
+<P>
+Nakanishi, M., 2001: Improvement of the Mellor-Yamada turbulence
+ closure model based on large-eddy simulation data. Bound.-Layer Meteor., 99, 349-378.
+</P>
+<P>
+Redelsperger, J.L., F. Guichard, and S. Mondon, 2000: 
+A parameterization of mesoscale enhancement of surface fluxes
+ for large-scale models. J. Climate, 13, 402-421.
+</P>
+
+<h4>Description of PBL_DRV.f</h4>
+<P>
+ MODULE PBL_DRV -
+ This module is to compute
+ the turbulent transport of momentum, heat and moisture between
+ the surface and the middle of the first GCM layer
+ to find the values of the various PBL variables at the surface.
+ It contains the subroutine PBL.
+</P>
+<P>
+ SUBROUTINE PBL - 
+ contains code common for all surface.
+ It calculates pbl profiles, for each surface type,
+ to find the values of
+ the various PBL variables at the surface,
+ and accumulates diagnostics and output.
+ It is called from within
+ the subroutine SURFCE (for itype=1, 2 and 3,
+ i.e., surface types ocean,
+ seaice and landice respectively, in SURFACE.f),
+ and from within the subroutine earth
+ (for itype=4, i.e., surface type land, in GHY_DRV.f).
+ Dynamic equations for the mean turbulent variables
+ are integrated over npbl(=8) sublayers
+ between the surface (sublayer 1)
+ and the middle of the first GCM layer (sublayer npbl),
+ using tridiagonal method.
+<P>
+  PBL_DRV.f also contains the following subroutines:
+</P>
+<P>
+ SUBROUTINE INIT_PBL - 
+ sets up the initialization of wind,
+ virtual potential temperature, and specific humidity
+ fields in the boundary layer (between
+ the surface and the middle
+ of the first GCM layer). The initial values of these
+ fields are obtained by solving the static equations for these
+ fields using the turbulence model of Cheng et al. (2002).
+ These initial values are used when starting from a restart
+ file that does not have these data stored.
+ It is called by subroutine INPUT (in MODELE.f).
+</P>
+<P>
+ SUBROUTINE LOADBL -
+ initializes boundary layer calculation each surface time step.
+ It checks to see if ice has
+ melted or frozen out of one grid box (i,j).
+ It is called from subroutine SURFCE (in SURFACE.f).
+</P>
+<P>
+ SUBROUTINE SETBL -
+ initializes variables in the boundary layer
+ for one surface type using values of another surface type,
+ in one grid box (i,j).
+ It is called from subroutine loadbl.
+</P>
+<P>
+ SUBROUTINE GETZTOP -
+ computes the value of ztop,
+ the height in meters of the middle of the first GCM layer.
+ It is called by subroutine init_pbl.
+</P>
+<P>
+ SUBROUTINE CHECKPBL -
+ checks whether PBL data are reasonable
+ (to check if the data contain NaN/INF).
+ It is called by subroutine CHECKT, the latter is called
+ from PROGRAM GISS_modelE (in MODELE.f).
+</P>
+<h4>Description of PBL.f</h4>
+<P>
+MODULE SOCPBL - 
+ This module defines subroutines and variables associated with
+ the boundary layer physics.
+ It sets up npbl(=8) sublayers between the surface (sublayer 1)
+ and the middle of the first GCM layer (sublayer npbl),
+ and integrates, over these sublayers, the dynamic equations
+ for the mean turbulent variables using turbulence models,
+ to find the surface values of these variables and
+ related fluxes.
+ t_pbl_args is a derived type structure which contains all
+ input/output arguments for PBL.
+ SOCPBL contains the following subroutines:
+<pre>
+ advanc,stars,getl,dflux,simil,griddr,tfix
+ ccoeff0,getk,e_eqn,t_eqn,q_eqn,uv_eqn,
+ t_eqn_sta,q_eqn_sta,uv_eqn_sta,
+ inits,tcheck,ucheck,check1,output,rtsafe.
+</pre>
+</P>
+<P>
+ SUBROUTINE ADVANC - 
+ time steps the solutions for the boundary layer variables.
+ It is called from within the subroutine pbl (in PBL_DRV.f).
+ All its outputs are contained in the structure pbl_args
+ (an instance of t_pbl_args).
+<pre>
+ US     = x component of surface wind, positive eastward (m/s)
+ VS     = y component of surface wind, positive northward (m/s)
+ WSGCM  = magnitude of the GCM surface wind - ocean currents (m/s)
+ WSPDF  = mean surface wind calculated from PDF of wind speed (m/s)
+ WS     = magn of GCM surf wind - ocean curr + buoyancy + gust (m/s)
+ TSV    = virtual potential temperature of the surface (K)
+ QS     = surface value of the specific moisture
+ DBL    = boundary layer height (m)
+ KMS    = momentum transport coefficient at ZGS (m**2/s)
+ KHS    = heat transport coefficient at ZGS (m**2/s)
+ KHQ    = moist transport coefficient at ZGS (m**2/s)
+ PPBL   = pressure at DBL (mb)
+ USTAR  = friction speed (square root of momentum flux) (m/s)
+ CM     = drag coefficient (dimensionless surface momentum flux)
+ CH     = Stanton number   (dimensionless surface heat flux)
+ CQ     = Dalton number    (dimensionless surface moisture flux)
+</pre>
+</P>
+<P>
+ SUBROUTINE STARS - 
+ computes the friction speed, ustar, the virtual potential
+ temperature scale, tstar, and the specific humidity scale,
+ qstar. Note that
+<pre>
+ surface momentum flux = ustar*ustar
+ surface heat flux     = ustar*tstar 
+ surface moisture flux = ustar*qstar 
+</pre>
+ It also calculates and outputs the Monin-Obukov length, lmonin, 
+ the roughness lengths (z0m,z0h,z0q), the drag coefficient (cm),
+ the Stanton number (ch) and the Dalton number (cq)
+ by calling subroutine dflux. 
+</P>
+<P>
+ SUBROUTINE GETL1 - 
+ estimates the master length scale, lscale, of the
+ turbulence model on the secondary grid, zhat.
+</P>
+<P>
+ SUBROUTINE GETL- 
+ computes the master length scale, lscale, of the
+ turbulence model on the secondary grid, zhat,
+ using the formulas by Nakanishi (2001) from the LES data.
+
+</P>
+<P>
+ SUBROUTINE DFLUX -
+  computes the dimensionless surface fluxes of momentum,
+  heat and moisture (drag coefficient Cm , Stanton number Ch,
+  and Dalton number Cq), with explicit Schmidt number (Sc) and
+  Prandtl number (Pr) dependence
+  and flexibility for water isotopes.
+  It also computes the roughness lengths for momentum, z0m
+  (for itype=1 or 2, i.e., surface type ocean or seaice),
+  for temperature, z0h, and for water vapor, z0q, all in meters
+  (Hartke and Rind, 1997).
+  It is called from within subroutine stars.
+</P>
+<P>
+ SUBROUTINE GETZHQ -
+ calculates the roughness lengths for heat (z0h)
+ and for humidity (z0q), 
+ modified from Eqs 5.24, 5.27 and 5.35 in Brutsaert (1982).
+ It is called from within subroutine dflux.
+</P>
+<P>
+ SUBROUTINE GETCM -
+ calculates the drag coefficient for momentum (cm)
+ (Hartke and Rind, 1997). It is called from within subroutine dflux.
+</P>
+<P>
+ SUBROUTINE GETCHQ -
+ calculates the  drag coefficients for heat/water (chq) 
+ (Hartke and Rind, 1997). it is called from within subroutine dflux.
+</P>
+<P>
+ SUBROUTINE SIMIL -
+ calculates the similarity solutions for wind speed,
+ virtual potential temperature, and moisture mixing ratio
+ at main grid height z. It is called from within the subroutine out
+  for diagnostic purposes.
+</P>
+<P>
+ SUBROUTINE GRIDDR -
+ computes altitudes on the vertical grid. The xi coordinates are
+ uniformly spaced and are mapped in a log-linear fashion onto the
+ z grid. (The z's are the physical coords.) Also computes the
+ altitudes on the secondary grid, zhat, and the derivatives
+ dxi/dz evaluated at both all z and zhat. z and zhat are staggered:
+ mean quantities are calculated at z, turbulent kinetic energy
+ and fluxes are calculated at zhat.
+</P>
+<P>
+ SUBROUTINE TFIX -
+ linearly interpolates between the ground temperature tgrnd and the
+ virtual potential temperature at the middle of the first GCM layer
+ to reset the T(z) profile.
+ It is called when the T(z) profile becomes irregular.
+</P>
+<P>
+ SUBROUTINE CCOEFF0 -
+ sets/calculates model coefficients for the
+ GISS 2002 turbulence model (Cheng et al., 2002).
+</P>
+<P>
+ SUBROUTINE GET_TV -
+ converts temperature T to virtual temperature Tv.
+</P>
+<P>
+ SUBROUTINE GETK -
+ computes the turbulent diffusivities for momentum, Km,
+ for heat, Kh, for moisture, Kq and for kinetic energy, Ke,
+ at the secondary grids,
+ using the GISS second order closure model (Cheng et al., 2000).
+ u,v,t,q,ke are calculated at the primary grid z, while
+ e,lscale,km,kh,gm,gh are calculated at the secondary grid zhat.
+</P>
+<P>
+ SUBROUTINE E_EQN -
+ integrates differential eqns for
+ the turbulent kinetic energy, e, using tridiagonal method over
+ npbl-1(=7) sublayer edges (i.e., the secondary grids).
+ The boundary condition near the bottom is:
+<pre>
+  e(1)=(1/2)*B1**(2/3)*ustar**2.
+</pre>
+ At the top secondary grid, nearest to the middle of the
+ first GCM layer, e is prescribed.
+</P>
+<P>
+ SUBROUTINE E_LES - finds the turbulent kinetic energy, e, at the secondary grids,
+ according to the parameterization of the LES data
+ by Moeng and Sullivan (1994) and the turbulence model of
+ Cheng et al. (2002).
+</P>
+<P>
+ SUBROUTINE T_EQN -
+ integrates differential eqns for 
+ the virtual potential temperature, T, using tridiagonal method
+ over npbl(=8) sublayers between the surface (sublayer 1)
+ and the middle of the first GCM layer (sublayer npbl).
+ The boundary condition at the bottom is:
+<pre>
+  kh * dt/dz = ch * ( usurf*(t1 - tgrnd)
+              +(1+xdelt*q1)*(usurf-usurf0)*tprime )
+</pre>
+  which includes the effects on the surface flux
+  due to the moist convection wind gustiness and the
+  downdraft temperature perturbation
+  (Redelsperger et al. 2000; Emanuel and Zivkovic 1999),
+ where
+<pre> tprime=tdns-t1/(1+xdelt*q1),</pre>
+ t1, q1 are the T and Q at the surface,
+ and tdns is the downdraft temperature in K at (i,j), which is
+ calculated in subroutines CONDSE (in CLOUDS2_DRV.f) and
+ PBL (in PBL_DRV.f).
+ At the top, i.e., the middle of the first GCM layer, 
+ T is prescribed.
+</P>
+<P>
+ SUBROUTINE Q_EQN -
+  integrates differential eqns for 
+ the specific humidity, Q, using tridiagonal method over npbl(=8)
+ sublayers between the surface (sublayer 1)
+ and the middle of the first GCM layer (sublayer npbl).
+ The boundary condition at the bottom is:
+<pre>
+  kq * dq/dz = min ( cq * usurf * (q1 - qgrnd)
+             + cq * (usurf-usurf0) * qprime ,
+  fr_sat * ( cq * usurf * (q1 - qgrnd)
+             + cq * (usurf-usurf0) * qprime )
+             - ( 1 - fr_sat ) * flux_max ), 
+</pre>
+ which includes the effects on the surface flux
+ due to the moist convection wind gustiness and the
+ downdraft specific humidity  perturbation
+ (Redelsperger et al. 2000; Emanuel and Zivkovic 1999),
+ where qprime=qdns-q1, q1 is Q at the surface
+ and qdns is the downdraft humidity in kg/kg, (i,j), which is
+ calculated in subroutines CONDSE (in CLOUDS2_DRV.f)
+ and PBL (in PBL_DRV.f).
+ At the top, i.e., the middle of the first GCM layer, 
+ Q is prescribed.
+</P>
+<P>
+ SUBROUTINE TR_EQN -
+ integrates differential eqns for 
+ the tracers, TR, using tridiagonal method over npbl(=8)
+ sublayers between the surface (sublayer 1)
+ and the middle of the first GCM layer (sublayer npbl).
+ The boundary condition at the bottom is:
+<pre>
+ kq * dtr/dz = sfac * trs - constflx,
+ i.e. for moisture, sfac=cq*usurf, constflx=cq*usurf*qg,
+ to get:  kq * dq/dz = cq * usurf * (qs - qg);
+ for new moisture (including downdraft effects),
+ sfac=cq*(usurf-dusurf), constflx=cq*(usurf*qg + dusurf*qdns),
+ or sfac=cq*usurf0, constflx=cq*(usurf*(qg+qdns)-usurf0*qdns),
+ to get:  kq * dq/dz = cq*(usurf*(qs-qg) + dusurf*(qdns-qs)).
+</pre>
+ This should be flexible enough to deal with most situations.
+ At the top, i.e., the middle of the first GCM layer, 
+ TR is prescribed.
+</P>
+<P>
+ SUBROUTINE UV_EQN -
+ integrates differential eqns for 
+ mean velocity u and v using tridiagonal method over npbl(=8)
+ sublayers between the surface (sublayer 1)
+ and the middle of the first GCM layer (sublayer npbl).
+ The boundary condition at the bottom is:
+<pre>
+  km * du/dz = cm * usurf * u and 
+  km * dv/dz = cm * usurf * v.
+</pre>
+  At the top, i.e., the middle of the first GCM layer,
+  u, v are prescribed.
+</P>
+<P>
+ SUBROUTINE T_EQN_STA -
+ computes the static solutions of 
+ the virtual potential temperature, T,
+ between the surface and the first GCM layer.
+ The boundary condition at the bottom is:
+<pre>
+ kh * dt/dz = ch * usurf * (t - tg).
+</pre>
+ At the top, T is prescribed.
+ It is called only at the initialization
+ (from within subroutine inits).
+</P>
+<P>
+ SUBROUTINE Q_EQN_STA -
+ computes the static solutions of 
+ the specific humidity, Q,
+ between the surface and the first GCM layer.
+ The boundary condition at the bottom is:
+<pre>
+ kq * dq/dz = cq * usurf * (q - qg).
+</pre>
+ At the top, Q is prescribed.
+ It is called only at the initialization
+ (from within subroutine inits).
+</P>
+<P>
+ SUBROUTINE UV_EQN_STA -
+ computes the static solutions of the
+ wind components, u and v,
+ between the surface and the first GCM layer.
+ The boundary conditions at the bottom are:
+<pre>
+ km * du/dz = cm * usurf * u,
+ km * dv/dz = cm * usurf * v.
+</pre>
+ At the top, u and v are prescribed.
+ It is called only at the initialization
+ (from within subroutine inits).
+</P>
+<P>
+ SUBROUTINE LEVEL2 -
+ computes the turbulent kinetic energy e (Cheng et al., 2002).
+</P>
+<P>
+ SUBROUTINE INITS -
+ initializes the winds, virtual potential temperature,
+ and humidity by solving their differential equations for the
+ static solutions, using tridiagonal method over npbl(=8)
+ sublayers between the surface (sublayer 1)
+ and the middle of the first GCM layer (sublayer npbl).
+ (Cheng et a., 2002).
+ It is called by subroutine init_pbl (in PBL_DRV.f),
+ and the latter (init_pbl) is called 
+ by subroutine INPUT (in MODELE.f).
+</P>
+<P>
+ SUBROUTINE OUTPUT -
+ produces output for diagnostic purposes.
+</P>
+<P>
+ SUBROUTINE FGRID2 -
+ fgrid2 computes functional relationship of z and xi; 
+ it is used in function rtsafe(fgrid2,x1,x2,xacc),
+ the latter is called by subroutine griddr.
+</P>
+
+</BODY>
+</HTML>

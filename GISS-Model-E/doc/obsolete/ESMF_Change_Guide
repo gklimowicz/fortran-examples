@@ -1,0 +1,248 @@
+This file documents the routine changes to be made to modelE files to
+prepare for using the ESMF.  In general developers should be alert to
+exceptions to the rules below and bring exceptional cases to the
+attention of ASTG at NCCS (<giss-esmf-devel@l-sourcemotel.gsfc.nasa.gov>)
+
+Only the decomposition in latitude is being addressed at this time,
+but many of the changes needed for decomposition in longitude are analagous.
+
+
+
+I.  Procedure declaration sections
+
+    Each routine that operates on arrays that are to be distributed
+    must have the declaration section modified to reflect the local
+    extents of the arrays that are used.
+
+
+  A.  Use the DOMAIN_DECOMP module:
+      ------------------------------------
+
+      The "grid" variable from module DOMAIN_DECOMPOSITION contains
+      components that specify various array/loop bounds.  The routines
+      must "USE" this variable and possibly other routines (CHECKSUM,
+      HALO_UPDATE).
+      
+
+	...
+	USE DOMAIN_DECOMP, ONLY : grid
+	USE DOMAIN_DECOMP, ONLY : HALO_UPDATE, CHECKSUM
+ 	...
+
+  B. Modify "J" bounds for local arrays and dummy vars:
+     ----------------------------------------------------
+
+     Local array dimensions are specified in grid%J_STRT_HALO and 
+     grid%J_STOP_HALO.
+
+     E.g. 
+	REAL*8, DIMENSION(IM,JM,LM) :: U 
+--->    REAL*8, DIMENSION(IM,grid%J_STRT_HALO:grid%J_STOP_HALO,LM) :: U 
+
+  C. Introduce standard set of short hand vars at top of routine:
+     ------------------------------------------------------------
+
+     Developers are encouraged to use a standard set of short hand loop bounds
+     shown below.  This block could be added "as is" to the end of the 
+     declaration section of each affected routine.
+
+
+      INTEGER :: I_0, I_1, J_1, J_0
+      INTEGER :: J_0S, J_1S, J_0STG, J_1STG
+      LOGICAL :: HAVE_SOUTH_POLE, HAVE_NORTH_POLE
+
+C****
+C**** Extract useful local domain parameters from "grid"
+C****
+      CALL GET(grid, J_STRT     =J_0,    J_STOP     =J_1,
+     &               J_STRT_SKP =J_0S,   J_STOP_SKP =J_1S,
+     &               J_STRT_STGR=J_0STG, J_STOP_STGR=J_1STG,
+     &               HAVE_SOUTH_POLE = HAVE_SOUTH_POLE,
+     &               HAVE_NORTH_POLE = HAVE_NORTH_POLE)
+
+
+     (The GET call replaces the earlier mechanism:
+
+      I_0 = grid%I_STRT
+      I_1 = grid%I_STOP
+      J_0 = grid%J_STRT
+      J_1 = grid%J_STOP
+      J_0S = grid%J_STRT_SKP
+      J_1S = grid%J_STOP_SKP
+      J_0STG = grid%J_STRT_STGR
+      J_1STG = grid%J_STOP_STGR
+      )
+
+
+II. Modification to algorithms
+
+
+    A. Loop modifications:
+       -------------------
+
+       Modify "J" loops (even in commented regions):
+
+	DO J=1,JM         ->   DO J=J_0,   J_1       (full domain)
+	DO J=2,JM         ->   DO J=J_0STG, J_1STG   (staggered domain)
+	DO J=2,JM-1       ->   DO J=J_0S,  J_1S      (full domain except poles)
+
+  DO J=1,JM,JM-1    ->   DO J=1,JM,JM-1
+    ...             ->      IF(((J .EQ. 1) .AND. (HAVE_SOUTH_POLE)) .OR. 
+  ENDDO             ->  *     ((J .EQ. JM) .AND. (HAVE_NORTH_POLE))) THEN
+                    ->          ...
+                    ->      ENDIF
+                    ->   ENDDO
+
+        Or, if clearer, one may do:
+
+	IF (HAVE_SOUTH_POLE) THEN
+	   J = 1
+	   ...
+        END IF
+	IF (HAVE_NORTH_POLE) THEN
+	   J = JM
+	   ...
+        END IF
+
+   	Other cases should be brought to the attention of ASTG.
+     
+    B. Halo updates:
+       -------------
+
+       If an array reference to j+1 or j-1 occurs, then the loop
+       should be preceeded by a call to halo_update.
+
+             CALL HALO_UPDATE(grid, arr [, from = ...])
+
+        The optional argument "from" indicates NORTH, SOUTH, or
+	NORTH+SOUTH.  These integer parameters are available by "USE"
+	of DOMAIN_DECOMPOSITION.
+
+	For later defect tracking, HALO_UPDATES should also be preceeded by
+	a call to CHECKSUM:
+
+	Call CHECKSUM(grid, arr, __LINE__, __FILE__)
+	
+	(CPP replaces __LINE__ and __FILE__ by the line number and file name.)
+
+	It is also recommended that such loops are followed by calls to
+	CHECKSUM for the arrays that are updated by the loop.
+
+    C.  Modify "pole" operations
+        ------------------------
+
+	Since only some processes are respnsible for data at the poles,
+	such exceptions must be contained within an "if" block to check
+	whethere the logic is to be invoked.  E.g.
+
+	arr(:,1,k)  = ...    -> IF (grid%HAVE_SOUTH_POLE) ...
+	arr(:,JM,k) = ...    -> IF (grid%HAVE_NORTH_POLE) ...
+
+
+    D.  Invocation of other routines (subruotines and functions)
+        --------------------------------------------------------
+
+	In some cases arrays may be passed by referring to the "first" element 
+        of the array or slice of the array.  E.g.
+
+	Call AVRX(foo(1,1,k), ...)
+
+	Since "foo" is now potentially surrounded by a halo, this should become
+
+	Call AVRX(foo(1,J_0H,k), ...)
+
+	The called routine should also be checked to make certain that
+	it does not make incorrect assumptions about data layout.
+	(E.g. receiving a 3D array into a 2D/1D array.)
+
+	These changes are particularly error prone, and alternatives should be
+	found when possible.
+
+
+    E.  Global sums
+        -----------
+
+        Bring these cases to the attention of ASTG.  We'll fix these during later passes.
+        
+
+III. I/O
+     ---
+
+     INPUT:
+      For the moment, input is hadled serially. Each processor reads data
+      into a temporary global array and then "unpacks" the data into
+      the local distributed array. Thus if the original code looked like:
+
+        REAL*8, DIMENSION(IM,JM) :: FOO
+        READ(-,-) foo
+
+      It should be changed to:
+
+        USE DOMAIN_DECOMP, only : UNPACK
+        REAL*8, DIMENSION(IM,JM) :: FOO_GLOB 
+        REAL*8, DIMENSION(IM,grid%j_strt_halo:grid%j_stop_halo) :: FOO
+        READ(-,-) foo_glob
+        call UNPACK(grid, FOO_GLOB, FOO, local=.true.)
+
+     OUTPUT:
+      Output is handled by first "packing" the data into a global array
+      in the root processor. The global array is then printed as usual.
+      Thus, scalar code like:
+
+        REAL*8, DIMENSION(IM,JM) :: FOO
+        WRITE(-,-) foo
+
+      will be changed to:
+    
+        USE DOMAIN_DECOMP, only : UNPACK,AM_I_ROOT
+        REAL*8, DIMENSION(IM,JM) :: FOO_GLOB
+        REAL*8, DIMENSION(IM,grid%j_strt_halo:grid%j_stop_halo) :: FOO
+        CALL PACK(grid,FOO, FOO_GLOB)
+        if (AM_I_ROOT())  WRITE(-,-) foo_glob
+
+IV. Code best executed serially
+    ---------------------------
+      The PACK and UNPACK routines will be used in the rare cases where
+      small code portions are to remain serial. The serial code will be
+      executed on the root processor. The PACK (or PACK_COLUMN) routines
+      will be used to gather the global data into the root processor.
+      After the serial data is executed in the root processor, all
+      processors place calls to UNPACK (or UNPACK_COLUMN) in order to
+      scatter the computed arrays into the rest of the processors.
+
+      If the following code is to be executed serially:
+ 
+        REAL*8, DIMENSION(IM,JM) :: a,b,c
+        ...
+        a=b+c
+
+      It should be changed to:
+
+        USE DOMAIN_DECOMP, only : grid, pack, unpack, am_a_root
+        REAL*8, DIMENSION(grid%i_strt_halo:grid%i_stop_halo, grid%j_strt_halo:grid%j_stop_halo) :: a,b,c
+        REAL*8, DIMENSION(IM,JM) :: a_glob,b_glob,c_glob
+        ....
+        call pack(grid, b, b_glob)
+        call pack(grid, c, c_glob)
+        if (AM_I_ROOT()) a_glob = b_glob + c_glob
+        call unpack(grid, a_glob, a)
+
+
+IV. Exceptions
+    ----------
+
+    Any exceptional case that is to be deferred for analysis should be
+    marked with this comment that we can later search on:
+
+c GISS-ESMF EXCEPTIONAL CASE
+
+
+    These cases could include but are not limited to:
+
+      - I/O
+      - Unusual loop limits, e.g.  DO J = 3, JM-1 (in ATMDYN.f)
+      - logic that does not fit the simple patterns described above,
+        e.g. a subroutine that is sometimes called in the vertical
+        layers direction and sometimes in the horizontal longitude
+        direction. 
+

@@ -1,0 +1,104 @@
+#!/bin/sh
+#
+# This script started off as 'pD' (print diagnostics) and worked by
+# running the model again, printing out the diags and quitting). It
+# became pDE when we went to ModelE but basically did the same
+# thing. The newIO has made that method obsolete.
+# 
+# NOTE: As of 2016-09-14, this script doesn't seem to work at all.
+
+
+ echo "for netcdf files use mk_diags/pdE_nc "
+
+CMRUNDIR1=$CMRUNDIR
+if [ -f $HOME/.modelErc ]; then . $HOME/.modelErc; fi
+if [ ! -d $CMRUNDIR/$1 ] ; then CMRUNDIR='..' ; fi
+
+if [ ${CMRUNDIR1}xx != xx ] ; then
+  CMRUNDIR=$CMRUNDIR1
+fi
+
+if [ $# -lt 2 ] || [ ! -d $CMRUNDIR/$1 ] ; then
+    echo "Usage: pdE runID acc_files (list all; deflt path:$PWD)"
+    exit
+fi
+
+echo CMRUNDIR = $CMRUNDIR
+
+runID=$1 ; shift
+RUNDIR=$CMRUNDIR/$runID
+
+if [ $# -eq 1 ] ; then
+  echo "processing $*"
+else
+  echo "The following $# files are added up:"
+  for x in $* ; do echo $x ; done
+fi
+
+rm -rf ___work 2> /dev/null  ; mkdir ___work
+
+files=''
+for x in $*
+do if [ $x != *.gz ] ; then files="${files} $x"
+   else
+     cp -p $x ___work/. ; xnew="___work/`basename ${x%.gz}`"
+     gunzip ${xnew}.gz ; files="${files} ${xnew}"
+   fi
+done
+
+if [ ! -s Ipd ] ; then
+# set up a default file
+cat <<EOF > Ipd
+
+
+ &&PARAMETERS
+
+ &&END_PARAMETERS
+
+ &INPUTZ
+ ISTART=-1,QDIAG=.true.,KDIAG=13*0,
+ /
+EOF
+fi
+
+# hack: check if should run with mpirun
+prefix=
+if grep "^ *mpirun" $RUNDIR/E >/dev/null ; then
+  prefix="mpirun -np 1 "
+  if [ $MPIDISTR = SCALI ] ; then
+    prefix="$prefix -inherit_limits "
+  fi
+fi
+
+rm -f error_message
+if [ -f $RUNDIR/runtime_opts ] ; then
+  . $RUNDIR/runtime_opts
+fi
+
+do_uln=0 ; if [ ! -L TOPO ] ; then $RUNDIR/${runID}ln ; do_uln=1 ; fi
+echo cd `pwd` > pde_command
+if [ -f $RUNDIR/${runID}.wrapper ] ; then
+  echo "${prefix} $RUNDIR/${runID}.wrapper -i Ipd ${files} < Ipd > pd.PRT" >> pde_command
+else
+  echo "${prefix} $RUNDIR/${runID}.exe -i Ipd ${files} < Ipd > pd.PRT" >> pde_command
+fi
+chmod 755 pde_command
+
+if [ "${prefix}empty" != empty ] ; then
+  $QSUB_STRING ./pde_command
+else
+  ./pde_command
+fi
+
+# hack to process older runs (which don't support -i)
+rc=$?
+if [ $rc -eq 255 ] ; then
+  if [ "`cat error_message`" = ' Unknown option on a command line' ] ; then
+    rm -f error_message
+    $RUNDIR/${runID}.exe ${files} < Ipd > pd.PRT
+  fi
+fi
+   if [ ${do_uln} -eq 1 ] ; then $RUNDIR/${runID}uln ; fi
+if [ -s error_message ] ; then cat error_message ; fi
+if [ $# -gt 1 ] ; then tail -2 pd.PRT ; fi
+rm -rf ___work

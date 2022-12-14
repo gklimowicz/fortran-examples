@@ -1,0 +1,71 @@
+!--------- dust aerosol parameters----------------
+#include "dust_params_general"
+
+!! MATRIX with model winds
+! MATRIX w/ VMP clouds:
+! for imDust=0:
+scaleDustEmission=1.0
+fracClayPDFscheme=0.0142993763417 ! clay emission parameter from calibration
+fracSiltPDFscheme=0.0421175030543 ! silt emission parameter from calibration
+   !fracClayPDFscheme = 0.0136705318754[1] * 1.046[2]
+   !fracSiltPDFscheme = 0.0402652992871[1] * 1.046[2]
+   ![1] emission parameters used for calibration run E20170907TmatrixF40climIM0_000
+   ![2] total emitted mass factor derived from calibration run
+! for imDust=3
+!scaleDustEmission=0.144776901493 ! scales total dust emission
+  !scaleDustEmission = 0.15517352786[1] * 0.933[2]
+  ![1]: emission parameter used for calibration run E20170907TmatrixF40climIM3_000
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=4
+!scaleDustEmission=0.145680277394 ! scales total dust emission         
+  !scaleDustEmission = 0.148049062392[1] * 0.984[2]
+  ![1]: emission parameter used for calibration run E20170907TmatrixF40climIM4_000
+  ![2]: total emitted mass factor derived from calibration run
+!for imDust=3-4 (also set as default in the model)
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+!-------------------------------------------------
+!! MATRIX nudged toward NCEP winds:
+! MATRIX w/ VMP clouds:
+! for imDust=0:
+!scaleDustEmission=1.0
+!fracClayPDFscheme=0.00678986343007 ! clay emission parameter from calibration
+!fracSiltPDFscheme=0.0205586498967  ! silt emission parameter from calibration
+   !fracClayPDFscheme = 0.00683772752273[1] * 0.993[2]
+   !fracSiltPDFscheme = 0.0207035749211 [1] * 0.993[2]
+   ![1] emission parameters used for calibration run E2p1_20190525TmatNcepF40IM0_003
+   ![2] total emitted mass factor derived from calibration
+! for imDust=3
+!scaleDustEmission=0.067761297736 ! scales total dust emission
+  !scaleDustEmission = 0.0681018067698[1] * 0.995[2]
+  ![1]: emission parameter used for calibration run E2p1_20190525TmatNcepF40IM3_003
+  ![2]: total emitted mass factor derived from calibration run
+! for imDust=4
+!scaleDustEmission=0.0671151632357 ! scales total dust emission
+  !scaleDustEmission = 0.0709462613485[1] * 0.946[2]
+  ![1]: emission parameter used for calibration run E2p1_20190525TmatNcepF40IM4_003
+!for imDust=3-5 (also set as default in the model)
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+!-------------------------------------------------
+!! MATRIX nudged toward MERRA2 3-hourly winds:
+! MATRIX w/ VMP clouds:
+! for imDust=0:
+!scaleDustEmission=1.0
+!fracClayPDFscheme=0.0046112678499 ! clay emission parameter from calibration
+!fracSiltPDFscheme=0.014117337063  ! silt emission parameter from calibration
+   !fracClayPDFscheme = 0.00678986343007[1] * 0.990[2] * 0.686[3]
+   !fracSiltPDFscheme = 0.0205586498967 [1] * 1.001[2] * 0.686[3]
+   ![1] emission parameters for MATRIX + NCEP (E2.1_branch)
+   ![2] size distribution factors derived from calibration run E2p1_20181021TomaMer2F40IM0_000
+   ![3] total emitted mass factor derived from calibration run E2p1_20181021TomaMer2F40IM0_000
+! imDust3-4
+! TBD
+!for imDust=3-4 (also set as default in the model)
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+!------------------------------------------------------
+!! all versions:
+! for imDust=1 (prescribed AeroCom emissions):
+!scaleDustEmission=1.0
+!-------------------------------------------------

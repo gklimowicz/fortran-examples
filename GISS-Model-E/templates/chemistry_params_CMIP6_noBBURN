@@ -1,0 +1,56 @@
+! -----------------------------------
+! Pressure above which Ox, NOx, BrOx, and ClOx will be
+! overwritten with climatology based on NINT ozone input.
+PltOx=0.0
+! NH and SH polar stratospheric cloud formation temperature offsets:
+Tpsc_offset_N=0.d0
+Tpsc_offset_S=0.d0
+! -----------------------------------
+! 40-layer model CMIP6 chemistry tuning parameters: 
+windowN2Ocorr=1.0
+windowO2corr=1.15
+reg1Power_SpherO2andN2Ocorr=2.5
+reg1TopPres_SpherO2andN2Ocorr=50.
+reg2Power_SpherO2andN2Ocorr=2.5
+reg2TopPres_SpherO2andN2Ocorr=10.
+reg3Power_SpherO2andN2Ocorr=0.5
+reg3TopPres_SpherO2andN2Ocorr=1.
+reg4Power_SpherO2andN2Ocorr=0.5
+! -----------------------------------
+COUPLED_CHEM=1     ! to couple chemistry and aerosols
+use_sol_Ox_cycle=0 ! (=1) apply ozone changes in radiation, based on solar cycle
+clim_interact_chem=1 ! 1=use calculated Ox/CH4 in radiation, 0=use climatology
+                   ! If = 0, consider turning on AUXILIARY_OX_RADF CPP directive.
+                   ! Note: 0 also turns off chemistry(H2O)-->Q(humidity) feedback
+                   ! if you want humidity feedback on but radiation feedback off
+                   ! you could do: clim_interact_chem=1, Lmax_rad_{O3,CH4}=0...
+! Lmax_rad_O3=0    ! Ox levels used in rad code default is LM
+use_rad_n2o=1      ! use the radiation code's N2O
+use_rad_cfc=1      ! use rad code cfc11+cfc12, adjusted
+rad_FL=1           ! use rad code insolation getting fastj2 photon flux
+which_trop=0       ! choose tropopause for chemistry purposes:
+                   ! 0=LTROPO(I,J), 1=LS1-1
+
+! For altering tracer initial conditions and overwriting by a factor:
+! set PI_run=1 and change the corresponding factors below. [For altering
+! emissions, use the sectors above in the rundeck.
+!PI_run        = 1       ! =1 turns on below PIratio factors. Note that for
+                         ! master_yr=1850 if PI_run is undefined in the rundeck
+                         ! it defaults to 1, so the parameters below are used.
+                         ! For all other master_yr values, PI_run defaults to 0
+PIratio_N     = 0.667d0 ! {NOx, HNO3, N2O5, HO2NO2}
+PIratio_CO_T  = 0.333d0 ! CO in troposphere
+PIratio_CO_S  = 0.500d0 ! CO in stratosphere
+PIratio_other = 0.500d0 ! {PAN,Isoprene,AlkyNit,Alkenes,Paraffin}
+PIratio_N2O   = 1.000d0 ! {N2O ICs, L=1 overwrit}, set to 1 for use_rad_n2o=1
+PIratio_CFC   = 1.000d0 ! {CFC ICs, L=1 overwrit}, set to 1 for use_rad_cfc=1
+!--- number of biomass burning sources (per tracer) Remember to list those sources last!
+Alkenes_nBBsources=0
+CO_nBBsources=0
+NOx_nBBsources=0
+Paraffin_nBBsources=0
+! -----------------------------------
+! Lightning NOx yield per flash
+FLASH_YIELD_MIDLAT=290.0d0 ! NOx yield per flash (moles N/flash), applied poleward of 23deg N/S
+FLASH_YIELD_TROPIC=290.0d0 ! NOx yield per flash (moles N/flash), applied equatorward of 23deg N/S
+

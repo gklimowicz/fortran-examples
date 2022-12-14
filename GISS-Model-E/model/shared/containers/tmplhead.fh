@@ -1,0 +1,46 @@
+#include "containers/tmplbase.fh"
+
+#ifdef _string
+#  define _ptrentry character(len=:)
+#  define _trgentry character(len=*)
+#else
+#  define _ptrentry _entry
+#  define _trgentry _entry
+#endif
+
+#ifdef _pointer
+#  define _wrapentry _ptrentry, pointer
+#  define __SET(x, y) x=>y
+#  define __EQ(x, y) sameptr(x, y)
+#  ifndef __COMPARE
+#    define __COMPARE(x, y) compptr(x, y)
+#  endif
+#elif (defined _string)
+#  define _wrapentry _ptrentry, allocatable
+#elif (defined _dim)
+#  define _wrapentry _ptrentry, allocatable
+#  define __SET(x, y) __ALLOC_SET(x, y)
+#endif
+
+#ifdef _wrapentry
+#  define _bufentry type(wrapper)
+#  define __GET(x) x%item
+      type wrapper
+        _wrapentry :: item
+      end type wrapper
+#else
+#  define _bufentry _entry
+#  define __GET(x) x
+#endif
+
+#ifndef __SET
+#  define __SET(x, y) x=y
+#endif
+
+#ifndef __EQ
+#  ifdef _logical
+#    define __EQ(x, y) (x.eqv.y)
+#  else
+#    define __EQ(x, y) (x==y)
+#  endif
+#endif

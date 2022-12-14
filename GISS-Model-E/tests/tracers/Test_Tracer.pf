@@ -1,0 +1,117 @@
+! Workaround for ifort bug with -assume protect_parens
+#ifdef PROTECT_PARENS
+#define ASSIGN_ATTR(a,b) call toType(a,b)
+#else
+#define ASSIGN_ATTR(a,b) a = b
+#endif
+
+module Test_Tracer_mod
+  use pFUnit_mod
+  use Tracer_mod
+  use AbstractAttribute_mod
+  use Attributes_mod
+  implicit none
+
+@TestCase
+  type, extends(TestCase) :: Test_Tracer
+    type (Tracer) :: CO2
+    type (Tracer) :: H2O17
+  contains
+    procedure :: setUp     ! overides generic
+    procedure :: tearDown  ! overrides generic
+  end type Test_Tracer
+
+contains
+
+  subroutine setUp(this)
+    class (Test_Tracer), intent(inout) :: this
+
+    this%CO2 = newTracer('CO2')
+    call this%CO2%insert('molecularMass', 4.4d+1)
+
+    this%H2O17 = newTracer('H2O17')
+    call this%H2O17%insert('molecularMass', 1.9d+1)
+
+  end subroutine setUp
+
+  subroutine tearDown(this)
+    class (Test_Tracer), intent(inout) :: this
+  end subroutine tearDown
+
+@test
+  subroutine testSetProperty(this)
+    use AbstractAttribute_mod, only: AbstractAttribute
+    class (Test_Tracer), intent(inout) :: this
+
+    real(kind=dp) :: expected
+    real(kind=dp) :: found
+
+    expected = 44.0
+    ASSIGN_ATTR(found, this%CO2%getReference('molecularMass'))
+    @assertEqual(expected, found)
+
+  end subroutine testSetProperty
+
+@test
+  subroutine testHasProperty(this)
+    class (Test_Tracer), intent(inout) :: this
+
+    @assertFalse(this%CO2%has('unknown'))
+
+  end subroutine testHasProperty
+
+@test
+  subroutine testGetName(this)
+    class (Test_Tracer), intent(inout) :: this
+
+    @assertEqual('H2O17', this%H2O17%getName())
+
+  end subroutine testGetName
+
+@test
+  subroutine testToTracer(this)
+    class (Test_Tracer), intent(inout) :: this
+    type (Tracer) :: newCO2
+
+    ! Test the assignment (=) operator
+    newCO2 = this%CO2
+    @assertEqual('CO2', newCO2%getName())
+
+  end subroutine testToTracer
+
+@test
+  subroutine testCopyInto(this)
+    class (Test_Tracer), intent(inout) :: this
+    type (Tracer) :: H2O17copy
+
+    real(kind=dp) :: expected
+    real(kind=dp) :: found
+
+    ! Test the tracer copy
+    call copyInto (H2O17copy, this%H2O17)
+
+    ! H2O17copy should have same properties as this%H2O17
+    @assertTrue(this%H2O17%has('molecularMass'))
+
+    expected = 19.0
+    ASSIGN_ATTR(found, H2O17copy%getReference('molecularMass'))
+    @assertEqual(expected, found)
+
+  end subroutine testCopyInto
+
+@test
+  subroutine sanity(this)
+     class (Test_Tracer), intent(inout) :: this
+     type (Tracer) :: t
+
+     integer :: i
+
+     t = newTracer('noname')
+     call t%insert('index', 5)
+     ASSIGN_ATTR(i,t%getReference('index'))
+
+     @assertEqual(5, i)
+     
+  end subroutine sanity
+
+end module Test_Tracer_mod

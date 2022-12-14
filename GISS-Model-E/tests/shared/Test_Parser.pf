@@ -1,0 +1,571 @@
+! Workaround for ifort bug with -assume protect_parens
+#ifdef PROTECT_PARENS
+#define ASSIGN_ATTR(a,b) call toType(a,b)
+#else
+#define ASSIGN_ATTR(a,b) a = b
+#endif
+
+module Test_Parser_mod
+   use pFUnit_mod
+   use AbstractAttribute_mod
+   use Attributes_mod
+  implicit none
+
+
+
+!TO DO - create tests for these:
+!!$  public :: testMissingEndQuote
+!!$  public :: testFirstSep ! '='
+!!$  public :: testIgnoreEmbeddedComments
+
+contains
+
+@Test
+  subroutine testStripComment_noComment()
+    use Parser_mod
+    character(len=30) :: expectedString
+    character(len=30) :: string
+
+    string = 'has no comment characters'
+    expectedString = string
+    @assertEqual(expectedString, strip_comment(string))
+
+  end subroutine testStripComment_noComment
+
+@Test
+  subroutine testStripComment()
+    use Parser_mod
+    character(len=30) :: expectedString
+    character(len=30) :: string
+
+    string = 'comment starts here ! ignore this'
+    expectedString = 'comment starts here'
+    
+    @assertEqual(expectedString, strip_comment(string))
+
+    string = 'comment starts #'
+    expectedString = 'comment starts'
+    @assertEqual(expectedString, strip_comment(string))
+
+  end subroutine testStripComment
+
+@Test
+  subroutine testStripComment_1stChar()
+    use Parser_mod
+    character(len=30) :: expectedString
+    character(len=30) :: string
+
+    string = '! all comment'
+    expectedString = ''
+    @assertEqual(expectedString, strip_comment(string))
+
+  end subroutine testStripComment_1stChar
+
+@Test
+  subroutine testStripComment_new()
+    use Parser_mod
+    type (Parser_type) :: parser
+    character(len=40) :: expectedString
+    character(len=40) :: string
+
+    call setCommentCharacters(parser, ':')
+    string = 'has no comment characters? ! comment'
+    expectedString = string
+    @assertEqual(expectedString, stripComment(parser, string))
+
+    call setCommentCharacters(parser, ' ,')
+    expectedString = 'has'
+    @assertEqual(expectedString, stripComment(parser, string))
+
+    call setCommentCharacters(parser, '#!')
+    expectedString = 'has no comment characters?'
+    @assertEqual(expectedString, stripComment(parser, string))
+
+  end subroutine testStripComment_new
+
+@Test
+  subroutine testSkipHeader()
+    use Parser_mod
+    use FileManager
+    type (Parser_type) :: parser
+    integer :: iounit
+    integer :: status
+    character(len=*), parameter :: BEGIN_DATA = '*** end header ***'
+    character(len=MAX_LEN_LINE) :: line
+
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    write(iounit,'(a)') 'a'
+    write(iounit,'(a)') 'b'
+    write(iounit,'(a)') BEGIN_DATA
+    write(iounit,'(a)') 'first line after header'
+    rewind(iounit)
+
+    call setBeginData(parser, BEGIN_DATA)
+    call skipHeader(parser, iounit, status)
+    read(iounit,'(a256)') line
+    @assertEqual('first line after header', line)
+
+    close(iounit, status='delete')
+
+  end subroutine testSkipHeader
+
+@Test
+  subroutine testNoBeginData()
+    use Parser_mod
+    use FileManager
+    type (Parser_type) :: parser
+    integer :: iounit
+    integer :: status
+    character(len=*), parameter :: BEGIN_DATA = '*** end header ***'
+    character(len=256) :: line
+
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    write(iounit,'(a)') 'a'
+    write(iounit,'(a)') 'b'
+    rewind(iounit)
+
+    call setBeginData(parser, BEGIN_DATA)
+    call skipHeader(parser, iounit, status)
+    @assertTrue(status /= 0)
+
+    close(iounit, status='delete')
+  end subroutine testNoBeginData
+
+@Test
+  subroutine testIsEndData()
+    use Parser_mod
+    use FileManager
+    type (Parser_type) :: parser
+    character(len=*), parameter :: END_DATA = '*** end params ***'
+
+    call setEndData(parser, END_DATA)
+    @assertTrue(isEndData(parser, END_DATA))
+    @assertFalse(isEndData(parser, 'some other string'))
+  end subroutine testIsEndData
+
+@Test
+  subroutine testSplitTokensA()
+    use Parser_mod
+    type (Parser_type) :: parser
+    character(len=*), parameter :: separators = '=,'
+    character(len=128) :: string
+    character(len=MAX_LEN_TOKEN), pointer :: tokens(:) => null()
+
+    call setTokenSeparators(parser, separators)
+
+    tokens => splitTokens(parser, '  ')
+    @assertEqual(0, size(tokens))
+    deallocate(tokens)
+
+  end subroutine testSplitTokensA
+
+@Test
+  subroutine testSplitTokensB()
+    use Parser_mod
+    type (Parser_type) :: parser
+    character(len=*), parameter :: separators = '=,'
+    character(len=128) :: string
+    character(len=MAX_LEN_TOKEN), pointer :: tokens(:) => null()
+
+    call setTokenSeparators(parser, separators)
+
+    tokens => splitTokens(parser, '  hello  ')
+    @assertEqual(1, size(tokens))
+    if (size(tokens) == 1) then
+      @assertEqual('hello', tokens(1))
+    end if
+    deallocate(tokens)
+
+  end subroutine testSplitTokensB
+
+@Test
+  subroutine testSplitTokensC()
+    use Parser_mod
+    type (Parser_type) :: parser
+    character(len=*), parameter :: separators = '=,'
+    character(len=128) :: string
+    character(len=MAX_LEN_TOKEN), pointer :: tokens(:) => null()
+
+    call setTokenSeparators(parser, separators)
+
+    tokens => splitTokens(parser, ' var = 3  ')
+    @assertEqual(2, size(tokens))
+    if (size(tokens) == 2) then
+      @assertEqual('var', tokens(1))
+      @assertEqual('3', tokens(2))
+    end if
+    deallocate(tokens)
+
+  end subroutine testSplitTokensC
+
+@Test
+  subroutine testSplitTokensD()
+    use Parser_mod
+    type (Parser_type) :: parser
+    character(len=*), parameter :: separators = '=,'
+    character(len=128) :: string
+    character(len=MAX_LEN_TOKEN), pointer :: tokens(:) => null()
+
+    call setTokenSeparators(parser, separators)
+
+    tokens => splitTokens(parser, ' var = "hello", 3, 7.891e+10, .true., 123456  ')
+    @assertEqual(6, size(tokens))
+    if (size(tokens) == 6) then
+      @assertEqual('var', tokens(1))
+      @assertEqual('"hello"', tokens(2))
+      @assertEqual('3', tokens(3))
+      @assertEqual('7.891e+10', tokens(4))
+      @assertEqual('.true.', tokens(5))
+      @assertEqual('123456', tokens(6))
+    end if
+    deallocate(tokens)
+
+  end subroutine testSplitTokensD
+
+@Test
+  subroutine testSplitEmbeddedComma()
+    use Parser_mod
+    type (Parser_type) :: parser
+    character(len=*), parameter :: separators = '=,'
+    character(len=128) :: string
+    character(len=MAX_LEN_TOKEN), pointer :: tokens(:) => null()
+
+    call setTokenSeparators(parser, separators)
+
+    tokens => splitTokens(parser, " var = 'short name', 'name with , in it'")
+    @assertEqual(3, size(tokens))
+    if (size(tokens) == 3) then
+      @assertEqual('var', tokens(1))
+      @assertEqual("'short name'", tokens(2))
+      @assertEqual("'name with , in it'", tokens(3))
+    end if
+    deallocate(tokens)
+
+  end subroutine testSplitEmbeddedComma
+
+@Test
+  subroutine testBadFirstSeparator()
+    use Parser_mod
+    type (Parser_type) :: parser
+    character(len=*), parameter :: separators = '= ,'
+    character(len=128) :: string
+    character(len=MAX_LEN_TOKEN), pointer :: tokens(:) => null()
+
+    call setTokenSeparators(parser, separators)
+    tokens => splitTokens(parser, " my var = 3")
+    @assertExceptionRaised('Parser_mod: Illegal syntax.  "=" not first separator.')
+    deallocate(tokens)
+
+  end subroutine testBadFirstSeparator
+
+@test
+  subroutine testParseEOF()
+    use Parser_mod
+    use FileManager
+    use AttributeDictionary_mod
+    type (Parser_type) :: parser
+    type (AttributeDictionary) :: aDictionary
+
+    integer :: status
+    integer :: iounit
+
+! Create empty file
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    rewind(iounit)
+
+    aDictionary = parse(parser, iounit, status)
+    ! EOF
+    @assertTrue(status /= 0)
+    close(iounit, status='delete')
+    @assertEqual(0, aDictionary%size())
+
+  end subroutine testParseEOF
+
+@Test
+  subroutine testParseSimple()
+    use Parser_mod
+    use FileManager
+    use AttributeDictionary_mod
+    type (Parser_type) :: parser
+
+    type (AttributeDictionary) :: aDictionary
+    integer :: iounit
+    integer, pointer :: i(:) => null()
+    character(len=*), parameter :: BEGIN_DATA = '*** end header ***'
+    character(len=*), parameter :: END_DATA = '*** end params ***'
+    integer :: status
+
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    write(iounit,'(a)') BEGIN_DATA
+    write(iounit,'(a)') 'key = 1, 2, 3'
+    write(iounit,'(a)') END_DATA
+    rewind(iounit)
+
+    call setBeginData(parser, BEGIN_DATA)
+    call setEndData(parser, END_DATA)
+    call setTokenSeparators(parser, '=,')
+    call setCommentCharacters(parser, '!#')
+
+    aDictionary = parse(parser, iounit, status)
+    close(iounit, status='delete')
+
+    @assertEqual(1, aDictionary%size())
+    @assertTrue(aDictionary%has('key'), 'There should be a "key".')
+    i => toPointer(aDictionary%getReference('key'),i)
+    @assertEqual([1,2,3], i, 'Wrong value for "key".')
+
+    call clean(aDictionary)
+
+  end subroutine testParseSimple
+
+@Test
+  subroutine testParse()
+    use Parser_mod
+    use FileManager
+    use AttributeDictionary_mod
+    type (Parser_type) :: parser
+
+    type (AttributeDictionary) :: aDictionary
+    integer :: iounit
+    character(len=*), parameter :: BEGIN_DATA = '*** end header ***'
+    character(len=*), parameter :: END_DATA = '*** end params ***'
+
+    integer :: status
+
+    integer :: betaValue
+    real(kind=dp), pointer :: gammaValue => null()
+    logical, pointer :: deltaValues(:) => null()
+
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    write(iounit,'(a)') 'alpha = 0' ! ignore - in header
+    write(iounit,'(a)') 'b'
+    write(iounit,'(a)') BEGIN_DATA
+    write(iounit,'(a)') '! alpha = 1' ! ignore - only a comment
+    write(iounit,'(a)') 'beta = 2'
+    write(iounit,'(a)') ! empty line
+    write(iounit,'(a)') '!' ! effectively empty line
+    write(iounit,'(a)') 'gamma = 3.'
+    write(iounit,'(a)') '! alpha = 2' ! ignore - only a comment
+    write(iounit,'(a)') 'delta = T, F, T, T'
+    write(iounit,'(a)') END_DATA
+    write(iounit,'(a)') '! alpha = 3' ! ignore - after header
+    rewind(iounit)
+
+    call setBeginData(parser, BEGIN_DATA)
+    call setEndData(parser, END_DATA)
+    call setTokenSeparators(parser, '=,')
+    call setCommentCharacters(parser, '!#')
+
+    aDictionary = parse(parser, iounit, status)
+    close(iounit, status='delete')
+
+    @assertEqual(3, aDictionary%size())
+    @assertFalse(aDictionary%has('alpha'), 'There should not be an "alpha".')
+    @assertTrue(aDictionary%has('beta'), 'There should be a "beta".')
+    @assertTrue(aDictionary%has('gamma'), 'There should be a "gamma".')
+    @assertTrue(aDictionary%has('delta'), 'There should be a "delta".')
+
+    ASSIGN_ATTR(betaValue, aDictionary%getReference('beta'))
+    @assertEqual(2, betaValue, 'Wrong value for "beta".')
+
+    gammaValue => toPointer(aDictionary%getReference('gamma'), gammaValue)
+    @assertEqual(3.d+0, gammaValue, 'Wrong value for "gamma".')
+
+    ASSIGN_ATTR(gammaValue, aDictionary%getReference('Gamma'))
+    @assertEqual(3.d+0, gammaValue, 'Wrong value for "Gamma".')
+
+    deltaValues => toPointer(aDictionary%getReference('delta'), deltaValues)
+    @assertTrue(all([.true.,.false.,.true.,.true.] .eqv. deltaValues), 'Wrong value for "delta".')
+
+    call clean(aDictionary)
+
+  end subroutine testParse
+
+@Test
+  subroutine testParseAttribute()
+    use Parser_mod, only: Parser_type, parse
+    use Parser_mod, only: setBeginData, setCommentCharacters, setEndData
+    use Parser_mod, only: setTokenSeparators
+    use FileManager
+    use AttributeDictionary_mod
+    type (Parser_type) :: parser
+
+    type (AttributeDictionary) :: aDictionary
+    integer :: iounit
+    character(len=*), parameter :: BEGIN_DATA = '*** end header ***'
+    character(len=*), parameter :: END_DATA = '*** end params ***'
+
+    integer :: status
+
+    integer, pointer :: betaValue => null()
+    real(kind=dp), pointer :: gammaValue => null()
+    logical, pointer :: deltaValues(:) => null()
+    class (AbstractAttribute), pointer :: p => null()
+
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    write(iounit,'(a)') 'alpha = 0' ! ignore - in header
+    write(iounit,'(a)') 'b'
+    write(iounit,'(a)') BEGIN_DATA
+    write(iounit,'(a)') '! alpha = 1' ! ignore - only a comment
+    write(iounit,'(a)') 'beta = 2'
+    write(iounit,'(a)') ! empty line
+    write(iounit,'(a)') '!' ! effectively empty line
+    write(iounit,'(a)') 'gamma = 3.'
+    write(iounit,'(a)') '! alpha = 2' ! ignore - only a comment
+    write(iounit,'(a)') 'delta = T, F, T, T'
+    write(iounit,'(a)') END_DATA
+    write(iounit,'(a)') '! alpha = 3' ! ignore - after header
+    rewind(iounit)
+
+    call setBeginData(parser, BEGIN_DATA)
+    call setEndData(parser, END_DATA)
+    call setTokenSeparators(parser, '=,')
+    call setCommentCharacters(parser, '!#')
+
+    aDictionary = parse(parser, iounit, status)
+
+    close(iounit, status='delete')
+
+    @assertEqual(3, aDictionary%size())
+    @assertFalse(aDictionary%has('alpha'), 'There should not be an "alpha".')
+    @assertTrue(aDictionary%has('beta'), 'There should be a "beta".')
+    @assertTrue(aDictionary%has('gamma'), 'There should be a "gamma".')
+    @assertTrue(aDictionary%has('delta'), 'There should be a "delta".')
+
+    betaValue => toPointer(aDictionary%getReference('beta'), betaValue)
+    @assertEqual(2, betaValue, 'Wrong value for "beta".')
+
+    gammaValue => toPointer(aDictionary%getReference('gamma'),gammaValue)
+    @assertEqual(3.d+0, gammaValue, 'Wrong value for "gamma".')
+
+    deltaValues => toPointer(aDictionary%getReference('delta'), deltaValues)
+    @asserttrue(all([.true.,.false.,.true.,.true.] .eqv. deltaValues), 'Wrong value for "delta".')
+
+  end subroutine testParseAttribute
+
+! DISABLE TEST UNTIL WE FIX ERROR
+!@Test
+  subroutine testParseNoValue()
+!@sum Tests that an exception is thrown if there is no value to associate with a key.
+    use Parser_mod
+    use FileManager
+    use AttributeDictionary_mod
+    type (Parser_type) :: parser
+    type (AttributeDictionary) :: aDictionary
+    integer :: iounit
+    character(len=*), parameter :: BEGIN_DATA = '*** end header ***'
+    character(len=*), parameter :: END_DATA = '*** end params ***'
+    character(len=256) :: line
+
+    integer :: status
+
+! Create File with one line: Key without a value:
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    write(iounit,'(a)') BEGIN_DATA
+    write(iounit,'(a)') 'beta'
+    write(iounit,'(a)') END_DATA
+    rewind(iounit)
+
+    call setBeginData(parser, BEGIN_DATA)
+    call setEndData(parser, END_DATA)
+    call setTokenSeparators(parser, ' =,')
+    call setCommentCharacters(parser, '!#')
+! The following causes a seg fault under gcc 4.9.1 - key has no associated value
+    aDictionary = parse(parser, iounit, status)
+! kludge_allocate.2925 at AttributeHashMap.F90:0
+! __attributeassociativearray_mod_MOD_insertentry
+    @assertExceptionRaised('Parser_mod: syntax error in input unit.')
+    close(iounit, status='delete')
+
+  end subroutine testParseNoValue
+
+@Test
+  subroutine testWriteFormatted()
+    use Parser_mod
+    use FileManager
+    use AttributeDictionary_mod
+    type (Parser_type) :: parser
+    type (AttributeDictionary) :: aDictionary
+    type (AttributeDictionary) :: bDictionary
+    integer :: iounit
+    character(len=*), parameter :: BEGIN_DATA = '*** end header ***'
+    character(len=*), parameter :: END_DATA = '*** end params ***'
+    character(len=256) :: line
+
+    integer :: status
+
+    integer :: j(1)
+    integer, pointer :: i(:) => null()
+
+    aDictionary = newAttributeDictionary()
+    call aDictionary%insert('key',[1,2,3])
+
+    call setBeginData(parser, BEGIN_DATA)
+    call setEndData(parser, END_DATA)
+    call setTokenSeparators(parser, '=,')
+    call setCommentCharacters(parser, '!#')
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+    call writeFormatted(parser, iounit, aDictionary)
+    close(iounit)
+
+    call openUnit('testParser.txt', iounit, qold=.true., qbin=.false.)
+
+    bDictionary = parse(parser, iounit, status)
+
+    i => toPointer(bDictionary%getReference('key'), j)
+
+
+    @assertTrue(aDictionary%equals(bDictionary))
+
+    call clean(bDictionary)
+    call clean(aDictionary)
+
+    close(iounit, status='delete')
+
+  end subroutine testWriteFormatted
+
+@Test
+  subroutine testWriteTextExample()
+    use Parser_mod
+    use FileManager
+    use AttributeDictionary_mod
+    type (Parser_type) :: parser
+    type (AttributeDictionary) :: aDictionary
+    type (AttributeDictionary) :: bDictionary
+    integer :: iounit
+    character(len=*), parameter :: BEGIN_DATA = '{'
+    character(len=*), parameter :: END_DATA = '}'
+    character(len=256) :: line
+
+    integer :: status
+
+    integer :: scale
+    real*8 :: mass
+    character(len=MAX_LEN_TOKEN) :: name
+
+    call setBeginData(parser, BEGIN_DATA)
+    call setEndData(parser, END_DATA)
+    call setTokenSeparators(parser, '=,')
+    call setCommentCharacters(parser, '!#')
+    call openUnit('testParser.txt', iounit, qold=.false., qbin=.false.)
+
+    aDictionary = newAttributeDictionary()
+    call aDictionary%insert('name', 'Air')
+    call aDictionary%insert('logScale', -2)
+    call aDictionary%insert('molecularMass', 28.9655d0)
+    call writeFormatted(parser, iounit, aDictionary)
+    
+    rewind(iounit)
+    bDictionary = parse(parser, iounit, status)
+
+    @assertTrue(aDictionary%equals(bDictionary), 'Dictionaries differ.')
+
+    call clean(bDictionary)
+    call clean(aDictionary)
+
+    close(iounit, status='delete')
+
+  end subroutine testWriteTextExample
+
+end module Test_Parser_mod
+

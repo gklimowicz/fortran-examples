@@ -1,0 +1,22 @@
+module Test_StringUtilities_mod
+!@sum Tests procedures in StringUtilities_mod.
+!@auth T. Clune
+  use pFUnit_mod
+  use StringUtilities_mod
+  implicit none
+
+  public :: testToLowerCase
+
+contains
+
+@Test
+  subroutine testToLowerCase()
+!@sum Test that letters are switched to lower case, but that other symbols are unchanged.
+    @assertEqual('a', toLowerCase('a'), 'trivial case')
+    @assertEqual('a', toLowerCase('A'), 'simple case')
+    @assertEqual('abcd', toLowerCase('AbCd'),'multiple letters')
+    @assertEqual('abcdef123abcdef{!}%#', toLowerCase('AbCdEf123aBcDeF{!}%#'), 'other symbols')
+  end subroutine testToLowerCase
+
+end module Test_StringUtilities_mod
+

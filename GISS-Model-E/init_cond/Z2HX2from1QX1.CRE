@@ -1,0 +1,79 @@
+C**** Z2HX2from1QX1.CRE    CREate Z2HX2 from Z1QX1    2008/12/09
+C****
+C**** Fortran Compile and Go:  FCG Z2HX2from1QX1.CRE HNTR8.o
+C****
+      Integer*4,Parameter    :: IMA=288,JMA=180, IMB=144,JMB=90
+      Real*8,Parameter       :: dLATMA = 60,   dLATMB = 120  !  minutes
+      Character*80,Parameter :: FILEA = 'Z288X180N',
+     *                          FILEB = 'Z2HX2from1QX1'
+      Real*4 A4(IMA,JMA), B4(IMB,JMB)
+      Real*8 FOCEANA(IMA,JMA), FLAKEA(IMA,JMA), FGRNDA(IMA,JMA),
+     *        FGICEA(IMA,JMA), ZATMOA(IMA,JMA),dZOCENA(IMA,JMA),
+     *       dZLAKEA(IMA,JMA),dZGICEA(IMA,JMA),ZSOLDGA(IMA,JMA),
+     *           WTA(IMA,JMA)
+      Real*8 FOCEANB(IMB,JMB), FLAKEB(IMB,JMB), FGRNDB(IMB,JMB),
+     *        FGICEB(IMB,JMB), ZATMOB(IMB,JMB),dZOCENB(IMB,JMB),
+     *       dZLAKEB(IMB,JMB),dZGICEB(IMB,JMB),ZSOLDGB(IMB,JMB)
+      Character*80 :: TITLEI, TITLEO(9) = (/
+     *'FOCEAN: Ocean Surface Fraction      from Z288X180N',
+     *'FLAKE: Lake Surface Fraction        from Z288X180N',
+     *'FGRND: Ground Surface Fraction      from Z288X180N',
+     *'FGICE: Glacial Ice Surface Fraction from Z288X180N',
+     *'ZATMO: Atmospheric Topography (m)   from Z288X180N',
+     *'dZOCEN: Ocean Thickness (m)         from Z288X180N',
+     *'dZLAKE: Lake Thickness (m)          from Z288X180N',
+     *'dZGICE: Glacial Ice Thickness (m)   from Z288X180N',
+     *'ZSOLID: Solid Ground Topography (m) from Z288X180N' /)
+C****
+C**** Read in data from file A
+C****
+      Open (1, File=FILEA, Form='Unformatted', Status='Old')
+      Read (1) TITLEI,A4  ;  FOCEANA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;   FLAKEA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;   FGRNDA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;   FGICEA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;   ZATMOA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;  dZOCENA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;  dZLAKEA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;  dZGICEA(:,:) = A4(:,:)
+      Read (1) TITLEI,A4  ;  ZSOLDGA(:,:) = A4(:,:)
+      Close(1)
+C****
+C**** Interpolate data from resolution A to resolution B
+C****
+      WTA(:,:) = 1
+      Call HNTR80 (IMA,JMA,0d0,dLATMA, IMB,JMB,0d0,dLATMB, 0.)
+      Call HNTR8P (WTA,FOCEANA, FOCEANB)
+      Call HNTR8P (WTA,FLAKEA,  FLAKEB)
+      Call HNTR8P (WTA,FGRNDA,  FGRNDB)
+      Call HNTR8P (WTA,FGICEA,  FGICEB)
+      Call HNTR8P (WTA,ZATMOA,  ZATMOB)
+      Call HNTR8P (WTA,dZOCENA, dZOCENB)
+      Call HNTR8P (WTA,dZLAKEA, dZLAKEB)
+      Call HNTR8P (WTA,dZGICEA, dZGICEB)
+      Call HNTR8P (WTA,ZSOLDGA, ZSOLDGB)
+C****
+C**** Replace LAKES with GROUND if cell has some OCEAN
+C****
+      Do 10 J=1,JMB
+      Do 10 I=1,IMB
+      If (FOCEANB(I,J) > 0 .and. FLAKEB(I,J) > 0)  Then
+           FGRNDB(I,J) = FGRNDB(I,J) + FLAKEB(I,J)
+           FLAKEB(I,J) = 0
+          dZLAKEB(I,J) = 0  ;  EndIf
+   10 Continue
+C****
+C**** Write out data to file B
+C****
+      Open (2, File=FILEB, form='Unformatted')
+      B4(:,:) = FOCEANB(:,:)  ;  Write (2) TITLEO(1),B4
+      B4(:,:) =  FLAKEB(:,:)  ;  Write (2) TITLEO(2),B4
+      B4(:,:) =  FGRNDB(:,:)  ;  Write (2) TITLEO(3),B4
+      B4(:,:) =  FGICEB(:,:)  ;  Write (2) TITLEO(4),B4
+      B4(:,:) =  ZATMOB(:,:)  ;  Write (2) TITLEO(5),B4
+      B4(:,:) = dZOCENB(:,:)  ;  Write (2) TITLEO(6),B4
+      B4(:,:) = dZLAKEB(:,:)  ;  Write (2) TITLEO(7),B4
+      B4(:,:) = dZGICEB(:,:)  ;  Write (2) TITLEO(8),B4
+      B4(:,:) = ZSOLDGB(:,:)  ;  Write (2) TITLEO(9),B4
+      Close (2)
+      End

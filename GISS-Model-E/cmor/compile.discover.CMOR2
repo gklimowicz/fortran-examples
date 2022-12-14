@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+FC=/usr/local/intel/Compiler/11.1/038/bin/intel64/ifort
+NetCDF=/usr/local/other/netcdf/3.6.3_intel-11.1.038
+CMOR=.
+HDF=/usr/local/other/hdf5/1.8.4/serial_intel-11.1.038
+UDUNITS=/usr/local/other/udunits/2.0.3_intel-10.1.021
+UUID=/usr/local/other/uuid/1.6.2
+
+${FC} $1.f90 -convert big_endian -I${CMOR}/include -L${CMOR}/lib -L. -lcmor -I${NetCDF}/include -L${NetCDF}/lib -lnetcdf -L${HDF}/lib -lhdf5_hl -lhdf5 -L${UDUNITS}/lib -Wl,-rpath=${UDUNITS}/lib -ludunits2 -I${UDUNITS}/include -L${UUID}/lib -Wl,-rpath=${UUID}/lib -luuid -I${UUID}/include -o $1

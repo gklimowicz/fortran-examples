@@ -1,0 +1,315 @@
+Changes from modelE (AR4) to modelE (AR5)
+=========================================
+
+- Higher resolution versions available (2x2.5)
+
+- Cubed Sphere dynamics and grid (C90) resolution
+
+- Multiple changes to cloud schemes
+
+- Incorporation of Menon et al aerosol/cloud microphysics
+
+- Full atmosphere gas phase chemistry
+
+- Ocean biology and full carbon cycle
+
+- Coupler layer for different ocean grids
+
+- Fuller diagnostic output
+
+(note these are a very condensed summary of the differences).
+
+Changes from modelE-2-3-4+ to modelE1 (or 3.0) (AR4) 
+====================================================
+
+- big expansion of tracer coding 
+
+- relative humidity sensitivity of aerosol optical thickness
+
+- new cloud micro-physics
+
+- better separation of convective and stratiform cloud
+
+- more interactions between tracer fields and radiation
+
+- NUDGING facility for trying to reproduce field experiments
+
+- full use of atmospheric turbulence 
+
+- improved historical fields for ozone, aerosols
+
+- new conductance scheme for evapo-transpiration
+
+- extended sub-daily diagnostics
+
+- new diag Hdirun for time series of all fields over last month for
+  selected grid boxes
+
+- option to run with smaller physics time step 
+
+
+Changes from modelE-2-3 to modelE-2-3-4+
+=======================================
+
+- new conductance scheme option for land surface
+
+- preliminary incorporation of wet and dry deposition for gases and
+  aerosols
+
+- angular momentum conservation for UV filter and GW drag
+
+- better modularisation of snow model
+
+- improved option for sea ice albedo (Hansen)
+
+- minor bug fixes and diagnostic improvements
+
+Major changes from version modelE-2-1 to modelE-2-3
+===================================================
+
+- Glacial melt (icebergs) now available as input into ocean
+
+- time varying crop fraction possible
+
+- monthly files for the CH4 oxidation into stratosphere
+
+- Further extensions to sub-daily diagnostics to cover all
+  geopotential heights, temperatures and velocities, and tropopause
+  height
+
+- New scoring statistic for comparsion to observations
+
+- Tested versions at 2x2.5 and 8x10 horizontal resolutions
+
+- More options in stratospheric drag formulation.
+
+- snowice formation now an option 
+
+- zenith angle dependence for all snow/ice albedos
+
+- New ISCCP cloud optical depth/height histograms diagnostics.
+
+- water tracer code in soils
+
+- orbital parameter calculations based on paleo-year
+
+- surface velocities (ice, ocean) no used as input into surface
+  boundary conditions.
+
+
+Major changes from version modelE-2-0-1 to modelE-2-1
+=====================================================
+
+- Qflux model now has option to include ice advection.
+
+- new options for controling cloud optical thickness
+
+- Energy conservation now guaranteed
+
+- New physics for deciding on phase of precip (i.e. how quickly
+  super-cooled precip turns to ice)
+
+- New coding for ground hydrology
+
+- Small corrections for q-flux/seaice modules
+
+- Improved conservation diagnostics (including new text demonstrating
+  conservation properties "conserv.txt")
+
+- Extension to sub-daily diagnostics to include cloud cover (low, mid, high) 
+  and relative humidity values.
+
+- Enhanced diagnostics of cloud radiative properties
+
+- Code is now compatible with PGI (Portland Group) compiler.
+
+Major changes from version modelE-2-0 to modelE-2-0-1
+=====================================================
+
+ - Minor fixes to almost all components
+
+ - New options for snow-age definitions, Sea-ice and SST cycling.
+
+ - netcdf output now fully functional
+
+ - Changes to makefiles for compilation using Linux compilers (Absoft
+   + Lahey/Fujitsu)
+
+Major changes from version modelE-1-3-3 to modelE-2-0
+=====================================================
+
+Atmospheric Model:
+
+ - Advection of Q now done outside dynamics loop
+
+ - New sea ice albedo scheme (pudlling and snowage replaced with
+   prognostic melt-pond fraction and wet/dry snow flag).
+
+ - solar radiation penetration through sea ice now wavelength dependent
+
+ - the basal fluxes between the ice and ocean are calculated using a new
+   turbulence scheme. New routines UNDERICE, iceocean, icelake.
+
+ - parallelisation directives for atmospheric model
+
+ - changes to boundary layer cloud specifications
+
+ - improvements to turbulence calculations (including a fix of a bug
+   that caused problems when the first layer was too thin)
+
+ - fix for mass fluxes over topography to prevent unrealistic
+   precipitation hotspots
+
+ - Multiple vertical resolutions available
+
+ - new interface for radiation to allow more control of greenhouse
+   gases, aerosols etc. from rundeck.
+
+ - Adjustable input of CH4 related stratospheric water vapour
+
+ - Numerous parameters for the gravity wave drag  adjustable from the rundeck 
+
+Coupled Model:
+
+ - Gary's ocean model now fully coupled (plug and play option)
+
+ - Ice dynamics now a completely separate module
+
+ - Ocean heat transport diagnostic in printout
+
+ - much more extensive ocean diagnostics
+
+Tracer code:
+
+ - tracer code for air mass and water mass tracers (uses preprocessing
+   directives set from the run deck)
+
+ - wet/dry deposition code for general tracers (aerosols, particles,
+   water and soluble gases)
+
+ - multiple example tracers pre-coded
+
+Diagnostics: 
+
+ - Numerous errors in diagnostic printout fixed
+
+ - Re-arrangement of budget pages to provide more relevant info.
+
+ - Conservation diagnostics for AM and KE actually add up.
+
+ - Configurable daily and sub-daily diagnsotic output for selected quantities
+
+Run Envrionment:
+
+ - .modelErc file in home directory to enable a configuration to set
+   up a local distribution on any machine
+
+ - automatic compilation of online documentation for any particular
+   configuration. 
+
+ - new 'lock' file method for preventing un-intended writing over of files.
+
+ - MUST USE COMMANDS 'runE' and 'sswE' to start and stop model
+
+ - automatic re-starting with smaller timestep for some crashes (set from 
+   initial rundeck)
+
+Major Changes from Model II' to modelE-1-3-3
+============================================
+
+Variable name changes/re-definitions:
+
+  - FDATA replaced with FLAND/FOCEAN/FLICE/FLAKE/FEARTH
+
+  - GDATA replaced with:
+    SNOWI,HSI  (sea ice)
+    SNOWE,TEARTH,WEARTH,AIEARTH,SNOAGE (earth)
+    TLANDI, SNOWLI (land ice)
+
+  - ODATA replaced with: TOCEAN, RSI and MSI (TLAKE over land)
+
+  - Second order moments are condensed to one array. Whether the
+    quadratic or linear upstream scheme is required now only requires
+    a change in the QUSCOM/QUSDEF modules. Multiple advection routines
+    replaced with one general purpose routine.
+
+  - Arrays that are used for column physics only are now written with
+    the column index first (i.e. L,I,J) for performance improvement
+ 
+  - Ground temperatures for SURFCE/RADIA and PBL are now saved in the
+    GTEMP array.
+
+  - parameters for both the model and all sub modules are now saved in a
+    parameter block that is of variable length and self-documenting
+    (replacing JC/RC in the old code).
+
+Structural and Fortran 90 related changes
+
+  - Common blocks replaced with physics-related MODULEs
+
+  - Model common block (i.e. BB399xyz.COM) now MODEL_COM MODULE
+
+  - physical constants all defined in CONSTANT module
+
+  - Each physical submodule (ie. ice, snow, ocean, land, land ice,
+    clouds,etc.) has it's own fortran MODULE. As far as possible,
+    different modules interact only through fluxes.
+
+  - initialisation of each sub-module is now in init_PHYS (if required)
+
+  - daily processes moved into daily_PHYS (if needed)
+
+  - Many errors in diagnostics and in the seaice/Qflux model corrected
+
+  - lakes are seperated from ocean variables/code.
+
+  - sea ice now seperated from ocean/lakes code. All fluxes are now passed.
+
+  - Explicit use of B-grid velocity points is now implicit.
+
+Diagnostics
+
+  - pdE (used to print diagnostics) is now just an alternate entry to
+    the model, and thus cannot be out of date.
+
+  - diagnostic arrays now addressed by name, not number
+
+Input/Output
+
+  - Named files in rundeck instead of unit numbers
+
+  - FILEMANAGER module to allocate unit numbers
+
+  - input/output decentralized to io_PHYS routines for each PHYS submodule
+
+Runtime environment
+
+  - compiling/linking/setup now under control of an automatic makefile process
+
+  - NAMELIST input:
+      TAUI/E replaced with YEARI/E,MONTHI/E,DATEI/E,HOURI/E (alt. IHOURE)
+      NDPRNT/NDZERO replaced with NIPRNT and NMONAV
+      DT related variables such as NRAD etc, now relate to DTsrc
+      (=1hour)
+      SIGE setting replaced with PLTOP (pressure at the top of
+      the level) - SIGE is now computed.
+      U00 replaced with U00wtr and U00ice (separate numbers for
+      ice and water clouds)
+
+  - Local parameters are now stored in the parameter database which mainly 
+    supplants the NAMELIST input. 
+
+
+New physics
+
+  - Sea ice over the ocean is now formed at TFO (=-1.8 deg).
+
+  - Solar radiation now penetrates into (and through) the sea ice.
+
+  - Sea ice salinity is now a prognostic variable (though not yet
+    fully coupled to the thermodynamics).
+
+  - lake temperature/ice cover are now predicted using a two layer
+    energy/mass conserving model.
+
+  - Turbulence can now be applied throughtout the atmosphere (ATURB.f).

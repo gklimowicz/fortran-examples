@@ -1,0 +1,224 @@
+#include "containers/tmplbase.fh"
+
+! key:
+
+#ifdef _key_string
+#  define _ptrkey character(len=:)
+#  define _trgkey character(len=*)
+#else
+#  define _ptrkey _key
+#  define _trgkey _key
+#endif
+
+#ifdef _key_pointer
+#  define _wrapkey _ptrkey, pointer
+#  define __KEYSET(x, y) x=>y
+#  define __KEYEQ(x, y) sameptr(x, y)
+#  ifndef __KEYCOMP
+#    define __KEYCOMP(x, y) compptr(x, y)
+#  endif
+#elif (defined _key_string)
+#  define _wrapkey _ptrkey, allocatable
+#elif (defined _key_dim)
+#  define _wrapkey _ptrkey, allocatable
+#  define __KEYSET(x, y) __ALLOC_SET(x, y)
+#endif
+
+#ifndef _wrapkey
+#  define _wrapkey _key
+#endif
+
+#ifndef __KEYSET
+#  define __KEYSET(x, y) x=y
+#endif
+
+#ifndef __KEYEQ
+#  ifdef _key_logical
+#    define __KEYEQ(x, y) (x.eqv.y)
+#  else
+#    define __KEYEQ(x, y) (x==y)
+#  endif
+#endif
+
+#ifndef __KEYCOMP
+#  define __KEYCOMP(x, y) x<y
+#endif
+#define __COMPARE(x, y) __KEYCOMP(x%key, y%key)
+
+! value:
+
+#ifdef _value_string
+#  define _ptrvalue character(len=:)
+#  define _trgvalue character(len=*)
+#else
+#  define _ptrvalue _value
+#  define _trgvalue _value
+#endif
+
+#ifdef _value_pointer
+#  define _wrapvalue _ptrvalue, pointer
+#  define __VALSET(x, y) x=>y
+#elif (defined _value_string)
+#  define _wrapvalue _ptrvalue, allocatable
+#elif (defined _value_dim)
+#  define _wrapvalue _ptrvalue, allocatable
+#  define __VALSET(x, y) __ALLOC_SET(x, y)
+#endif
+
+#ifndef _wrapvalue
+#  define _wrapvalue _value
+#endif
+
+#ifndef __VALSET
+#  define __VALSET(x, y) x=y
+#endif
+
+      type, private :: pair
+        _wrapkey :: key
+        _wrapvalue :: value
+      contains
+        procedure :: pairequal
+        generic, public :: operator(==) => pairequal
+      end type pair
+
+#define _entry type(pair)
+#define EQUAL_DEFINED
+#include "containers/tmplhead.fh"
+
+#include "containers/set_decl.fh"
+
+      type, public :: map
+        type(set) :: data
+      contains
+        procedure :: get
+        procedure :: set=>set_value
+        procedure :: at
+#ifdef _DUMP_MAP
+        procedure :: dump=>mapdump
+#endif
+      end type map
+
+      contains
+
+#include "containers/set_impl.fh"
+
+#ifdef _key_pointer
+#define _ptrtype _ptrkey
+#define _trgtype _trgkey
+#include "containers/pointerdef.fh"
+#endif
+
+! =======================
+!  pairequal
+! =======================
+      function pairequal(this, other) result(res)
+      class(pair), intent(in) :: this, other
+      logical :: res
+
+      res=__KEYEQ(this%key, other%key)
+      return
+      end function pairequal
+
+!=========================================================================
+
+! =======================
+!  get
+! =======================
+      function get(this, key, value) result(res)
+      implicit none
+      class(map), intent(in) :: this
+      _trgkey, target, intent(in) :: key
+      _trgvalue, target, intent(out) :: value
+      logical :: res
+      type(pair) :: p
+      type(iter) :: it
+
+      __KEYSET(p%key, key)
+      it=this%data%find(p)
+      res=it/=this%data%iend()
+      if (res) __VALSET(value,it%node%value%value)
+      return
+      end function get
+
+! =======================
+!  set_value
+! =======================
+      subroutine set_value(this, key, value)
+      implicit none
+      class(map), intent(inout) :: this
+      _trgkey, target, intent(in) :: key
+      _trgvalue, target, intent(in) :: value
+      type(pair) :: p
+
+      __KEYSET(p%key, key)
+      __VALSET(p%value, value)
+      call this%data%insert(p)
+      return
+      end subroutine set_value
+
+! =======================
+!  at
+! =======================
+      function at(this, key) result(res)
+      implicit none
+      class(map), intent(inout) :: this
+      _trgkey, target, intent(in) :: key
+#ifdef _value_string
+      character(len=:), allocatable :: res         ! bug in gfortran 4.9.1
+#else
+      _ptrvalue, pointer :: res
+#endif
+      type(pair) :: p
+      type(node), pointer :: ref
+
+      __KEYSET(p%key, key)
+      call this%data%insert(p, ref)
+#ifdef _value_string
+      res=ref%value%value
+#else
+      res=>ref%value%value
+#endif
+      return
+      end function at
+
+#ifdef _DUMP_MAP
+! =======================
+!  mapdump
+! =======================
+      subroutine mapdump(this)
+      implicit none
+      class(map), intent(inout) :: this
+      type(iter) :: it
+      type(pair), pointer :: p
+
+      it=this%data%ibegin()
+      do while (it%good())
+        p=>it%value()
+        write(*, *)p%key, '=>',p%value,'+'
+        call it%next
+      end do
+      return
+      end subroutine mapdump
+#endif
+
+#undef _key
+#undef _value
+#undef _key_string
+#undef _value_string
+#undef _key_pointer
+#undef _value_pointer
+#undef _key_dim
+#undef _value_dim
+#undef _key_logical
+#undef _value_logical
+#undef _ptrkey
+#undef _ptrvalue
+#undef _trgkey
+#undef _trgvalue
+#undef _wrapkey
+#undef _wrapvalue
+#undef __KEYSET
+#undef __KEYEQ
+#undef __KEYCOMP
+#undef __VALSET
+#include "containers/tmpltail.fh"

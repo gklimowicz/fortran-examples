@@ -1,0 +1,8 @@
+fc="ifort" # e.g. ifort
+fcopts=""
+fccmd="${fc} ${fcopts}"
+nchome="/usr/local/other_old/netcdf/3.6.1"
+nclib="-L${nchome}/lib -lnetcdf"
+ncinc="-I${nchome}/include"
+
+${fccmd} miscnc.f offline_regrid.f offregrid_mod.f aijcs2ll.f -o offregrid ${ncinc} ${nclib}

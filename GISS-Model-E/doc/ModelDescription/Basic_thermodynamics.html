@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Basic thermodynamics</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Basic thermodynamics</H3>
+
+<P> The sea ice model can be thought of as consisting of two mass
+layers made up of an upper layer which has a constant thickness (10cm)
+ice layer and an arbitrary snow amount. The second layer mass has a
+minimum thickness of 10 cm, but can grow arbitrarily thick. There are
+two thermal layers in each mass layer which consist of a fixed ratio
+of the mass. Salinity and tracer values are also calculated on the
+same mass ratio, with the exception that salinity is assumed to be
+zero in the snow.  At the surface, heat and mass fluxes calculated in
+the SURFCE routine and the precipitation are applied
+first to the snow layer and then to the ice. There is advection of
+heat, salt and mass as a function of the regridding of the mass layers
+in order to preserve the fixed ratios, i.e. there is a
+sigma-coordinate for sea ice properties.</P>
+
+<p>The basal fluxes are calculated in the ocean only for the
+configurations where ice thickness is prognostic (i.e. not for the
+fixed SST cases). This is done in routine UNDERICE. The fluxes are
+then  applied to both the ice and ocean modules. Similarly, lateral
+fluxes are calculated in MELT_SI. This is done prior to any surface
+fluxes calculation to avoid the problem of changing the surface type
+fractions in the midst of the calculation. </P>
+
+<p>Frazil ice formation can occur in the ocean and lakes in open water
+conditions and under ice. This ice mass formation rate (and it's
+associated salt (for the ocean) and energy flux are calculated in
+either the lake or ocean component and added to the sea ice by routine
+FORM_SI. There is a minimum lead fraction which is a function of the
+ice thickness. </P>
+
+<p> Snow can be compacted into ice by accumulating over a maximum
+thickness, or by rain or surface melting. Surface melting is kept
+track of since it is used to estimate melt pond formation for the
+albedo calculation. No specific snow-ice formation is yet included. </p>
+
+</BODY>
+</HTML>

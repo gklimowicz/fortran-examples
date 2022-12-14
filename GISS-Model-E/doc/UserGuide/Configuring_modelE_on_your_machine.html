@@ -1,0 +1,198 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Configuring modelE on your machine</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+  <meta charset="UTF-8">
+</HEAD>
+<BODY>
+
+<H3>Configuring modelE on your machine</H3>
+
+<P>
+Before you start working with modelE you have to make sure that all
+necessary software is installed on your computer. This includes a
+Fortran compiler (gfortran or intel), netcdf library, MPI library,
+Git and wget. 
+
+<P>
+On Mac OS computer you can install all this software with MacPorts
+(MacPorts have to be installed on your computer, see 
+<A HREF="https://www.macports.org/install.php">MacPorts installation guide</A>
+for instructions). The following instructions assume that you are
+going to work with gfortran 4.9 compiler:
+<pre><code>
+    sudo port -v install gcc49
+    sudo port -v install netcdf +gcc49
+    sudo port -v install netcdf-fortran +gcc49
+    sudo port -v install openmpi +gcc49
+    sudo port -v install git-core
+    sudo port -v install wget
+    sudo port select --set gcc mp-gcc49
+</code></pre>
+Make sure that the directiry with MacPorts executables 
+(<code>/opt/local/bin</code>) appears in your <code>PATH</code> before 
+any of the system directories (this is necessary so that the model
+uses <code>cpp</code> provided by MacPorts, rather than the one 
+which comes with Xcode and lacks GNU compatibility).
+
+<P>
+On Linux machine you can also install these with the package manager (say,
+with <code>yum</code> on CentOS), but it is advisable to compile
+netcdf and openmpi from the source to ensure their compatibility with
+the fortran compiler you are using. If you are running relatively 
+&quot;new&quot; version of Linux (like Fedora 22) you can install
+all necessary binary packages with:
+<pre><code>
+   yum install gcc.x86_64
+   yum install gcc-gfortran.x86_64
+   yum install gcc-c++.x86_64
+   yum install git
+   yum install netcdf.x86_64
+   yum install netcdf-fortran.x86_64
+   yum install netcdf-devel.x86_64
+   yum install netcdf-fortran-devel.x86_64
+   yum install openmpi.x86_64
+   yum install openmpi-devel.x86_64
+</pre></code>
+On Linux, if using yum package for MPI, typically you have to enable it 
+with something like
+<pre>
+   module load openmpi-x86_64
+</pre>
+before you can use in in your shell window. (you may want to add this 
+command to your ~/.profile).
+
+<P>
+On enterprise Linux platforms (such as RedHat or CentOS) the version
+of the default compiler may be too old to be compatible with current
+modelE source code. In such case you may need to install the latest
+Developmant Tool Set. On CentOS you can do it with
+<pre><code>
+   yum install centos-release-scl
+   yum install devtoolset-6
+</pre></code>
+To use it in your current shell, you will need to enable it with
+<pre><code>
+   scl enable devtoolset-6 bash
+</pre></code>
+(make sure that your ~/.bashrc doesn't break it) or you can add
+<pre><code>
+   source /opt/rh/devtoolset-6/enable
+</pre></code>
+to your ~/.bashrc file, so that it is enabled automatically each time
+you start a new shell.
+
+<P>
+Once all necessary software is installed you can proceed to
+downloading the model source code:
+<pre><code>
+    git clone simplex.giss.nasa.gov:/giss/gitrepo/modelE.git
+</code></pre>
+Now switch to &quot;decks&quot; directory (that's where all 
+&quot;make&quot; commands
+should be executed) and execute &quot;make config&quot;:
+<pre><code>
+    cd modelE/decks
+    make config COMPILER=gfortran ModelE_Support=$HOME/ModelE_Support
+</code></pre>
+Here &quot;$HOME/ModelE_Support&quot; is a directory where you want
+modelE to store all its data (input files, administrative data, model
+output etc.). You can use a different path for it if you like. 
+The &quot;config&quot; command will create a
+&quot;ModelE_Support&quot; directory with a necessary directory tree. 
+It will also create a <code>~/.modelErc</code> config file with your
+global settings. You have to edit it to set the type of compiler and
+MPI distribution you are using and also the location of your netcdf
+and MPI libraries. For the software installed with MacPorts in the
+example above you will need to set:
+<pre><code>
+    COMPILER=gfortran
+    NETCDFHOME=/opt/local
+    MPIDISTR=openmpi
+
+    MPIDIR=/opt/local
+    MPIINCLUDEDIR=/opt/local/include/openmpi-mp
+    MPILIBDIR=/opt/local/lib/openmpi-mp
+</code></pre>
+On Linux machine, typically, you would not need the last three lines
+(if MPI package was installed with yum). Instead, you would need to
+load a corresponding shell module (see above). If you have compiled
+MPI library from the source, typically, you would need just to
+set <code>MPIDIR</code>, pointing it to the directory where you
+installed your MPI package.
+
+Your computer should now be ready to run modelE jobs, both serial and
+parallel ones.
+
+<H4>Other options</H4>
+
+<P>
+If you want to use a different compiler, i.e. Intel <code>ifort</code>
+you should set:
+<pre><code>
+    COMPILER=intel
+</code></pre>
+
+<P>
+Standard installation of netcdf library assumes that the library files
+are located in $NETCDFHOME/lib and its include files are in
+$NETCDFHOME/include. If your computer uses a different setup you can
+specify these locations explicitly by setting the variables
+<pre><code>
+    NETCDFLIBDIR
+    NETCDFINCLUDEDIR
+</code></pre>
+
+<P>
+ModelE supports the following MPI distributions: intel, openmpi,
+mpich2, mvapich2, SCALI. Set MPIDISTR variable to the name of the
+distribution you are using. For example if you are using Intel MPI
+set: 
+<pre><code>
+    MPIDISTR=intel
+</code></pre>
+
+<H4>Getting it work with default yum packages on CentOS 5</H4>
+
+<P>
+You will not be able to make it work with default NetCDF package - it
+was compiled with gfortran compiler which is too old. The compilation
+will fail at the time of linking. Instead, compile NetCDF from the
+source as described in Appendix.
+
+<P>
+You can use MPI package which comes with CentOS 5. Both OpenMPI and 
+MPICH2 work, though OpenMPI would produce some warning messages during
+the execution and is less straightforward to configure. So, if you
+have to use precompiled MPI package with CentOS 5, we recommend using
+MPICH2. 
+
+<P>
+MPICH2 seems to come pre-installed on CentOS 5 machines. If not, you
+have to &quot;yum install&quot; the packages &quot;mpich2&quot; and
+&quot;mpich2-devel&quot;. MPICH2 is controlled by Linux modules, so
+before using it in a shell window you have to activate it with 
+<pre>
+    module load mpich2-x86_64
+</pre>
+(you may want to include this command into your ~/.profile or
+~.bashrc). MPICH2 uses a daemon for its communications, so one has to
+start it before starting any MPI jobs:
+<pre>
+    mpd &
+</pre>
+It has to be started only once per session, so don't put it into your
+~/.bashrc . Since information about MPICH2 is provided by a Linux
+module, you don't need to specify MPIDIR. So, variables in your
+~/.modelErc should look like
+<pre>
+    COMPILER=gfortran
+    NETCDFHOME=/opt/netcdf/3.6.3
+    MPIDISTR=mpich2
+</pre>
+Here it is assumed that you have installed your NetCDF library to
+<code>/opt/netcdf/3.6.3</code> .
+
+</BODY>
+</HTML>

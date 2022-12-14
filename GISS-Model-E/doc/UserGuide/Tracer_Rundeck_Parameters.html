@@ -1,0 +1,155 @@
+<!DOCTYPE HTML>
+<HTML lang=en>
+<HEAD>
+  <TITLE>Tracer Rundeck Parameters</TITLE>
+  <link rel="stylesheet" href="modele.css" type="text/css" />
+</HEAD>
+<BODY>
+
+<H3>Description of Tracer Rundeck Parameters</H3>
+
+<p> Many settings for Tracer-related code can be set from parameters in the rundeck. Below is a list of some of these parameters and their settings and sometimes conflicts. Note however that an exhaustive desciption of all combinations and potential conflicts is probably not possible. So it is always a good idea to check from the model output whether what you think should be happening is indeed happening (or seek help from GISS). Below the list is a section describing how to use rundeck parameters to perturb tracer emissions by sector and region. </p>
+ 
+<H4> General or Multi-group Tracer Parameters </H4>
+
+<ul>
+ <li> <tt>*_nBBsources</tt> : Where '*' is the tracer name. Say <tt>CO_nBBsources=2</tt> is set in the rundeck: This tells the model that the final 2 sources listed for tracer CO (if its emission files are listed in the standard way like <tt>CO_01, CO_02...</tt>) are to be treated as biomass burning sources and emitted mixed throughout the PBL rather than strictly as a surface flux. This could be used for any type of emission you would liked treated that way.
+ <li> <tt>*_##_sect, REG_{N,S,E,W}, REGIONS_ARE, SECT_##, SECTORS_ARE</tt> : These are related to tagging of emission source files as belonging to a sector and then scaling sector emissions within rectangular (including global) geographic regions. Please see the special section below. 
+ <li> <tt>COUPLED_CHEM</tt> : if set to 1, couples Shindell chemistry tracers to aerosol tracers (for example aerosols make use of oxidants and gasses make use of sulfate). Setting to 0 decouples, and then some file input is needed. 
+ <li> <tt>no_emis_over_ice</tt> : If this is greater than 0, surface tracer emissions are set to 0 for grid boxes greater than 90% covered by ice. This is rarely used, so please confirm it is working for you.
+</ul>
+
+<H4> Mostly Shindell Chemistry-Related Tracer Parameters </H4>
+
+<ul>
+ <li> <tt>initial_GHG_setup</tt> : Some (GHG chemistry) tracers may have their mixing ratios tied to values prescribed by the radiation code. (See <tt>use_rad_*</tt> parameters below). Due to the order of the main model loop, the best way to initialize such tracers is to run the model setup and save the needed information to files for the current year and then start the model again, reading from those files to initialize the tracers. To do so, one sets <tt>initial_GHG_setup=1</tt> for the first set up, then changes to <tt>initial_GHG_setup=0</tt> for the second (and the rest of the run). This is not generally needed if starting one run from another with tracer continuity (simply keep <tt>initial_GHG_setup=0</tt>). Since the double-setup is tedious, there is also the option of setting up only once with <tt>initial_GHG_setup=1</tt>. In this case, the first time tracers are used (including the chemistry) tracer mass will use tracer defaults which may not be appropriate to your current simulation conditions. But then the appropriate tracers are overwritten with desired values later in the time step. Thus, the initial diagnostics (including therefore the first month's acc file) will be contaminated by a potentially strange chemistry term and a large overwrite term, but this should smooth out quickly and so in many cases one could appropriately do this single setup method and just ingnore the spinup.
+ <li> <tt>o3_yr</tt> : This parameter belongs to the radiation code and is used to choose the climatological ozone input (set to a desired year or to 0 to follow the model date). But it is also used to choose the date of trace-gas emissions, if transient emissions files were provided in the rundeck. A linear interpolation between available time slices is done. If the setting is outside the range of those transient files, the emissions repeat either the first or final time slices available. Note that this does NOT control the aerosol emissions, nor does the <tt>aero_yr</tt> radiation code parameter. You want <tt>aer_int_yr</tt> for that.
+ <li> <tt>aircraft_Tyr1, aircraft_Tyr2</tt> : While the code can generally recognize transient files for 2D surface emissions, as these have a header record of meta-data, this is not the case for a few remaining 3D sources. For example the NOx from aircraft. One can list a multi-time slice file, but the parameters <tt>aircraft_Tyr1</tt> (the year of the first time slice) and <tt>aircraft_Tyr2</tt> (the year of the last time slice) must be defined. For non-transient aircraft source, omit these two parameters or set them equal to each other.
+ <li> <tt>biomass_Tyr1, biomass_Tyr2</tt> : analagous to <tt>aircraft_Tyr1, aircraft_Tyr2</tt> above but for the case where transient <tt>GFED_3D_BIOMASS</tt> (preprocessor option) sources are used. (It is now perhaps easier though to use standard 2D input sources and set <tt>*_nBBsources</tt> parameters, as described above). 
+ <li> <tt>clim_interact_chem</tt> : If set to 1, this allows the chemistry tracers to affect climate via ozone and CH4 in the radiation calculation and via water chemistry altering the model humidity. Note that if this is turned on we tend to set the radiation code parameter <tt>H2ObyCH4</tt> to 0, and when <tt>clim_interact_chem=0</tt>, we tend to set <tt>H2ObyCH4=1</tt>. There are ways to have finer control over this setting. For example, if you want the humidity feedback on but the radiation feedback off, you could set: <tt>clim_interact_chem=1, Lmax_rad_{O3,CH4}=0</tt>.
+ <li> <tt>Lmax_rad_O3</tt> : To use less than all levels of ozone tracer in the radiation code's calculation, one could set this to less than <tt>LM</tt> and it will use levels 1 to <tt>Lmax_rad_O3</tt>.
+ <li> <tt>Lmax_rad_CH4</tt> : To use less than all levels of methane tracer in the radiation code's calculation, one could set this to less than <tt>LM</tt> and it will use levels 1 to <tt>Lmax_rad_CH4</tt>.
+ <li> <tt>use_rad_n2o</tt> : 1 means have tracer N2O follow the mixing ratios in the radiation code's GHG file by using a L=1 overwrite of the tracer each time step. 0 means to use a default general present-day mixing ratio to do the same. 
+ <li> <tt>use_rad_cfc</tt> : 1 means have tracer CFC follow the mixing ratios in the radiation code's GHG file (mixture of cfc11 and cfc12) by using a L=1 overwrite of the tracer each time step. 0 means to use a default general present-day mixing ratio to do the same.
+ <li> <tt>use_rad_ch4</tt> : 1 means have tracer CH4 follow the mixing ratios in the radiation code's GHG file by using a L=1 overwrite of the tracer each time step. 0 means to use a default general present-day mixing ratio to do the same. Therefore, remember to unlist CH4 emissions files from the rundeck when using the <tt>use_rad_ch4=1</tt> method.
+ <li> <tt>tune_lt_land</tt> : linear tuning factor for lightning flash rate over land
+ <li> <tt>tune_lt_sea</tt> : linear tuning factor for lightning flash rate over ocean
+ <li> <tt>PltOx</tt> : the pressure (hPa) above which Ox, NOx, BrOx, and ClOx will be overwritten with climatology. Code default of 0.1 is based on the 23-layer model so won't choose any 40-layer model levels. Recommended setting for 40-layer model is 0.2. 
+ <li> <tt>Tpsc_offset_N</tt> : can be used to offset the temperature at which polar stratospheric clouds form in the Northern Hemisphere
+ <li> <tt>Tpsc_offset_S</tt> : can be used to offset the temperature at which polar stratospheric clouds form in the Southern Hemisphere
+ <li> <tt>use_sol_Ox_cycle</tt> : This is not strictly a tracer code parameter: it can be used to allow the radiation code to alter its file-read ozone based on current year's position in the solar cycle and a parameterization based on tracer ozone simulations. Note that this is not yet available in the case of preprocessor option <tt>RAD_O3_GCM_HRES</tt>.
+ <li> <tt>rad_FL</tt> : 1 means to use the radiation code's fluxes (rebinned) as the photon flux for the fastj2 photolysis code. 0 means the chemistry will use an offline file's photon flux. 
+ <li> <tt>allowSomeChemReinit</tt> : If set to 0 this disallows certain sections of chemistry code from reinitializing (including stratospheric model humidity variable altering!) This is helpful when attempting to initialize tracers/chemistry from the state saved from another run. Note you may still have to set <tt>itime_tr0( )</tt> parameters properly for smooth tracer transitions.
+ <li> <tt>which_trop</tt> : For the non-recommended case where <tt>TRACERS_SPECIAL_Shindell</tt> preprocessor directive is on but <tt>SHINDELL_STRAT_CHEM</tt> is off, this parameter controls what is used as the tropopause for chemistry purposes. 0 means the model calculated meteorological tropopause (<tt>LTROPO(I,J)</tt>) and 1 means a flat level demarcation (<tt>LS1</tt> is the first stratospheric layer). 
+ <li> <tt>nn_or_zon</tt> : for INTERACTIVE_WETLANDS_CH4 preprocessor option on: nn_or_zon=0 searches for neareast-neighbor wetlands emissions when expanding wetlands to a new gridbox; nn_or_zon=1 instead uses the local zonal average of wetland emissions.
+ <li> <tt>int_wet_dist</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: <tt>int_wet_dist=1</tt> allows wetlands to change spatially in addition to magnitude of emissions. <tt>int_wet_dist=0</tt> for magnitude-only. 
+ <li> <tt>ice_age</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: if this is set to non-zero, no wetlands emissions are allowed for latitudes poleward of this setting (in degrees)
+ <li> <tt>ns_wet</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: IMPORTANT: this is how the model knows which methane source to adjust based on the interactive wetlands scheme. For example, if file <tt>CH4_13</tt> is linked to your base CH4 from wetlands, set <tt>ns_wet=13</tt>.
+ <li> <tt>exclude_us_eu</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: <tt>exclude_us_eu=1</tt> excludes the region that is very roughly the United States and Europe from spatially-changing wetlands. <tt>exclude_us_eu=0</tt> allows.
+ <li> <tt>topo_lim</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: upper limit of topographic variation for new wetlands formation
+ <li> <tt>sat_lim</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: lower limit on surface air temperature for new wetlands formation
+ <li> <tt>gw_ulim</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: upper limit on ground wetness for new wetlands formation
+ <li> <tt>gw_llim</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: lower limit on ground wetness for new wetlands formation
+ <li> <tt>SW_lim</tt> : for <tt>INTERACTIVE_WETLANDS_CH4</tt> preprocessor option on: lower limit on short-wave downward flux for new wetlands
+ formation
+ <li> <tt>fix_CH4_chemistry</tt> :  this is no longer is active use (preferred method is to set <tt>use_rad_ch4=1</tt> to keep methane close to radiation code GHG file values). But one can set <tt>fix_CH4_chemistry=1</tt> and the CH4 tracer should be overwritten each time step to its initial conditions, allowing the chemistry to experience the same methane field each time. An even rarer option is to set this to -1 in which case one should be able to read CH4 initial conditions from file <tt>CH4_IC</tt>. 
+ <li> <tt>scale_ch4_IC_file</tt> :  in the rare case of reading CH4 initial conditions from file <tt>CH4_IC</tt> (when <tt>fix_CH4_chemistry=-1</tt>) this <tt>scale_ch4_IC_file</tt> parameter can be used to uniformly scale those initial conditions.
+ <li> <tt>ch4_init_sh, ch4_init_nh</tt> : when not using the preferred method of initial conditions (set <tt>use_rad_ch4=1</tt> to initialize methane close to radiation code GHG file values), one can use these two paramters to set a Northen hemisphere (<tt>ch4_init_nh</tt>) and Southern hemisphere (<tt>ch4_init_sh</tt>) value to initialize CH4. Veritcally some variation is applied using HALOE observations.
+ <li> <tt>PI_run</tt> : long ago, this was used to switch the whole chemistry code to preindustrial condition runs. Its last bit of usefulness is to put into effect the <tt>PIratio_*</tt> parameters (see below) 
+ <li> <tt>PIratio_*</tt> : where '*' is {N,CO_T,CO_S,other,N2O,CFC} These parameters can be used to scale the initial conditions of trace gases and any overwriting they may experience during the run. They are for: N = {NOx, HNO3, N2O5, HO2NO2}, CO_T = CO in the troposphere, CO_S = CO in the stratosphere, other = {PAN, Isoprene, AlkyNit, Alkenes, Paraffin}, N2O = N2O, and CFC = CFC. Note that for N2O and CFC if these are being set by the radiation code's GHG file (recommended) one should set these factors to 1.0 (for <tt>PI_run=1</tt>). These used to be used for scaling trace gas emissions, but this is now done separately (see special section below).
+</ul>
+
+<H4> Mostly Aerosol Tracer Parameters </H4>
+
+<ul>
+ <li> <tt>rad_forc_lev</tt> : controls location of aerosol radiative forcing diagnostics (0 for TOA, 1 for tropopause. If preprocessor option <tt>ACCMIP_LIKE_DIAGS</tt> is used, you must have <tt>rad_forc_lev=0</tt>. There is a online check for this.)
+ <li> <tt>rad_interact_aer</tt> : if equals to 1, aerosols affect radiation. If equals to 0, aerosols are independent of the radiation code. Radiation uses some default aerosol fields.
+ <li> <tt>BBinc</tt> : enhancement factor for carbonaceous aerosols' biomass burning sources (to match GISS AR5 simulations, 1.4 should be used). 1.0 is the default.
+ <li> <tt>aer_int_yr</tt> : select year of aerosol emissions. If set to zero, the actual simulated year will be used.
+ <li> <tt>tune_ss1</tt> : factor to multiply seasalt1 emissions with. Equals to 1.0 if ommitted.
+ <li> <tt>tune_ss2</tt> : factor to multiply seasalt2 emissions with. Equals to 1.0 if ommitted.
+ <li> <tt>OFFLINE_DMS_SS</tt> : If equals to 1, DMS and seasalt emissions are not interactive. Input files are also needed as rundeck parameters: <tt>DMS_SEA</tt>, <tt>SALT1</tt>, <tt>SALT2</tt>
+ <li> <tt>OFFLINE_SS</tt> : If equals to 1, seasalt emissions are not interactive. Input files are also needed as rundeck parameters: <tt>SALT1</tt>, <tt>SALT2</tt>
+ <li> <tt>DMS_SEA</tt> : Input file for DMS emissions when <tt>OFFLINE_DMS_SS</tt> equals to 1.
+ <li> <tt>SALT1</tt> : Input file for seasalt1 emissions when either <tt>OFFLINE_DMS_SS</tt> or <tt>OFFLINE_SS</tt> equal to 1.
+ <li> <tt>SALT2</tt> : Input file for seasalt2 emissions when either <tt>OFFLINE_DMS_SS</tt> or <tt>OFFLINE_SS</tt> equal to 1.
+ <li> <tt>*_om2oc</tt>, where '*' is the tracer name : modify the default organic matter-to-organic carbon (OM/OC) ratio for the specific tracer. Default is 1.4.
+</ul>
+
+<H4> Mostly Dust Tracer Parameters </H4>
+
+<ul>
+ <li> <tt>imDust</tt> : <!-- 0: PDF emission scheme, 1: AEROCOM -->
+ <li> <tt>adiurn_dust</tt> : <!--1: daily dust diagnostics at certain grid points -->
+ <li> <tt>prefDustSources</tt> : <!--  0: Ginoux 2001 w/ vegetation mask ! 1: Ginoux 2009 w/ vegetation mask (current default) ! 2: Ginoux 2009 w/o vegetation, 3: Grini/Zender sources ! 4: Tegen sources, >4: Free choice of emis. parameters -->
+ <li> <tt>fracClayPDFscheme</tt> : <!-- Frac. clay emis, only effective for prefDustSources > 4 -->
+ <li> <tt>fracSiltPDFscheme</tt> : <!-- Frac. silt emis, only effective for prefDustSources > 4; set internally for 0-4 -->
+</ul>
+
+<pre> Other ones to potentially add above:
+prather_limits  (1: to avoid some negative tracers in sub-gridscale)
+diag_rad        (1: additional radiation diagnostics)
+diag_wetdep     (1: additional wet deposition diagnostics)
+itime_tr0 
+to_per_mil
+supsatfac
+water_tracer_ic
+TESObsDiagnosticsOn
+TESObsMinDegFr
+TESObsDataDir
+TESCatDiagnosticsOn
+TESCatMinQuality
+TESCatUseColloc
+TESCatVariableHDOAKOnly
+checktracer_on
+base_isopreneX
+AMP_DIAG_FC
+AMP_RAD_KEY
+FreeFe
+frHemaInQuarAggr
+pureByTotalHematite
+be7_src_param
+</pre>
+
+<H4> Using Rundeck Parameters to Perturb Tracer Emissions by Sector and Region </H4>
+
+<p> For tracers that have emissions files listed in the standard way of <tt>tracerName_01, tracerName_02, ... tracerName_NN</tt>, one can tag emission files as belonging to an emission sector. Then, one can define rectangular regions (including global) and how each sector should be linearly scaled over each region. All this can be done from rundeck parameters, with no code recompilation. It is easiest demonstrated by an example: Say a rundeck has the following files listed:</p>
+<pre>
+CO_01=/path/to/file/CO_biomassBurning.dat
+CO_02=/path/to/file/fossilFuelCO.dat
+CO_03=/path/to/file/OceanCO_2.dat
+CH4_01=/path/to/file/wetlandsCH4.dat
+CH4_02=/path/to/file/CH4_biomassBurning.dat
+CH4_03=/path/to/file/termintes.dat
+</pre>
+<p>Then, let's say we want to cut European CO emissions to 50% and then increase global (multi-species) biomass burning emissions by 20%. One would set that run up with the following parameters:</p>
+<pre>
+! First, tag the emissions files as belonging to sectors, by defining parameters based on their file numbers:
+CO_01_sect='CO BBURN'
+CO_02_sect='CO'
+CO_03_sect='CO'
+CH4_02_sect='BBURN'
+!
+! Next, make a table of regions by defining their North/South/East/West edges in degrees.
+! Careful: they are allowed to oberlap. Note that 3 extra regions are defined here, not
+! strictly needed in this example:
+!                                              
+REGIONS_ARE='global S_Asia E_Asia Europe N_America'
+REG_S=        -90.,    5.,   15.,   25.,      15.
+REG_N=         90.,   35.,   50.,   65.,      55.
+REG_W=       -180.,   50.,   95.,  -10.,    -125.
+REG_E=        180.,   95.,  160.,   50.,     -60.
+!
+! Now, define an order for the sectors, giving them the same names you used to tag source files:
+SECTORS_ARE='CO BBURN'
+! 
+! And, in that order, define the scaling factors to use per sector, per region:
+!        global S_Asia E_Asia Europe N_America
+SECT_01= 1.000, 1.000, 1.000, 0.500,     1.000 ! this is CO sector
+SECT_02= 1.200, 1.000, 1.000, 1.000,     1.000 ! this is the BBURN sector
+! 
+! Remember to check your model output diagnostics, to make sure everything worked as planned. 
+</pre>
+
+</BODY>
+</HTML>

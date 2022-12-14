@@ -1,0 +1,131 @@
+module Test_KeyValuePair_mod
+  use pFUnit_mod
+  use GenericType_mod
+  use KeyValuePair_mod
+  implicit none
+  private
+
+  public :: testGetKey
+  public :: testGetNumValues
+  public :: testGetValue
+  public :: testEquals
+  public :: testReadWriteUnformatted
+
+contains
+
+@Test
+  subroutine testGetKey()
+    type (KeyValuePair_type) :: pair
+
+    pair = KeyValuePair('aKey', GenericType(1))
+    @assertEqual('aKey', getKey(pair)) 
+
+  end subroutine testGetKey
+
+@Test
+  subroutine testGetNumValues()
+    type (KeyValuePair_type) :: pair
+
+    pair = KeyValuePair('aKey', GenericType(1))
+    @assertEqual(1, getNumValues(pair))
+
+    pair = KeyValuePair('aKey', GenericType(1.234d+0))
+    @assertEqual(1, getNumValues(pair))
+
+    pair = KeyValuePair('aKey', GenericType(.true.))
+    @assertEqual(1, getNumValues(pair))
+
+    pair = KeyValuePair('aKey', GenericType('hello'))
+    @assertEqual(1, getNumValues(pair))
+
+    ! lists
+    pair = KeyValuePair('aKey', GenericType([1,2,3]))
+    @assertEqual(3, getNumValues(pair))
+
+    pair = KeyValuePair('aKey', GenericType([1.234d+0]))
+    @assertEqual(1, getNumValues(pair))
+
+    pair = KeyValuePair('aKey', GenericType([.true.,.false.,.true.]))
+    @assertEqual(3, getNumValues(pair))
+
+    pair = KeyValuePair('aKey', GenericType(['hello  ', 'goodbye']))
+    @assertEqual(2, getNumValues(pair))
+
+  end subroutine testGetNumValues
+
+@Test
+  subroutine testGetValue()
+    integer :: expected(2)
+
+    @assertTrue(1 == getValue(KeyValuePair('aKey', GenericType(1))))
+
+    expected = [1,2]
+    @assertTrue(all(expected == getValues(KeyValuePair('aKey', GenericType(expected)))))
+
+  end subroutine testGetValue
+
+@Test
+  subroutine testEquals()
+    integer, parameter :: NUM_CASES = 6
+    type (KeyValuePair_type) :: pairs(6)
+    integer :: i, j
+    logical :: flag
+
+    pairs(1) = KeyValuePair('a', GenericType(1)) 
+    pairs(2) = KeyValuePair('b', GenericType(1))  ! different key
+    pairs(3) = KeyValuePair('b', GenericType(2))  ! different value
+    pairs(4) = KeyValuePair('a', GenericType([1,2])) ! different length
+    pairs(5) = KeyValuePair('a', GenericType([2,1])) ! different order
+    pairs(6) = KeyValuePair('a', GenericType([.true.,.false.])) ! different type
+
+    do i = 1, NUM_CASES
+      do j = 1, NUM_CASES
+        flag = (pairs(i) == pairs(j))
+        if (i == j) then
+          @assertTrue(flag)
+        else
+          @assertFalse(flag)
+        end if
+      end do
+    end do
+
+  end subroutine testEquals
+
+@Test
+  subroutine testReadWriteUnformatted()
+    use GenericType_mod
+    use FileManager
+    integer :: iounit
+
+    type (KeyValuePair_type) :: expectedA
+    type (KeyValuePair_type) :: expectedB
+    type (KeyValuePair_type) :: expectedC
+
+    type (KeyValuePair_type) :: foundA
+    type (KeyValuePair_type) :: foundB
+    type (KeyValuePair_type) :: foundC
+
+    call openUnit('testKeyValuePair.txt', iounit, qold=.false., qbin=.true.)
+
+    expectedA = KeyValuePair('one', GenericType([1,2,3]))
+    expectedB = KeyValuePair('two', GenericType(.true.))
+    expectedC = KeyValuePair('three', GenericType([1.23d+0, 2.34d+0]))
+
+    call writeUnformatted(expectedA, iounit)
+    call writeUnformatted(expectedB, iounit)
+    call writeUnformatted(expectedC, iounit)
+
+    rewind(iounit)
+
+    call readUnformatted(foundA, iounit)
+    call readUnformatted(foundB, iounit)
+    call readUnformatted(foundC, iounit)
+
+    @assertTrue(expectedA == foundA, 'case A')
+    @assertTrue(expectedB == foundB, 'case B')
+    @assertTrue(expectedC == foundC, 'case C')
+    close(iounit, status='delete')
+
+  end subroutine testReadWriteUnformatted
+
+end module Test_KeyValuePair_mod

@@ -1,0 +1,25 @@
+!--------- dust aerosol parameters----------------
+#include "dust_params_general"
+
+!! OMA
+! OMA w/o VMP clouds:
+! for imDust=0:
+scaleDustEmission=1.0
+fracClayPDFscheme=0.0308321981714 ! clay emission parameter from calibration
+fracSiltPDFscheme=0.0476329957222 ! silt emission parameter from calibration
+  !fracClayPDFscheme = 0.5*0.0294128395792[1] * 1.054[2] + 0.5*0.0292867845524[3] * 1.047[4]
+  !fracSiltPDFscheme = 0.5*0.0518615507181[1] * 0.894[2] + 0.5*0.0500018048081[3] * 0.978[4]
+  ![1] emission parameters used for calibration run E72TcadiF40pi_2000 (run with same physics in AR5_v2_branch)
+  ![2] optimization factors calculated from calibration run E72TcadiF40pi_2000
+  ![3] emission parameters used for calibration run E74TcadiF40pi_2000
+  ![4] optimization factors calculated from calibration run E74TcadiF40pi_2000
+! for imDust=3-5:
+!scaleDustEmission=0.2025779939 ! scales total dust emission
+  !scaleDustEmission = 0.30927938[1] * 0.655[2]
+  ![1]: emission parameter used for calibration run E20151001TminNu40AMF_001
+  ![2]: optimization factor calculated from calibration run
+  !fracClayPDFscheme=1.0
+  !fracSiltPDFscheme=1.0
+! for imDust=1:
+!scaleDustEmission=1.0
+!-------------------------------------------------

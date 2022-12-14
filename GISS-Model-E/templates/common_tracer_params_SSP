@@ -1,0 +1,33 @@
+!-----------------------------------------------
+!  Start tracer code parameters:
+!-----------------------------------------------
+!--- define emission sectors above files belong to ---
+CH4_12_sect='WET'
+CH4_09_sect='MISC'
+
+!      (careful; they're allowed to overlap):
+!       ---------define-REGIONS------------
+!        global S.Asia E.Asia Europe N.Amer
+REG_S=    -90.,    5.,   15.,   25.,   15.
+REG_N=     90.,   35.,   50.,   65.,   55.
+REG_W=   -180.,   50.,   95.,  -10., -125.
+REG_E=    180.,   95.,  160.,   50.,  -60.
+!       ---define-regions-names/order------
+REGIONS_ARE='global S_Asia E_Asia Europe N_America'
+!-fit-here--|                                                              |---
+!       ---define-factors-by-sector--------
+!        global S.Asia E.Asia Europe N.Amer
+SECT_01= 1.000, 1.000, 1.000, 1.000, 1.000 ! WET
+SECT_02= 2.000, 1.000, 1.000, 1.000, 1.000 ! MISC
+!       ---define-sectors-names/order------
+SECTORS_ARE='WET MISC'
+!-fit-here--|                                                              |---
+!-----
+
+! Lightning parameterization
+lightning_param=1          ! 1 = Cloud Top Height; 2 = Upward Convective Mass Flux; 3 = Convective Precipitation
+! Lightning tuning parameters
+tune_lt_land=2.5d0
+tune_lt_sea= 5.8d0
+FLASH_PERTURB=1.0d0        ! 1.1 = 10% increase in lightning flash rate globally
+
