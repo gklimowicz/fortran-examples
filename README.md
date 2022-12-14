@@ -5,9 +5,29 @@ The goal is to have a wide variety of example Fortran codes, as found in the wil
 
 I plan to use them as inputs into analyses on Fortran source, such as the investigation for the proposed Fortran 202y preprocessor.
 
+
+# Usage
+To get all these example Fortran projects
+```
+git clone git@github.com:gklimowicz/fortran-examples.git
+git submodule init
+git submodule update
+```
+
+After what seems like forever, you should have some 12GB or so of Fortran example projects.
+
+This works best on a case-sensitive file system.
+Some projects seem to have a few files with filenames that clash on case-insensitive file systems.
+I'm talking to you, `M_process` and `M_system`...
+
+
 # So. Many. Directories.
 The numerous top-level directories each contain the source code for a single "project".
 For projects that come from a super-project (such as "GEOS-ESM"), all the directories begin with the super-project's name as a prefix (such as "GEOS-ESM-AeroApps).
+
+Although this can obscure the `Makefile` and `all-*` file lists in the top-level directory,
+it felt silly to create a `src` directory and put all the projects underneath that.
+
 
 # Metrics
 File names that begin with "all-" contain aggregated lists and metrics for the sample projects.
@@ -36,10 +56,17 @@ The Makefile drives the collection of these repositories. Most of them come from
 Create project lists and metrics as described above.
 
 ## `make add-new-projects`
-Search for new projects to add. Only looks at fortran-lang.org so far.
+Search for new projects to add.
+Only looks at fortran-lang.org so far.
+
+This is broken at the moment.
+To be fixed soon, as fortran-lang.org is a great source for Fortran projects that are actually used.
+
 
 ## `make update-existing-projects`
-Does a `git pull` on each submodule to bring it up to date.
+Do a `git pull` on each project directory here to bring it up to date
+with respect to its home repository.
+
 
 ## `make stats`
 Print a couple lines of interesting statistics about the repository as a whole.
