@@ -1,0 +1,81 @@
+
+! Dielectric function of silicon calculated using real-time evolution. This is
+! done with task=481 which assumes that the A-field is constant in time. The
+! corresponding electric field is thus proportional to a delta function at t=0
+! and its Fourier transform is a constant in frequency.
+
+! Note that task=480 calculates the same but without assuming that the A-field
+! is constant in time. This requires computing J(w)/E(w) which is numerically
+! less stable than that obtained with task=481.
+
+! Make a plot of JTOT_TD.OUT to see how the total current in the unit cell
+! varies over time.
+
+tasks
+  0
+  120
+  121
+  450
+  460
+  481
+
+! no shifting of the atomic positions for the ground-state run
+tshift
+ .false.
+
+! enable conduction band local-orbitals
+lorbcnd
+ .true.
+
+nempty
+  10
+
+! larger k-point set required for good convergence
+ngridk
+  8  8  8
+
+! the dielectric function should be check for convergence with respect to the
+! total simulation time
+tstime
+  800
+
+! likewise convergence should be checked against the time step
+dtimes
+  0.2
+
+! Task 481 requires a constant A-field which should be small enough to remain
+! in the linear regime. This can be done by using a laser pulse of zero
+! frequency but with a full-width at half-maximum which is much larger than the
+! total simulation time (tstime). The phase should be set to 90° to ensure that
+! the pulse is of the form cos(ωt).
+
+! laser pulse parameters
+!  1 - 3 : polarisation vector (including amplitude)
+!  4     : frequency
+!  5     : phase in degrees
+!  6     : chirp rate
+!  7     : peak time
+!  8     : full-width at half-maximum
+pulse
+  1      : number of laser pulses
+  0.1 0.0 0.0   0.0   90.0   0.0   0.0   10000.0
+
+wplot
+  400  100  0  : nwplot, ngrkf, nswplot
+  0.0  0.5     : wplot
+
+avec
+  5.13  5.13  0.0
+  5.13  0.0   5.13
+  0.0   5.13  5.13
+
+sppath
+  '../../../species/'
+
+atoms
+  1                                 : nspecies
+ 'Si.in'                            : spfname
+  2                                 : natoms; atposl below
+  0.0   0.0   0.0
+  0.25  0.25  0.25
+

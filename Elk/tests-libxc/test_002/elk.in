@@ -1,0 +1,63 @@
+
+! Magnetic response of fcc nickel.
+
+tasks
+  0
+  330
+  500
+
+test
+ .true.
+
+xctype
+  100  532  12
+
+fxctype
+  100  532  12
+
+nempty
+  10
+
+lorbcnd
+ .true.
+
+emaxrf
+  1.5
+
+gmaxrf
+  2.0
+
+wplot
+  60  100  1
+  0  0.020
+
+! q-vector of response function
+vecql
+  0.1  0.3  0.0
+
+ngridk
+  10 10 10
+
+spinpol
+  .true.
+
+bfieldc
+  0.0  0.0  0.01
+
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  3.33
+
+sppath
+  '../../species/'
+
+atoms
+  1                                   : nspecies
+  'Ni.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0    0.0  0.0  0.0      : atposl, bfcmt
+

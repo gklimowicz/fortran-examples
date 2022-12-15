@@ -1,0 +1,63 @@
+dnl	Code generator configuration
+dnl	Michele Martone
+dnl
+dnl
+dnl	---------------------------------------------------------------------------
+dnl	Whether we want OpenMP thread level parallelism (EXPERIMENTAL)
+dnl
+dnl define(`RSB_M4_WANT_OMP',`ifelse(`@libmmvbr_cv_openmp@',`yes',`1',`')')dnl
+define(`RSB_M4_WANT_OMP',`ifelse(`@enable_openmp@',`yes',`1',`')')dnl
+define(`RSB_M4_WANT_OMP_IN_RECURSION',`ifelse(`@enable_openmp@',`yes',`1',`')')dnl
+define(`RSB_M4_WANT_OMP_IN_KERNELS',`ifelse(`@enable_openmp@',`yes',`',`')')dnl
+dnl define(`RSB_M4_WANT_OMP_IN_KERNELS',`ifelse(`@enable_openmp@',`yes',`1',`')')dnl
+define(`RSB_M4_MAX_OMP_THREADS',`4')dnl	FIXME : TEMPORARY 
+dnl
+dnl	---------------------------------------------------------------------------
+dnl	Generate code with m4 debug info in it.
+dnl
+define(`RSB_M4_DEBUG',`@RSB_WANT_M4_DBG@')dnl
+dnl
+dnl	---------------------------------------------------------------------------
+dnl	If 1, enables register blocking, in kernels where this is supported (experimental).
+dnl
+define(`RSB_M4_WANT_BLOCKING',`1')dnl
+dnl
+dnl	---------------------------------------------------------------------------
+dnl	The number of registers, in case of register blocking (EXPERIMENTAL).
+dnl
+define(`RSB_M4_REGISTERS',`8')dnl
+dnl
+dnl	---------------------------------------------------------------------------
+define(`RSB_M4_FITTING_SAMPLES',/*12 8*/4)dnl
+dnl
+dnl	---------------------------------------------------------------------------
+define(`RSB_M4_FORTRAN_CONVENTION',`@RSB_WANT_M4_FORTRAN_CONVENTION@')dnl
+dnl
+dnl	---------------------------------------------------------------------------
+define(`RSB_M4_BENCHMARK_MIN_SECONDS',/*0.5*/1.0)dnl
+dnl
+define(`RSB_M4_BENCHMARK_MIN_RUNS',/*5*/10)dnl
+dnl
+dnl	---------------------------------------------------------------------------
+define(`RSB_M4_BUFLEN',128)dnl
+dnl
+dnl	---------------------------------------------------------------------------
+dnl	Implemented types (from 1.3) (same values as RSB_M4_TYPES)
+define(`RSB_M4_IMPLEMENTED_TYPES',`@WANT_TYPES@')dnl
+dnl
+dnl	---------------------------------------------------------------------------
+define(`RSB_M4_USE_RESTRICT',`ifelse(`@enable_restrict@',`yes',`1',`')')dnl
+dnl
+dnl	---------------------------------------------------------------------------
+dnl	Version strings.
+dnl
+define(`RSB_M4_WANT_LIBRSB_VER_DATE',`@LIBRSB_VER_DATE@')dnl
+define(`RSB_M4_WANT_LIBRSB_VER_MAJOR',`@LIBRSB_VER_MAJOR@')dnl
+define(`RSB_M4_WANT_LIBRSB_VER_MINOR',`@LIBRSB_VER_MINOR@')dnl
+define(`RSB_M4_WANT_LIBRSB_LIBRSB_VER',`@LIBRSB_LIBRSB_VER@')dnl
+define(`RSB_M4_WANT_LIBRSB_VER_PATCH',`@LIBRSB_VER_PATCH@')dnl
+define(`RSB_M4_WANT_LIBRSB_VER_PRERS',`@LIBRSB_VER_PRERS@')dnl
+dnl
+dnl	---------------------------------------------------------------------------
+define(`RSB_M4_WANT_20110206_BOUNDED_BOX_PATCH',1)dnl
+dnl	---------------------------------------------------------------------------

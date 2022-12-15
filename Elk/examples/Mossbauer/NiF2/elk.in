@@ -1,0 +1,86 @@
+
+! Calculating the zero field resonance frequencies for NiF2.
+
+! The ground state is antiferromagnetic with moments in the a-b plane.
+! Nonetheless, the experimentally measured hyperfine field originates from
+! domain walls, as explained in R. G. Shulman, Journal of Applied Physics 32,
+! S126 (1961).
+
+! The zero field estimate are ~0.7 T and ~1.3 T in good agreement with the
+! results provided by this example.
+
+! Example by Pietro Bonfa.
+
+tasks
+  0           ! ground-state calculation
+  110         ! determine the magnetic hyperfine field
+
+lmaxi
+  2
+
+rgkmax
+  5.5
+
+gmaxvr
+  16.0
+
+! enable calculation of the dipole field
+tbdip
+ .true.
+
+! enable calculation of the current density (i.e. orbital) contribution to the
+! dipole field
+tjr
+ .true.
+
+! enable spin-orbit coupling
+spinorb
+ .true.
+
+! switch on core polarisation for hyperfine field
+spincore
+  .true.
+
+sppath
+ '../../../species/'
+
+! external field for breaking spin symmetry
+bfieldc
+  0.01  0.0  0.0
+
+reducebf
+  0.75
+
+! very large number of empty states required for hyperfine field
+nempty
+  40
+
+! enable conduction local-orbitals
+lorbcnd
+ .true.
+
+! large number of k-points required
+ngridk
+  6  6  6
+
+avec
+  1.0000000000   0.0000000000   0.0000000000
+  0.0000000000   1.0000000000   0.0000000000
+  0.0000000000   0.0000000000   0.6619957537
+
+scale
+  8.9006099310
+
+atoms
+  2                                  : nspecies
+'Ni.in'                              : spfname 
+  2
+  0.000000000000000   0.000000000000000   0.000000000000000    0.00100000  0.00100000  0.00000000
+  0.500000000000000   0.500000000000000   0.500000000000000   -0.00100000 -0.00100000  0.00000000
+'F.in'                               : spfname
+  4
+  0.303300000000000   0.303300000000000   0.000000000000000    0.00000000  0.00000000  0.00000000
+  0.196700000000000   0.803300000000000   0.500000000000000    0.00000000  0.00000000  0.00000000
+  0.696700000000000   0.696700000000000   0.000000000000000    0.00000000  0.00000000  0.00000000
+  0.803300000000000   0.196700000000000   0.500000000000000    0.00000000  0.00000000  0.00000000
+

@@ -1,0 +1,108 @@
+2022-02-07  Anthony Stone  <ajs1@cam.ac.uk>
+
+	* README: revised to clarify the purpose of the files in the
+	package.
+	* f03gl_glut.f90: added to complete the f03gl_gl*.f90 set of
+	routines.
+	* Makefile: added -fno-range-check flag for gfortran.
+	* A few minor corrections elsewhere.
+
+2020-11-08  Anthony Stone  <ajs1@cam.ac.uk>
+
+	* OpenGL_gl.f90 (OpenGL_GL) and f03gl_gl.f90: The transfer
+	function is not accepted by gfortran v.10 and the int-function
+	version causes an arithmetic overflow in gfortran v.7.5. Lines 553-4
+	now changed to
+        INTEGER(GLbitfield), PARAMETER :: GL_CLIENT_ALL_ATTRIB_BITS = -1 ! i.e. z'ffffffff'
+
+2020-11-06  Anthony Stone  <ajs1@cam.ac.uk>
+
+	* OpenGL_gl.f90 (OpenGL_GL) and f03gl_gl.f90:
+	l.554:
+	    transfer(z'ffffffff',GL_CURRENT_BIT)
+	not accepted by gfortran 10. Changed to
+	    int(z'ffffffff',kind=GL_CURRENT_BIT)
+	All other BOZ constants have been changed from z'nnnnnnnn' to
+	int(z'nnnnnnnn', kind=<kind>), where <kind> is 'GLenum' or
+	'GLbitfield' or whatever GL kind is appropriate.
+
+2019-12-19  Anthony Stone  <ajs1@cam.ac.uk>
+
+	Corrections:
+	GLUT_fonts.c: #include "GL/glut.h" changed to #include "GLUT.h"
+	Makefile: -lXext no longer required in X11LIB
+	In Ubuntu 18.04 it was necessary to add symbolic links in
+	/usr/lib/x86_64-linux-gnu/:
+	sudo ln -s libGL.so.1 libGL.so
+	sudo ln -s libGLU.so.1 libGLU.so
+
+2018-01-09  Anthony Stone  <ajs1@cam.ac.uk>
+
+	OpenGL_freeglut.f90 renamed as OpenGL_old_freeglut.f90
+	New OpenGL_freeglut.f90 copied from f03gl_new_freeglut.f90,
+	which is the version used by Orient.
+
+	The BOZ constants in the form z'nnnn' in the ...glut.f90 files are
+	not standard Fortran, though generally accepted as an extension.
+	They have been changed to int(z'nnnn', kind=GLenum), which is
+	accepted by the standard.
+
+	OpenGL_{open,free}glut.nullfunc.f90: BOZ constants also changed here.
+
+2014-08-01  Anthony Stone  <ajs1@cam.ac.uk>
+
+	* h_interfaces.py: Handling of function return values corrected.
+	"count=1" added to most re.sub calls. Other minor corrections.
+	Printing to stdout suppressed unless the --verbose flag is specified.
+
+2014-07-31  Anthony Stone  <ajs1@cam.ac.uk>
+
+	* h_interfaces.py: first version of Python translation of
+	h_interfaces.pl.
+
+2013-08-06  Anthony Stone  <ajs1@cam.ac.uk>
+
+	* index.html: Minor changes
+
+	* f03gl/h_interfaces.pl, glut_interfaces.pl, Makefile, README:
+	Copyright notices added.
+
+	* new_freeglut.h and f03gl_new_freeglut.f90 added.
+
+2009-10-30  Anthony Stone  <ajs1@cam.ac.uk>
+
+	1. Replaced CHARACTER by CHARACTER(C_CHAR) in spec_interfaces.pl.
+	Also in h_interfaces.pl, h_interfaces.glutnullfunc.pl and
+	glut_interfaces.pl, but haven't tested those.
+
+	2. Replaced CHARACTER by CHARACTER(C_CHAR) directly in the various
+	...glut.f90 files.
+
+	3. Modified spec_interfaces.pl. to add the CString function at the
+	end of the gl module.
+
+	4. Modified spec_interfaces.pl to replace 0xffffffff by
+	transfer(z'ffffffff',GL_CURRENT_BIT) rather than just z'ffffffff',
+	which provokes an overflow error from gfortran. (GL_CURRENT_BIT is
+	an arbitrary previously declared INTEGER(GL_bitfield) variable.)
+
+	5. Added a blank line at the end of glu.spec, which overcomes the
+	failure to declare objW.
+
+	6. Regenerated OpenGL_gl.f90 and OpenGL_glu.f90 and diffed them
+	with the old versions to check that spec.interfaces.pl has done
+	the right thing.
+
+	7. Changed the examples to use CString for string argments.
+
+	8. Provided a gzipped tarfile of the package as well as the zip
+	archive.
+
+	9. Edited the web page. For convenience in maintenance, the web
+	site no longer carries the individual files as well as the zipped
+	package. The links to the individual files in the web page have
+	been replaced by just the file names, but in a coloured font to
+	indicate that they're in the package. Added acknowledgements to
+	those who have sent suggestions (anonymous) and an acknowledgment
+	to Dr Mitchell for the use of his example programs. Added more
+	notes on the Nag and gfortran compilers.

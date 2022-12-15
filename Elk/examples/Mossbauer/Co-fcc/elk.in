@@ -1,0 +1,84 @@
+
+! Calculating the Mossbauer effect hyperfine parameters for fcc Co, namely the
+! contact charge density, the contact magnetic hyperfine field and the electric
+! field gradient (EFG).
+
+! The hyperfine magnetic field is difficult to calculate accurately. This is
+! mainly because most of the contact magnetisation arises from the polarised
+! core s states. One therefore has to switch on core polarisation with
+! 'spincore=.true.', but in addition any semi-core s states should also be moved
+! to the core and thus treated with the full Dirac equation. Also note that the
+! field is quite sensitive to the number of empty states and k-points.
+
+! Also note that the hyperfine field also depends strongly on the choice of
+! functional, with GGA usually yielding larger values. Try running the
+! calculation again with PBE (xctype=20). This may be the better choice of
+! functional for Mossbauer related quantities because of the large density
+! gradients near the nucleus.
+
+tasks
+  0
+  110       : isomer shift and hyperfine field
+  115       : electric field gradient
+
+! uncomment the following lines to enable GGA (PBE)
+!xctype
+!  20
+!
+!msmooth
+!  4
+
+! enable calculation of the dipole magnetic field
+tbdip
+ .true.
+
+! enable calculation of the current density (i.e. orbital) contribution to the
+! dipole field
+tjr
+ .true.
+
+! enable spin-orbit coupling
+spinorb
+ .true.
+
+! switch on core polarisation for hyperfine field
+spincore
+  .true.
+
+! lmaxi should be at least 2 for the EFG calculation
+lmaxi
+  2
+
+! external field for breaking spin symmetry
+bfieldc
+  0.0  0.0  0.001
+
+! very large number of empty states required for hyperfine field
+nempty
+  80
+
+! conduction local-orbitals required
+lorbcnd
+ .true.
+
+! large number of k-points required
+ngridk
+  14 14 14
+
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  3.3448
+
+sppath
+ '../../../species/'
+
+atoms
+   1                                    : nspecies
+'Co.in'                                 : spfname
+   1                                    : natoms; atposl, bfcmt below
+   0.0  0.0  0.0
+

@@ -1,0 +1,53 @@
+
+! Mossbauer hyperfine field for fcc Co including spin and orbital dipole terms.
+
+tasks
+  0
+  110
+  500
+
+test
+ .true.
+
+tbdip
+ .true.
+
+tjr
+ .true.
+
+spinorb
+ .true.
+
+spincore
+  .true.
+
+lorbcnd
+ .true.
+
+bfieldc
+  0.0  0.0  0.01
+
+nempty
+  10
+
+! large number of k-points required
+ngridk
+  8  8  8
+
+avec
+  1.0  1.0  0.0
+  1.0  0.0  1.0
+  0.0  1.0  1.0
+
+scale
+  3.3448
+
+sppath
+ '../../species/'
+
+atoms
+   1                                    : nspecies
+'Co.in'                                 : spfname
+   1                                    : natoms; atposl, bfcmt below
+   0.0  0.0  0.0
+

@@ -1,0 +1,60 @@
+
+! Test of the magnetic anisotropy energy (MAE) for Fe_(1-x)Co_x where x = 1/2
+! and the unit cell is tetragonal of L1_0 type.
+
+tasks
+  28
+  500
+
+test
+ .true.
+
+npmae
+  3
+
+! very tight convergence required
+epspot
+  1.e-8
+
+epsengy
+  1.e-6
+
+rgkmax
+  8.0
+
+ngridk
+  4  4  4
+
+swidth
+  0.01
+
+mixtype
+  3
+
+! artificial strained lattice
+avec
+  0.5  0.5  0.0
+  0.0  1.0  0.0
+  0.0  0.0  1.0
+
+scale1
+  6.8
+
+scale2
+  6.8
+
+scale3
+  7.0
+
+sppath
+  '../../species/'
+
+atoms
+  2                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms; atposl below
+  0.0  0.0  0.0
+  'Co.in'
+  1
+  0.0  0.5  0.5
+

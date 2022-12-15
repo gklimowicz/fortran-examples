@@ -1,0 +1,47 @@
+_SMEKA_library = 1
+
+# Libraries are so/a files.
+_SMEKA_SUFFIXES := $(_SMEKA_SUFFIXES) .so .a
+
+# Default library options
+
+# Default linker flags
+AR ?= ar
+ARFLAGS ?= -ru
+RANLIB ?= ranlib
+RANLIBFLAGS ?=
+LINK ?= $(CC)
+LINK_FLAGS ?= -shared
+
+
+.PHONY: smeka-show-lib
+.NOTPARALLEL: smeka-show-lib
+smeka-show-lib:
+	@echo ""
+	@echo "Linker (static)"
+	@echo "  AR      = $(AR)"
+	@echo "  ARFLAGS = $(ARFLAGS)"
+	@echo "  RANLIB  = $(RANLIB)"
+	@echo "  RANLIBFLAGS = $(RANLIBFLAGS)"
+	@echo "Linker (shared)"
+	@echo "  LINK    = $(LINK)"
+	@echo "  LINK_FLAGS = $(LINK_FLAGS)"
+	@echo "  LIBS    = $(LIBS)"
+	@echo "  LDFLAGS = $(LDFLAGS)"
+	@echo ""
+	@echo "  $(LINK) $(LINK_FLAGS) $(LIBS) $(LDFLAGS)"
+
+show: smeka-show-lib
+
+
+# Define the default library creation options
+%.a:
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
+%.so:
+	$(LINK) $(LINK_FLAGS) -o $@ $^ $(LIBS) $(LDFLAGS)
+
+
+# Local Variables:
+#  mode: makefile-gmake
+# End:

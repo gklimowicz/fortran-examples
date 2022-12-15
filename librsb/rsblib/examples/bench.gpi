@@ -1,0 +1,38 @@
+#!*gnuplot
+# gnuplot -c bench.gpi [bench.dat]
+set terminal postscript eps color enhanced
+set boxwidth 1.0 absolute
+set style fill   solid 1.00 border lt -1
+set grid nopolar
+set grid noxtics nomxtics ytics nomytics noztics nomztics nortics nomrtics \
+ nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics
+set grid layerdefault   lt 0 linecolor 0 linewidth 0.500,  lt 0 linecolor 0 linewidth 0.500
+set key fixed right top vertical Right noreverse enhanced autotitle columnhead nobox
+set style increment default
+set pointsize 2
+set xtics border in scale 0,0 mirror norotate  autojustify
+set xtics out rotate by -45 autojustify
+set xtics  norangelimit 
+set xtics   ()
+set ytics border in scale 0,0 mirror norotate  autojustify
+set ztics border in scale 0,0 nomirror norotate  autojustify
+set cbtics border in scale 0,0 mirror norotate  autojustify
+set rtics axis in scale 0,0 nomirror norotate  autojustify
+set title "bench" 
+df='bench.dat'
+pf='bench.eps'
+if (|ARGV|>=1) { df=ARGV[1]; }
+if (|ARGV|>=2) { pf=ARGV[2]; }
+set output pf
+stats df using ($2) name "DATA_MTX"
+stats df using ($2) name "DATA_FLOPS"
+set xrange [ -0.500000 : DATA_MTX_records - .5000 ] noreverse nowriteback
+set x2range [ * : * ] noreverse writeback
+set ylabel "performance" 
+MAX(v1,v2) = (v1>v2) ? v1 : v2
+set yrange [ 0.00000 : 1.5*MAX(DATA_FLOPS_max,DATA_FLOPS_max) ] noreverse nowriteback
+set y2range [ * : * ] noreverse writeback
+set zrange [ * : * ] noreverse writeback
+set cbrange [ * : * ] noreverse writeback
+set rrange [ * : * ] noreverse writeback
+plot df using ($0+0.0):2:xticlabels(1) title column(3) with boxes

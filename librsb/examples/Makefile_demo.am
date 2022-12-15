@@ -1,0 +1,20 @@
+# This is an example makefile.am you can use with your LIBRSB-based program.
+
+noinst_PROGRAMS=cplusplus$(EXEEXT)
+cplusplus_SOURCES=cplusplus.cpp
+cplusplus_LDADD=$(default_ldadd)
+
+test: $(noinst_PROGRAMS)
+if WANT_CROSS_COMPILE
+	echo " [!] cross-compiling: skipping tests"
+else
+	for f in $(noinst_PROGRAMS); do ./$$f ; done
+endif
+
+distclean-local:
+	rm -f *.rpr
+	rm -fR \
+		AUTHORS COPYING ChangeLog INSTALL install-sh \
+		aclocal.m4 autom4te.cache compile config.* configure depcomp libtool ltmain.sh missing NEWS README Makefile.in
+
+# vim:syntax=automake:number:

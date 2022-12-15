@@ -1,0 +1,94 @@
+# Copyright (c) 2017 Nick Papior <nickpapior@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+# OR OTHER DEALINGS IN THE SOFTWARE.
+# **************************************************************************** #
+
+_SMEKA_project = 1
+
+# Contains specific default information for this
+# project
+
+# Step this version upon new versions
+PROJECT_MAJOR = 0
+PROJECT_MINOR = 1
+PROJECT_MICRO = 0
+PROJECT_VERSION = $(PROJECT_MAJOR).$(PROJECT_MINOR).$(PROJECT_MICRO)
+
+# These are constant default
+PROJECT_NAME = aotus
+
+# Currently we only enable building aotus staticly
+STATIC ?= 1
+SHARED ?= 0
+
+AOTUS_LIB ?= aotus$(LIB_SUFFIX)
+AOTUS_LIB_STATIC ?= lib$(AOTUS_LIB).a
+AOTUS_LIB_SHARED ?= lib$(AOTUS_LIB).so
+
+ifeq ($(STATIC),1)
+  LIBRARIES += $(AOTUS_LIB_STATIC)
+endif
+ifeq ($(SHARED),1)
+  LIBRARIES += $(AOTUS_LIB_SHARED)
+  # Forcefully denote that objects should have
+  # position independent code
+  # THIS IS A SMEKA SETTING
+  PIC = 1
+endif
+
+
+# Default settings for extended precision types
+# They are default off.
+EXTDOUBLE ?= 0
+QUADRUPLE ?= 0
+
+
+# Create custom installation of modules
+.PHONY: install-mod
+.NOTPARALLEL: install-mod
+smeka-install: install-mod
+install-mod: install-version
+install-mod:
+ifneq ($(LIBRARIES),)
+# This should only pass if one wishes to install the aotus library as well
+	install -pm $(_OCT_rwrr) -t $(FMOD_DIR) *.mod
+endif
+
+
+# Although not necessary supplying a version file may be very good
+# for several reasons.
+VERSION_FILE = aotus_version.inc
+.PHONY: install-version
+.NOTPARALLEL: install-version
+install-version:
+	@echo "Creating version file: $(VERSION_FILE)"
+	@echo "#define AOTUS_MAJOR $(PROJECT_MAJOR)" > $(VERSION_FILE)
+	@echo "#define AOTUS_MINOR $(PROJECT_MINOR)" >> $(VERSION_FILE)
+	@echo "#define AOTUS_MICRO $(PROJECT_MICRO)" >> $(VERSION_FILE)
+	@echo "#define AOTUS_VERSION_STR \"$(PROJECT_MAJOR).$(PROJECT_MINOR).$(PROJECT_MICRO)\"" >> $(VERSION_FILE)
+
+
+.PHONY: clean
+clean:
+	-rm -f $(AOTUS_LIB_STATIC) $(AOTUS_LIB_SHARED) *.mod
+
+
+# Local Variables:
+#  mode: makefile-gmake
+# End:

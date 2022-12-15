@@ -1,0 +1,3069 @@
+.TH "rsb.h" 3 "Tue Oct 18 2022" "Version 1.3.0.1" "librsb" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+librsb - 
+rsb.h \- 
+.SH DESCRIPTION
+.br
+ The reference documentation of the \fClibrsb\fP library comes in both HTML and Unix man pages formats\&. 
+.br
+ The following sections/man pages are available: \fBThe librsb library interface (rsb\&.h, optional ones rsb\&.hpp and rsb\&.F90)\fP ; \fBThe Sparse BLAS interface to librsb (blas_sparse\&.h, rsb_blas_sparse\&.F90)\fP ; \fBExample programs and code\fP\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBRSB_SIZEOF\fP(TYPE)   RSB_NUMERICAL_TYPE_SIZE(TYPE)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBrsb_opt_t\fP { \fBRSB_IO_WANT_VERBOSE_INIT\fP =0x000001, \fBRSB_IO_WANT_VERBOSE_EXIT\fP =0x000002, \fBRSB_IO_WANT_OUTPUT_STREAM\fP =0x000003, \fBRSB_IO_WANT_SORT_METHOD\fP =0x000004, \fBRSB_IO_WANT_CACHE_BLOCKING_METHOD\fP =0x000005, \fBRSB_IO_WANT_SUBDIVISION_MULTIPLIER\fP =0x000006, \fBRSB_IO_WANT_VERBOSE_ERRORS\fP =0x000007, \fBRSB_IO_WANT_BOUNDED_BOX_COMPUTATION\fP =0x000008, \fBRSB_IO_WANT_EXECUTING_THREADS\fP =0x000009, \fBRSB_IO_WANT_EXTRA_VERBOSE_INTERFACE\fP =0x000010, \fBRSB_IO_WANT_MEMORY_HIERARCHY_INFO_STRING\fP =0x000011, \fBRSB_IO_WANT_IS_INITIALIZED_MARKER\fP =0x000012, \fBRSB_IO_WANT_MEM_ALLOC_CNT\fP =0x000013, \fBRSB_IO_WANT_MEM_ALLOC_TOT\fP =0x000014, \fBRSB_IO_WANT_LEAF_LEVEL_MULTIVEC\fP =0x000015, \fBRSB_IO_WANT_MAX_MEMORY_ALLOCATIONS\fP =0x000016, \fBRSB_IO_WANT_MAX_MEMORY_ALLOCATED\fP =0x000017, \fBRSB_IO_WANT_LIBRSB_ETIME\fP =0x000018, \fBRSB_IO_WANT_VERBOSE_TUNING\fP =0x000019 }
+.RI "library option values for \fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&. ""
+.br
+.ti -1c
+.RI "enum \fBrsb_extff_t\fP { \fBRSB_EXTF_NORM_ONE\fP =0x00001001, \fBRSB_EXTF_NORM_TWO\fP =0x00001002, \fBRSB_EXTF_NORM_INF\fP =0x00001003, \fBRSB_EXTF_SUMS_ROW\fP =0x00001004, \fBRSB_EXTF_SUMS_COL\fP =0x00001005, \fBRSB_EXTF_ASUMS_ROW\fP =0x00001006, \fBRSB_EXTF_ASUMS_COL\fP =0x00001007, \fBRSB_EXTF_DIAG\fP =0x00000004 }
+.RI "Extraction filter flags, to be used with \fBrsb_mtx_get_nrm()\fP/\fBrsb_mtx_get_vec()\fP\&. ""
+.br
+.ti -1c
+.RI "enum \fBrsb_mif_t\fP { \fBRSB_MIF_INDEX_STORAGE_IN_BYTES__TO__SIZE_T\fP =0x00000001, \fBRSB_MIF_INDEX_STORAGE_IN_BYTES_PER_NNZ__TO__RSB_REAL_T\fP =0x00000002, \fBRSB_MIF_MATRIX_ROWS__TO__RSB_COO_INDEX_T\fP =0x00000004, \fBRSB_MIF_MATRIX_COLS__TO__RSB_COO_INDEX_T\fP =0x00000008, \fBRSB_MIF_MATRIX_NNZ__TO__RSB_NNZ_INDEX_T\fP =0x00000010, \fBRSB_MIF_TOTAL_SIZE__TO__SIZE_T\fP =0x00000020, \fBRSB_MIF_MATRIX_FLAGS__TO__RSB_FLAGS_T\fP =0x00000040, \fBRSB_MIF_MATRIX_TYPECODE__TO__RSB_TYPE_T\fP =0x00000080, \fBRSB_MIF_MATRIX_INFO__TO__CHAR_P\fP =0x00000100, \fBRSB_MIF_LEAVES_COUNT__TO__RSB_BLK_INDEX_T\fP =0x00000200 }
+.RI "Flags for getting matrix information via \fBrsb_mtx_get_info()\fP/\fBrsb_mtx_get_info_str()\fP\&. ""
+.br
+.ti -1c
+.RI "enum \fBrsb_elopf_t\fP { \fBRSB_ELOPF_MUL\fP =0x00000001, \fBRSB_ELOPF_DIV\fP =0x00000002, \fBRSB_ELOPF_POW\fP =0x00000004, \fBRSB_ELOPF_NEG\fP =0x00000008, \fBRSB_ELOPF_SCALE_ROWS\fP =0x00000010, \fBRSB_ELOPF_SCALE_COLS\fP =0x00000020, \fBRSB_ELOPF_SCALE_ROWS_REAL\fP =0x00000040, \fBRSB_ELOPF_SCALE_COLS_REAL\fP =0x00000080 }
+.RI "Flags for specifying a particular elemental/row-wise operation with \fBrsb_mtx_upd_vals()\fP\&. ""
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_lib_init\fP (struct \fBrsb_initopts\fP *iop)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_lib_set_opt\fP (enum \fBrsb_opt_t\fP iof, const void *iop)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_lib_get_opt\fP (enum \fBrsb_opt_t\fP iof, void *iop)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_lib_set_opt_str\fP (const \fBrsb_char_t\fP *opnp, const \fBrsb_char_t\fP *opvp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_lib_reinit\fP (struct \fBrsb_initopts\fP *iop)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_lib_exit\fP (struct \fBrsb_initopts\fP *iop)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_mtx_alloc_from_coo_const\fP (const void *VA, const \fBrsb_coo_idx_t\fP *IA, const \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_mtx_alloc_from_coo_inplace\fP (void *VA, \fBrsb_coo_idx_t\fP *IA, \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_mtx_free\fP (struct rsb_mtx_t *mtxAp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_clone\fP (struct rsb_mtx_t **mtxBpp, \fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_spmv\fP (\fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, const void *Xp, \fBrsb_coo_idx_t\fP incX, const void *betap, void *Yp, \fBrsb_coo_idx_t\fP incY)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_spsv\fP (\fBrsb_trans_t\fP transT, const void *alphap, const struct rsb_mtx_t *mtxTp, const void *Xp, \fBrsb_coo_idx_t\fP incX, void *Yp, \fBrsb_coo_idx_t\fP incY)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_spsm\fP (\fBrsb_trans_t\fP transT, const void *alphap, const struct rsb_mtx_t *mtxTp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void *betap, const void *Bp, \fBrsb_nnz_idx_t\fP ldB, void *Cp, \fBrsb_nnz_idx_t\fP ldC)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_coo_sort\fP (void *VA, \fBrsb_coo_idx_t\fP *IA, \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_type_t\fP typecode, \fBrsb_flags_t\fP flagsA)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_coo_cleanup\fP (\fBrsb_coo_idx_t\fP *nnzp, void *VA, \fBrsb_coo_idx_t\fP *IA, \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_type_t\fP typecode, \fBrsb_flags_t\fP flagsA)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_file_mtx_get_dims\fP (const char *filename, \fBrsb_coo_idx_t\fP *nrp, \fBrsb_coo_idx_t\fP *ncp, \fBrsb_coo_idx_t\fP *nzp, \fBrsb_flags_t\fP *flagsp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_perror\fP (void *stream, \fBrsb_err_t\fP errval)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_strerror_r\fP (\fBrsb_err_t\fP errval, \fBrsb_char_t\fP *buf, size_t buflen)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_upd_vals\fP (struct rsb_mtx_t *mtxAp, enum \fBrsb_elopf_t\fP elop_flags, const void *omegap)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_set_vals\fP (struct rsb_mtx_t *mtxAp, const void *VA, const \fBrsb_coo_idx_t\fP *IA, const \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnz, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_vals\fP (const struct rsb_mtx_t *mtxAp, void *VA, const \fBrsb_coo_idx_t\fP *IA, const \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnz, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_file_mtx_save\fP (const struct rsb_mtx_t *mtxAp, const \fBrsb_char_t\fP *filename)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_file_vec_save\fP (const \fBrsb_char_t\fP *filename, \fBrsb_type_t\fP typecode, const void *Yp, \fBrsb_coo_idx_t\fP yvl)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_file_vec_load\fP (const \fBrsb_char_t\fP *filename, \fBrsb_type_t\fP typecode, void *Yp, \fBrsb_coo_idx_t\fP *yvlp)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_file_mtx_load\fP (const \fBrsb_char_t\fP *filename, \fBrsb_flags_t\fP flagsA, \fBrsb_type_t\fP typecode, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_sppsp\fP (\fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_trans_t\fP transB, const void *betap, const struct rsb_mtx_t *mtxBp, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_spmsp\fP (\fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_trans_t\fP transB, const void *betap, const struct rsb_mtx_t *mtxBp, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_add_to_dense\fP (const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_nnz_idx_t\fP ldB, \fBrsb_nnz_idx_t\fP nrB, \fBrsb_nnz_idx_t\fP ncB, \fBrsb_bool_t\fP rowmajorB, void *Bp)"
+.br
+.ti -1c
+.RI "\fBrsb_trans_t\fP \fBrsb_psblas_trans_to_rsb_trans\fP (const char psbtrans)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_mtx_alloc_from_csr_const\fP (const void *VA, const \fBrsb_coo_idx_t\fP *RP, const \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_mtx_alloc_from_csc_const\fP (const void *VA, const \fBrsb_coo_idx_t\fP *IA, const \fBrsb_coo_idx_t\fP *CP, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_mtx_alloc_from_csr_inplace\fP (void *VA, \fBrsb_nnz_idx_t\fP *RP, \fBrsb_coo_idx_t\fP *JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_switch_to_csr\fP (struct rsb_mtx_t *mtxAp, void **VAp, \fBrsb_coo_idx_t\fP **IAp, \fBrsb_coo_idx_t\fP **JAp, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_coo\fP (const struct rsb_mtx_t *mtxAp, void *VA, \fBrsb_coo_idx_t\fP *IA, \fBrsb_coo_idx_t\fP *JA, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_csr\fP (\fBrsb_type_t\fP typecode, const struct rsb_mtx_t *mtxAp, void *VA, \fBrsb_nnz_idx_t\fP *RP, \fBrsb_coo_idx_t\fP *JA, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_rows_sparse\fP (\fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, void *VA, \fBrsb_coo_idx_t\fP *IA, \fBrsb_coo_idx_t\fP *JA, \fBrsb_coo_idx_t\fP frA, \fBrsb_coo_idx_t\fP lrA, \fBrsb_nnz_idx_t\fP *rnzp, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_coo_block\fP (const struct rsb_mtx_t *mtxAp, void *VA, \fBrsb_coo_idx_t\fP *IA, \fBrsb_coo_idx_t\fP *JA, \fBrsb_coo_idx_t\fP frA, \fBrsb_coo_idx_t\fP lrA, \fBrsb_coo_idx_t\fP fcA, \fBrsb_coo_idx_t\fP lcA, const \fBrsb_coo_idx_t\fP *IREN, const \fBrsb_coo_idx_t\fP *JREN, \fBrsb_nnz_idx_t\fP *rnzp, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_spmm\fP (\fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void *Bp, \fBrsb_nnz_idx_t\fP ldB, const void *betap, void *Cp, \fBrsb_nnz_idx_t\fP ldC)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_spmsp_to_dense\fP (\fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_trans_t\fP transB, const void *betap, const struct rsb_mtx_t *mtxBp, \fBrsb_nnz_idx_t\fP ldC, \fBrsb_nnz_idx_t\fP nrC, \fBrsb_nnz_idx_t\fP ncC, \fBrsb_bool_t\fP rowmajorC, void *Cp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_rndr\fP (const char *filename, const struct rsb_mtx_t *mtxAp, \fBrsb_coo_idx_t\fP pmWidth, \fBrsb_coo_idx_t\fP pmHeight, \fBrsb_marf_t\fP rflags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_file_mtx_rndr\fP (void *pmp, const char *filename, \fBrsb_coo_idx_t\fP pmlWidth, \fBrsb_coo_idx_t\fP pmWidth, \fBrsb_coo_idx_t\fP pmHeight, \fBrsb_marf_t\fP rflags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_switch_to_coo\fP (struct rsb_mtx_t *mtxAp, void **VAp, \fBrsb_coo_idx_t\fP **IAp, \fBrsb_coo_idx_t\fP **JAp, \fBrsb_flags_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_prec\fP (void *opdp, const struct rsb_mtx_t *mtxAp, \fBrsb_precf_t\fP prec_flags, const void *ipdp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_info\fP (const struct rsb_mtx_t *mtxAp, enum \fBrsb_mif_t\fP miflags, void *minfop)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_info_str\fP (const struct rsb_mtx_t *mtxAp, const \fBrsb_char_t\fP *mis, void *minfop, size_t buflen)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_nrm\fP (const struct rsb_mtx_t *mtxAp, void *Np, enum \fBrsb_extff_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_get_vec\fP (const struct rsb_mtx_t *mtxAp, void *Dp, enum \fBrsb_extff_t\fP flags)"
+.br
+.ti -1c
+.RI "\fBrsb_time_t\fP \fBrsb_time\fP (void)"
+.br
+.ti -1c
+.RI "struct rsb_mtx_t * \fBrsb_mtx_alloc_from_coo_begin\fP (\fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP *errvalp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_mtx_alloc_from_coo_end\fP (struct rsb_mtx_t **mtxApp)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_tune_spmm\fP (struct rsb_mtx_t **mtxOpp, \fBrsb_real_t\fP *sfp, \fBrsb_int_t\fP *tnp, \fBrsb_int_t\fP maxr, \fBrsb_time_t\fP maxt, \fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void *Bp, \fBrsb_nnz_idx_t\fP ldB, const void *betap, void *Cp, \fBrsb_nnz_idx_t\fP ldC)"
+.br
+.ti -1c
+.RI "\fBrsb_err_t\fP \fBrsb_tune_spsm\fP (struct rsb_mtx_t **mtxOpp, \fBrsb_real_t\fP *sfp, \fBrsb_int_t\fP *tnp, \fBrsb_int_t\fP maxr, \fBrsb_time_t\fP maxt, \fBrsb_trans_t\fP transA, const void *alphap, const struct rsb_mtx_t *mtxAp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void *Bp, \fBrsb_nnz_idx_t\fP ldB, const void *betap, void *Cp, \fBrsb_nnz_idx_t\fP ldC)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.br
+ The reference documentation of the \fClibrsb\fP library comes in both HTML and Unix man pages formats\&. 
+.br
+ The following sections/man pages are available: \fBThe librsb library interface (rsb\&.h, optional ones rsb\&.hpp and rsb\&.F90)\fP ; \fBThe Sparse BLAS interface to librsb (blas_sparse\&.h, rsb_blas_sparse\&.F90)\fP ; \fBExample programs and code\fP\&. 
+
+In general, users of this library are interested in high performance sparse matrix computations on cache based shared memory parallel computers\&. 
+.br
+ For this, \fClibrsb\fP offers a native C interface (here documented) and a Fortran one (in \fBrsb\&.F90\fP, equivalent to the C declaration headers from \fBrsb\&.h\fP), in addition to the Sparse BLAS one (both C and Fortran, documented)\&. 
+.br
+ Please refer to optional <\fBrsb\&.hpp\fP> for the C++ API\&.
+.PP
+Configuration, build, and installation instructions are contained in the \fCREADME\fP file distributed in the sources archive\&.
+.PP
+\fB Typical C program structure \fP
+.PP
+.PD 0
+.IP "\(bu" 2
+initialize \fClibrsb\fP with \fBrsb_lib_init()\fP 
+.IP "\(bu" 2
+(in any order) allocate matrices (e\&.g\&.: with \fBrsb_mtx_alloc_from_coo_inplace()\fP or others); do any computation with them (e\&.g\&.: \fBrsb_spmv()\fP, \fBrsb_spsv()\fP ); converting matrices (e\&.g\&.: with \fBrsb_mtx_switch_to_coo()\fP ); freeing matrices (\fBrsb_mtx_free()\fP ) 
+.IP "\(bu" 2
+finalize \fClibrsb\fP with \fBrsb_lib_exit()\fP
+.PP
+\fB Important usage notes \fP
+.PP
+\fB General C program structure \fP Before calling any \fClibrsb\fP function, a program is required to initialize \fClibrsb's\fP internal status\&. This is done by calling \fBrsb_lib_init()\fP \&. Afterwards, any \fClibrsb\fP function can be safely used\&. When \fClibrsb\fP functions are not intended to be called anymore, a program may call \fBrsb_lib_exit()\fP to free any resource\&. Then, \fBrsb_lib_init()\fP should be called for further usage of \fClibrsb\fP\&.
+.PP
+\fB Manipulating matrices and vectors \fP In order to use \fClibrsb\fP, the user is not required to use explicitly any of \fClibrsb's\fP data structures: their manipulation is to be performed by \fClibrsb\fP functions\&. Therefore, knowledge of \fClibrsb's\fP matrix type (\fCrsb_mtx_t\fP) is not necessary at all: this structure is intended to be used as an opaque container\&.
+.PP
+On the contrary, arrays for numerical vectors (or more generally, dense matrices) are expected to be managed by the user: \fClibrsb\fP does not furnish any specific vector type\&. Computational functions treat dense vectors/matrices are simple arrays of a specified type; see the \fBExample programs and code\fP \&.
+.PP
+\fB Computational functions \fP This library can be configured at build time to support a custom subset of numerical types\&. To keep the programming interface compact, it has been decided to not replicate the computational functions to each numerical type\&. Instead, the type is expected to be specified by the user via a type flag\&. For instance, matrix assembly functions (e\&.g\&.: \fBrsb_mtx_alloc_from_coo_const()\fP ) accept a type information and keep it stored in the matrix structure\&. Therefore, computational functions (e\&.g\&.: \fBrsb_spmv()\fP ) can fetch this information from their \fCrsb_mtx_t\fP operand, and treat accordingly the other parameters (e\&.g\&.: \fIalphap\fP, \fIXp\fP, \&.\&.\&.)\&. Mixed type operations are currently not supported\&.
+.PP
+\fB Memory management \fP
+.PP
+Matrix structures (\fCrsb_mtx_t\fP) allocated by \fClibrsb\fP shall be freed only via \fBrsb_mtx_free()\fP \&.
+.PP
+\fB Benchmarking \fP
+.PP
+If you want to benchmark this library, there are different possibilities: 
+.PP
+.nf
+#!/bin/bash
+
+set -e
+set -x
+
+# the benchmark command assumes A\&.mtx is a file in Matrix Market format
+rsbench -oa -Ob --bench --nmb -f pd\&.mtx
+
+# it has many (librsb development-oriented) options
+rsbench -oa -Ob --help
+
+# this is mostly a development tool so don't rely on much more than the above\&.
+
+.fi
+.PP
+.PP
+\fB Tuning and Customization \fP
+.PP
+There are different \fC\fP\&./configure options you may look at for tuning or customizing the library\&. 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define RSB_SIZEOF(TYPE)   RSB_NUMERICAL_TYPE_SIZE(TYPE)"
+Use \fBRSB_SIZEOF\fP macro to get the size (in bytes) of a type supported by the library (e\&.g\&.: when allocating numerical vectors)\&. 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBrsb_elopf_t\fP"
+
+.PP
+Flags for specifying a particular elemental/row-wise operation with \fBrsb_mtx_upd_vals()\fP\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIRSB_ELOPF_MUL \fP\fP
+Elemental multiplication of the matrix by a specified scalar (usable with \fBrsb_mtx_upd_vals()\fP, binary operation)\&. 
+.TP
+\fB\fIRSB_ELOPF_DIV \fP\fP
+Elemental division by a specified scalar (usable with \fBrsb_mtx_upd_vals()\fP, binary operation)\&. 
+.TP
+\fB\fIRSB_ELOPF_POW \fP\fP
+Elemental power to a specified scalar (usable with \fBrsb_mtx_upd_vals()\fP, binary operation)\&. 
+.TP
+\fB\fIRSB_ELOPF_NEG \fP\fP
+Elemental negation (usable with \fBrsb_mtx_upd_vals()\fP, unary operation)\&. 
+.TP
+\fB\fIRSB_ELOPF_SCALE_ROWS \fP\fP
+Row wise scaling by a specified scaling vector (usable with \fBrsb_mtx_upd_vals()\fP, binary operation)\&. 
+.TP
+\fB\fIRSB_ELOPF_SCALE_COLS \fP\fP
+Column wise scaling by a specified scaling vector (usable with \fBrsb_mtx_upd_vals()\fP, binary operation)\&. 
+.TP
+\fB\fIRSB_ELOPF_SCALE_ROWS_REAL \fP\fP
+Row wise scaling by a specified scaling vector\&. If matrix is of a complex type, the argument is expected to be of the corresponding real type (assumed that that type has been enabled)\&. (usable with \fBrsb_mtx_upd_vals()\fP, binary operation)\&. 
+.TP
+\fB\fIRSB_ELOPF_SCALE_COLS_REAL \fP\fP
+Column wise scaling by a specified scaling vector\&. If matrix is of a complex type, the argument is expected to be of the corresponding real type (assumed that that type has been enabled)\&. (usable with \fBrsb_mtx_upd_vals()\fP, binary operation)\&. 
+.SS "enum \fBrsb_extff_t\fP"
+
+.PP
+Extraction filter flags, to be used with \fBrsb_mtx_get_nrm()\fP/\fBrsb_mtx_get_vec()\fP\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIRSB_EXTF_NORM_ONE \fP\fP
+\fBrsb_mtx_get_nrm()\fP flag value for computing the one-norm\&. 
+.TP
+\fB\fIRSB_EXTF_NORM_TWO \fP\fP
+\fBrsb_mtx_get_nrm()\fP flag value for computing the two-norm (Frobenius norm)\&. 
+.TP
+\fB\fIRSB_EXTF_NORM_INF \fP\fP
+\fBrsb_mtx_get_nrm()\fP flag value for computing the infinity-norm\&. 
+.TP
+\fB\fIRSB_EXTF_SUMS_ROW \fP\fP
+\fBrsb_mtx_get_vec()\fP flag value for computing the sum along each row\&. 
+.TP
+\fB\fIRSB_EXTF_SUMS_COL \fP\fP
+\fBrsb_mtx_get_vec()\fP flag value for computing the sum along each column\&. 
+.TP
+\fB\fIRSB_EXTF_ASUMS_ROW \fP\fP
+\fBrsb_mtx_get_vec()\fP flag value for computing the absolute values sum, along each row\&. 
+.TP
+\fB\fIRSB_EXTF_ASUMS_COL \fP\fP
+\fBrsb_mtx_get_vec()\fP flag value for computing the absolute values sum, along each column\&. 
+.TP
+\fB\fIRSB_EXTF_DIAG \fP\fP
+\fBrsb_mtx_get_vec()\fP flag value for extracting the diagonal submatrix\&. 
+.SS "enum \fBrsb_mif_t\fP"
+
+.PP
+Flags for getting matrix information via \fBrsb_mtx_get_info()\fP/\fBrsb_mtx_get_info_str()\fP\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIRSB_MIF_INDEX_STORAGE_IN_BYTES__TO__SIZE_T \fP\fP
+Index storage occupation, in bytes\&. (size_t) 
+.TP
+\fB\fIRSB_MIF_INDEX_STORAGE_IN_BYTES_PER_NNZ__TO__RSB_REAL_T \fP\fP
+Index storage occupation per nnz, in bytes\&. (\fBrsb_real_t\fP) 
+.TP
+\fB\fIRSB_MIF_MATRIX_ROWS__TO__RSB_COO_INDEX_T \fP\fP
+Rows count(\fBrsb_coo_idx_t\fP) 
+.TP
+\fB\fIRSB_MIF_MATRIX_COLS__TO__RSB_COO_INDEX_T \fP\fP
+Columns count (\fBrsb_coo_idx_t\fP) 
+.TP
+\fB\fIRSB_MIF_MATRIX_NNZ__TO__RSB_NNZ_INDEX_T \fP\fP
+Nonzeroes count (\fBrsb_nnz_idx_t\fP) 
+.TP
+\fB\fIRSB_MIF_TOTAL_SIZE__TO__SIZE_T \fP\fP
+Total size, in bytes (size_t) 
+.TP
+\fB\fIRSB_MIF_MATRIX_FLAGS__TO__RSB_FLAGS_T \fP\fP
+Matrix flags (\fBrsb_flags_t\fP) 
+.TP
+\fB\fIRSB_MIF_MATRIX_TYPECODE__TO__RSB_TYPE_T \fP\fP
+Matrix type code (\fBrsb_type_t\fP) 
+.TP
+\fB\fIRSB_MIF_MATRIX_INFO__TO__CHAR_P \fP\fP
+Matrix info string, only for \fBrsb_mtx_get_info_str()\fP (\fBrsb_char_t\fP*) 
+.TP
+\fB\fIRSB_MIF_LEAVES_COUNT__TO__RSB_BLK_INDEX_T \fP\fP
+Leaf submatrices count (\fBrsb_blk_idx_t\fP) 
+.SS "enum \fBrsb_opt_t\fP"
+
+.PP
+library option values for \fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIRSB_IO_WANT_VERBOSE_INIT \fP\fP
+\fBRSB_IO_WANT_VERBOSE_INIT\fP prompts for a verbose initialization of the library: messages will be written to the file descriptor (\fCFILE*\fP) pointed by the value pointer when calling \fBrsb_lib_init\fP or \fBrsb_lib_reinit\fP\&. 
+.TP
+\fB\fIRSB_IO_WANT_VERBOSE_EXIT \fP\fP
+\fBRSB_IO_WANT_VERBOSE_EXIT\fP prompts for a verbose finalization of the library: messages will be written to the file descriptor (\fCFILE*\fP) pointed by the value pointer when calling \fBrsb_lib_exit\fP\&. 
+.TP
+\fB\fIRSB_IO_WANT_OUTPUT_STREAM \fP\fP
+Specifies the default output stream\&. Output (debug info) info will be written to the file descriptor (\fCFILE*\fP) pointed by the value pointer\&. 
+.TP
+\fB\fIRSB_IO_WANT_SORT_METHOD \fP\fP
+Specifies the default sorting method\&. Specified as a pointed integer (\fBrsb_int_t\fP) number, in {[0],1}\&. (internal) 
+.TP
+\fB\fIRSB_IO_WANT_CACHE_BLOCKING_METHOD \fP\fP
+Specifies the default cache blocking method\&. Specified as a pointed integer (\fBrsb_int_t\fP) number, in {-1,[0],1}\&. (internal) 
+.TP
+\fB\fIRSB_IO_WANT_SUBDIVISION_MULTIPLIER \fP\fP
+Specifies a multiplier for finer (if >1\&.0) or coarser (if <1\&.0) subdivisions\&. Specified as a pointed (\fBrsb_real_t\fP) number, in {\&.\&.,[1\&.0],\&.\&.}\&. (internal) 
+.TP
+\fB\fIRSB_IO_WANT_VERBOSE_ERRORS \fP\fP
+Prompts for a verbose error reporting: messages will be written to the file descriptor (\fCFILE*\fP) pointed by the value pointer\&. Only meaningful if an interface error verbosity greater than 0 was set at configure time\&. 
+.TP
+\fB\fIRSB_IO_WANT_BOUNDED_BOX_COMPUTATION \fP\fP
+Prompts for bounded box computation, for a smoother submatrices locking; pointed \fBrsb_int_t\fP in {0,[1]}\&. (internal)\&. 
+.TP
+\fB\fIRSB_IO_WANT_EXECUTING_THREADS \fP\fP
+Specifies the number of desired executing threads; pointed \fBrsb_int_t\fP in {[0],1,\&.\&.}\&. 
+.TP
+\fB\fIRSB_IO_WANT_EXTRA_VERBOSE_INTERFACE \fP\fP
+Specifies the level of interface verbosity; if setting, pointed \fBrsb_int_t\fP values should be in {[0],1,\&.\&.}\&. Support may be enabled or disabled at build time via the \fC--enable-internals-error-verbosity\fP configure option\&. If disabled, only getting is supported and yields -1, but setting is not supported and the \fBRSB_ERR_NO_STREAM_OUTPUT_CONFIGURED_OUT\fP error will be returned\&. 
+.TP
+\fB\fIRSB_IO_WANT_MEMORY_HIERARCHY_INFO_STRING \fP\fP
+Specifies a custom memory hierarchy info string; pointed \fCconst\fP \fBrsb_char_t\fP*; (may point to a NULL string pointer)\&. 
+.TP
+\fB\fIRSB_IO_WANT_IS_INITIALIZED_MARKER \fP\fP
+Used for getting whether the library has been initialized (\fBRSB_BOOL_TRUE\fP) or not (\fBRSB_BOOL_FALSE\fP) ; pointed \fCconst\fP \fBrsb_bool_t\fP*; (this is NOT for general users)\&. 
+.TP
+\fB\fIRSB_IO_WANT_MEM_ALLOC_CNT \fP\fP
+Used for getting the count of memory allocations performed by librsb employing librsb's memory allocation wrapper (if disabled, will return zero); pointed \fCconst\fP \fCsize_t*\fP; (this is for debugging purposes)\&. 
+.TP
+\fB\fIRSB_IO_WANT_MEM_ALLOC_TOT \fP\fP
+Used for getting the total amount of memory allocated by librsb employing librsb's memory allocation wrapper (if disabled, will return zero); pointed \fCconst\fP \fCsize_t*\fP; (this is for debugging purposes)\&. 
+.TP
+\fB\fIRSB_IO_WANT_LEAF_LEVEL_MULTIVEC \fP\fP
+Specifies whether the default multi-vector ops shall act at a leaf level (default value of 0 is yes)\&. Specified as a pointed integer (\fBrsb_int_t\fP) number, in {-1,[0]}\&. (internal) 
+.TP
+\fB\fIRSB_IO_WANT_MAX_MEMORY_ALLOCATIONS \fP\fP
+Specifies an upper limit to the count of allocated memory areas (default value of 0 means no limit)\&. Specified as a pointed \fCsize_t\fP\&. Only works if the memory wrapper (\fC--enable-allocator-wrapper\fP) has been specified at configure time\&. 
+.TP
+\fB\fIRSB_IO_WANT_MAX_MEMORY_ALLOCATED \fP\fP
+Specifies an upper limit to the amount of allocated memory (default value of 0 means no limit)\&. Specified as a pointed \fCsize_t\fP\&. Only works if the memory wrapper (\fC--enable-allocator-wrapper\fP) has been specified at configure time\&. 
+.TP
+\fB\fIRSB_IO_WANT_LIBRSB_ETIME \fP\fP
+Represents time spent in librsb\&. Specified as a pointed \fBrsb_time_t\fP\&. Only works if statistics collection (\fC--enable-librsb-stats\fP) was specified at configure time\&. 
+.TP
+\fB\fIRSB_IO_WANT_VERBOSE_TUNING \fP\fP
+Auto tuning verbosity level for rsb_tune_spmm/rsb_tune_spsm\&. If 0, no verbosity; if 1, verbose; if 2, verbose with trace files being dumped\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBrsb_err_t\fP rsb_coo_cleanup (\fBrsb_coo_idx_t\fP * nnzp, void * VA, \fBrsb_coo_idx_t\fP * IA, \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_type_t\fP typecode, \fBrsb_flags_t\fP flagsA)"
+Compacts the given COO input arrays representing a sparse matrix $A$\&. Will either sum together duplicates or use the last one, depending on whether \fBRSB_FLAG_DUPLICATES_KEEP_LAST\fP or \fBRSB_FLAG_DUPLICATES_SUM\fP is present in flagsA\&.
+.PP
+It is important that the input is sorted and flagsA shall contain RSB_FLAG_SORTED_INPUT, otherwise the algorithm's complexity will be quadratic\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInnzp\fP Pointer to the number of nonzeroes after the cleanup\&. 
+.br
+\fIVA,IA,JA\fP Output numerical values (\fCVA\fP) array; output row (\fCIA\fP) and column (\fCJA\fP) indices arrays\&. 
+.br
+\fInnzA\fP The number of nonzeroes in the input arrays representing matrix $A$\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fIflagsA\fP A valid combination of matrix storage flags\&. If unsure, use \fBRSB_FLAG_NOFLAGS\fP\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_time\fP, \fBrsb_coo_sort\fP 
+.PP
+\fBrsb_coo_sort\fP
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+This is an experimental librsb-1\&.3 function\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+By invoking with swapped \fCIA\fP and \fCJA\fP (and swapping \fCnrA\fP and \fCncA\fP as well) one can obtain column major order\&.
+.RE
+.PP
+Examples:
+.PP
+.PP
+.nf
+       rsb_err_t errval = RSB_ERR_NO_ERROR;
+        rsb_nnz_idx_t nnzA = 4;
+        const rsb_coo_idx_t  nrA = 4;
+        const rsb_coo_idx_t  ncA = 4;
+        rsb_coo_idx_t    IA[] = { 1, 1, 1, 2 };
+        rsb_coo_idx_t    JA[] = { 1, 1, 3, 2 };
+        RSB_DEFAULT_TYPE VA[] = { 1, 10, 13, 22 };
+        const rsb_type_t typecode = RSB_NUMERICAL_TYPE_DEFAULT;
+        rsb_flags_t flagsA = RSB_FLAG_DUPLICATES_SUM | RSB_FLAG_SORTED_INPUT;
+        // IA={1,1,1,2} JA={1,1,3,2} VA={1,10,13,22} nnzA=4 nrA=4 nca=4
+
+        if((errval = rsb_lib_init(RSB_NULL_INIT_OPTIONS))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        errval = rsb_coo_cleanup(&nnzA, VA, IA, JA,
+                 nnzA, nrA, ncA, typecode, flagsA );
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_coo_cleanup!\n");
+                goto err;
+        }
+        // IA={1,1,2} JA={1,3,2} VA={11,13,22} nnzA=3 nrA=4 nca=4
+.fi
+.PP
+ 
+.PP
+.nf
+        rsb_err_t errval = RSB_ERR_NO_ERROR;
+        rsb_nnz_idx_t nnzA = 3;
+        const rsb_coo_idx_t  nrA = 2;
+        const rsb_coo_idx_t  ncA = 2;
+        rsb_coo_idx_t    IA[] = { 1, 1, 1 };
+        rsb_coo_idx_t    JA[] = { 2, 1, 1 };
+        RSB_DEFAULT_TYPE VA[] = { 1, 2, 3 };
+        const rsb_type_t typecode = RSB_NUMERICAL_TYPE_DEFAULT;
+        const rsb_flags_t flagsA = RSB_FLAG_DUPLICATES_SUM 
+                        | RSB_FLAG_SORTED_INPUT
+                        | RSB_FLAG_FORTRAN_INDICES_INTERFACE;
+
+        // IA={1,1,1} JA={2,1,1} VA={1,2,3} nnzA=3 nrA=2 nca=2
+        errval =rsb_coo_sort(VA, IA, JA, nnzA, nrA, ncA,  typecode, flagsA);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_coo_cleanup!\n");
+                goto err;
+        }
+        // IA={1,1,1} JA={1,1,2} VA={2,3,1} nnzA=3 nrA=2 nca=2
+
+        errval = rsb_coo_cleanup(&nnzA, VA, IA, JA, nnzA,
+                 nrA, ncA, typecode, flagsA );
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_coo_cleanup!\n");
+                goto err;
+        }
+        // IA={1,1} JA={1,2} VA={5,1} nnzA=2 nrA=2 nca=2
+
+.fi
+.PP
+ 
+.SS "\fBrsb_err_t\fP rsb_coo_sort (void * VA, \fBrsb_coo_idx_t\fP * IA, \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_type_t\fP typecode, \fBrsb_flags_t\fP flagsA)"
+Sorts row-major the given COO input arrays representing a sparse matrix $A$\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIVA,IA,JA\fP Output numerical values (\fCVA\fP) array; output row (\fCIA\fP) and column (\fCJA\fP) indices arrays\&. 
+.br
+\fInnzA\fP The number of nonzeroes in the input arrays representing matrix $A$\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. If any of nrA or ncA is zero, no sort occurs\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fIflagsA\fP A valid combination of matrix storage flags\&. If unsure, use \fBRSB_FLAG_NOFLAGS\fP\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_time\fP, \fBrsb_coo_sort\fP
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+By invoking with swapped \fCIA\fP and \fCJA\fP (and swapping \fCnrA\fP and \fCncA\fP as well) one can obtain column major order\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_file_mtx_get_dims (const char * filename, \fBrsb_coo_idx_t\fP * nrp, \fBrsb_coo_idx_t\fP * ncp, \fBrsb_coo_idx_t\fP * nzp, \fBrsb_flags_t\fP * flagsp)"
+Reads structural information (dimensions, structural flags) for a matrix file into user specified (and optionally \fCNULL\fP) variables\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfilename\fP The specified matrix file name (cannot be \fCNULL\fP)\&. 
+.br
+\fInrp,ncp\fP Output pointers to rows and columns count variables (can be \fCNULL\fP)\&. 
+.br
+\fInzp\fP Output pointer to the nonzeroes count variable (can be \fCNULL\fP)\&. 
+.br
+\fIflagsp\fP Output pointer to the detected structural flags variable\&. Will be a combination of \fBRSB_FLAG_LOWER\fP, \fBRSB_FLAG_UPPER\fP, \fBRSB_FLAG_SYMMETRIC\fP, \fBRSB_FLAG_HERMITIAN\fP\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. If read dimensions are illegal (see \fBrsb_coo_idx_t\fP,\fBrsb_nnz_idx_t\fP), \fBRSB_ERR_LIMITS\fP will be returned\&.
+.RE
+.PP
+Example getting dimensions of a sparse matrix stored in a Matrix Market file: 
+.PP
+.nf
+       if(RSB_ERR_NO_ERROR!=(errval =
+                rsb_file_mtx_get_dims("pd\&.mtx",&nrA,&ncA,&nnzA,NULL)))
+        {
+                if(errval != RSB_ERR_UNSUPPORTED_FEATURE)
+                        goto err; /* may have not configured what needed */
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+The only sparse matrix file format currently supported is Matrix Market\&. E\&.g\&.: 
+.PP
+.nf
+%%MatrixMarket matrix coordinate real symmetric
+%
+% A Hilbert Matrix of order 3, so with 3 rows, 3 columns, and 6 nonzeroes.
+%
+3 3 6
+1 1 1.0
+2 1 0.5
+2 2 0.33
+3 1 0.33
+3 2 0.25
+3 3 0.2
+
+.fi
+.PP
+ In the above example header on the first line, you can specify either \fCreal\fP or \fCcomplex\fP or \fCpattern\fP for the numerical type\&. Either \fCgeneral\fP, \fCsymmetric\fP, \fChermitian\fP can be specified for the structure\&. In case of \fCpattern\fP matrices, only coordinate indices will be loaded (saving \fCpattern\fP matrices is not yet supported); in case of \fCreal\fP matrices, also one coefficient value will be saved/loaded; in the case of \fCcomplex\fP matrices, both the real and imaginary parts will be saved/loaded in addition to the indices\&. 
+.PP
+Upper/lower flags will not be reported; hermitiannes do\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_file_mtx_load (const \fBrsb_char_t\fP * filename, \fBrsb_flags_t\fP flagsA, \fBrsb_type_t\fP typecode, \fBrsb_err_t\fP * errvalp)"
+Loads a sparse matrix from the specified matrix file, assembling it in the format specified by flags, using the numerical type representation as specified by the user\&. Extra input errors or warnings verbosity can be enabled via the \fC\fP\&./configure \fC--enable-internals-error-verbosity\fP option\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfilename\fP The specified matrix file name (cannot be \fCNULL\fP)\&. 
+.br
+\fIflagsA\fP A valid combination of matrix storage flags\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+The only sparse matrix file format currently supported is Matrix Market\&. E\&.g\&.: 
+.PP
+.nf
+%%MatrixMarket matrix coordinate real symmetric
+%
+% A Hilbert Matrix of order 3, so with 3 rows, 3 columns, and 6 nonzeroes.
+%
+3 3 6
+1 1 1.0
+2 1 0.5
+2 2 0.33
+3 1 0.33
+3 2 0.25
+3 3 0.2
+
+.fi
+.PP
+ In the above example header on the first line, you can specify either \fCreal\fP or \fCcomplex\fP or \fCpattern\fP for the numerical type\&. Either \fCgeneral\fP, \fCsymmetric\fP, \fChermitian\fP can be specified for the structure\&. In case of \fCpattern\fP matrices, only coordinate indices will be loaded (saving \fCpattern\fP matrices is not yet supported); in case of \fCreal\fP matrices, also one coefficient value will be saved/loaded; in the case of \fCcomplex\fP matrices, both the real and imaginary parts will be saved/loaded in addition to the indices\&.
+.RE
+.PP
+Example loading a matrix from a Matrix Market file: 
+.PP
+.nf
+ mtxAp = rsb_file_mtx_load("pd\&.mtx",
+                RSB_FLAG_NOFLAGS,typecode,NULL);
+        if(!mtxAp)
+        {
+                return EXIT_FAILURE;
+        }
+
+.fi
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_info\fP, \fBrsb_mtx_get_info_str\fP, \fBrsb_file_mtx_save\fP, \fBrsb_file_vec_load\fP, \fBrsb_file_mtx_load\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_file_mtx_rndr (void * pmp, const char * filename, \fBrsb_coo_idx_t\fP pmlWidth, \fBrsb_coo_idx_t\fP pmWidth, \fBrsb_coo_idx_t\fP pmHeight, \fBrsb_marf_t\fP rflags)"
+Renders as pixel map the matrix contained in a matrix file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpmp\fP Pixel map array pointer\&. 
+.br
+\fIfilename\fP The specified matrix file name (cannot be \fCNULL\fP)\&. 
+.br
+\fIpmlWidth\fP stride between lines (in pixels; no less than \fCpmWidth\fP)\&. 
+.br
+\fIpmWidth\fP Pixel map width (in pixels or points)\&. 
+.br
+\fIpmHeight\fP Pixel map height (in pixels or points)\&. 
+.br
+\fIrflags\fP The color mode; only \fBRSB_MARF_RGB\fP is supported for now (1 byte per channel, 3 channels --- red, green, blue): this requires array \fCpmp\fP to be at least (3*\fCpmlWidth*\fCpmHeight\fP)\fP bytes large\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+At the time being, \fCpmlWidth\fP is required to be equal to \fCpmWidth\fP\&.
+.RE
+.PP
+Example rendering a matrix from a Matrix Market file to a pixelmap in memory: 
+.PP
+.nf
+       /* matrices can be rendered from file to a pixelmap as well */
+        {
+                unsigned char pixmap[3*2*2];
+
+                if(RSB_ERR_NO_ERROR!=(errval =
+                rsb_file_mtx_rndr(pixmap,"pd\&.mtx",2,2,2,RSB_MARF_RGB)))
+                        goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_rndr\fP, \fBrsb_file_mtx_rndr\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_file_mtx_save (const struct rsb_mtx_t * mtxAp, const \fBrsb_char_t\fP * filename)"
+Saves the given matrix to the specified matrix file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIfilename\fP The specified output file name (if \fCNULL\fP or '' (the empty string), will write to standard output)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+Some structural info contained in the matrix structural flags may be lost in the output data\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+The only sparse matrix file format currently supported is Matrix Market\&. E\&.g\&.: 
+.PP
+.nf
+%%MatrixMarket matrix coordinate real symmetric
+%
+% A Hilbert Matrix of order 3, so with 3 rows, 3 columns, and 6 nonzeroes.
+%
+3 3 6
+1 1 1.0
+2 1 0.5
+2 2 0.33
+3 1 0.33
+3 2 0.25
+3 3 0.2
+
+.fi
+.PP
+ In the above example header on the first line, you can specify either \fCreal\fP or \fCcomplex\fP or \fCpattern\fP for the numerical type\&. Either \fCgeneral\fP, \fCsymmetric\fP, \fChermitian\fP can be specified for the structure\&. In case of \fCpattern\fP matrices, only coordinate indices will be loaded (saving \fCpattern\fP matrices is not yet supported); in case of \fCreal\fP matrices, also one coefficient value will be saved/loaded; in the case of \fCcomplex\fP matrices, both the real and imaginary parts will be saved/loaded in addition to the indices\&.
+.RE
+.PP
+Example, printing a matrix to standard output: 
+.PP
+.nf
+       if(RSB_ERR_NO_ERROR!=(errval = rsb_file_mtx_save(mtxAp,NULL)))
+        {
+                if(errval != RSB_ERR_UNSUPPORTED_FEATURE)
+                        goto err;
+        }
+
+.fi
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_info\fP, \fBrsb_mtx_get_info_str\fP, \fBrsb_file_mtx_save\fP, \fBrsb_file_vec_load\fP, \fBrsb_file_mtx_load\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_file_vec_load (const \fBrsb_char_t\fP * filename, \fBrsb_type_t\fP typecode, void * Yp, \fBrsb_coo_idx_t\fP * yvlp)"
+Loads a dense vector from the specified file, using the numerical type representation as specified by the user\&. This function is intended to be called in two steps: first with \fCYp=NULL\fP, in order to write the vector length to \fC*yvlp\fP ; then, with \fCyvlp=NULL\fP, to get \fCYp\fP written\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfilename\fP The specified vector file name (cannot be \fCNULL\fP)\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fIYp\fP The input array vector\&. 
+.br
+\fIyvlp\fP An optional pointer (can be \fCNULL\fP)\&. If supplied, vector length will be written here, and no vector will be read\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example loading vector matrix from file 
+.PP
+.nf
+ /* also vectors can be loaded */
+        if(RSB_ERR_NO_ERROR!=(errval = 
+                rsb_file_vec_load("vf\&.mtx",typecode,NULL,&vl )))
+                goto err;
+        /* we expect vf\&.mtx to be 6 rows long */
+        if( vl != 6 )
+        {
+                goto err;
+        }
+
+        if(RSB_ERR_NO_ERROR!=(errval = 
+                rsb_file_vec_load("vf\&.mtx",typecode,XV, NULL )))
+                goto err;
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+The only dense vector file format currently supported is Matrix Market\&. E\&.g\&.: 
+.PP
+.nf
+%%MatrixMarket matrix array complex general
+% Test MatrixMarket file with a complex vector.
+% Note: a blank line like the following is OK.
+
+6           1
+11.000000000000000E+000 12.000000000000000E+000 
+21.000000000000000E+000 22.000000000000000E+000 
+31.000000000000000E+000 32.000000000000000E+000 
+41.000000000000000E+000 42.000000000000000E+000 
+51.000000000000000E+000 52.000000000000000E+000 
+61.000000000000000E+000 62.000000000000000E+000 
+
+.fi
+.PP
+ In the above example header on the first line, you can specify either \fCreal\fP or \fCcomplex\fP or \fCpattern\fP for the numerical type\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_info\fP, \fBrsb_mtx_get_info_str\fP, \fBrsb_file_mtx_save\fP, \fBrsb_file_vec_load\fP, \fBrsb_file_mtx_load\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_file_vec_save (const \fBrsb_char_t\fP * filename, \fBrsb_type_t\fP typecode, const void * Yp, \fBrsb_coo_idx_t\fP yvl)"
+Saves a dense vector to the specified file, using the numerical type representation as specified by the user\&. This function assumes \fCYp!=NULL\fP and \fCyvl>0\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfilename\fP The specified vector file name (cannot be \fCNULL\fP)\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fIYp\fP The output array vector\&. 
+.br
+\fIyvl\fP Output vector length\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+The only dense vector file format currently supported is Matrix Market\&. E\&.g\&.: 
+.PP
+.nf
+%%MatrixMarket matrix array complex general
+% Test MatrixMarket file with a complex vector.
+% Note: a blank line like the following is OK.
+
+6           1
+11.000000000000000E+000 12.000000000000000E+000 
+21.000000000000000E+000 22.000000000000000E+000 
+31.000000000000000E+000 32.000000000000000E+000 
+41.000000000000000E+000 42.000000000000000E+000 
+51.000000000000000E+000 52.000000000000000E+000 
+61.000000000000000E+000 62.000000000000000E+000 
+
+.fi
+.PP
+ In the above example header on the first line, you can specify either \fCreal\fP or \fCcomplex\fP or \fCpattern\fP for the numerical type\&.
+.RE
+.PP
+Example printing to standard output: 
+.PP
+.nf
+      errval = rsb_file_vec_save(NULL, typecode, X, nrA);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error printing vector!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_info\fP, \fBrsb_mtx_get_info_str\fP, \fBrsb_file_mtx_save\fP, \fBrsb_file_vec_load\fP, \fBrsb_file_mtx_load\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_lib_exit (struct \fBrsb_initopts\fP * iop)"
+Finalize \fClibrsb\fP\&. 
+.br
+\fBrsb_lib_exit\fP should be called after having freed all matrices\&. 
+.br
+If not all of the data structures were properly deallocated before, this function may still attempt finalizing the library and return the \fBRSB_ERR_MEMORY_LEAK\fP error code (this depends on the \fC--enable-allocator-wrapper\fP configure time option)\&. Any allocated memory will be lost (\fClibrsb\fP does not keep track of allocated matrices)\&. 
+.br
+Internal library state will be cleared\&. After this call, it is legal to initialize the library again, by calling \fBrsb_lib_init()\fP\&. 
+.br
+On an error, the library state may be inconsistent, so it is advisable to either terminate program execution (rather than forcing a new initialization with \fBrsb_lib_init()\fP)\&. 
+.br
+Parameter \fCiop\fP is reserved for future use; for now it is safe to pass \fBRSB_NULL_EXIT_OPTIONS\fP\&. 
+.br
+It should be safe to call \fBrsb_lib_exit()\fP more than once\&. 
+.br
+ 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIiop\fP A pointer to a \fBrsb_initopts\fP structure with library options\&. It may be \fCNULL\fP (or better, \fBRSB_NULL_INIT_OPTIONS\fP/\fBRSB_NULL_EXIT_OPTIONS\fP) for specifying default options\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+An example snippet declaring an error variable accumulator at program's beginning: 
+.PP
+.nf
+      rsb_err_t errval = RSB_ERR_NO_ERROR;
+
+.fi
+.PP
+and finalizing the library at program's end: 
+.PP
+.nf
+        if((errval = rsb_lib_exit(RSB_NULL_EXIT_OPTIONS))
+                        != RSB_ERR_NO_ERROR)
+        {
+                printf("Error finalizing the library!\n");
+                goto err;
+        }
+
+.fi
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_lib_get_opt (enum \fBrsb_opt_t\fP iof, void * iop)"
+Gets value of a library option\&. 
+.br
+A value specified by the request flag \fCiof\fP will be fetched from the library internal state and \fC*iop\fP will be updated accordingly\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIiof\fP library options flags\&. See \fBrsb_opt_t\fP for a list of valid options\&. 
+.br
+\fIiop\fP library options value output pointer (pointed location will be updated)\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP 
+.PP
+\fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_lib_init (struct \fBrsb_initopts\fP * iop)"
+This is the library initialization function\&. 
+.br
+It must be called only once before using any other library function\&. 
+.br
+It is allowed to call it again after \fBrsb_lib_exit()\fP\&. 
+.br
+To fine-tune the library behaviour, one may specify a number of options via the \fCiop\fP parameter\&. 
+.br
+Options may be specified also after \fBrsb_lib_init()\fP by calling \fBrsb_lib_reinit()\fP\&. 
+.br
+One may call \fBRSB_REINIT_SINGLE_VALUE_GET\fP with flag \fBRSB_IO_WANT_IS_INITIALIZED_MARKER\fP to verify whether the library has been initialized or not\&. 
+.br
+If the \fCRSB_NUM_THREADS\fP environment variable is set, \fBrsb_lib_init()\fP uses it and sets the number of active threads, thus overriding what detected by the OpenMP runtime (e\&.g\&. \fCOMP_NUM_THREADS\fP)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIiop\fP A pointer to a \fBrsb_initopts\fP structure with library options\&. It may be \fCNULL\fP (or better, \fBRSB_NULL_INIT_OPTIONS\fP/\fBRSB_NULL_EXIT_OPTIONS\fP) for specifying default options\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+An example snippet declaring an error variable accumulator at program's beginning: 
+.PP
+.nf
+    rsb_err_t errval = RSB_ERR_NO_ERROR;
+
+.fi
+.PP
+and initializing the library soon thereafter: 
+.PP
+.nf
+        if((errval = rsb_lib_init(RSB_NULL_INIT_OPTIONS)) != 
+                        RSB_ERR_NO_ERROR)
+        {
+                printf("Error initializing the library!\n");
+                goto err;
+        }
+
+.fi
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_lib_reinit (struct \fBrsb_initopts\fP * iop)"
+Changes the library operation options which were set at initialization time either by a user or as defaults\&. 
+.br
+Not all options may be supported, depending on build time library settings\&. 
+.br
+If an unsupported option was specified, an appropriate error (e\&.g\&.: \fBRSB_ERR_UNSUPPORTED_OPERATION\fP) will be returned\&. 
+.br
+On the first error, option processing is interrupted and the remaining options (if any) are not processed\&. 
+.br
+Program execution may continue safely even if an error code is returned (that is, library status should be consistent)\&. 
+.br
+ 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIiop\fP A pointer to a \fBrsb_initopts\fP structure with library options\&. It may be \fCNULL\fP (or better, \fBRSB_NULL_INIT_OPTIONS\fP/\fBRSB_NULL_EXIT_OPTIONS\fP) for specifying default options\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+.PP
+.nf
+    rsb_err_t errval = RSB_ERR_NO_ERROR;
+        struct rsb_initopts io;
+
+        rsb_int_t ione={1};
+        enum rsb_opt_t keys[]={RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE};
+        void*values[]={&ione};
+        io\&.action=RSB_IO_SPECIFIER_SET;
+        io\&.keys=keys;
+        io\&.values=values;
+        io\&.n_pairs=1;
+
+        if((errval = rsb_lib_init(RSB_NULL_INIT_OPTIONS))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // won't print anything
+        if((errval = rsb_lib_reinit(&io))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // may print verbose message (depends on configure)
+        if((errval = rsb_lib_reinit(NULL))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // may print verbose message (depends on configure)
+        if((errval = rsb_lib_set_opt_str(
+                "RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE","0"))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // won't print anything anymore
+        if((errval = rsb_lib_exit(&io))
+                        != RSB_ERR_NO_ERROR) goto err;
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_lib_set_opt (enum \fBrsb_opt_t\fP iof, const void * iop)"
+Sets value of a library option\&. 
+.br
+A value specified by the request flag \fCiof\fP will be fetched from \fC*iop\fP and will be used to update the selected option in the library internal state\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIiof\fP library options flags\&. See \fBrsb_opt_t\fP for a list of valid options\&. 
+.br
+\fIiop\fP library options value output pointer (pointed location will be updated)\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+                rsb_int_t evi=1; 
+
+                /* Setting a single optional library parameter\&. */
+                errval = rsb_lib_set_opt(
+                        RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE, &evi);
+                if(errval != RSB_ERR_NO_ERROR)
+                {
+                       /*! [Copy error message to string] */
+                        char errbuf[256];
+                        rsb_strerror_r(errval,&errbuf[0],sizeof(errbuf));
+                        printf("Failed setting the"
+                        " RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE"
+                        " library option (reason string:\n%s)\&.\n",errbuf);
+                       /*! [Copy error message to string] */
+                        if(errval&RSB_ERRS_UNSUPPORTED_FEATURES)
+                        {
+                          printf("This error may be safely ignored\&.\n");
+                        }
+                        else
+                        {
+                          printf("Some unexpected error occurred!\n");
+                          goto err;
+                        }
+                }
+                else
+                {
+                        printf("Setting back the "
+                                "RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE"
+                                " library option\&.\n");
+                        evi = 0;
+                        errval = rsb_lib_set_opt(RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE,
+                                        &evi);
+                        errval = RSB_ERR_NO_ERROR;
+                }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP 
+.PP
+\fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_lib_set_opt_str (const \fBrsb_char_t\fP * opnp, const \fBrsb_char_t\fP * opvp)"
+Specifies individual library options in order to fine-tune the library behaviour\&. 
+.br
+Both the option name and the value shall be expressed as strings, identical to their preprocessor identifiers (see \fBrsb_opt_t\fP )\&. The \fCopnp\fP string will be translated internally to the corresponding request flag values, and the passed value will be parsed out of the \fCopvp\fP string\&. 
+.br
+ 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIopnp\fP A pointer to a library option input name string (may not be \fCNULL\fP)\&. 
+.br
+\fIopvp\fP A pointer to a library option input value string (may not be \fCNULL\fP)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+.PP
+.nf
+        rsb_err_t errval = RSB_ERR_NO_ERROR;
+        struct rsb_initopts io;
+
+        rsb_int_t ione={1};
+        enum rsb_opt_t keys[]={RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE};
+        void*values[]={&ione};
+        io\&.action=RSB_IO_SPECIFIER_SET;
+        io\&.keys=keys;
+        io\&.values=values;
+        io\&.n_pairs=1;
+
+        if((errval = rsb_lib_init(RSB_NULL_INIT_OPTIONS))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // won't print anything
+        if((errval = rsb_lib_reinit(&io))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // may print verbose message (depends on configure)
+        if((errval = rsb_lib_reinit(NULL))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // may print verbose message (depends on configure)
+        if((errval = rsb_lib_set_opt_str(
+                "RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE","0"))
+                        != RSB_ERR_NO_ERROR) goto err;
+
+        // won't print anything anymore
+        if((errval = rsb_lib_exit(&io))
+                        != RSB_ERR_NO_ERROR) goto err;
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_lib_init\fP, \fBrsb_lib_set_opt_str\fP, \fBrsb_lib_reinit\fP, \fBrsb_lib_exit\fP, \fBrsb_lib_get_opt\fP, \fBrsb_lib_set_opt\fP, or (deprecated) macros \fBRSB_REINIT_SINGLE_VALUE_GET\fP, \fBRSB_REINIT_SINGLE_VALUE_SET\fP, \fBRSB_REINIT_SINGLE_VALUE\fP, \fBRSB_REINIT_SINGLE_VALUE_C_IOP\fP\&.\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_add_to_dense (const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_nnz_idx_t\fP ldB, \fBrsb_nnz_idx_t\fP nrB, \fBrsb_nnz_idx_t\fP ncB, \fBrsb_bool_t\fP rowmajorB, void * Bp)"
+Dense matrix B is updated by adding scaled sparse matrix ${A}$ to it: $B <- B + alpha {A} $
+.PP
+\fBParameters:\fP
+.RS 4
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIldB\fP Leading dimension of \fCBp\fP array\&. 
+.br
+\fInrB,ncB\fP The number of rows and columns for the dense matrix $B$\&. 
+.br
+\fIrowmajorB\fP \fBRSB_BOOL_TRUE\fP if the dense matrix $B$ is considered stored as row major, or \fBRSB_BOOL_FALSE\fP if as column major\&. 
+.br
+\fIBp\fP Array representing the dense matrix $B$\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+  const rsb_nnz_idx_t ldB = 4, nrB = 3, ncB = 3;
+        const rsb_bool_t rowmajorB = RSB_BOOL_TRUE;
+        RSB_DEFAULT_TYPE Bp[ /*ldB*nrB*/ ] = {
+                -1, -1, -1, -1,
+                -1, -1, -1, -1,
+                -1, -1, -1, -1
+        };
+        RSB_DEFAULT_TYPE *alphap = NULL;
+
+        errval = rsb_mtx_add_to_dense(alphap, mtxAp, ldB,
+                 nrB, ncB, rowmajorB, Bp);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_mtx_add_to_dense!\n");
+                goto err;
+        }
+
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+Please note that it suffices to 'transpose' \fCBp's\fP description parameters to get $A$ transposed summed in\&. 
+.PP
+Symmetry is currently not expanded\&. 
+.PP
+Threaded, for large enough matrices\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spmsp_to_dense\fP, \fBrsb_sppsp\fP, \fBrsb_spmsp\fP, \fBrsb_mtx_add_to_dense\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_mtx_alloc_from_coo_begin (\fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP * errvalp)"
+Creates an empty matrix structure in assembly state\&. The user then populates it using \fBrsb_mtx_set_vals()\fP repeatedly; then assembles it with \fBrsb_mtx_alloc_from_coo_end()\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInnzA\fP A rough estimate of the number of nonzeroes matrix $A$ will host (used for optimizing arrays allocation)\&. If you do not know yet, you can specify zero\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. 
+.br
+\fIflagsA\fP A valid combination of index conversion and matrix storage flags and other meaningful flags\&. The encouraged base choice here is \fBRSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS\fP\&. If Fortran (1 based) indices are being used for the IA, JA arrays, then the \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP flag should be added\&. If symmetric storage is desired, then \fBRSB_FLAG_SYMMETRIC\fP (or \fBRSB_FLAG_HERMITIAN\fP, for Hermitian matrices) is necessary, in combination with either \fBRSB_FLAG_LOWER\fP or \fBRSB_FLAG_UPPER\fP\&. If you intend to use this matrix for triangular solution (e\&.g\&.: \fBrsb_spsv()\fP/\fBrsb_spsm()\fP), it needs to be triangular and specified with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP, and not have \fBRSB_FLAG_LOWER_SYMMETRIC\fP or \fBRSB_FLAG_LOWER_HERMITIAN\fP\&. Nonzeroes non complying with the specified flags will be ignored\&. If a matrix is both \fBRSB_FLAG_LOWER_TRIANGULAR\fP and \fBRSB_FLAG_UPPER_TRIANGULAR\fP at the same time, then it's diagonal, for which shorthand: \fBRSB_FLAG_DIAGONAL\fP can be used\&. If \fBRSB_FLAG_UNIT_DIAG_IMPLICIT\fP is present, diagonal entries will be not represented but assumed to be unitary\&. If \fBRSB_FLAG_DUPLICATES_SUM\fP is present, duplicate entries will be summed together\&. If \fBRSB_FLAG_DISCARD_ZEROS\fP is present, zeroes will be discarded\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to a \fCrsb_mtx_t\fP matrix structure in assembly state, or \fCNULL\fP (on error)\&. 
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+This function has not been thoroughly tested\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_mtx_alloc_from_coo_const (const void * VA, const \fBrsb_coo_idx_t\fP * IA, const \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP * errvalp)"
+Given as input COO arrays \fCVA\fP,IA,JA, allocates and assembles an RSB matrix using separate arrays\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIVA,IA,JA\fP Input numerical values (\fCVA\fP) array; row (\fCIA\fP) and column (\fCJA\fP) input indices arrays\&. 
+.br
+\fInnzA\fP The number of nonzeroes in the input arrays representing matrix $A$\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. If any of nrA or ncA is zero, it will be detected on the basis of the \fCIA\fP and \fCJA\fP arrays and flagsA\&. 
+.br
+\fIbrA,bcA\fP Blocking parameters: \fCbrA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use); \fCbcA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use)\&. 
+.br
+\fIflagsA\fP A valid combination of index conversion and matrix storage flags and other meaningful flags\&. The encouraged base choice here is \fBRSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS\fP\&. If Fortran (1 based) indices are being used for the IA, JA arrays, then the \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP flag should be added\&. If symmetric storage is desired, then \fBRSB_FLAG_SYMMETRIC\fP (or \fBRSB_FLAG_HERMITIAN\fP, for Hermitian matrices) is necessary, in combination with either \fBRSB_FLAG_LOWER\fP or \fBRSB_FLAG_UPPER\fP\&. If you intend to use this matrix for triangular solution (e\&.g\&.: \fBrsb_spsv()\fP/\fBrsb_spsm()\fP), it needs to be triangular and specified with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP, and not have \fBRSB_FLAG_LOWER_SYMMETRIC\fP or \fBRSB_FLAG_LOWER_HERMITIAN\fP\&. Nonzeroes non complying with the specified flags will be ignored\&. If a matrix is both \fBRSB_FLAG_LOWER_TRIANGULAR\fP and \fBRSB_FLAG_UPPER_TRIANGULAR\fP at the same time, then it's diagonal, for which shorthand: \fBRSB_FLAG_DIAGONAL\fP can be used\&. If \fBRSB_FLAG_UNIT_DIAG_IMPLICIT\fP is present, diagonal entries will be not represented but assumed to be unitary\&. If \fBRSB_FLAG_DUPLICATES_SUM\fP is present, duplicate entries will be summed together\&. If \fBRSB_FLAG_DISCARD_ZEROS\fP is present, zeroes will be discarded\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+       mtxAp = rsb_mtx_alloc_from_coo_const(
+                        VA,IA,JA,nnzA,typecode,nrA,ncA,
+                        brA,bcA,RSB_FLAG_NOFLAGS,NULL);
+        if(!mtxAp)
+        {
+                return EXIT_FAILURE;
+        }
+
+.fi
+.PP
+And another, with duplicate sum flags: 
+.PP
+.nf
+        mtxAp = rsb_mtx_alloc_from_coo_const(
+                VA,IA,JA,nnzA,typecode,nrA,ncA,brA,bcA,
+                RSB_FLAG_NOFLAGS    /* default format will be chosen */
+                |RSB_FLAG_DUPLICATES_SUM/* duplicates will be summed */
+                        ,&errval);
+        if((!mtxAp) || (errval != RSB_ERR_NO_ERROR))
+        {
+                printf("Error while allocating the matrix!\n");
+                goto err;
+        }
+
+.fi
+.PP
+And yet another, allocating a triangular matrix: 
+.PP
+.nf
+        mtxAp = rsb_mtx_alloc_from_coo_const(
+                VA,IA,JA,nnzA,typecode,nrA,ncA,brA,bcA,
+                RSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS /* force rsb */
+                | RSB_FLAG_DUPLICATES_SUM/* sum dups */
+                | RSB_FLAG_UNIT_DIAG_IMPLICIT/* ask diagonal implicit */
+                | RSB_FLAG_TRIANGULAR /* need triangle for spsv */
+                , &errval);
+        if((!mtxAp) || (errval != RSB_ERR_NO_ERROR))
+        {
+                printf("Error while allocating the matrix!\n");
+                goto err;
+        }
+        printf("Correctly allocated a matrix with %ld nonzeroes\&.\n",
+                (long int)nnzA);
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_alloc_from_coo_end (struct rsb_mtx_t ** mtxApp)"
+Assembles RSB arrays for a matrix in build state created with \fBrsb_mtx_alloc_from_coo_begin()\fP and populated with \fBrsb_mtx_set_vals()\fP\&. 
+.br
+After assembly, any operation on the matrix is allowed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxApp\fP \fCrsb_mtx_t\fP pointer to an unassembled matrix address\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+This function has not been thoroughly tested\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+Note that the memory location of the matrix will be changed by this call, and the (old) \fC*mtxApp\fP address value will be not valid anymore\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_mtx_alloc_from_coo_inplace (void * VA, \fBrsb_coo_idx_t\fP * IA, \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP * errvalp)"
+Given as input COO arrays \fCVA\fP,IA,JA, allocates and assembles an RSB matrix reusing input arrays\&. 
+.br
+Assumes all three \fCVA\fP,IA,JA arrays are at least max(\fCnnzA\fP,\fCnrA+1\fP,\fCncA+1\fP) sized\&. The user is expected NOT to use these arrays until the matrix has been destroyed with \fBrsb_mtx_free()\fP\&. Then, it is possible to use these arrays again\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIVA,IA,JA\fP Input/output numerical values array (\fCVA\fP); row (\fCIA\fP) and column (\fCJA\fP) indices arrays\&. 
+.br
+\fInnzA\fP The number of nonzeroes in the input arrays representing matrix $A$\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. 
+.br
+\fIbrA,bcA\fP Blocking parameters: \fCbrA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use); \fCbcA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use)\&. 
+.br
+\fIflagsA\fP A valid combination of index conversion and matrix storage flags and other meaningful flags\&. The encouraged base choice here is \fBRSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS\fP\&. If Fortran (1 based) indices are being used for the IA, JA arrays, then the \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP flag should be added\&. If symmetric storage is desired, then \fBRSB_FLAG_SYMMETRIC\fP (or \fBRSB_FLAG_HERMITIAN\fP, for Hermitian matrices) is necessary, in combination with either \fBRSB_FLAG_LOWER\fP or \fBRSB_FLAG_UPPER\fP\&. If you intend to use this matrix for triangular solution (e\&.g\&.: \fBrsb_spsv()\fP/\fBrsb_spsm()\fP), it needs to be triangular and specified with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP, and not have \fBRSB_FLAG_LOWER_SYMMETRIC\fP or \fBRSB_FLAG_LOWER_HERMITIAN\fP\&. Nonzeroes non complying with the specified flags will be ignored\&. If a matrix is both \fBRSB_FLAG_LOWER_TRIANGULAR\fP and \fBRSB_FLAG_UPPER_TRIANGULAR\fP at the same time, then it's diagonal, for which shorthand: \fBRSB_FLAG_DIAGONAL\fP can be used\&. If \fBRSB_FLAG_UNIT_DIAG_IMPLICIT\fP is present, diagonal entries will be not represented but assumed to be unitary\&. If \fBRSB_FLAG_DUPLICATES_SUM\fP is present, duplicate entries will be summed together\&. If \fBRSB_FLAG_DISCARD_ZEROS\fP is present, zeroes will be discarded\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_mtx_alloc_from_csc_const (const void * VA, const \fBrsb_coo_idx_t\fP * IA, const \fBrsb_coo_idx_t\fP * CP, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP * errvalp)"
+Given input read only CSC format arrays, allocates and assembles an RSB matrix (stored in separate arrays)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIVA,IA,CP\fP Input numerical values (\fCVA\fP) array, input row indices (\fCIA\fP) and compressed column (\fCCP\fP) indices arrays\&. 
+.br
+\fInnzA\fP The number of nonzeroes in the input arrays representing matrix $A$\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. 
+.br
+\fIbrA,bcA\fP Blocking parameters: \fCbrA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use); \fCbcA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use)\&. 
+.br
+\fIflagsA\fP A valid combination of index conversion and matrix storage flags and other meaningful flags\&. The encouraged base choice here is \fBRSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS\fP\&. If Fortran (1 based) indices are being used for the IA, JA arrays, then the \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP flag should be added\&. If symmetric storage is desired, then \fBRSB_FLAG_SYMMETRIC\fP (or \fBRSB_FLAG_HERMITIAN\fP, for Hermitian matrices) is necessary, in combination with either \fBRSB_FLAG_LOWER\fP or \fBRSB_FLAG_UPPER\fP\&. If you intend to use this matrix for triangular solution (e\&.g\&.: \fBrsb_spsv()\fP/\fBrsb_spsm()\fP), it needs to be triangular and specified with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP, and not have \fBRSB_FLAG_LOWER_SYMMETRIC\fP or \fBRSB_FLAG_LOWER_HERMITIAN\fP\&. Nonzeroes non complying with the specified flags will be ignored\&. If a matrix is both \fBRSB_FLAG_LOWER_TRIANGULAR\fP and \fBRSB_FLAG_UPPER_TRIANGULAR\fP at the same time, then it's diagonal, for which shorthand: \fBRSB_FLAG_DIAGONAL\fP can be used\&. If \fBRSB_FLAG_UNIT_DIAG_IMPLICIT\fP is present, diagonal entries will be not represented but assumed to be unitary\&. If \fBRSB_FLAG_DUPLICATES_SUM\fP is present, duplicate entries will be summed together\&. If \fBRSB_FLAG_DISCARD_ZEROS\fP is present, zeroes will be discarded\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+Example: 
+.PP
+.nf
+   rsb_err_t errval = RSB_ERR_NO_ERROR;
+        struct rsb_mtx_t *mtxAp = NULL;
+        const rsb_blk_idx_t brA = RSB_DEFAULT_BLOCKING,
+                            bcA = RSB_DEFAULT_BLOCKING;
+        const rsb_nnz_idx_t nnzA = 4;
+        const rsb_coo_idx_t  nrA = 3;
+        const rsb_coo_idx_t  ncA = 3;
+        const rsb_coo_idx_t    IA[] = { 0, 2, 1, 2 };
+        const rsb_coo_idx_t    CP[] = { 0, 2, 3, 4 };
+        const RSB_DEFAULT_TYPE VA[] = { 11, 31, 22, 33 };
+        const rsb_type_t typecode = RSB_NUMERICAL_TYPE_DEFAULT;
+
+        if(rsb_lib_init(RSB_NULL_INIT_OPTIONS)!=RSB_ERR_NO_ERROR)
+        {
+                return EXIT_FAILURE;
+        }
+
+        mtxAp = rsb_mtx_alloc_from_csc_const(
+                        VA,IA,CP,nnzA,typecode,nrA,ncA,
+                        brA,bcA,RSB_FLAG_NOFLAGS,NULL);
+        if(!mtxAp)
+        {
+                return EXIT_FAILURE;
+        }
+
+        rsb_file_mtx_save(mtxAp, NULL);
+
+.fi
+.PP
+ 
+.SS "struct rsb_mtx_t* rsb_mtx_alloc_from_csr_const (const void * VA, const \fBrsb_coo_idx_t\fP * RP, const \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP * errvalp)"
+Given input read only CSR format arrays, allocates and assembles an RSB matrix (stored in separate arrays)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIVA,RP,JA\fP Input numerical values (\fCVA\fP) array; compressed rows (\fCRP\fP) and column (\fCJA\fP) input indices arrays\&. 
+.br
+\fInnzA\fP The number of nonzeroes in the input arrays representing matrix $A$\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. 
+.br
+\fIbrA,bcA\fP Blocking parameters: \fCbrA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use); \fCbcA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use)\&. 
+.br
+\fIflagsA\fP A valid combination of index conversion and matrix storage flags and other meaningful flags\&. The encouraged base choice here is \fBRSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS\fP\&. If Fortran (1 based) indices are being used for the IA, JA arrays, then the \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP flag should be added\&. If symmetric storage is desired, then \fBRSB_FLAG_SYMMETRIC\fP (or \fBRSB_FLAG_HERMITIAN\fP, for Hermitian matrices) is necessary, in combination with either \fBRSB_FLAG_LOWER\fP or \fBRSB_FLAG_UPPER\fP\&. If you intend to use this matrix for triangular solution (e\&.g\&.: \fBrsb_spsv()\fP/\fBrsb_spsm()\fP), it needs to be triangular and specified with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP, and not have \fBRSB_FLAG_LOWER_SYMMETRIC\fP or \fBRSB_FLAG_LOWER_HERMITIAN\fP\&. Nonzeroes non complying with the specified flags will be ignored\&. If a matrix is both \fBRSB_FLAG_LOWER_TRIANGULAR\fP and \fBRSB_FLAG_UPPER_TRIANGULAR\fP at the same time, then it's diagonal, for which shorthand: \fBRSB_FLAG_DIAGONAL\fP can be used\&. If \fBRSB_FLAG_UNIT_DIAG_IMPLICIT\fP is present, diagonal entries will be not represented but assumed to be unitary\&. If \fBRSB_FLAG_DUPLICATES_SUM\fP is present, duplicate entries will be summed together\&. If \fBRSB_FLAG_DISCARD_ZEROS\fP is present, zeroes will be discarded\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_mtx_alloc_from_csr_inplace (void * VA, \fBrsb_nnz_idx_t\fP * RP, \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnzA, \fBrsb_type_t\fP typecode, \fBrsb_coo_idx_t\fP nrA, \fBrsb_coo_idx_t\fP ncA, \fBrsb_blk_idx_t\fP brA, \fBrsb_blk_idx_t\fP bcA, \fBrsb_flags_t\fP flagsA, \fBrsb_err_t\fP * errvalp)"
+Given as input CSR arrays \fCVA\fP,RP,JA , allocates and assembles an RSB matrix reusing input arrays\&. 
+.br
+Assumes all three \fCVA\fP,IA,JA arrays are at least max(\fCnnzA\fP,\fCnrA+1\fP,\fCncA+1\fP) sized\&. The user is expected NOT to use these arrays until the matrix has been destroyed with \fBrsb_mtx_free()\fP\&. Then, it is possible to use these arrays again\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIVA,RP,JA\fP Input numerical values (\fCVA\fP) array; compressed rows (\fCRP\fP) and column (\fCJA\fP) input indices arrays\&. Will not be freed by \fBrsb_mtx_free()\fP\&. 
+.br
+\fInnzA\fP The number of nonzeroes in the input arrays representing matrix $A$\&. 
+.br
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fInrA,ncA\fP The number of rows and columns of the sparse matrix $A$\&. 
+.br
+\fIbrA,bcA\fP Blocking parameters: \fCbrA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use); \fCbcA\fP should be set to 1 or \fBRSB_DEFAULT_ROW_BLOCKING\fP (currently unused, reserved for future use)\&. 
+.br
+\fIflagsA\fP A valid combination of index conversion and matrix storage flags and other meaningful flags\&. The encouraged base choice here is \fBRSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS\fP\&. If Fortran (1 based) indices are being used for the IA, JA arrays, then the \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP flag should be added\&. If symmetric storage is desired, then \fBRSB_FLAG_SYMMETRIC\fP (or \fBRSB_FLAG_HERMITIAN\fP, for Hermitian matrices) is necessary, in combination with either \fBRSB_FLAG_LOWER\fP or \fBRSB_FLAG_UPPER\fP\&. If you intend to use this matrix for triangular solution (e\&.g\&.: \fBrsb_spsv()\fP/\fBrsb_spsm()\fP), it needs to be triangular and specified with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP, and not have \fBRSB_FLAG_LOWER_SYMMETRIC\fP or \fBRSB_FLAG_LOWER_HERMITIAN\fP\&. Nonzeroes non complying with the specified flags will be ignored\&. If a matrix is both \fBRSB_FLAG_LOWER_TRIANGULAR\fP and \fBRSB_FLAG_UPPER_TRIANGULAR\fP at the same time, then it's diagonal, for which shorthand: \fBRSB_FLAG_DIAGONAL\fP can be used\&. If \fBRSB_FLAG_UNIT_DIAG_IMPLICIT\fP is present, diagonal entries will be not represented but assumed to be unitary\&. If \fBRSB_FLAG_DUPLICATES_SUM\fP is present, duplicate entries will be summed together\&. If \fBRSB_FLAG_DISCARD_ZEROS\fP is present, zeroes will be discarded\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_clone (struct rsb_mtx_t ** mtxBpp, \fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_flags_t\fP flags)"
+This function clones a given matrix, allocating a fresh data structure or overwriting an existing one\&. 
+.br
+Target type (specified by \fCtypecode\fP) can be different from that in the matrix\&. \fCIf\fP \fCalphap=NULL\fP, the cloned matrix will not be scaled\&. 
+.br
+This new structure will be completely separated and independent from the original one\&. 
+.br
+Examples:
+.PP
+.PP
+.nf
+// will clone the matrix exactly
+errval = rsb_mtx_clone(&mtxBp,RSB_NUMERICAL_TYPE_SAME_TYPE,RSB_TRANSPOSITION_N,NULL,mtxAp,RSB_FLAG_IDENTICAL_FLAGS);
+// will clone the transpose of the matrix
+errval = rsb_mtx_clone(&mtxBp,RSB_NUMERICAL_TYPE_SAME_TYPE,RSB_TRANSPOSITION_T,NULL,mtxAp,RSB_FLAG_IDENTICAL_FLAGS);
+// will clone the lower triangle of the matrix
+errval = rsb_mtx_clone(&mtxBp,RSB_NUMERICAL_TYPE_SAME_TYPE,RSB_TRANSPOSITION_N,NULL,mtxAp,RSB_FLAG_TRIANGULAR|RSB_FLAG_LOWER);
+.fi
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxBpp\fP Valid \fCrsb_mtx_t\fP pointer to an address for matrix $B$\&. If \fC*mtxBpp==NULL\fP, a fresh clone will be assigned there; if not, the existing matrix structure will be freed and allocated to host the new one\&. The case \fC*mtxBpp==mtxAp\fP is supported\&. 
+.br
+\fItypecode\fP A valid type code for the desired output matrix (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value for scaling the output\&. Of the type code of \fCmtxAp\fP\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIflags\fP Either \fBRSB_FLAG_IDENTICAL_FLAGS\fP or a combination of other flags, e\&.g\&.: \fBRSB_FLAG_C_INDICES_INTERFACE\fP, \fBRSB_FLAG_SYMMETRIC\fP, \fBRSB_FLAG_HERMITIAN\fP, \fBRSB_FLAG_TRIANGULAR\fP, \fBRSB_FLAG_UPPER\fP, \fBRSB_FLAG_LOWER\fP, \fBRSB_FLAG_UNIT_DIAG_IMPLICIT\fP, \fBRSB_FLAG_DISCARD_ZEROS\fP\&. Flag \fBRSB_FLAG_EXTERNALLY_ALLOCATED_ARRAYS\fP is forbidden\&. Flag \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP is ignored\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+        if( RSB_ERR_NO_ERROR != (errval =
+                rsb_mtx_clone(&mtxAp,RSB_NUMERICAL_TYPE_SAME_TYPE,
+                RSB_TRANSPOSITION_T,NULL,mtxAp,RSB_FLAG_IDENTICAL_FLAGS)))
+        {
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_mtx_free (struct rsb_mtx_t * mtxAp)"
+Frees a previously allocated sparse matrix structure\&. 
+.br
+In the case the matrix has the \fBRSB_FLAG_EXTERNALLY_ALLOCATED_ARRAYS\fP flag, the main three data arrays VA,IA,JA will not be freed by \fBrsb_mtx_free\fP (see \fBrsb_mtx_alloc_from_coo_inplace\fP,\fBrsb_mtx_alloc_from_csr_inplace\fP)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Always \fCNULL\fP\&.
+.RE
+.PP
+Example freeing a sparse matrix: 
+.PP
+.nf
+       rsb_mtx_free(mtxAp);
+
+.fi
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_alloc_from_coo_const\fP, \fBrsb_mtx_alloc_from_coo_inplace\fP, \fBrsb_mtx_free\fP, \fBrsb_mtx_clone\fP, \fBrsb_mtx_alloc_from_csr_const\fP, \fBrsb_mtx_alloc_from_csc_const\fP, \fBrsb_mtx_alloc_from_csr_inplace\fP, \fBrsb_mtx_switch_to_csr\fP, \fBrsb_mtx_alloc_from_coo_begin\fP, \fBrsb_mtx_alloc_from_coo_end\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_coo (const struct rsb_mtx_t * mtxAp, void * VA, \fBrsb_coo_idx_t\fP * IA, \fBrsb_coo_idx_t\fP * JA, \fBrsb_flags_t\fP flags)"
+Returns the matrix converted in a coordinate storage format\&. 
+.br
+Elements will be stored in no particular order\&. 
+.br
+If there are structural or fill-in zero elements, these will be skipped\&. 
+.br
+Writes as many entries as there are nonzeroes (use \fBrsb_mtx_get_info\fP(mtxAp,\fBRSB_MIF_MATRIX_NNZ__TO__RSB_NNZ_INDEX_T\fP,&nnz)) to find out how many in order to allocate the arrays correctly\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVA,IA,JA\fP Output numerical values (\fCVA\fP) array; output row (\fCIA\fP) and column (\fCJA\fP) indices arrays\&. 
+.br
+\fIflags\fP Either \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP or \fBRSB_FLAG_C_INDICES_INTERFACE\fP (see \fBflags_section\fP flags section)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_coo_block (const struct rsb_mtx_t * mtxAp, void * VA, \fBrsb_coo_idx_t\fP * IA, \fBrsb_coo_idx_t\fP * JA, \fBrsb_coo_idx_t\fP frA, \fBrsb_coo_idx_t\fP lrA, \fBrsb_coo_idx_t\fP fcA, \fBrsb_coo_idx_t\fP lcA, const \fBrsb_coo_idx_t\fP * IREN, const \fBrsb_coo_idx_t\fP * JREN, \fBrsb_nnz_idx_t\fP * rnzp, \fBrsb_flags_t\fP flags)"
+Writes in COO format the specified submatrix\&. 
+.br
+Works in two stages: first the user invokes it with \fCVA\fP,IA,JA set to \fCNULL\fP to get \fC*rnzp\fP\&. Then the \fCVA\fP,IA,JA arrays can be allocated, and the function called again, this time with \fCrnzp=NULL\fP but the \fCVA\fP,IA,JA arrays pointers non \fCNULL\fP (or at least, one of them)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVA,IA,JA\fP Output numerical values (\fCVA\fP) array; output row (\fCIA\fP) and column (\fCJA\fP) indices arrays\&. 
+.br
+\fIfrA,lrA\fP First and last row indices\&. 
+.br
+\fIfcA,lcA\fP First and last column indices\&. 
+.br
+\fIIREN,JREN\fP Renumbering arrays for \fCIA\fP and \fCJA\fP (respectively rows count and columns count sized)\&. If \fCNULL\fP, no renumbering will be used\&. 
+.br
+\fIrnzp\fP A pointer where the number of relevant nonzero elements will be written to\&. 
+.br
+\fIflags\fP Either \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP or \fBRSB_FLAG_C_INDICES_INTERFACE\fP (see \fBflags_section\fP flags section)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Examples: 
+.PP
+.nf
+        rsb_coo_idx_t nzi;
+        rsb_coo_idx_t *IA = NULL;
+        rsb_coo_idx_t *JA = NULL;
+        const rsb_coo_idx_t IREN[]={0,1,2,3};
+        const rsb_coo_idx_t JREN[]={3,2,1,0};
+        RSB_DEFAULT_TYPE *VA = NULL;
+        const size_t so = sizeof(RSB_DEFAULT_TYPE);
+        const size_t si = sizeof(rsb_coo_idx_t);
+        rsb_err_t errval;
+        rsb_flags_t flagsA = RSB_FLAG_NOFLAGS;
+        rsb_nnz_idx_t rnz = 0;
+        rsb_coo_idx_t frA=0,lrA=1; // first two rows
+        rsb_coo_idx_t fcA=0,lcA=4; // 5 (all) columns
+
+        // get the nnz count only
+        errval=rsb_mtx_get_coo_block
+                (mtxAp,NULL,NULL,NULL,frA,lrA,fcA,lcA,NULL,NULL,&rnz,flagsA);
+        if(errval != RSB_ERR_NO_ERROR )
+                goto err;
+
+        // allocate VA, IA, JA to rnz elements
+        IA = calloc(rnz, si);
+        JA = calloc(rnz, si);
+        VA = calloc(rnz, so);
+
+        // get the  rnz  values then
+        errval=rsb_mtx_get_coo_block
+                (mtxAp,  VA,  IA,  JA,frA,lrA,fcA,lcA,NULL,NULL,NULL,flagsA);
+        if(errval != RSB_ERR_NO_ERROR )
+                goto err;
+
+        for(nzi=0;nzi<rnz;++nzi)
+                printf("%d/%d  %d %d -> %d\n",(int)nzi,(int)rnz,
+                        (int)IA[nzi],(int)JA[nzi],(int)VA[nzi]);
+
+        // get the  rnz  values again, renumbered
+        errval=rsb_mtx_get_coo_block
+                (mtxAp,  VA,  IA,  JA,frA,lrA,fcA,lcA,IREN,JREN,NULL,flagsA);
+        if(errval != RSB_ERR_NO_ERROR )
+                goto err;
+
+        for(nzi=0;nzi<rnz;++nzi)
+                printf("%d/%d  %d %d -> %d\n",(int)nzi,(int)rnz,
+                        (int)IA[nzi],(int)JA[nzi],(int)VA[nzi]);
+
+        free(VA);
+        free(IA);
+        free(JA);
+
+.fi
+.PP
+.PP
+.PP
+.nf
+       And other examples:
+.fi
+.PP
+ 
+.PP
+.nf
+// get nnz count first
+errval=rsb_mtx_get_coo_block(mtxAp,NULL,NULL,NULL,frA,lrA,fcA,lcA,NULL,NULL,&rnz,flags )
+// allocate VA, IA, JA to rnz elements
+\&.\&.\&.
+// get the  rnz  values then
+errval=rsb_mtx_get_coo_block(mtxAp,  VA,  IA,  JA,frA,lrA,fcA,lcA,NULL,NULL,NULL,flags )
+
+.fi
+.PP
+.PP
+\fBWarning:\fP
+.RS 4
+Expect this function to change soon (e\&.g\&.: have scaling parameters, etc\&.)\&. Contact the author if you intend to use it\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_csr (\fBrsb_type_t\fP typecode, const struct rsb_mtx_t * mtxAp, void * VA, \fBrsb_nnz_idx_t\fP * RP, \fBrsb_coo_idx_t\fP * JA, \fBrsb_flags_t\fP flags)"
+Fills the given arrays with the matrix expressed in the CSR format\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVA,RP,JA\fP Output numerical values (\fCVA\fP) array, compressed row indices (\fCRP\fP) and column indices (\fCJA\fP) arrays\&. 
+.br
+\fIflags\fP Either \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP or \fBRSB_FLAG_C_INDICES_INTERFACE\fP (see \fBflags_section\fP flags section)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_info (const struct rsb_mtx_t * mtxAp, enum \fBrsb_mif_t\fP miflags, void * minfop)"
+Returns a specified matrix (numerical) property\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fImiflags\fP A valid value of matrix info flags (see \fBrsb_mif_t\fP for valid values)\&. 
+.br
+\fIminfop\fP Pointer to a variable of the right type, according to the matrix info flag specification (see \fBrsb_mif_t\fP)\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+ rsb_real_t isopnnz;
+        const enum rsb_mif_t miflags = 
+                RSB_MIF_INDEX_STORAGE_IN_BYTES_PER_NNZ__TO__RSB_REAL_T;
+        errval = rsb_mtx_get_info(mtxAp, miflags, &isopnnz);
+
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_mtx_get_info!\n");
+                goto err;
+        }
+        printf("RSB matrix uses %lf bytes per nnz\&.\n",(double)isopnnz);
+        
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_info\fP, \fBrsb_mtx_get_info_str\fP, \fBrsb_file_mtx_save\fP, \fBrsb_file_vec_load\fP, \fBrsb_file_mtx_load\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_info_str (const struct rsb_mtx_t * mtxAp, const \fBrsb_char_t\fP * mis, void * minfop, size_t buflen)"
+Returns a specified matrix (numerical) property, via a string form query\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fImis\fP A string specifying any identifier among the matrix info ones\&. See \fBrsb_mif_t\fP for a list of valid identifiers that can be supplied in string form\&. 
+.br
+\fIminfop\fP Pointer to a variable of the right type, according to the matrix info flag specification (see \fBrsb_mif_t\fP)\&. 
+.br
+\fIbuflen\fP If greater than 0, \fCminfop\fP will be treated as a string of length \fCbuflen\fP and filled with the desired value via the standard \fCsnprintf()\fP function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+   rsb_mtx_get_info_str(mtxAp,"RSB_MIF_MATRIX_INFO__TO__CHAR_P",
+                        ib,sizeof(ib));
+        printf("%s",ib);
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_info\fP, \fBrsb_mtx_get_info_str\fP, \fBrsb_file_mtx_save\fP, \fBrsb_file_vec_load\fP, \fBrsb_file_mtx_load\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_nrm (const struct rsb_mtx_t * mtxAp, void * Np, enum \fBrsb_extff_t\fP flags)"
+Computes a matrix norm (either infinite-norm or or 2-norm or 1-norm)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fINp\fP Points to a scalar value which will be overwritten with the selected norm\&. 
+.br
+\fIflags\fP Either \fBRSB_EXTF_NORM_ONE\fP or \fBRSB_EXTF_NORM_TWO\fP or \fBRSB_EXTF_NORM_INF\fP\&.
+.RE
+.PP
+In case of a complex type, only the real part will be written to \fCNp\fP\&.
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_prec (void * opdp, const struct rsb_mtx_t * mtxAp, \fBrsb_precf_t\fP prec_flags, const void * ipdp)"
+A function computing a simple preconditioner out of \fCmtxAp\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIopdp\fP Preconditioner data pointer (output)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIprec_flags\fP Valid preconditioner request flags (currently, only \fBRSB_PRECF_ILU0\fP is supported; for it, \fC*opdp\fP will be overwritten with two \fCrsb_mtx_t\fP pointers, respectively a lower and an upper matrix\&.)\&. 
+.br
+\fIipdp\fP Preconditioner data pointer (input) (ignored at the moment)\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example: 
+.PP
+.nf
+        struct rsb_mtx_t *mtxAp = NULL; /* matrix structure pointer */
+        struct rsb_mtx_t *mtxLUp [2];   /* matrix structure pointer */
+        rsb_precf_t prec_flags = RSB_PRECF_ILU0;
+
+        if((errval = rsb_lib_init(RSB_NULL_INIT_OPTIONS)) != 
+                        RSB_ERR_NO_ERROR)
+        {
+                printf("Error initializing the library!\n");
+                goto err;
+        }
+
+        mtxAp = rsb_mtx_alloc_from_coo_const(
+                VA,IA,JA,nnzA,typecode,nrA,ncA,brA,bcA,
+                RSB_FLAG_DEFAULT_RSB_MATRIX_FLAGS /* force rsb */
+                | RSB_FLAG_DUPLICATES_SUM /* sum dups */
+                | RSB_FLAG_TRIANGULAR /* need triangle for spsv */
+                , &errval);
+
+        if((!mtxAp) || (errval != RSB_ERR_NO_ERROR))
+        {
+                printf("Error while allocating the matrix!\n");
+                goto err;
+        }
+
+        errval = rsb_mtx_get_prec(mtxLUp,mtxAp, prec_flags, NULL);
+        if( errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error while calling rsb_mtx_get_prec!\n");
+                goto err;
+        }
+        // \&.\&.\&.
+        
+        rsb_mtx_free(mtxLUp[0]);
+        rsb_mtx_free(mtxLUp[1]);
+        rsb_mtx_free(mtxAp );
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+Matrix should be square, have at least two rows, and have at least one nonzero\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_rows_sparse (\fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, void * VA, \fBrsb_coo_idx_t\fP * IA, \fBrsb_coo_idx_t\fP * JA, \fBrsb_coo_idx_t\fP frA, \fBrsb_coo_idx_t\fP lrA, \fBrsb_nnz_idx_t\fP * rnzp, \fBrsb_flags_t\fP flags)"
+Writes to the given COO arrays the specified submatrix\&.
+.PP
+Invoke with \fCVA\fP,IA,JA set to \fCNULL\fP in order to get the nonzeroes count written to \fC*rnzp\fP, and know how large the arrays should be\&.
+.PP
+IA can be \fCNULL\fP (in this case it will be ignored)\&. The written rows are ordered\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVA,IA,JA\fP Output numerical values (\fCVA\fP) array; input row (\fCIA\fP) and column (\fCJA\fP) indices arrays\&. 
+.br
+\fIfrA,lrA\fP First and last row indices\&. 
+.br
+\fIrnzp\fP A pointer where the number of relevant nonzero elements will be written to\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIflags\fP Either \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP or \fBRSB_FLAG_C_INDICES_INTERFACE\fP (see \fBflags_section\fP flags section)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+   rsb_coo_idx_t    IA[] = { 0, 0, 0, 0 };
+        rsb_coo_idx_t    JA[] = { 0, 0, 0, 0 };
+        RSB_DEFAULT_TYPE VA[] = { -1, -1, -1, -1 };
+        rsb_trans_t transA = RSB_TRANSPOSITION_N;
+        const rsb_coo_idx_t frA = 2, lrA = 2;
+        rsb_nnz_idx_t rnz;
+        RSB_DEFAULT_TYPE *alphap = NULL;
+
+        errval = rsb_mtx_get_rows_sparse(transA, NULL, mtxAp, NULL,
+                 NULL, NULL, frA, lrA, &rnz, RSB_FLAG_NOFLAGS);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_mtx_get_rows_sparse!\n");
+                goto err;
+        }
+
+        printf("Rows between %d and %d have %d nnz\n",
+                (int)frA,(int)lrA,(int)rnz);
+
+        errval = rsb_mtx_get_rows_sparse(transA, alphap, mtxAp,
+                 VA, IA, JA, frA, lrA, &rnz, RSB_FLAG_NOFLAGS);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_mtx_get_vals!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_vals (const struct rsb_mtx_t * mtxAp, void * VA, const \fBrsb_coo_idx_t\fP * IA, const \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnz, \fBrsb_flags_t\fP flags)"
+Gets the specified matrix elements, if found\&. Please note that unlike \fBrsb_mtx_set_vals\fP, the matrix has to be fully assembled here\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVA,IA,JA\fP Output numerical values (\fCVA\fP) array; input row (\fCIA\fP) and column (\fCJA\fP) indices arrays\&. 
+.br
+\fInnz\fP The number of nonzeroes in the input arrays\&. 
+.br
+\fIflags\fP Either \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP or \fBRSB_FLAG_C_INDICES_INTERFACE\fP (see \fBflags_section\fP flags section)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+        const rsb_coo_idx_t    IA[] = { 2, 0, 2, 0 };
+        const rsb_coo_idx_t    JA[] = { 2, 0, 0, 0 };
+        RSB_DEFAULT_TYPE VA[] = { -1, -1, -1, -1 };
+
+        errval = rsb_mtx_get_vals(mtxAp, VA, IA, JA, nnzA, RSB_FLAG_NOFLAGS);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_mtx_get_vals!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_get_vec (const struct rsb_mtx_t * mtxAp, void * Dp, enum \fBrsb_extff_t\fP flags)"
+Will overwrite a supplied array with a specific vector quantity\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIDp\fP A valid pointer to a numerical vector array $D$\&. 
+.br
+\fIflags\fP Either one of the different extraction filter flags (e\&.g\&.: \fBRSB_EXTF_DIAG\fP, \fBRSB_EXTF_SUMS_ROW\fP, \&.\&.\&.) \&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_get_coo\fP, \fBrsb_mtx_get_csr\fP, \fBrsb_mtx_get_rows_sparse\fP, \fBrsb_mtx_get_coo_block\fP, \fBrsb_mtx_get_prec\fP, \fBrsb_mtx_get_nrm\fP, \fBrsb_mtx_get_vec\fP, \fBrsb_file_mtx_get_dims\fP, \fBrsb_mtx_get_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_rndr (const char * filename, const struct rsb_mtx_t * mtxAp, \fBrsb_coo_idx_t\fP pmWidth, \fBrsb_coo_idx_t\fP pmHeight, \fBrsb_marf_t\fP rflags)"
+Renders a matrix to a file\&. Currently, only Encapsulated Postscript (EPS) is supported\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfilename\fP The specified output file name (if \fCNULL\fP or '' (the empty string), will write to standard output)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIpmWidth\fP Pixel map width (in pixels or points)\&. 
+.br
+\fIpmHeight\fP Pixel map height (in pixels or points)\&. 
+.br
+\fIrflags\fP The color mode; only \fBRSB_MARF_RGB\fP is supported for now (1 byte per channel, 3 channels --- red, green, blue): this requires array \fCpmp\fP to be at least (3*\fCpmlWidth*\fCpmHeight\fP)\fP bytes large\&.
+.RE
+.PP
+Example rendering a sparse matrix to Postscript: 
+.PP
+.nf
+           if(RSB_ERR_NO_ERROR!=(errval =
+                rsb_mtx_rndr("pd\&.eps",mtxAp,512,512,RSB_MARF_EPS_B)))
+                        goto err;
+
+.fi
+.PP
+ Setting environment variable \fCRSB_USE_HOSTNAME=0\fP prevents hostname being in the EPS plot internal comments\&.
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_rndr\fP, \fBrsb_file_mtx_rndr\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_set_vals (struct rsb_mtx_t * mtxAp, const void * VA, const \fBrsb_coo_idx_t\fP * IA, const \fBrsb_coo_idx_t\fP * JA, \fBrsb_nnz_idx_t\fP nnz, \fBrsb_flags_t\fP flags)"
+Updates the specified matrix elements, if found in the nonzero pattern\&.
+.PP
+In the special case of a matrix in assembly state (that is, one that has been created as empty with \fBrsb_mtx_alloc_from_coo_begin()\fP and not yet assembled with \fBrsb_mtx_alloc_from_coo_end()\fP ) all the supplied matrix elements will be accepted: whether already present or not\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVA,IA,JA\fP Input numerical values (\fCVA\fP) array; row (\fCIA\fP) and column (\fCJA\fP) input indices arrays\&. 
+.br
+\fInnz\fP The number of nonzeroes in the input arrays\&. 
+.br
+\fIflags\fP Either \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP or \fBRSB_FLAG_C_INDICES_INTERFACE\fP plus either \fBRSB_FLAG_DUPLICATES_SUM\fP (to sum into) or \fBRSB_FLAG_DUPLICATES_KEEP_LAST\fP (to overwrite entries) (see \fBflags_section\fP flags section)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_upd_vals\fP, \fBrsb_mtx_set_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_switch_to_coo (struct rsb_mtx_t * mtxAp, void ** VAp, \fBrsb_coo_idx_t\fP ** IAp, \fBrsb_coo_idx_t\fP ** JAp, \fBrsb_flags_t\fP flags)"
+Switches a matrix to COO arrays in place\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVAp,IAp,JAp\fP Output numerical values (\fCVAp\fP) array pointer; output row (\fCIAp\fP) and column (\fCJAp\fP) indices arrays pointers\&. 
+.br
+\fIflags\fP A combination of \fBRSB_FLAG_C_INDICES_INTERFACE\fP, \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP, \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP\&. (see \fBflags_section\fP flags section)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+This function is only valid if \fCmtxAp\fP has been assembled in place (that is, in the arrays that are being reclaimed), so with e\&.g\&.: \fBrsb_mtx_alloc_from_coo_inplace()\fP\&. Please also note that the matrix will get freed internally and so \fCmtxAp\fP will not be usable in any way afterwards\&. 
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+This function has not been thoroughly tested\&.
+.RE
+.PP
+Example: 
+.PP
+.nf
+  rsb_coo_idx_t  *RP = NULL;
+        rsb_coo_idx_t  *JA = NULL;
+        RSB_DEFAULT_TYPE *VA = NULL;
+
+        errval = rsb_mtx_switch_to_coo(mtxAp, (void**)&VA,
+                &RP, &JA, RSB_FLAG_NOFLAGS);
+
+        // NOTE: no rsb_mtx_free() necessary now\&.\&.
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_switch_to_coo\fP,\fBrsb_mtx_switch_to_coo\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_switch_to_csr (struct rsb_mtx_t * mtxAp, void ** VAp, \fBrsb_coo_idx_t\fP ** IAp, \fBrsb_coo_idx_t\fP ** JAp, \fBrsb_flags_t\fP flags)"
+Switches the matrix to the CSR format, in-place\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIVAp,IAp,JAp\fP Output numerical values (\fCVAp\fP) array pointer; output row (\fCIAp\fP) and column (\fCJAp\fP) indices arrays pointers\&. 
+.br
+\fIflags\fP A valid combination of index conversion flags (that is, \fBRSB_FLAG_C_INDICES_INTERFACE\fP and \fBRSB_FLAG_FORTRAN_INDICES_INTERFACE\fP) and other meaningful flags\&. Symmetry flags shall be the same as in the matrix in use, because symmetry expansion may happen otherwise\&. Flags \fBRSB_FLAG_EXTERNALLY_ALLOCATED_ARRAYS\fP are forbidden\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+This function is only valid if \fCmtxAp\fP has been assembled in place (that is, in the arrays that are being reclaimed), so with e\&.g\&.: \fBrsb_mtx_alloc_from_coo_inplace()\fP\&. Please also note that the matrix will get freed internally and so \fCmtxAp\fP will not be usable in any way afterwards\&. 
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+This function has not been thoroughly tested\&.
+.RE
+.PP
+Example: 
+.PP
+.nf
+  rsb_coo_idx_t  *IA = NULL;
+        rsb_coo_idx_t  *JA = NULL;
+        RSB_DEFAULT_TYPE *VA = NULL;
+
+        errval = rsb_mtx_switch_to_csr(mtxAp, (void**)&VA,
+                &IA, &JA, RSB_FLAG_NOFLAGS);
+
+        // NOTE: no rsb_mtx_free() necessary now\&.\&.
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_switch_to_coo\fP,\fBrsb_mtx_switch_to_coo\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_mtx_upd_vals (struct rsb_mtx_t * mtxAp, enum \fBrsb_elopf_t\fP elop_flags, const void * omegap)"
+$ A <- op (A,Omega) $ Updates the matrix $A$ by applying either a row-wise or an elemental operation $op$, which is determined by \fCelop_flags\fP\&. If an unary operation is selected, \fComegap\fP can be \fCNULL\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIelop_flags\fP Elemental operation specification flags (see \fBrsb_elopf_t\fP for valid choices)\&. 
+.br
+\fIomegap\fP Pointer to a numerical location(s) (of the same type as matrix)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+        enum rsb_elopf_t elop_flags = RSB_ELOPF_NEG;
+        const RSB_DEFAULT_TYPE omegap[] = {10};
+
+        errval = rsb_mtx_upd_vals(mtxAp, elop_flags, NULL);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_mtx_upd_vals!\n");
+                goto err;
+        }
+
+        elop_flags = RSB_ELOPF_MUL;
+        errval = rsb_mtx_upd_vals(mtxAp, elop_flags, omegap);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_mtx_upd_vals!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_mtx_upd_vals\fP, \fBrsb_mtx_set_vals\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_perror (void * stream, \fBrsb_err_t\fP errval)"
+Prints out to the specified \fCstream\fP a string corresponding to the error code (using \fC<stdio\&.h>'s\fP \fCfprintf\fP)\&. If \fCstream==NULL\fP, will print out to the default output stream; see \fBRSB_IO_WANT_OUTPUT_STREAM\fP \&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstream\fP A \fC\fP(FILE*) pointer, as declared in \fC<stdio\&.h>\fP; can be \fCNULL\fP\&. 
+.br
+\fIerrval\fP A valid error flag value (see \fBrsb_err_t\fP)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_perror\fP, \fBrsb_strerror_r\fP
+.RE
+.PP
+
+.SS "\fBrsb_trans_t\fP rsb_psblas_trans_to_rsb_trans (const char psbtrans)"
+Translate a PSBLAS transposition value character to a \fClibrsb\fP one\&. 
+.br
+ See the PSBLAS library website/documentation for valid input values\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpsbtrans\fP Transposition parameter value valid in the PSBLAS library\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A valid transposition code; that is \fBRSB_TRANSPOSITION_N\fP for 'N', \fBRSB_TRANSPOSITION_T\fP for 'T', RSB_TRANSPOSITION_C for 'C', (See \fBmatrix_transposition_flags_section\fP)\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_psblas_trans_to_rsb_trans\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_spmm (\fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void * Bp, \fBrsb_nnz_idx_t\fP ldB, const void * betap, void * Cp, \fBrsb_nnz_idx_t\fP ldC)"
+Updates a dense matrix with the product of sparse matrix by dense matrix; that is, computes $ C <- beta* C + alpha* opa(A) * B $\&.
+.PP
+$opa( A )=A$ if \fCtransA=\fBRSB_TRANSPOSITION_N\fP\fP; $opa( A )= A ^T$ if \fCtransA=\fBRSB_TRANSPOSITION_T\fP\fP; $opa( A )= A ^H$ if \fCtransA=\fBRSB_TRANSPOSITION_C\fP\fP; If \fC--enable-rsb-num-threads\fP has been specified at configure time, the \fCRSB_NUM_THREADS\fP environment variable will override the number of executing threads specified by \fCOMP_NUM_THREADS\fP\&. (See also \fBRSB_IO_WANT_EXECUTING_THREADS\fP)\&. Setting \fCorder=\fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP\fP with \fCldC=0\fP and \fCldB=0\fP implies 'compact' defaults, that is no extra stride between the columns\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fInrhs\fP The number of right hand side vectors (cannot be \fC<1\fP)\&. 
+.br
+\fIorder\fP A flag among \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP and \fBRSB_FLAG_WANT_ROW_MAJOR_ORDER\fP\&. For contiguous vector arrays, you probably want \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP\&. 
+.br
+\fIBp\fP The input vector array\&. 
+.br
+\fIldB\fP Leading dimension of \fCBp\fP array\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fICp\fP The output vector array\&. 
+.br
+\fIldC\fP Leading dimension of \fCCp\fP array\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+Starting from version 1\&.3, \fClibrsb\fP uses C++ kernels for \fBrsb_spmv\fP/\fBrsb_spmm\fP\&. Assuming you configured \fC--enable-debug-getenvs\fP, you may set environment variable \fCRSB_WANT_RSBPP=0\fP to turn use the old C kernels\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spmv\fP, \fBrsb_spmm\fP, rsb_spata, \fBrsb_tune_spmm\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_spmsp (\fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_trans_t\fP transB, const void * betap, const struct rsb_mtx_t * mtxBp, \fBrsb_err_t\fP * errvalp)"
+Computes the weighted product of two sparse matrices in a new sparse matrix (also known as SpGEMM operation): $C <- alpha * opa(A) * beta * opb(B) $ Symmetry/Hermitian flags are ignored by this operation\&.
+.PP
+$opa( A )=A$ if \fCtransA=\fBRSB_TRANSPOSITION_N\fP\fP; $opa( A )= A ^T$ if \fCtransA=\fBRSB_TRANSPOSITION_T\fP\fP; $opa( A )= A ^H$ if \fCtransA=\fBRSB_TRANSPOSITION_C\fP\fP; $opb( B )=B$ if \fCtransB=\fBRSB_TRANSPOSITION_N\fP\fP; $opb( B )= B ^T$ if \fCtransB=\fBRSB_TRANSPOSITION_T\fP\fP; $opb( B )= B ^H$ if \fCtransB=\fBRSB_TRANSPOSITION_C\fP\fP;
+.PP
+\fBParameters:\fP
+.RS 4
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fItransB\fP Transposition parameter for $B$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fImtxBp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $B$ representation\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+   const rsb_trans_t transA = RSB_TRANSPOSITION_N;
+        const rsb_trans_t transB = RSB_TRANSPOSITION_N;
+        RSB_DEFAULT_TYPE *alphap = NULL;
+        RSB_DEFAULT_TYPE *betap = NULL;
+        struct rsb_mtx_t * mtxCp = NULL;
+
+        mtxCp = rsb_spmsp(typecode, transA, alphap, mtxAp,
+                 transB, betap, mtxAp, &errval);
+        if( !mtxCp )
+        {
+                printf("Error calling rsb_spmsp!\n");
+                goto err;
+        }       
+
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_spmsp!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBWarning:\fP
+.RS 4
+Parameters \fCalphap\fP,betap,transA,transB are not yet taken in consideration\&. The following defaults are valid: $alpha=1.0$ and $beta=1.0$, and \fCtransA=transB=\fBRSB_TRANSPOSITION_N\fP\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spmsp_to_dense\fP, \fBrsb_sppsp\fP, \fBrsb_spmsp\fP, \fBrsb_mtx_add_to_dense\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_spmsp_to_dense (\fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_trans_t\fP transB, const void * betap, const struct rsb_mtx_t * mtxBp, \fBrsb_nnz_idx_t\fP ldC, \fBrsb_nnz_idx_t\fP nrC, \fBrsb_nnz_idx_t\fP ncC, \fBrsb_bool_t\fP rowmajorC, void * Cp)"
+Computes the product of sparse matrices and adds it to a dense matrix: $C <- alpha opa(A) * beta * opb(B) $\&.
+.PP
+$opa( A )=A$ if \fCtransA=\fBRSB_TRANSPOSITION_N\fP\fP; $opa( A )= A ^T$ if \fCtransA=\fBRSB_TRANSPOSITION_T\fP\fP; $opa( A )= A ^H$ if \fCtransA=\fBRSB_TRANSPOSITION_C\fP\fP; $opb( B )=B$ if \fCtransB=\fBRSB_TRANSPOSITION_N\fP\fP; $opb( B )= B ^T$ if \fCtransB=\fBRSB_TRANSPOSITION_T\fP\fP; $opb( B )= B ^H$ if \fCtransB=\fBRSB_TRANSPOSITION_C\fP\fP;
+.PP
+\fBParameters:\fP
+.RS 4
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fItransB\fP Transposition parameter for $B$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fImtxBp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $B$ representation\&. 
+.br
+\fIldC\fP Leading dimension of \fCCp\fP array\&. 
+.br
+\fInrC,ncC\fP The number of rows and columns for the dense matrix $C$\&. 
+.br
+\fIrowmajorC\fP \fBRSB_BOOL_TRUE\fP if the dense matrix $C$ is considered stored as row major, or \fBRSB_BOOL_FALSE\fP if as column major\&. 
+.br
+\fICp\fP Array representing the dense matrix $C$\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+Parameters \fCalphap\fP,betap,transA,transB are not yet taken in consideration\&. The following defaults are valid: $alpha=1.0$ and $beta=1.0$, and \fCtransA=transB=\fBRSB_TRANSPOSITION_N\fP\fP\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+   const rsb_nnz_idx_t ldC = 4, nrC = 3, ncC = 3;
+        const rsb_bool_t rowmajorC = RSB_BOOL_TRUE;
+        RSB_DEFAULT_TYPE Cp[ /*ldC*nrC*/ ] = {
+                0, 0, 0, -99,
+                0, 0, 0, -99,
+                0, 0, 0, -99
+        };
+        const rsb_trans_t transA = RSB_TRANSPOSITION_N;
+        const rsb_trans_t transB = RSB_TRANSPOSITION_N;
+        RSB_DEFAULT_TYPE *alphap = NULL;
+        RSB_DEFAULT_TYPE *betap = NULL;
+
+        errval = rsb_spmsp_to_dense(typecode, transA, alphap, mtxAp,
+                 transB, betap, mtxAp , ldC, nrC, ncC, rowmajorC, Cp);
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_spmsp_to_dense!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spmsp_to_dense\fP, \fBrsb_sppsp\fP, \fBrsb_spmsp\fP, \fBrsb_mtx_add_to_dense\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_spmv (\fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, const void * Xp, \fBrsb_coo_idx_t\fP incX, const void * betap, void * Yp, \fBrsb_coo_idx_t\fP incY)"
+Multiplies a sparse matrix $opa(A)$ by a vector $X$, updating vector $Y$\&. 
+.br
+Computes $Y <- beta Y + alpha * opa(A) * X $\&. 
+.br
+It is not allowed to supply same \fCXp\fP and \fCYp\fP (that is, \fCXp==Yp\fP)\&. 
+.br
+ $opa( A )=A$ if \fCtransA=\fBRSB_TRANSPOSITION_N\fP\fP; $opa( A )= A ^T$ if \fCtransA=\fBRSB_TRANSPOSITION_T\fP\fP; $opa( A )= A ^H$ if \fCtransA=\fBRSB_TRANSPOSITION_C\fP\fP; If \fC--enable-rsb-num-threads\fP has been specified at configure time, the \fCRSB_NUM_THREADS\fP environment variable will override the number of executing threads specified by \fCOMP_NUM_THREADS\fP\&. (See also \fBRSB_IO_WANT_EXECUTING_THREADS\fP)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fIXp\fP The input vector array\&. 
+.br
+\fIincX\fP Spacing of vector elements in each input vector array (>=1)\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fIYp\fP The output array vector\&. 
+.br
+\fIincY\fP Spacing of vector elements in each output vector array (>=1)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+    if((errval = 
+                rsb_spmv(RSB_TRANSPOSITION_N,&one,mtxAp,B,1,&one,X,1))
+                        != RSB_ERR_NO_ERROR )
+        {
+                printf("Error performing a multiplication!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+Starting from version 1\&.3, \fClibrsb\fP uses C++ kernels for \fBrsb_spmv\fP/\fBrsb_spmm\fP\&. Assuming you configured \fC--enable-debug-getenvs\fP, you may set environment variable \fCRSB_WANT_RSBPP=0\fP to turn use the old C kernels\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spmv\fP, \fBrsb_spmm\fP, rsb_spata, \fBrsb_tune_spmm\fP
+.RE
+.PP
+
+.SS "struct rsb_mtx_t* rsb_sppsp (\fBrsb_type_t\fP typecode, \fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_trans_t\fP transB, const void * betap, const struct rsb_mtx_t * mtxBp, \fBrsb_err_t\fP * errvalp)"
+Computes the weighted sum of two sparse matrices, returning a new matrix: $C <- alpha* transA(A) + beta* transB{B} $ Symmetry flags are ignored in this operation\&.
+.PP
+$opa( A )=A$ if \fCtransA=\fBRSB_TRANSPOSITION_N\fP\fP; $opa( A )= A ^T$ if \fCtransA=\fBRSB_TRANSPOSITION_T\fP\fP; $opa( A )= A ^H$ if \fCtransA=\fBRSB_TRANSPOSITION_C\fP\fP; $opb( B )=B$ if \fCtransB=\fBRSB_TRANSPOSITION_N\fP\fP; $opb( B )= B ^T$ if \fCtransB=\fBRSB_TRANSPOSITION_T\fP\fP; $opb( B )= B ^H$ if \fCtransB=\fBRSB_TRANSPOSITION_C\fP\fP;
+.PP
+\fBParameters:\fP
+.RS 4
+\fItypecode\fP A valid type code for the given (numerical array) input pointer (see \fBmatrix_type_symbols_section\fP)\&. 
+.br
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fItransB\fP Transposition parameter for $B$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fImtxBp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $B$ representation\&. 
+.br
+\fIerrvalp\fP An optional (can be \fCNULL\fP) pointer to \fBrsb_err_t\fP where the error status will be written to\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, a valid pointer (\fCstruct\fP \fCrsb_mtx_t*\fP) to the newly allocated matrix structure; on error, \fCNULL\fP\&.
+.RE
+.PP
+Example snip: 
+.PP
+.nf
+ const rsb_trans_t transA = RSB_TRANSPOSITION_N;
+        const rsb_trans_t transB = RSB_TRANSPOSITION_N;
+        RSB_DEFAULT_TYPE *alphap = NULL;
+        RSB_DEFAULT_TYPE *betap = NULL;
+        struct rsb_mtx_t * mtxCp = NULL;
+
+        mtxCp = rsb_sppsp(typecode, transA, alphap, mtxAp,
+                 transB, betap, mtxAp, &errval);
+        if( !mtxCp )
+        {
+                printf("Error calling rsb_sppsp!\n");
+                goto err;
+        }       
+
+        if(errval != RSB_ERR_NO_ERROR )
+        {
+                printf("Error calling rsb_sppsp!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spmsp_to_dense\fP, \fBrsb_sppsp\fP, \fBrsb_spmsp\fP, \fBrsb_mtx_add_to_dense\fP
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+This function has not been thoroughly tested\&. 
+.PP
+This function is not optimized\&.
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_spsm (\fBrsb_trans_t\fP transT, const void * alphap, const struct rsb_mtx_t * mtxTp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void * betap, const void * Bp, \fBrsb_nnz_idx_t\fP ldB, void * Cp, \fBrsb_nnz_idx_t\fP ldC)"
+Computes $Y <- alpha * opt( T )^{-1} * B $, with upper or lower triangular $T$\&.
+.PP
+$opt( T )=T$ if \fCtransT=\fBRSB_TRANSPOSITION_N\fP\fP; $opt( T )= T ^T$ if \fCtransT=\fBRSB_TRANSPOSITION_T\fP\fP; $opt( T )= T ^H$ if \fCtransT=\fBRSB_TRANSPOSITION_C\fP\fP;
+.PP
+\fBParameters:\fP
+.RS 4
+\fItransT\fP Transposition parameter for $T$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxTp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $T$ representation\&. The matrix must be triangular; that is, it must have been allocated with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP flags\&. 
+.br
+\fInrhs\fP The number of right hand side vectors (cannot be \fC<1\fP)\&. 
+.br
+\fIorder\fP A flag among \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP and \fBRSB_FLAG_WANT_ROW_MAJOR_ORDER\fP\&. For contiguous vector arrays, you probably want \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fIBp\fP The input vector array\&. 
+.br
+\fIldB\fP Leading dimension of \fCBp\fP array\&. 
+.br
+\fICp\fP The output vector array\&. 
+.br
+\fIldC\fP Leading dimension of \fCCp\fP array\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spsm\fP, \fBrsb_spsv\fP, \fBrsb_tune_spsm\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_spsv (\fBrsb_trans_t\fP transT, const void * alphap, const struct rsb_mtx_t * mtxTp, const void * Xp, \fBrsb_coo_idx_t\fP incX, void * Yp, \fBrsb_coo_idx_t\fP incY)"
+Computes $Y <- alpha * opt( T )^{-1} * X $, with upper or lower triangular $T$\&. It is allowed to supply same \fCXp\fP and \fCYp\fP (that is, \fCXp==Yp\fP)\&.
+.PP
+$opt( T )=T$ if \fCtransT=\fBRSB_TRANSPOSITION_N\fP\fP; $opt( T )= T ^T$ if \fCtransT=\fBRSB_TRANSPOSITION_T\fP\fP; $opt( T )= T ^H$ if \fCtransT=\fBRSB_TRANSPOSITION_C\fP\fP;
+.PP
+\fBParameters:\fP
+.RS 4
+\fItransT\fP Transposition parameter for $T$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxTp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $T$ representation\&. The matrix must be triangular; that is, it must have been allocated with either \fBRSB_FLAG_LOWER_TRIANGULAR\fP or \fBRSB_FLAG_UPPER_TRIANGULAR\fP flags\&. 
+.br
+\fIXp\fP The input vector array\&. 
+.br
+\fIincX\fP Spacing of vector elements in each input vector array (>=1)\&. 
+.br
+\fIYp\fP The output array vector\&. 
+.br
+\fIincY\fP Spacing of vector elements in each output vector array (>=1)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&. If \fC--enable-zero-division-checks-on-solve\fP was specified at configure time, attempts to solve a triangular matrix with zeroes on a diagonal will fail\&.
+.RE
+.PP
+Example backsolving a triangular system: 
+.PP
+.nf
+       if((errval = rsb_spsv(RSB_TRANSPOSITION_N,&one,mtxAp,X,1,X,1))
+                        != RSB_ERR_NO_ERROR )
+        {
+                printf("Error performing triangular solve!\n");
+                goto err;
+        }
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spsm\fP, \fBrsb_spsv\fP, \fBrsb_tune_spsm\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_strerror_r (\fBrsb_err_t\fP errval, \fBrsb_char_t\fP * buf, size_t buflen)"
+Writes a textual description of an error code in the specified string buffer\&. No more than buflen characters will be written (comprehensive of the terminating \fCNUL\fP character)\&. No action will be performed on \fC\fBRSB_ERR_NO_ERROR\fP\fP\&. Notice too that error flags cannot be added in the way flags are (e\&.g\&. \fC\fP(\fBRSB_ERR_GENERIC_ERROR\fP|\fBRSB_ERR_BADARGS\fP) evaluates to \fC\fBRSB_ERR_GENERIC_ERROR\fP\fP)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerrval\fP A valid error flag value (see \fBrsb_err_t\fP)\&. 
+.br
+\fIbuf\fP A valid string buffer pointer where to write to\&. 
+.br
+\fIbuflen\fP The string buffer length\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+Examples: 
+.PP
+.nf
+                    char errbuf[256];
+                        rsb_strerror_r(errval,&errbuf[0],sizeof(errbuf));
+                        printf("Failed setting the"
+                        " RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE"
+                        " library option (reason string:\n%s)\&.\n",errbuf);
+
+.fi
+.PP
+or 
+.PP
+.nf
+        rsb_err_t errval = RSB_ERR_INTERNAL_ERROR;
+
+        // \&.\&.\&.
+        
+        if(errval != RSB_ERR_NO_ERROR)
+        {
+                char errbuf[256];
+
+                rsb_strerror_r(errval,&errbuf[0],sizeof(errbuf));
+
+                // error handling \&.\&.\&.
+
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_perror\fP, \fBrsb_strerror_r\fP
+.RE
+.PP
+
+.SS "\fBrsb_time_t\fP rsb_time (void)"
+Returns the current time in seconds\&. This function is meant to be used for computing wall clock time intervals (e\&.g\&.: for benchmarking purposes)\&. The user should not rely on this function for absolute time computations\&.
+.PP
+\fBReturns:\fP
+.RS 4
+A value for the current time, in seconds\&. 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_time\fP, \fBrsb_coo_sort\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_tune_spmm (struct rsb_mtx_t ** mtxOpp, \fBrsb_real_t\fP * sfp, \fBrsb_int_t\fP * tnp, \fBrsb_int_t\fP maxr, \fBrsb_time_t\fP maxt, \fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void * Bp, \fBrsb_nnz_idx_t\fP ldB, const void * betap, void * Cp, \fBrsb_nnz_idx_t\fP ldC)"
+An auto-tuner: optimizes either the matrix instance, the thread count or both for the \fBrsb_spmm\fP operation\&.
+.PP
+The tuner works by evaluating different instances and working threads variants\&. The instance leading to faster operation time will be retained and given back to the user in \fC*mtxOpp\fP\&. If \fCnrhs==1\fP and \fCorder==\fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP\fP, unitary stride vectors are assumed\&. In case of error, the original input matrix shall be unaffected\&. It is possible to specify the leading dimensions of \fCBp\fP,Cp implicitly, with \fCldB=0\fP and \fCldC=0\fP: in this case, their values will be computed internally and if \fCBp!=NULL\fP,Cp!=NULL, they will be assumed of being sufficiently sized\&. Values of \fCnrhs<1\fP will be treated as 1\&. \fCBp\fP, \fCCp\fP can be \fCNULL:\fP temporary vectors will be allocated, used, and deallocated within the tuner\&. If \fCmtxOpp=NULL\fP and \fC*tnp!=NULL\fP the best thread count will be probed for the matrix given in \fCmtxAp\fP\&. Please note that if threads-only tuning is requested and matrix has too few leaves (see \fBRSB_MIF_LEAVES_COUNT__TO__RSB_BLK_INDEX_T\fP), tuning will not work\&. If \fCmtxAp==NULL\fP, then the \fC*mtxOpp\fP instance will be used; however in this case, if a better instance is found, the original will be destroyed as with \fBrsb_mtx_free()\fP\&. The case \fCmtxAp!=NULL&&*mtxOpp!=NULL\fP is illegal and will cause error code \fBRSB_ERR_BADARGS\fP to be returned\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxOpp\fP Optimal matrix structure pointer will be assigned to \fC*mtxOpp\fP (it may occur that *mtxOpp==mtxAp on output)\&. If \fCmtxOpp\fP is \fCNULL\fP then no data structure optimization will be attempted; rather, only optimal threads search will occur (\fCtnp\fP must be not \fCNULL\fP then)\&. 
+.br
+\fIsfp\fP Achieved speedup factor will be written to \fC*sfp\fP (unless \fCsfp==NULL\fP)\&. 
+.br
+\fItnp\fP If \fCtnp==NULL\fP on input, the current thread count will be utilized\&. Otherwise, if \fC*tnp>0\fP, then *tnp will be used as first suggestion in optimal thread count searching\&. If \fCtnp!=NULL\fP ,on output \fC*tnp\fP will be set to contain the optimal number of threads\&. Then, the user is expected to set this number of threads using e\&.g\&.: \fC\fBRSB_REINIT_SINGLE_VALUE_SET(RSB_IO_WANT_EXECUTING_THREADS,tnp,errval)\fP\fP\&. Please note that this will affect the whole library operation, not only this matrix\&. 
+.br
+\fImaxr\fP Optimizer rounds max count\&. If \fC<1\fP, will be treated as 1; if 0 will be decided automatically\&. Max is \fBRSB_CONST_MAX_TUNING_ROUNDS\fP\&. 
+.br
+\fImaxt\fP Maximum time (in seconds) per optimization round (does not take in account conversion time)\&. If \fCmaxt<0\&.0\fP is provided, \fC-ceil\fP(maxt) will be interpreted as number of iterations to check for each operation time sample\&. If \fCmaxt==0\&.0\fP is provided, a default choice will be made instead\&. 
+.br
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fInrhs\fP The number of right hand side vectors (cannot be \fC<1\fP)\&. 
+.br
+\fIorder\fP A flag among \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP and \fBRSB_FLAG_WANT_ROW_MAJOR_ORDER\fP\&. For contiguous vector arrays, you probably want \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP\&. 
+.br
+\fIBp\fP The input vector array\&. If \fCNULL\fP, a temporary, internally allocated copy will be used\&. 
+.br
+\fIldB\fP Leading dimension of \fCBp\fP array\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fICp\fP The output vector array\&. If \fCNULL\fP, a temporary, internally allocated copy will be used\&. 
+.br
+\fIldC\fP Leading dimension of \fCCp\fP array\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+.PP
+.nf
+       Examples:
+.fi
+.PP
+ 
+.PP
+.nf
+// obtain best thread count for mtxAp:
+errval = rsb_tune_spmm(NULL  ,&sf,&tn ,maxr,maxt,transA,&alpha,mtxAp,nrhs,order,Bp,ldB,&beta,Cp,ldC);
+
+// obtain best thread count for mtxAp; Bp and Cp will be allocated by the tuner:
+errval = rsb_tune_spmm(NULL  ,&sf,&tn ,maxr,maxt,transA,&alpha,mtxAp,nrhs,order,NULL,0,&beta,NULL,0);
+
+// obtain best clone of mtxAp (for current thread count):
+assert(mtxOp == NULL && mtxAp != NULL);
+errval = rsb_tune_spmm(&mtxOp,&sf,NULL,maxr,maxt,transA,&alpha,mtxAp,nrhs,order,Bp,ldB,&beta,Cp,ldC);
+
+// obtain best clone of mtxAp and best thread count:
+assert(mtxOp == NULL && mtxAp != NULL);
+errval = rsb_tune_spmm(&mtxOp,&sf,&tn ,maxr,maxt,transA,&alpha,mtxAp,nrhs,order,Bp,ldB,&beta,Cp,ldC);
+
+// replace mtxAp with best clone (if any):
+errval = rsb_tune_spmm(&mtxAp,&sf,NULL,maxr,maxt,transA,&alpha,NULL ,nrhs,order,Bp,ldB,&beta,Cp,ldC);
+
+// replace mtxAp with best clone (if any) and obtain best thread count:
+errval = rsb_tune_spmm(&mtxAp,&sf,&tn ,maxr,maxt,transA,&alpha,NULL ,nrhs,order,Bp,ldB,&beta,Cp,ldC);
+
+// illegal call:
+assert(mtxOp != NULL && mtxAp != NULL);
+errval = rsb_tune_spmm(&mtxOp,&sf,&tn ,maxr,maxt,transA,&alpha,mtxAp,nrhs,order,Bp,ldB,&beta,Cp,ldC);
+
+.fi
+.PP
+.PP
+\fBWarning:\fP
+.RS 4
+This function is still experimental\&. In case of error, although the matrix shall be unaffected, the library status may be affected (e\&.g\&.: execution thread count, default matrix subdivision)\&. 
+.RE
+.PP
+\fBTodo\fP
+.RS 4
+Autotuning functionality is still object of much research\&. Need support for lightweight, threads-only optimization\&. 
+.RE
+.PP
+Sample matrix sparse block structure before tuning Sample matrix sparse block structure after tuning  
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spmv\fP, \fBrsb_spmm\fP, rsb_spata, \fBrsb_tune_spmm\fP
+.RE
+.PP
+
+.SS "\fBrsb_err_t\fP rsb_tune_spsm (struct rsb_mtx_t ** mtxOpp, \fBrsb_real_t\fP * sfp, \fBrsb_int_t\fP * tnp, \fBrsb_int_t\fP maxr, \fBrsb_time_t\fP maxt, \fBrsb_trans_t\fP transA, const void * alphap, const struct rsb_mtx_t * mtxAp, \fBrsb_coo_idx_t\fP nrhs, \fBrsb_flags_t\fP order, const void * Bp, \fBrsb_nnz_idx_t\fP ldB, const void * betap, void * Cp, \fBrsb_nnz_idx_t\fP ldC)"
+An auto-tuner: optimizes either the matrix instance, the thread count or both for the \fBrsb_spsm\fP operation\&.
+.PP
+The tuner works by evaluating different instances and working threads variants\&. The instance leading to faster operation time will be retained and given back to the user in \fC*mtxOpp\fP\&. If \fCnrhs==1\fP and \fCorder==\fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP\fP, unitary stride vectors are assumed\&. In case of error, the original input matrix shall be unaffected\&. It is possible to specify the leading dimensions of \fCBp\fP,Cp implicitly, with \fCldB=0\fP and \fCldC=0\fP: in this case, their values will be computed internally and if \fCBp!=NULL\fP,Cp!=NULL, they will be assumed of being sufficiently sized\&. Values of \fCnrhs<1\fP will be treated as 1\&. \fCBp\fP, \fCCp\fP can be \fCNULL:\fP temporary vectors will be allocated, used, and deallocated within the tuner\&. If \fCmtxOpp=NULL\fP and \fC*tnp!=NULL\fP the best thread count will be probed for the matrix given in \fCmtxAp\fP\&. Please note that if threads-only tuning is requested and matrix has too few leaves (see \fBRSB_MIF_LEAVES_COUNT__TO__RSB_BLK_INDEX_T\fP), tuning will not work\&. If \fCmtxAp==NULL\fP, then the \fC*mtxOpp\fP instance will be used; however in this case, if a better instance is found, the original will be destroyed as with \fBrsb_mtx_free()\fP\&. The case \fCmtxAp!=NULL&&*mtxOpp!=NULL\fP is illegal and will cause error code \fBRSB_ERR_BADARGS\fP to be returned\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fImtxOpp\fP Optimal matrix structure pointer will be assigned to \fC*mtxOpp\fP (it may occur that *mtxOpp==mtxAp on output)\&. If \fCmtxOpp\fP is \fCNULL\fP then no data structure optimization will be attempted; rather, only optimal threads search will occur (\fCtnp\fP must be not \fCNULL\fP then)\&. 
+.br
+\fIsfp\fP Achieved speedup factor will be written to \fC*sfp\fP (unless \fCsfp==NULL\fP)\&. 
+.br
+\fItnp\fP If \fCtnp==NULL\fP on input, the current thread count will be utilized\&. Otherwise, if \fC*tnp>0\fP, then *tnp will be used as first suggestion in optimal thread count searching\&. If \fCtnp!=NULL\fP ,on output \fC*tnp\fP will be set to contain the optimal number of threads\&. Then, the user is expected to set this number of threads using e\&.g\&.: \fC\fBRSB_REINIT_SINGLE_VALUE_SET(RSB_IO_WANT_EXECUTING_THREADS,tnp,errval)\fP\fP\&. Please note that this will affect the whole library operation, not only this matrix\&. 
+.br
+\fImaxr\fP Optimizer rounds max count\&. If \fC<1\fP, will be treated as 1; if 0 will be decided automatically\&. Max is \fBRSB_CONST_MAX_TUNING_ROUNDS\fP\&. 
+.br
+\fImaxt\fP Maximum time (in seconds) per optimization round (does not take in account conversion time)\&. If \fCmaxt<0\&.0\fP is provided, \fC-ceil\fP(maxt) will be interpreted as number of iterations to check for each operation time sample\&. If \fCmaxt==0\&.0\fP is provided, a default choice will be made instead\&. 
+.br
+\fItransA\fP Transposition parameter for $A$ (see \fBmatrix_transposition_flags_section\fP)\&. 
+.br
+\fIalphap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value (of the same type as matrix)\&. 
+.br
+\fImtxAp\fP Valid \fCrsb_mtx_t\fP pointer to matrix $A$ representation\&. 
+.br
+\fInrhs\fP The number of right hand side vectors (cannot be \fC<1\fP)\&. 
+.br
+\fIorder\fP A flag among \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP and \fBRSB_FLAG_WANT_ROW_MAJOR_ORDER\fP\&. For contiguous vector arrays, you probably want \fBRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP\&. 
+.br
+\fIBp\fP The input vector array\&. If \fCNULL\fP, a temporary, internally allocated copy will be used\&. 
+.br
+\fIldB\fP Leading dimension of \fCBp\fP array\&. 
+.br
+\fIbetap\fP Optional pointer (if \fCNULL\fP, will default to 1) to a numerical value\&. 
+.br
+\fICp\fP The output vector array\&. If \fCNULL\fP, a temporary, internally allocated copy will be used\&. 
+.br
+\fIldC\fP Leading dimension of \fCCp\fP array\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBRSB_ERR_NO_ERROR\fP on correct operation, an error code otherwise\&. You can use \fBrsb_strerror_r()\fP or \fBrsb_perror()\fP to get more information about the error\&.
+.RE
+.PP
+If \fC--enable-zero-division-checks-on-solve\fP was specified at configure time, attempts to solve a triangular matrix with zeroes on a diagonal will fail\&. 
+.PP
+\fBWarning:\fP
+.RS 4
+This function is still experimental\&. In case of error, although the matrix shall be unaffected, the library status may be affected (e\&.g\&.: execution thread count, default matrix subdivision)\&. 
+.RE
+.PP
+\fBTodo\fP
+.RS 4
+Autotuning functionality is still object of much research\&. Need support for lightweight, threads-only optimization\&. 
+.RE
+.PP
+Sample matrix sparse block structure before tuning Sample matrix sparse block structure after tuning  
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_spsm\fP, \fBrsb_spsv\fP, \fBrsb_tune_spsm\fP 
+.PP
+\fBrsb_tune_spmm\fP
+.RE
+.PP
+
+.SH "Author"
+.PP 
+librsb was written by Michele Martone; this documentation has been generated by Doxygen.
+.SH "SEE ALSO"
+.B rsb-examples
+.B rsb.h
+.B rsb.hpp
+.B rsb-spblas.h

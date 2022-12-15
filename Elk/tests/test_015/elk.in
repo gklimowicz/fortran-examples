@@ -1,0 +1,55 @@
+
+! DFT+U test
+
+tasks
+  0
+  400
+  500
+
+test
+ .true.
+
+mixtype
+  1
+
+dft+u
+  1 5            : dftu, inpdftu
+  1 2 0.29399    : is, l, U fixed
+
+spinpol
+ .true.
+
+spinorb
+ .true.
+
+scale
+  7.893389
+
+avec
+   1.0  0.5  0.5
+   0.5  1.0  0.5
+   0.5  0.5  1.0
+
+atoms
+  2                                    : nspecies
+  'Ni.in'                              : spfname
+  2                                    : natoms; atpos, bfcmt below
+  0.0  0.0  0.0   0.0 0.0 -2.0
+  0.5  0.5  0.5   0.0 0.0  2.0
+  'O.in'                               : spfname
+  2                                    : natoms; atpos, bfcmt below
+  0.25 0.25 0.25  0.0 0.0  0.0
+  0.75 0.75 0.75  0.0 0.0  0.0
+
+reducebf
+   0.5
+
+sppath
+  '../../species/'
+
+ngridk
+  2  2  2
+
+vkloff
+  0.5 0.5 0.5
+

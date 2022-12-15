@@ -1,0 +1,11 @@
+#!/bin/bash
+
+while [ "$*" != "" ]
+do
+  echo $1
+  sed -i 's/[ \t]*$//' $1
+  sed -i ':a;/^[ \n]*$/{$d;N;ba}' $1
+  echo >> $1
+  shift
+done
+

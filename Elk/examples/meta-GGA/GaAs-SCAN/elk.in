@@ -1,0 +1,55 @@
+
+! Variational meta-GGA example using the strongly constrained and appropriately
+! normed (SCAN) functional of J. Sun, A. Ruzsinszky and J. P. Perdew,
+! Phys. Rev. Lett. 115, 036402 (2015).
+!
+! We use the re-regularised version of SCAN [J. W. Furness, A. D. Kaplan,
+! J. Ning, J. P. Perdew and J. Sun, J. Phys. Chem. Lett. 2020, 11, 8208 (2020)]
+! in order to improve numerical stability.
+!
+! This example requires the Libxc functional library.
+
+tasks
+  0
+  20
+
+msmooth
+  4
+
+nxoapwlo
+  1
+
+! Libxc re-regularised SCAN functional
+xctype
+  100 497 498
+
+ngridk
+  4 4 4
+
+plot1d
+  7 200
+  0.0   0.0   1.0
+  0.5   0.5   1.0
+  0.0   0.0   0.0
+  0.5   0.0   0.0
+  0.5   0.5   0.0
+  0.5   0.25 -0.25
+  0.5   0.0   0.0
+
+avec
+  5.3435  5.3435  0.0000
+  5.3435  0.0000  5.3435
+  0.0000  5.3435  5.3435
+
+sppath
+ '../../../species/'
+
+atoms
+  2                                   : nspecies
+  'Ga.in'                             : spfname
+  1                                   : natoms; atposl below
+  0.0  0.0  0.0
+  'As.in'
+  1
+  0.25  0.25  0.25
+

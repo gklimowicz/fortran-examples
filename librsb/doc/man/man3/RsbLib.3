@@ -1,0 +1,108 @@
+.TH "RsbLib" 3 "Tue Oct 18 2022" "Version 1.3.0.1" "librsb" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RsbLib \- Class initializing/finalizing \fClibrsb\fP state\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBRSBP_RVT\fP Err_t \fBset_opt_str\fP (const \fBrsb_char_t\fP *opnp, const \fBrsb_char_t\fP *opvp)"
+.br
+.ti -1c
+.RI "\fBRSBP_RVT\fP Err_t \fBset_opt\fP (enum \fBrsb_opt_t\fP iof, const void *iop)"
+.br
+.ti -1c
+.RI "\fBRSBP_RVT\fP Err_t \fBget_opt\fP (enum \fBrsb_opt_t\fP iof, void *iop) const"
+.br
+.ti -1c
+.RI "rsb_string_t \fBget_opt\fP (enum \fBrsb_opt_t\fP iof) const"
+.br
+.ti -1c
+.RI "\fBRSBP_RVT\fP Err_t \fBset_num_threads\fP (\fBrsb_int_t\fP nt)"
+.br
+.ti -1c
+.RI "\fBrsb_int_t\fP \fBget_num_threads\fP (void) const"
+.br
+.ti -1c
+.RI "\fBRSBP_RVT\fP Err_t \fBreinit\fP (struct \fBrsb_initopts\fP *iop)"
+.br
+.ti -1c
+.RI "\fBRSBP_DEPRECATED\fP \fBRsbLib\fP (bool verbose)"
+.br
+.ti -1c
+.RI "\fBRsbLib\fP (void)"
+.br
+.ti -1c
+.RI "size_t \fBmeminfo\fP (void)"
+.br
+.ti -1c
+.RI "\fB~RsbLib\fP (void)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Class initializing/finalizing \fClibrsb\fP state\&. 
+
+Before creating any \fC\fBRsbMatrix\fP\fP objects, make sure you have initialized \fClibrsb\fP by creating one single \fC\fBRsbLib\fP\fP object\&. Similarly, \fC\fBRsbMatrix\fP\fP object shall leave scope after the \fC\fBRsbLib\fP\fP object has been deallocated\&.
+.PP
+Several \fClibrsb\fP options can be queried or changed via e\&.g\&. \fBget_opt()\fP, \fBset_opt()\fP, \fBget_num_threads()\fP, \fBset_num_threads()\fP\&. 
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "\fBRSBP_DEPRECATED\fP RsbLib::RsbLib (bool verbose)\fC [inline]\fP"
+Initialize librsb\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_lib_reinit()\fP\&.
+.RE
+.PP
+
+.SS "RsbLib::RsbLib (void)\fC [inline]\fP"
+Initialize librsb\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBrsb_lib_reinit()\fP\&.
+.RE
+.PP
+
+.SS "RsbLib::~RsbLib (void)\fC [inline]\fP"
+Destructor: finalize \fClibrsb\fP\&.
+.PP
+This is being invoked at the end of the scope of a \fC\fBRsbLib\fP\fP object: typically at application's end\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "\fBrsb_int_t\fP RsbLib::get_num_threads (void) const\fC [inline]\fP"
+Indirect interface to rsb_lib_get_opt\&.
+.SS "\fBRSBP_RVT\fP Err_t RsbLib::get_opt (enum \fBrsb_opt_t\fP iof, void * iop) const\fC [inline]\fP"
+Interface to rsb_lib_get_opt\&.
+.SS "rsb_string_t RsbLib::get_opt (enum \fBrsb_opt_t\fP iof) const\fC [inline]\fP"
+Interface to rsb_lib_get_opt\&. 
+.PP
+\fBWarning:\fP
+.RS 4
+Only RSB_IO_WANT_MEMORY_HIERARCHY_INFO_STRING is supported for now\&.
+.RE
+.PP
+
+.SS "size_t RsbLib::meminfo (void)\fC [inline]\fP"
+Provide memory debug info from librsb and return usage amount\&. Only effective if librsb configured accordingly\&.
+.PP
+On error, throw an exception\&.
+.SS "\fBRSBP_RVT\fP Err_t RsbLib::reinit (struct \fBrsb_initopts\fP * iop)\fC [inline]\fP"
+Interface to \fBrsb_lib_reinit()\fP\&.
+.SS "\fBRSBP_RVT\fP Err_t RsbLib::set_num_threads (\fBrsb_int_t\fP nt)\fC [inline]\fP"
+Indirect interface to rsb_lib_set_opt\&.
+.SS "\fBRSBP_RVT\fP Err_t RsbLib::set_opt (enum \fBrsb_opt_t\fP iof, const void * iop)\fC [inline]\fP"
+Interface to rsb_lib_set_opt\&.
+.SS "\fBRSBP_RVT\fP Err_t RsbLib::set_opt_str (const \fBrsb_char_t\fP * opnp, const \fBrsb_char_t\fP * opvp)\fC [inline]\fP"
+Interface to rsb_lib_set_opt_str\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for librsb from the source code\&.

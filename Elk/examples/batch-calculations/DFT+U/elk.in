@@ -1,0 +1,83 @@
+
+! Batch calculation of muffin-tin moment vs U for NiO.
+
+! See examples/DFT+U/NiO-LDA+U-FLL-Ykwa/elk.in for details.
+
+! Relevant output variables are stored in the file VARIABLES.OUT.
+
+
+! To extract the set of U values use:
+!
+!   sed -n '/udufix/{n;n;p}' VARIABLES.OUT > udufix
+!
+! and to extract the corresponding Ni muffin-tin moment use:
+!
+!   sed -n '/mommt/{n;n;p}' VARIABLES.OUT > mommt
+!
+! These can be combined into a single file using:
+!
+!   paste udufix mommt > mom_vs_U
+!
+! which can be plotted.
+
+
+! run several consecutive ground-state calculations
+tasks
+  0
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+
+! enable batch mode
+batch
+ .true.
+
+! the U is changed between each batch calculation
+dft+u
+  1 5             : dftu, inpdftu
+  1 2  0.1  0.01  : is, l, U, change in U between calculations
+
+spinpol
+  .true.
+
+scale
+  7.893389
+
+avec
+  1.0  0.5  0.5
+  0.5  1.0  0.5
+  0.5  0.5  1.0
+
+atoms
+  2                                    : nspecies
+  'Ni.in'                              : spfname
+  2                                    : natoms; atpos, bfcmt below
+  0.0   0.0   0.0    0.0  0.0 -0.01
+  0.5   0.5   0.5    0.0  0.0  0.01
+  'O.in'                               : spfname
+  2                                    : natoms; atpos, bfcmt below
+  0.25  0.25  0.25   0.0  0.0  0.0
+  0.75  0.75  0.75   0.0  0.0  0.0
+
+sppath
+  '../../../species/'
+
+! fairly high number of empty states
+nempty
+  8
+
+! this grid is too small for accurate magnetic moment
+ngridk
+  4  4  4
+
