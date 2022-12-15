@@ -1,0 +1,110 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!    This file is part of OpenFFT. 
+!
+!    OpenFFT is an open-source parallel package for 3-D FFTs
+!    built on a communication-optimal domain decomposition method.
+! 
+!    Copyright (C) 2013-2015  Truong Vinh Truong Duy and Taisuke Ozaki, 
+!                             The University of Tokyo.
+!
+!    This program is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    This program is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!  openfft.fi: FORTRAN header file
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+interface
+
+    real(C_DOUBLE) function openfft_init_c2c_3d(&
+    		   N1,N2,N3,&
+        	   My_Max_NumGrid,My_NumGrid_In,My_Index_In,&
+		   My_NumGrid_Out,My_Index_Out,&
+		   offt_measure,measure_time,print_memory) & 
+	   bind(C, name='openfft_init_c2c_3d')
+	   import
+		integer(C_INT), value :: N1,N2,N3
+		integer(C_INT), intent(out) :: My_Max_NumGrid,&
+				My_NumGrid_In,My_NumGrid_Out
+		integer(C_INT), dimension(*), intent(out) :: My_Index_In,&
+				My_Index_Out
+		integer(C_INT), value ::offt_measure,&
+				measure_time,print_memory
+    end function openfft_init_c2c_3d
+
+    real(C_DOUBLE) function openfft_init_r2c_3d(&
+    		   N1,N2,N3,&
+        	   My_Max_NumGrid,My_NumGrid_In,My_Index_In,&
+		   My_NumGrid_Out,My_Index_Out,&
+		   offt_measure,measure_time,print_memory) &
+	   bind(C, name='openfft_init_r2c_3d')
+	   import
+		integer(C_INT), value :: N1,N2,N3
+		integer(C_INT), intent(out) :: My_Max_NumGrid,&
+				My_NumGrid_In,My_NumGrid_Out
+		integer(C_INT), dimension(*), intent(out) :: My_Index_In,&
+				My_Index_Out
+		integer(C_INT), value ::offt_measure,&
+				measure_time,print_memory
+    end function openfft_init_r2c_3d
+
+    real(C_DOUBLE) function openfft_init_c2c_4d(&
+    		   N1,N2,N3,N4,&
+        	   My_Max_NumGrid,My_NumGrid_In,My_Index_In,&
+		   My_NumGrid_Out,My_Index_Out,&
+		   offt_measure,measure_time,print_memory) & 
+	   bind(C, name='openfft_init_c2c_4d')
+	   import
+		integer(C_INT), value :: N1,N2,N3,N4
+		integer(C_INT), intent(out) :: My_Max_NumGrid,&
+				My_NumGrid_In,My_NumGrid_Out
+		integer(C_INT), dimension(*), intent(out) :: My_Index_In,&
+				My_Index_Out
+		integer(C_INT), value ::offt_measure,&
+				measure_time,print_memory
+    end function openfft_init_c2c_4d
+
+    real(C_DOUBLE) function openfft_exec_c2c_3d(input,output) &
+    	   bind(C, name='openfft_exec_c2c_3d')
+	   import	   
+	      complex(C_DOUBLE_COMPLEX), dimension(*), intent(in) :: input
+	      complex(C_DOUBLE_COMPLEX), dimension(*), intent(out) :: output
+    end function openfft_exec_c2c_3d
+
+    real(C_DOUBLE) function openfft_exec_r2c_3d(input,output) &
+    	   bind(C, name='openfft_exec_r2c_3d')
+	   import	   
+	      real(C_DOUBLE), dimension(*), intent(in) :: input
+	      complex(C_DOUBLE_COMPLEX), dimension(*), intent(out) :: output
+    end function openfft_exec_r2c_3d
+    
+    real(C_DOUBLE) function openfft_exec_c2c_4d(input,output) &
+    	   bind(C, name='openfft_exec_c2c_4d')
+	   import	   
+	      complex(C_DOUBLE_COMPLEX), dimension(*), intent(in) :: input
+	      complex(C_DOUBLE_COMPLEX), dimension(*), intent(out) :: output
+    end function openfft_exec_c2c_4d
+
+    real(C_DOUBLE) function openfft_finalize() &
+    	   bind(C, name='openfft_finalize')
+      	   import
+    end function openfft_finalize
+
+    subroutine openfft_dtime(time) &
+    	   bind(C, name='openfft_dtime')
+      	   import
+		real(C_DOUBLE), dimension(*), intent(out) :: time
+    end subroutine openfft_dtime
+    
+end interface

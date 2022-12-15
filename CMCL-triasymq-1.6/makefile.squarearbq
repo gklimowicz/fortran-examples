@@ -1,0 +1,80 @@
+PROJECT=int2         # for historical reasons we always like to 
+                     # call the executable int2, but you could set it to 
+                     # something more descriptive
+
+###COMP=windows
+COMP=linux
+###COMP=macosx
+
+
+ifeq ($(COMP),linux)
+
+OBJSUF=o
+MODSUF=mod
+FC=f77 -c 
+FFLAGS=-fast
+FLINK=f77 -o $(PROJECT)
+
+else
+
+ifeq ($(COMP),macosx)
+
+OBJSUF=o
+MODSUF=mod
+FC=gfortran -c 
+FFLAGS=-O2
+FLINK=gfortran -o $(PROJECT)
+
+else 
+
+OBJSUF=obj
+MODSUF=mod
+FC=lf95 -c
+FFLAGS=-O1
+FLINK=lf95 -out $(PROJECT)
+
+endif
+endif
+
+
+.PHONY: $(PROJECT) clean list pack
+
+.f.$(OBJSUF):
+	$(FC) $(FFLAGS) $<
+
+.f.$(MODSUF):
+	$(FC) $(FFLAGS) $<
+
+.SUFFIXES: $(MODSUF) .$(OBJSUF) .f .c
+
+# SOURCE FILE LIST
+#
+vpath %.f .:..
+
+FMODS = 
+
+FSRCS = squarearbq_dr.f squarearbq.f legeexps.f lege2eva.f prini.f 
+
+ifeq ($(WITH_SECOND),1) 
+FSRCS += second-r8.f
+endif
+
+#
+# object files list
+MODS    =  $(FMODS:.f=.$(MODSUF)) 
+OBJS    =  $(FMODS:.f=.$(OBJSUF)) $(FSRCS:.f=.$(OBJSUF)) 
+#
+$(PROJECT):   $(MODS)   $(OBJS)
+	rm -f $(PROJECT)
+	$(FLINK) $(OBJS)
+	./$(PROJECT)
+#
+clean: 
+	rm -f $(OBJS)
+# 
+list: $(FSRCS)
+	echo $^
+#
+pack: $(FSRCS)
+	cat $^ > _tmp_.pack.f
+#

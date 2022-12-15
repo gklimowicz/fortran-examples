@@ -1,0 +1,58 @@
+
+! Interpolation of the Si Hartree-Fock band structure using Wannier90.
+
+tasks
+  0          : LDA ground state
+  20         : LDA band structure
+  5          : Hartree-Fock calculation
+  550        : Wannier90 interpolated band structure
+
+! large number of empty states
+nempty
+  10
+
+ngridk
+  4  4  4
+
+plot1d
+  6 200                 : nvp1d, npp1d
+  0.25  0.75  0.5       : vlvp1d
+  0.5   0.5   0.5
+  0.0   0.0   0.0
+  0.0   0.5   0.5
+  0.25  0.75  0.5
+  0.375 0.75  0.375
+
+! bands to be used for the Wannier functions
+idxw90
+  1-16
+
+! extra lines to be included in the .win file
+xlwin
+bands_plot = true
+kpath = true
+kpath_task = bands
+kpath_num_points = 500
+begin kpoint_path
+   W  0.25  0.75  0.5        L  0.5   0.5   0.5
+   L  0.5   0.5   0.5        G  0.0   0.0   0.0
+   G  0.0   0.0   0.0        X  0.0   0.5   0.5
+   X  0.0   0.5   0.5        W  0.25  0.75  0.5
+   W  0.25  0.75  0.5        K  0.375 0.75  0.375
+end kpoint_path
+
+avec
+  5.13  5.13  0.00
+  5.13  0.00  5.13
+  0.00  5.13  5.13
+
+sppath
+  '../../../species/'
+
+atoms
+  1                                 : nspecies
+  'Si.in'                           : spfname
+  2                                 : natoms; atposl below
+  0.0  0.0  0.0
+  0.25 0.25 0.25
+

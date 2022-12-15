@@ -1,0 +1,181 @@
+#!@SHEBANG_SHELL@
+
+# librsb-config
+# provide configuration info for librsb.
+
+# Copyright (C) 2010-2022 Michele Martone
+# Modeled after libpng-config, Copyright (C) 2002, 2004, 2006, 2007 Glenn Randers-Pehrson
+
+version="@LIBRSB_MAIN_RELEASE@ "
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+libdir="@libdir@"
+cc="@CC@"
+fc="@FC@"
+cxx="@CXX@"
+includedir="@includedir@/"
+ldflags="@LDFLAGS@"
+# Note: if using -lrsbpp explicitly and -stdc++ is there, optional -lasan needs to precede -stdc++ (in RSB_RSBPP_LIBS)
+libs="-lrsb"
+extra_libs="@LIBS@ @OPENMP_CFLAGS@ @LIBRSB_MKL_LIBS@ @RSB_RSBPP_LIBS@"
+all_libs="-lrsb"
+fclibs="@FCLIBS@"
+I_opts="-I${includedir} "
+L_opts="-L${libdir} "
+if test x"@lt_cv_prog_gnu_ld@" == x"no" ; then # lt_cv_prog_gnu_ld as detected by configure.
+	R_opts=""; # e.g. AIX ld, ...
+else
+	R_opts="-Wl,-rpath -Wl,${libdir}";
+fi
+cppflags=""
+fcflags="@LIBRSB_CONFIG_FFLAGS@"
+ccopts=""
+cxxflags="@CXXFLAGS@"
+ldopts=""
+link="@EXAMPLES_MAKE_SH_LINK@"
+
+usage()
+{
+    cat <<EOF
+Usage: $0 [OPTION] ...
+
+Known values for OPTION are:
+
+  --prefix        print librsb prefix
+  --libdir        print path to directory containing library
+  --libs          print library linking information
+  --extra_libs    print extra linking information (e.g.: dependency libs)
+  --ccopts        print compiler options (no-op)
+  --cc            print C compiler
+  --fc            print Fortran compiler
+  --cxx           print C++ compiler
+  --cppflags      print C pre-processor flags (no-op)
+  --cflags        print preprocessor flags, I_opts, and compiler options
+  --cxxflags      print preprocessor flags, I_opts, and C++ compiler options
+  --fcflags       print Fortran compilation and preprocessor flags
+  --I_opts        print "-I" include options
+  --L_opts        print linker "-L" flags for dynamic linking
+  --R_opts        print dynamic linker "-R" or "-rpath" flags
+  --ldopts        print linker options (no-op)
+  --link          print suggested linker command
+  --ldflags       print linker flags (ldopts, L_opts, R_opts, and libs)
+  --fclibs        print build-time detected fortran libs
+  --static        revise subsequent outputs for static linking
+  --help          print this help and exit
+  --version       print version information
+EOF
+
+    exit $1
+}
+
+if test $# -eq 0; then
+    usage 1
+fi
+
+OUT='' # want one line of output
+
+while test $# -gt 0; do
+    case "$1" in
+
+    --prefix)
+        OUT="${OUT} ${prefix}"
+        ;;
+
+    --version)
+        OUT="${OUT} ${version}"
+        echo ${OUT}
+        exit 0
+        ;;
+
+    --help)
+        usage 0
+        ;;
+
+    --ccopts)
+        OUT="${OUT} ${ccopts}"
+        ;;
+
+    --cc)
+        OUT="${OUT} ${cc}"
+        ;;
+
+    --fc)
+        OUT="${OUT} ${fc}"
+        ;;
+
+    --cxx)
+        OUT="${OUT} ${cxx}"
+        ;;
+
+    --cppflags)
+        OUT="${OUT} ${cppflags}"
+        ;;
+
+    --cflags)
+        OUT="${OUT} ${I_opts} ${cppflags} ${ccopts}"
+        ;;
+
+    --cxxflags)
+        OUT="${OUT} ${I_opts} ${cxxflags}"
+        ;;
+
+    --fcflags)
+        OUT="${OUT} ${fcflags}"
+        ;;
+
+    --libdir)
+        OUT="${OUT} ${libdir}"
+        ;;
+
+    --libs)
+        OUT="${OUT} ${libs}"
+        ;;
+
+    --fclibs)
+        OUT="${OUT} ${fclibs}"
+        ;;
+
+    --extra_libs)
+        OUT="${OUT} ${extra_libs}"
+        ;;
+
+    --I_opts)
+        OUT="${OUT} ${I_opts}"
+        ;;
+
+    --L_opts)
+        OUT="${OUT} ${L_opts}"
+        ;;
+
+    --R_opts)
+        OUT="${OUT} ${R_opts}"
+        ;;
+
+    --link)
+	OUT="${OUT} ${link}"
+	;;
+
+    --ldopts)
+	OUT="${OUT} ${ldopts}"
+	;;
+
+    --ldflags)
+        OUT="${OUT} ${ldopts} ${L_opts} ${R_opts} ${libs} ${ldflags}"
+        ;;
+
+    --static)
+        R_opts=""
+	all_libs="${libdir}/librsb.a"
+	libs=${all_libs}
+        ;;
+
+    *)
+        usage
+        exit 1
+        ;;
+    esac
+    shift
+done
+echo ${OUT}
+
+exit 0

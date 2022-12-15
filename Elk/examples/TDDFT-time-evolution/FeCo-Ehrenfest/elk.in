@@ -1,0 +1,88 @@
+
+! TDDFT time evolution of FeCo with Ehrenfest nuclear dynamics. This is a
+! two-step process: first the forces under the influence of a laser pulse are
+! calculated. In the second step, the same calculation is repeated but this time
+! the forces are used to find the motion of the nuclei. The back-reaction of
+! this nuclear motion is applied to the electronic system.
+
+! This approach is valid only for small amplitude nuclear motion.
+
+tasks
+  0       ! ground-state run
+  450     ! generate the laser pulse A-field
+  460     ! time evolution with laser pulse and forces calculated
+  462     ! same time evolution with Ehrenfest dynamics using the previous forces
+
+! calculate forces at each time step
+tforce
+ .true.
+
+! total simulation time
+tstime
+  400.0
+
+! Simulation time step, ideally about 1 attosecond. It is critically important
+! to make sure that the time evolution is stable, particularly for magnetism
+! which can diverge even in the absence of a laser field. Any simulation should
+! be run first with a laser field of amplitude zero to make sure that all
+! observables remain constant over the total simulation time. Reducing the time
+! step can improve stability.
+dtimes
+  0.4
+
+! laser pulse parameters
+!  1 - 3 : polarisation vector (including amplitude)
+!  4     : frequency
+!  5     : phase in degrees
+!  6     : chirp rate
+!  7     : peak time
+!  8     : full-width at half-maximum
+pulse
+  1      : number of laser pulses
+  0.0 0.0 150.0   0.03   0.0   0.0   240.0   120.0
+
+nxoapwlo
+  1
+
+tshift
+ .false.
+
+spinorb
+ .true.
+
+bfieldc
+  0.0 0.0 0.001
+
+nempty
+  20
+
+ngridk
+  4  4  4
+
+! artificial strained lattice
+avec
+  0.5  0.5  0.0
+  0.0  1.0  0.0
+  0.0  0.0  1.0
+
+scale1
+  6.8
+
+scale2
+  6.8
+
+scale3
+  7.0
+
+sppath
+  '../../../species/'
+
+atoms
+  2                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms; atposl below
+  0.0  0.0  0.0
+  'Co.in'
+  1
+  0.0  0.5  0.5
+

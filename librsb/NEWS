@@ -1,0 +1,623 @@
+
+List of user visible changes for each librsb release.
+
+ librsb Version 1.3.0.2 (20221018+), changes:
+ - Internals:
+  * Now with './configure --enable-debug' rsb_lib_init checks that OpenMP implementation is not a stub (e.g. in AOCC).
+  * If using Fortran, make rsb.mod's rsb.F90 part of -lrsb (for Cray Fortran 14).
+  * rsb_coo_sort: fix crash on nr==0 (now will silently accept).
+ - Compatibility:
+  * examples/fortran.F90: don't use implied do on a triangular index space, so it builds on flang-13, too.
+  * configure: guess clang flags for Cray version of clang.
+  * make qtests: increase tests numerical tolerances when using Cray compiler.
+  * Will build and perform tests on systems without setenv(), too (then using putenv() if possible).
+  * Honour the $(EXEEXT) suffix (e.g. in Windows)
+ - Misc minor
+  * fix a format error on long indices on 32-bit architectures
+  * Improve documentation of rsb_strerror_r().
+
+ librsb Version 1.3.0.1 (20220429), changes:
+ - API:
+  * RSB.F90: Functions accepting strings use 'CHARACTER(C_CHAR), DIMENSION(*)' instead of 'TYPE(C_PTR), VALUE'; so now one must pass C_NULL_CHAR instead of C_NULL_PTR.
+  * rsb.h: additional input checks in rsb_mtx_rndr().
+  * rsb.hpp: additional input checks in the C++ wrappers.
+  * librsb-config: add '--cxxflags' switch for most of the flags used for compiling the library.
+ - Portability:
+  * No unaligned memory access in 'rsbench --read-performance-record' (fix for armhf,sparc64 architectures).
+  * Avoid (unused) out-of-bounds memory read in rsb_spsv()/rsb_spsm().
+  * Build-time improvements for cross-compilation.
+  * Build-time improvements for MacOS, AIX, FreeBSD, OpenBSD, NetBSD.
+  * Build with compilers not supporting OpenMP, too.
+  * Build (cut-down) test programs even if certain system headers missing.
+  * Improved compatibility with shells other than 'bash'.
+  * Support "IBM XL" Fortran: if 'xlf' detected, use unmangled C symbols for Fortran.
+ - Test system:
+  * Fortified 'make qtests' and 'make itests' for various atypical configurations.
+  * Reduced duration of rsb_lib_init(): it was slowing down 'make qtests' under rsbtest/.
+ - Usage of the configure script:
+  * Add '--disable-c++-examples': do not build C++ example programs.
+  * Add '--disable-programs': build almost no test or example program.
+  * Disable all C++ components with './configure CXX=" "'.
+  * Add a check to determine if C++ linker inadequate to link Fortran programs (as observed on Intel OneAPI compilers icx/icpx/ifx). Override check by using '--enable-fortran-linker' or '--disable-fortran-linker'.
+  * Out-of-dir now transparent: does not require use of '--with-librsbpp', '--with-rsblib', '--with-rsbtest'.
+  * Can pass custom OPENMP_CFLAGS OPENMP_CXXFLAGS OPENMP_FCFLAGS
+ - Internals:
+  * More internal consistency checks.
+  * Fewer potential compile-time warnings.
+ - Misc:
+  * 'rsbench -I' will print out 'CXXFLAGS', too
+
+
+ librsb Version 1.3.0.0 (20220121), changes:
+
+ - Major changes:
+  * Considerably improved performance of rsb_spmm()/usmm() via new kernels (can be turned off at runtime by setting 'RSB_WANT_RSBPP=0' in the environment).
+  * Added a C++ API (classes RsbMatrix and RsbLib) in new header <rsb.hpp>.
+  * Enhanced test suite considerably (e.g. using Google Test, if detected), with a much higher coverage than in librsb-1.2.
+  * Added 'make itests' Makefile target: post-install tests.
+  * Environment variable 'RSB_NUM_THREADS' now used by default (implicit configure '--enable-rsb-num-threads').
+  * Revised error messages.
+  * Revised help messages.
+  * General source code cleanup, less dead code.
+  * Better documentation: more examples and snippets.
+  * New C++ API examples are in rsblib/examples/.
+  * Added a symmetric CSR-to-RSB with autotuning example to fortran_rsb_fi.F90.
+  * Fixed integer overflow situations with limit-large matrices.
+  * Improved parallelism of rsb_spmv()/rsb_spmm() a bit (no overly strict locking).
+  * Improved performance of rsb_spmv()/rsb_spmm() beta-scaling.
+  * Most of the helper scripts require the 'bash' shell: expect build problems if you don't have it.
+  * 'librsb-config': Added options: '--link', '--fclibs', '--fcflags'.
+  * Added './configure --enable-long-indices' option to use 64-bit indices (instead of 32-bit indices) (experimental)
+ - Minor changes, related to the API:
+  * rsb.h: Renamed function rsb_load_spblas_matrix_file_as_matrix_market() to rsb_blas_file_mtx_load().
+  * rsb.h: If passing RSB_FLAG_TRIANGULAR flags to rsb_mtx_alloc_from_coo_inplace() or rsb_mtx_alloc_from_coo_const(), upper or lower triangle will be determined.  Similarly when using rsb_mtx_alloc_from_coo_begin() and rsb_mtx_alloc_from_coo_end().  BLAS property blas_triangular implies triangle auto-detection, too.
+  * rsb.h: Added RSB_TRANSPOSITION_INVALID: guaranteed invalid transposition char for transA (useful for initializations).
+  * rsb.h: Added rsb_coo_cleanup(), to compact duplicates.
+  * rsb.h: Added RSB_ERR_ELEMENT_NOT_FOUND error code for rsb_mtx_get_vals() and rsb_mtx_set_vals().
+  * If configured with '--enable-interface-error-verbosity=N' (with integer N>0), RSB_ERR_ELEMENT_NOT_FOUND won't be returned unnecessarily (is not properly an error).
+  * rsb.h: RSB_DIAGONAL flag changed value (now contains RSB_FLAG_TRIANGULAR).
+  * rsb.h: rsb_lib_get_opt(RSB_IO_WANT_EXECUTING_THREADS,..) will return number of working threads, even if not overridden.
+  * rsb.h: With more threads requested than supported, rsb_lib_init() will print a warning to stderr and continue with the supported number.
+  * rsb.h: rsb_lib_init(): Unless disabled, environment variable 'RSB_NUM_THREADS' overrides OMP_NUM_THREADS.
+  * rsb.h: It should be safe to call rsb_lib_exit() more than once.
+  * rsb.h: Symmetric-diagonal matrices accepted by rsb_spsv()/rsb_spsm().
+  * rsb.h: Added RSB_IO_WANT_VERBOSE_INIT option for to rsb_lib_init().
+  * rsb.h: RSB_IO_WANT_VERBOSE_INIT makes rsb_lib_reinit() verbose as well.
+  * rsb.h: rsb_mtx_add_to_dense() is now threaded.
+  * rsb.h: rsb_tune_spmm()/rsb_tune_spsm() with RSB_IO_WANT_VERBOSE_TUNING set to >2 allows to generate tuning trace plots.
+  * rsb.h: rsb_file_mtx_load(): Diagnostics less verbose by default.
+  * rsb.h: Added checks to rsb_mtx_alloc* functions to spot forgotten rsb_lib_init().
+  * rsb.h: rsb_mtx_rndr(): No hostname in EPS plot comments if environment has 'RSB_USE_HOSTNAME=0'.
+  * rsb.F90: Added INTERFACE to rsb_blas_file_mtx_load().
+  * rsb.h/blas_sparse.h: rsb_lib_exit() will free matrices created via the Sparse BLAS API.
+  * blas_sparse.h: Sparse BLAS interface functions have basic checks for uninitialized use of librsb.
+  * blas_sparse.h: Added BLAS properties blas_rsb_rep_hwi, blas_rsb_rep_rec (extensions).
+  * blas_sparse.h: BLAS interface autotuning max merges/splits count now same as in rsb_tune_spmm().
+  * Bugfix: rsb_strerror_r() now honors buflen parameter.
+  * Bugfix: can correctly read complex matrix as int (the real components).
+  * Bugfix: rsb_mtx_alloc_from_coo_begin() now accepts RSB_NUMERICAL_TYPE_INT as type code.
+  * Bugfix: rsb_spmsp() was crashing if result matrix has nnz<=rows.
+ - Minor changes, related to the configure script:
+  * Added GREP, SED, CUT as configure variables, to allow custom utilities.
+  * Default for '--with-max-threads' is now 128.
+  * Dropped dependency on <libgen.h>.
+  * Added hwloc-based cache detection (e.g. for cygwin).
+  * Added '--enable-internal-headers-install', which will define the RSB_HAVE_IHI symbol.
+  * Internals: './configure --debug-getenvs' activates reading "RSB_SPSV_OP_FLAG" environment variable to control rsb_spsv() internals.
+  * If clang compiler is detected, then add '-latomic' to LIBS.
+  * Added '--with-baselib-cflags' customization option.
+  * Added '--with-kernels-cflags' customization option.
+  * Now '--with-zlib' is on by default.
+  * Added '--with-mkl', so it will probe for <mkl/mkl.h> and GNU-linkables.
+  * './configure --with-mkl' probes the MKL_INCDIR environment variable unless '--with-mkl-incdir'.
+  * './configure --with-mkl --disable-openmp' probes for sequential MKL.
+  * './configure --enable-fortran-linker': Use Fortran link command for Fortran examples.
+  * './configure --enable-extra-patches' : Activate extra specific patches/workarounds for known compiler bugs (e.g. gcc-11 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103995); if available, will use 'spatch' from Coccinelle, otherwise awk.
+  * './configure --enable-debug' activates m4 debug comments.
+ - Minor changes, related to Makefile rules:
+  * Added 'make check' as alias of 'make qtests'.
+  * Added 'make realclean', mostly for distro maintainers to clean test artifacts.
+  * Added 'make sources' to build sources, e.g. from *.m4 and *.m.
+  * Now 'make distclean' will also perform 'cleanall' and 'realclean'.
+  * Kind-of-a-bug: out-of-dir builds convert *.m4 into *.c *.h in the distclean directory.
+  * Workaround (not solution) to a known Makefile.am bug with 'make dist' when no Sparse BLAS requested, where Makefile will attempt creation of a sbtc.c and sbtf.F90..
+ - Minor changes, rsbench-related (these are rather maintainer-oriented, not user-oriented):
+  * Added option '--bench' (an alias for multiple options) for easier benchmarking.
+  * Default threads will be limited to that of '--with-max-threads=<...>' value.
+  * Added options '--want-memory-benchmark' / '--want-no-memory-benchmark', and memory benchmark will not be anymore default on, but will be still implied by --bench.
+  * Added '--less-verbose' as counterpart to '--verbose'.
+  * Added option '--sort-filenames-list' (by default on) and '--no-sort-filenames-list'.
+  * Option '--read-performance-record' can be prepended by --setenv var=val.
+  * Dir/file name in .rpr file, when specified one only.
+  * MKL version name in .rpr file, when auto-chosen.
+  * 'rsbench --bench' prints per-category 'limited' benchmark results before total one.
+  * If using '--bench' comparing with the MKL, use the Intel MKL Inspector interface (experimental).
+  * When loading matrices through recursion a check will skip 'MatrixMarket matrix array' files.
+  * Directories will be traversed recursively by default when using e.g. '-oa -Ob ... <directory>' avoiding dups.
+  * Memory benchmark will be executed and saved within the .rpr file.
+  * Update to the *.rpr file format: now the environment will be also saved and displayed if environment has "RSB_PR_ENV=1".
+  * Internal values for RSB_CC, RSB_CFLAGS, RSB_DETECTED_MEM_HIERARCHY_INFO, and RSB_IO_WANT_MEMORY_HIERARCHY_INFO_STRING will be artificially added using setenv() to the environment so the .rpr file may have them.
+  * Added  '... -oa -Ob --setenv var=val' / '--unsetenv val'.
+  * Now diagonally filled non-square matrices can be generated, e.g. '--gen-diag 3x40'.
+  * Restored a long forgotten test ('-Or').
+  * Added option '--implicit-diagonal'.
+  * Added option '--no-compare-competitors' to turn off MKL at run time.
+  * Emit error message when failing on a path.
+  * K,M,G argument suffixes (case insensitive), e.g. './rsbench -g -c 1k -r 2k -l -b1'.
+  * Accepts alpha/beta values lists: 'rsbench --alpha -1,1,2 --beta 0,1,2'.
+  * 'rsbench --alpha : --beta :' is shorthand for a mix of values.
+  * Added option '--inc <stride>'  which will propagate arg to '--incx <stride> --incy <stride>'.
+  * Options '--inc', '--incx', '--incy' accept ':' for default values.
+  * Stricter error checking in 'rsbench -B'.
+  * Added option '--also-implicit-diagonal'.
+  * Added option '--as-hermitian'.
+  * Added option '--also-symmetries'.
+  * Added '--all-blas-types' option, for all implemented BLAS types.
+  * 'rsbench --matrix-print' now just as '-P'.
+  * Added option '--bench ... --write-performance-record=pfx' : it sets matrix rendering file prefix.
+  * Added option 'bench ... --chdir <directory-with-matrices>'.
+  * Added option '--matrix-sample-pcnt' to sample read matrices' nonzeroes.
+  * Added option '--nmb' as short for '--want-no-memory-benchmark'.
+  * Added option '--mkl-no-inspector': will use deprecated Intel MKL Sparse BLAS.
+  * Inspector-executor SpBLAS API is now default when comparing to Intel MKL.
+  * Added option '--no-submatrix-format-labels' to  'rsbench --plot-matrix'.
+  * Added option '--latex' to  'rsbench --plot-matrix'.
+  * Added option '--no-transpose' as alias to '--notranspose'.
+  * Added option '--expand-symmetry' to rsbench: expand symmetry and remove flags.
+  * Appending 'L' in e.g. './rsbench -Q10QL' suppresses limits tests.
+  * After loading a matrix file, rsbench sets its values to ones ('--want-no-ones-fill option' to counter that).
+  * Option '--matrix-ls' now called '--matrix-ls-latex'.
+  * Option '--matrix-ls' now prints plain text.
+  * Sped up 'rsbench -M'.
+  * Fix to 'rsbench --plot-matrix --nonzeros-dump': will draw dots after blocks.
+  * Fix: '-M' was requesting wrong alignment from posix_memalign.
+
+
+ librsb Version 1.2.0.11 (20211216) changes, most critical first:
+  * fix previously broken no-fortran build (./configure  FC=' ') and minor configure fixes
+  * fix rsb_mtx_free: was not always returning NULL
+  * small fixes to examples/autotune.c & internals
+  * rsb_mtx_alloc_from_csr_const: avoid potential leak on internal error
+  * code generator updated to work with GNU Octave 6.2.0
+  * internals: fix broken rsb_spmm/rsb_spsm if unsupported RSB_IO_WANT_LEAF_LEVEL_MULTIVEC off
+  * internals (--limits-testing): avoid overflows in near-limit-long OpenMP loop with gcc
+
+ librsb Version 1.2.0.10 (20210916) changes, most critical first:
+ - bugfix: rsb_spmm(...,RSB_FLAG_WANT_ROW_MAJOR_ORDER,...) internals swapped ldB and ldC
+           so having ldB > ldC could lead to a crash; with ldC < ldB, to wrong results
+ - bugfix: rsb_spmm(...,RSB_FLAG_WANT_ROW_MAJOR_ORDER,...) on matrix with
+           RSB_FLAG_UNIT_DIAG_IMPLICIT could compute wrong results
+ - bugfix: rsb_tune_spmm()/rsb_tune_spsm() could crash if called with
+   order==RSB_FLAG_WANT_ROW_MAJOR_ORDER and auto leading dimensions and implicit
+   operands (ldB==0 and Bp==NULL, ldC==0 and Cp==NULL)
+ - bugfix: rsb_mtx_get_rows_sparse() with: was ignoring RSB_TRANSPOSITION_C
+ - fix: rsb_file_mtx_load() was not setting RSB_FLAG_HERMITIAN flag
+ - fix: rsb_file_mtx_load()..rsb_tune_spmm() could leak memory of tiny matrices
+ - fix: calling rsb_mtx_free() before rsb_mtx_alloc_from_coo_end() won't leak now
+ - fix: rsb_tune_spmm() was crashing on tnp == NULL
+ - fix: rsb_mtx_clone()..rsb_tune_spmm() could leak memory of tiny matrices
+ - fix: rsb_tune_spmm()/rsb_tune_spsm() will accept RSB_FLAG_WANT_ROW_MAJOR_ORDER on any nrhs
+ - fix: rsb_lib_exit() was not clearing all flags
+ - fix: avoid rsb_lib_exit() reporting non-existent memory leaks when using e.g.
+        rsb_mtx_switch_to_coo() and configured with --enable-allocator-wrapper
+ - fix: small adjustments in examples/*.c
+ - fix: avoid descriptor memory leak in gzipped matrix input
+ - fix: rsb_file_mtx_rndr() don't crash on empty matrices
+ - fix: symmetric upper triangle now read by rsb_load_spblas_matrix_file_as_matrix_market()
+ - fix: rsb_mtx_rndr() won't crash but return error on mtxAp==NULL
+ - fix: rsb_file_mtx_load() will set return code on non-existing file
+ - fix: rsb_spmm() will now gracefully accept alphap=NULL, betap=NULL
+ - fix: rsb_mtx_rndr() won't crash on tiny matrices
+ - fix: use-after-free in rsbench -Q and -K; fixes to -P and -g
+ - fix: in-line code documentation snips of rsb_mtx_get_coo_block() and rsb_tune_spmm()
+ - fix: documentation of rsb_mtx_clone() (used doxygen 1.8.20)
+ - fix: on wrong input A, BLAS_dusmm() BLAS_dusmv() won't crash but return error
+ - fix: examples/autotune.c was not calling rsb_lib_exit()
+ - fix: small Doxygen-generated documentation fix
+ - fix: no implied RSB_USE_ASSERT=1 in --enable-debug-getenvs
+ - fix: rsb_types.h now defines RSB_LIBRSB_VER_DATE
+ - fix to rsbench --want-no-autotune: it was not being effective
+ - fix of crash-prone sorting bug affecting rsbench on large matrices (in 1.2.0.9)
+ - fix typo in documentation of rsb_mtx_alloc_from_coo_inplace()
+ - fix possible crash (and wrong results) in rsb_mtx_get_rows_sparse() with
+   RSB_FLAG_FORTRAN_INDICES_INTERFACE
+ - fix: on rsb_mtx_get_info(mtxAp,RSB_MIF_INDEX_STORAGE_IN_BYTES_PER_NNZ__TO__RSB_REAL_T,&bpnz)
+   when nnz==0: set bpnz=2*sizeof(rsb_coo_idx_t) instead of nan
+ - tiny fix to --verbose --verbose output (plot time reporting)
+ - tiny performance fix in rsb_tune_spmm/rsb_tune_spsm
+ - developer configure_for_debug.sh script: enable zlib and doc building
+ - if configure --enable-doc-build, `make devtests` implies Doxygen HTML check
+ - rsb_mtx_get_vec(): tolerate NULL output argument only if matrix empty
+ - improve Doxygen-generated documentation of rsb_types.h
+ - if RSB_WANT_NO_RSB_TYPES_H defined, rsb.h won't include other RSB headers
+ - compilation fixes (-Werror=switch)
+ - added rsbench --nrhs-by-rows (aka --by-rows) to use RSB_FLAG_WANT_ROW_MAJOR_ORDER
+ - added rsbench --by-columns / --nrhs-by-columns to use RSB_FLAG_WANT_COLUMN_MAJOR_ORDER
+ - rsb_file_mtx_get_dims() won't add RSB_FLAG_LOWER/RSB_FLAG_UPPER flags
+ - default for --with-max-threads is now 160
+ - reduce librsb.so size by hiding unnecessary symbols
+ - further internal fixes (renames of internal symbols, RSB_HEADER_VERSION_STRING, etc.)
+ - rsb_spsv() now requires either lower or upper triangle
+ - rsbench: echo a selection of SLURM_* environment variables
+ - scripts/build_optimized.sh's default now is -Ofast
+ - tuning with blas_rsb_autotune_next_operation(): a bit faster defaults
+ - rsb_tune_spmm()/rsb_tune_spsm(): faster performance sampling if maxt>=0
+ - rsb_tune_spmm()/rsb_tune_spsm(): won't iterate till limit but stop on excessive slowdown
+ - rsbench -C is more resilient: will continue on failed rsb_lib_init and report error.
+ - several documentation-related improvements
+
+ librsb Version 1.2.0.9 (20200806), changes:
+ - minor Makefile / configure fixes
+ - minor script compatibility fixes
+ - hwloc2 compatibility patch from Samuel Thibault
+ - fixed missing input validation in rsb_file_mtx_rndr()
+ - small fixes in internal debugging features
+ - small fixes in rsbench
+ - fix: rsb_mtx_rndr(..RSB_MARF_EPS) and rsb_file_mtx_rndr(..RSB_MARF_EPS):
+   could crash on uniform-values matrix input.
+ - fix: BLAS_ussp() of RSB extension properties now effective
+ - fix: rsb_mtx_get_vec(... , ... , RSB_EXTF_SUMS_ROW)) and
+        rsb_mtx_get_vec(... , ... , RSB_EXTF_SUMS_COL)) were missing a
+        recursive implementation, and crashing (segmentation fault).
+ - fix: rsb_spmsp was crashing if result matrix has nnz<=rows
+ - fix: BLAS_zusaxpy and BLAS_cusaxpy in C were crashing (segmentation fault)
+ - fix: rsb_sppsp() was ignoring transB and could crash on transA
+ - fix: rsbench ... --reverse-alternate-rows  could have differed in pattern
+ - bugfix: duplicate or unit-diagonal or zero elements cleansing code could
+           crash if built with icc
+ - bugfix: zeroes/duplicates/triangle cleansing code
+ - bugfix: avoid possible crash after subsequent rsb_tune_spmm/rsb_tune_spsm
+ - bugfix: avoid possible crash with non-default RSB_IO_WANT_SORT_METHOD
+ - fix: possible malfunctioning of rsb_tune_spmm/rsb_tune_spsm with icc
+ - fix: possible malfunctioning of rsb_coo_sort if non-default RSB_IO_WANT_SORT_METHOD
+ - fix: rsb_sppsp and rsb_spmsp were producing CSR matrices (no RSB, thus losing parallelism)
+ - small messages fix when RSB_PR_MULTIDUMP=...
+ - bugfix: rsb_sppsp result was of first operand matrix type, not target
+ - rsb_spmm: if RSB_FLAG_WANT_COLUMN_MAJOR_ORDER, then ldC==0, ldB==0 sets 'compact' defaults,
+   that is no extra stride between the columns.
+ - bugfix rsb_spmv/rsb_spmm: if called with lhs-zeroing (beta==0) and transA==RSB_TRANSPOSITION_C
+   on tiny (single submatrix) non-square matrices, off-boundaries zeroing could occur,
+   and/or result vector would not be zeroed.
+ - bugfix rsb_spmv/rsb_spmm: using non-square matrices with RSB_FLAG_UNIT_DIAG_IMPLICIT,
+   off-boundaries writes may occur, with wrong results.
+ - configure increases max supported threads via `nproc` (override with e.g. --with-max-threads=10)
+ - fix: usmm,ussm now accept (:,:)-shaped b,c parameters.
+   Note: it still differs from the "Fortran 95 binding" in the BLAST Standard specification.
+ - miscellaneous out-of-dir and build files fixes
+
+ librsb Version 1.2.0.8 (20190718), changes:
+ - configure default OpenMP flag for icc is now -fopenmp
+ - shall work with upcoming hwloc-2 (http://github.com/open-mpi/hwloc.git)
+ - fix: sbtc would miss count of certain test failures.
+ - bugfix: rsb_spmv/rsb_spmm/BLAS_cusmv/BLAS_zusmv/BLAS_cusmm/BLAS_zusmm could compute 
+   wrong values in transpose or conjugated transpose on very sparse complex hermitian
+   matrices
+ - misc configure/Makefile related
+ - if configure fails detecting cache size, use fallback value
+
+ librsb Version 1.2.0-rc7 (20170604), changes:
+ - bugfix: rsb_spmv/rsb_spmm/BLAS_cusmv/BLAS_zusmv/BLAS_cusmm/BLAS_zusmm could compute wrong values on complex hermitian matrices if rhs imaginary part non null.
+ - bugfix: complex conjugated transpose rsb_spsv/rsb_spsm/BLAS_cussv/BLAS_zussv/BLAS_cussm/BLAS_zussm could compute wrong values if rhs imaginary part non null.
+ - bugfix: rsb_sppsp/rsb_mtx_clone would compute scaled conjugate of complex matrices wrong if alpha imaginary part non null.
+ - might detect a forgotten rsb_lib_init() at first matrix allocation and return an error.
+
+ librsb Version 1.2.0-rc6 (20170324), changes:
+ - BLAS_zusget_element & co will behave one-based in Fortran.
+ - bugfix: rsb_sppsp was summing incorrectly certain non-overlapping sparse matrices.
+ - examples/make.sh will build or not build fortran examples according to configuration.
+ - fix: man pages for rsbench and librsb-config go in man section 1, not 3.
+ - fix to diagnostic printout in benchmark mode.
+ - minor code generation warning fix.
+ - rsb_file_mtx_save and rsb_file_vec_save output use full precision.
+
+ librsb Version 1.2.0-rc5 (20160902), changes:
+ - Fixed EPS rendering of matrices, e.g.:
+    "./rsbench  --plot-matrix -aRzd -f matrix.mtx > matrix.eps"
+ - Will detect MINGW environment via the __MINGW32__ symbol and add 
+   -D__USE_MINGW_ANSI_STDIO=1 to circumvent its C99 incompatibilities.
+ - fix: previously, code was broken in case of lack of all of
+   --enable-allocator-wrapper, posix_memalign() and memalign(); 
+   now malloc() will be used instead.
+ - fix: memory hierarchy info string set via --with-memhinfo used to be
+   ignored by an eventual auto-detected value, wrongly.
+
+ librsb Version 1.2.0-rc4 (20160805), changes:
+ - librsb-config will print a space between each emitted item and
+   explicitly the static library file path on --static
+ - fix: rsbench -M was requesting wrong alignment from posix_memalign
+ - internally using libtool for everything:
+   - obsoleted the --enable-shlib-linked-examples option; now on please use 
+     --disable-shared / --enable-shared, --disable-static / --enable-static 
+     to avoid the defaults.
+ - librsb-config new options: --cc --fc --cxx to get the librsb compilers
+ - internally using memset instead of bzero (deprecated since POSIX.2004).
+ - fix: example examples/fortran_rsb_fi.F90 had two consecutive rsb_lib_exit.
+ - fix: binary I/O (-b/-w) test in test.sh used to ignore missing XDR support.
+
+ librsb Version 1.2.0-rc3 (20160505), changes:
+ - Extension: if parameter flagsA of mtx_set_vals() has RSB_FLAG_DUPLICATES_SUM
+   then values will be summed up into the matrix.
+ - Bugfix: rsb_mtx_get_nrm on symmetric matrices was buggy.
+ - Bugfix: rsb_spsm potentially wrong in --enable-openmp and (nrhs>1).
+           (ussm affected)
+ - Bugfix: rsb_spsm wrong in --disable-openmp version and (nrhs>1).
+           (ussm affected)
+ - Bugfix: rsb_spsm used to scale only first rhs when (*alphap!=1 and nrhs>1).
+           (ussm affected)
+ - Bugfix: rsb_spsm used to solve only first rhs when (y != x).
+           (ussm not affected)
+ - Bugfix: rsb_spmm used to scale only first rhs when (*betap!=1 and nrhs>1).
+           (usmm not affected)
+ - Bugfix: rsb_tune_spmm/rsb_tune_spsm returned (false positive) error on
+   ( mtxAp != NULL && mtxOpp != NULL ) rather than on
+   ( mtxAp != NULL && mtxOpp != NULL && *mtxOpp != NULL ).
+ - Will use memset() on systems with no bzero() (e.g. mingw).
+
+ librsb Version 1.2.0-rc2 (20151025), changes:
+ - Bugfix: rsb_mtx_add_to_dense was using submatrix CSR arrays as they were
+   COO, thus producing wrong output.
+ - Bugfix: error message for RSB_ERR_NO_STREAM_OUTPUT_CONFIGURED_OUT was wrong.
+ - Bugfix: printout of sysconf()-detected L4 cache information.
+ - Bugfix: fixed broken build when sysconf() missing.
+ - Experimental --with-hwloc switch, recommended on cygwin.
+ - Bugfix: fixed broken build and qtests when using separate build, src dirs.
+
+ librsb Version 1.2.0, changes:
+ - general improvements:
+  * NUMA-aware tuning and allocations
+  * more documentation comments in rsb.F90
+  * better performance of rsb_spsm when nrhs>1
+  * faster rsb-to-sorted-coo conversion in rsb_mtx_switch_to_coo
+  * enabled out-of-tree builds (e.g. one distclean dir and many build dirs)
+  * new autotuning mechanisms behind rsb_tune_spmm/rsb_tune_spsm
+  * fewer compile time warnings from automatically generated code, e.g. in
+    rsb_krnl.c and rsb_libspblas.c
+ - programming interface (API) changes: 
+  * bugfix w.r.t. 1.1: usmm()/ussm() were not declared in rsb_blas_sparse.F90
+  * introduced extension BLAS property blas_rsb_autotune_next_operation
+    to trigger auto tuning at the next usmv/usmm call
+  * eliminated RSB_FLAG_RECURSIVE_DOUBLE_DETECTED_CACHE and
+               RSB_FLAG_RECURSIVE_HALF_DETECTED_CACHE
+  * rsb_load_spblas_matrix_file_as_matrix_market() now takes a
+    typecode argument. Sets either blas_upper_triangular,
+    blas_lower_triangular, blas_upper_hermitian, blas_lower_hermitian,
+    blas_upper_symmetric or blas_lower_symmetric property according to
+    the loaded file.
+  * properly using INTEGER(C_SIGNED_CHAR) for 'typecode' arguments in rsb.F90.
+  * rsb.F90 change: all interfaces to functions taking INTEGER arrays now
+    require them to be declared as TARGET and passed as pointer
+    (via C_LOC()), just as e.g. VA.
+  * introduced the RSB_MARF_EPS_L flag for rendering Encapsulated PostScript
+    (EPS) matrices (with rsb_mtx_rndr()) and having a label included
+ - functionality changes: 
+  * if called after uscr_end, uscr_insert_entries (and similar) will either
+    add/overwrite, according to whether the blas_rsb_duplicates_ovw or 
+    blas_rsb_duplicates_sum property has been set just after uscr_end;
+    default is blas_rsb_duplicates_ovw.
+  * if configured without memory wrapper, requests for 
+    RSB_IO_WANT_MEM_ALLOC_TOT and RSB_IO_WANT_MEM_ALLOC_CNT will
+    also give an error
+  * now rsb_file_mtx_load will load Matrix Market files having nnz=0
+ - bug fixes: 
+  * non-square sparse-sparse matrices multiply (rsb_spmsp) and sum
+    (rsb_sppsp) had wrong conformance check and potential off-limits
+    writes
+  * usmm() used to have beta=0 as default; changed this to be 1 according to
+    the Sparse BLAS standard
+  * rsb_mtx_clone(): alphap now uses source matrix typecode
+  * rsb_util_sort_row_major_bucket_based_parallel() bugfix
+  * RSB_IO_WANT_VERBOSE_TUNING used to depend on RSB_WANT_ALLOCATOR_LIMITS.
+ - rsbench (librsb benchmarking program (internals)) changes:
+  * --incx and --incy now accept lists of integers; e.g. "1" or "1,2,4"
+  * rsb_mtx_get_rows_sparse() was not handling RSB_TRANSPOSITION_C and
+    RSB_TRANSPOSITION_T correctly until 1.1-rc2. Fixed now.
+  * added --only-upper-triangle
+  * if unspecified, default --alpha and beta now are set to 1.0
+  * when using --incx and --incy with list arguments, with
+    --one-nonunit-incx-incy-nrhs-per-type rsbench will skip benchmarking
+    combinations with both incX and incY > 1
+  * --also-transpose will skip transposed multiply of symmetric matrices
+  * --no-want-ancillary-execs is now default
+  * in an auto-tuning scan --impatient will print partial performance results
+    and update the performance results frequently.
+  * small fix in ancillary (--want-ancillary-execs) time measurements
+  * --types is a new alias for --type, and 'all' for ':' (all configured types)
+  * will tolerate non-existing or unreadable matrix files by just skipping them
+  * --reuse-io-arrays is now default (see --no-reuse-io-arrays to disable this)
+    and will avoid repeated file loading for the same matrix.
+  * --want-mkl-autotune 0/1 will disable/enable MKL autotuning in addition to
+    the RSB autotuning experiment.
+  * added:
+     --skip-loading-if-matching-regex
+     --skip-loading-symmetric-matrices
+     --skip-loading-unsymmetric-matrices
+     --skip-loading-hermitian-matrices
+     --skip-loading-not-unsymmetric-matrices
+     --skip-loading-if-more-nnz-matrices 
+     --skip-loading-if-less-nnz-matrices
+     --skip-loading-if-more-filesize-kb-matrices
+     --skip-loading-if-matching-regex and --skip-loading-if-matching-substr
+  * if -n <threads> unspecified, will use omp_get_max_threads()
+    to determine the threads count.
+  * will terminate gracefully after SIGINT (CTRL-c from the keyboard)
+  * producing performance record files with
+      --write-performance-record <file>
+    ( '' will ask for an automatically generated file name)
+  * reading back performance record files with --read-performance-record
+  * writing no performance record file with --write-no-performance-record
+  * --max-runtime will make the program terminate gracefully after a specified 
+    maximal amount of time
+  * rsbench: LaTeX output of performance records; see options
+    --write-performance-record and --read-performance-record
+  * --out-res to--out-lhs and --dump-n-res-elements to --dump-n-lhs-elements
+  * --want-no-autotune
+  * expanded examples
+  * ...
+
+
+librsb Version 1.1.0-rc4 (20170604)
+ - bugfix: rsb_spmv/rsb_spmm/BLAS_cusmv/BLAS_zusmv/BLAS_cusmm/BLAS_zusmm could compute wrong values on complex hermitian matrices if rhs imaginary part non null.
+ - bugfix: complex conjugated transpose rsb_spsv/rsb_spsm/BLAS_cussv/BLAS_zussv/BLAS_cussm/BLAS_zussm could compute wrong values if rhs imaginary part non null.
+ - bugfix: rsb_sppsp/rsb_mtx_clone would compute scaled conjugate of complex matrices wrong if alpha imaginary part non null.
+ - might detect a forgotten rsb_lib_init() at first matrix allocation and return an error.
+ - minor code generation warning fix.
+ - fix: rsbench -M was requesting wrong alignment from posix_memalign.
+
+ librsb Version 1.1.0-rc3 (20151025):
+ - bugfix: in parallel construction of very small matrices.
+ - bugfix: rsb_mtx_add_to_dense was using submatrix CSR arrays as they were COO, thus producing wrong output.
+ - fix: in examples/
+ - fix: of wrong printouts.
+ - fix: in Makefile and build.
+
+ librsb Version 1.1.0-rc2 (20150327):
+Bugfix: fixed broken build when sysconf() missing.
+Bugfix: non-square sparse-sparse matrices multiply (rsb_spmsp) and
+    sum (rsb_sppsp) had wrong conformance check and potential off-boundary 
+    writes
+Bugfix usmm: used to overwrite the result (beta=0) rather than accumulating (beta=1).
+Bugfix to integer overflow which prevented termination of ./rsbench -M.
+Bugfix related to thread control in a sorting routine.
+Bugfix in the output of rsbench.
+Preventing crashes when invoking autotuning routines with more threads than
+ maximal threads set at init time.
+Documentation fixes for rsb_spmsp, rsb_spmsp_to_dense.
+Preventing a crash with OpenMP disabled.
+Fix to cope with user-activated OpenMP but no according flag detected by
+ configure (occurring with the Cray compiler).
+Bug fix: the error constants in rsb.F90 were mistakenly negated.
+Bug fix: rsb_mtx_get_rows_sparse did not handle RSB_TRANSPOSITION_C correctly.
+
+ librsb Version 1.1.0-rc1 (20140308):
+Maintenance release with small fixes: a compiler bug workaround;
+ an innocent wrong function signature bug fix; minor bug fixes to the
+ rsbench program and the Sparse BLAS functionality;
+ fixed defect in Fortran example.
+Fix in the configure related to ./configure --enable-matrix-ops=all : now
+ it will create correct code.
+The rsb_load_spblas_matrix_file_as_matrix_market function has a type code 
+ argument now.
+Fix: RSB_IO_WANT_VERBOSE_TUNING used to depend on RSB_WANT_ALLOCATOR_LIMITS.
+  Small fix in ancillary (--want-ancillary-execs) time measurements.
+Bugfix in parallel construction of very small matrices.
+Bugfix: error message for RSB_ERR_NO_STREAM_OUTPUT_CONFIGURED_OUT was wrong.
+
+Bugfix: printout of sysconf()-detected L4 cache information.
+
+ librsb Version 1.1.0, library changes:
+
+  * introduced rsb_tune_spmm: autotuning for rsb_spmv/rsb_spmm.
+  * introduced rsb_tune_spsm: autotuning for rsb_spsv/rsb_spsm.
+  * extensions for autotuning in the sparse blas interface:
+     blas_rsb_spmv_autotuning_on,   blas_rsb_spmv_autotuning_off,
+     blas_rsb_spmv_n_autotuning_on, blas_rsb_spmv_n_autotuning_off,
+     blas_rsb_spmv_t_autotuning_on, blas_rsb_spmv_t_autotuning_off.
+  * RSB_IO_WANT_VERBOSE_TUNING option will enable verbose autotuning
+  * introduced rsb_file_vec_save
+  * configure option --enable-rsb-num-threads enables the user to specify
+    desired rsb_spmv/rsb_spmm threads count (if >0) via the RSB_NUM_THREADS
+    environment variable; even the value specified via
+    RSB_IO_WANT_EXECUTING_THREADS will be overridden.
+  * deprecated rsb_file_mtx_get_dimensions for rsb_file_mtx_get_dims.
+  * deprecated rsb_mtx_get_norm for rsb_mtx_get_nrm.
+  * deprecated rsb_mtx_upd_values for rsb_mtx_upd_vals.
+  * deprecated rsb_file_mtx_render for rsb_file_mtx_rndr.
+  * deprecated rsb_mtx_get_values for rsb_mtx_get_vals.
+  * deprecated rsb_mtx_set_values for rsb_mtx_set_vals.
+  * deprecated rsb_mtx_get_preconditioner for rsb_mtx_get_prec.
+  * introduced rsb_lib_set_opt and rsb_lib_get_opt as a replacement to
+    now deprecated RSB_REINIT_SINGLE_VALUE_C_IOP RSB_REINIT_SINGLE_VALUE
+    RSB_REINIT_SINGLE_VALUE_C_IOP, RSB_REINIT_SINGLE_VALUE_SET and
+    RSB_REINIT_SINGLE_VALUE_GET.
+  * introduced an ISO-C-BINDING interface to rsb.h (rsb.F03): consequently,
+    the --disable-fortran-interface configure option is now unnecessary, and
+    fortran programs can use rsb_lib_exit/rsb_lib_init instead of
+    rsb_lib_exit_np/rsb_lib_init_np.
+  * significantly improved documentation.
+  * --enable-librsb-stats configure option will enable collection of time
+    spent in librsb, together with RSB_IO_WANT_LIBRSB_ETIME .
+  * --enable-zero-division-checks-on-spsm renamed to
+    --enable-zero-division-checks-on-solve.
+  * rsb.mod will be optionally installed (separate from blas_sparse.mod).
+  * producing a librsb.pc file for the pkg-config system.
+  * improved performance of multi-vector multiplication
+    (leaf matrices will step once in each multi-vector).
+  * introduced rsb_mtx_rndr for rendering matrix structures to files.
+  * now using parallel scaling of output vector in Y <- beta Y + .. operations.
+  * extensions for handling duplicates in the sparse blas interface:
+    blas_rsb_duplicates_ovw, blas_rsb_duplicates_sum.
+  * introduced the RSB_MARF_EPS flag for rendering matrices as PostScript.
+  * introduced the RSB_CHAR_AS_TRANSPOSITION macro.
+  * introduced rsb_blas_get_mtx to enable rsb.h functions on blas_sparse.h
+    matrices.
+  * introduced Sparse BLAS extra properties for control/inquiry:
+    blas_rsb_rep_csr, blas_rsb_rep_coo, blas_rsb_rep_rsb.
+  * debug option to limit count and volume of memory allocations, with
+    RSB_IO_WANT_MAX_MEMORY_ALLOCATIONS and RSB_IO_WANT_MAX_MEMORY_ALLOCATED
+    (depending on --enable-allocator-wrapper).
+  * configure switch to select maximal threads count (--with-max-threads).
+  * <rsb-types.h> renamed to <rsb_types.h>.
+  * each librsb source file is prefixed by 'rsb' (less probability of object
+    file name clash in large applications).
+  * RSB_IO_* macros are now declared as enum rsb_opt_t.
+  * Doxygen will be only invoked to build documentation if configure switch 
+    --enable-doc-build has been enabled.
+  * RSB_IO_WANT_EXTRA_VERBOSE_INTERFACE has been extended to Sparse BLAS
+    interface to librsb.
+  * Changes pertaining only the rsbench benchmark program:
+   * rsbench benchmarks data-footprint equivalent GEMV and GEMM.
+   * --read-as-binary/--write-as-binary options to rsbench (not yet in rsb.h).
+   * --discard-read-zeros option to rsbench (to add RSB_FLAG_DISCARD_ZEROS to
+     the matrix flags).
+   * --want-perf-counters option to rsbench (tested with PAPI 5.3; will enable
+     additional rsb-originating performance counter statistics to be dumped).
+   * zero-dimensioned matrices are allowed.
+   * changed row pointers parameter of rsb_mtx_alloc_from_csr_inplace to
+     rsb_nnz_idx_t*. 
+   * PostScript (RSB_MARF_EPS, RSB_MARF_EPS_S, RSB_MARF_EPS_B) dump with
+     rsb_mtx_rndr are more compact now
+   * to enable or disable openmp, use either --enable-openmp or --disable-openmp
+
+
+ librsb Version 1.0.0-rc9 (20170604)
+Bug fix: rsb_spmv/rsb_spmm/BLAS_cusmv/BLAS_zusmv/BLAS_cusmm/BLAS_zusmm could compute wrong values on complex hermitian matrices if rhs imaginary part non null.
+Bug fix: complex conjugated transpose rsb_spsv/rsb_spsm/BLAS_cussv/BLAS_zussv/BLAS_cussm/BLAS_zussm could compute wrong values if rhs imaginary part non null.
+Bug fix: rsb_sppsp/rsb_mtx_clone would compute scaled conjugate of complex matrices wrong if alpha imaginary part non null.
+Fix: rsbench -M was requesting wrong alignment from posix_memalign.
+Fix: Minor code generation warning fix.
+
+ librsb Version 1.0.0-rc8 (20151025)
+Bug fix: rsb_mtx_add_to_dense was using submatrix CSR arrays as they were COO, thus producing wrong output.
+Bug fix: fixed broken build when sysconf() missing.
+Bug fix: printout of sysconf()-detected L4 cache information.
+Bug fix: error message for RSB_ERR_NO_STREAM_OUTPUT_CONFIGURED_OUT was wrong.
+Bug fix to integer overflow which prevented termination of ./rsbench -M. 
+Documentation fixes for rsb_spmsp, rsb_spmsp_to_dense.
+Bug fix: the error constants in rsb.fi were mistakenly negated.
+Bug fix: rsb_mtx_get_rows_sparse did not handle RSB_TRANSPOSITION_C correctly.
+The rsb_load_spblas_matrix_file_as_matrix_market function has a type code argument now.
+
+ librsb Version 1.0.0-rc7 (20140308)
+Maintenance release with small fixes: a compiler bug workaround; an innocent wrong function signature bug fix; using REAL(KIND(1.e0)) instead of REAL*4; minor bug fixes to the rsbench program and the Sparse BLAS functionality.
+
+ librsb Version 1.0.0-rc6
+This release fixes the broken build when attempting configure/make with no Fortran compiler available.
+
+ librsb Version 1.0.0-rc5
+Fifth release candidate for librsb-1.0.0. It fixes minor build/configure issues, solves minor testing bugs, and introduces major fixes to the experimental Fortran ISO C binding interface file (rsb.fi, now almost equivalent to rsb.h). It also updates the Fortran example program regarding the usage of librsb with the ISO C binding interface.
+
+ librsb Version 1.0.0-rc4
+Configure / Makefile fixes.
+ librsb Version 1.0.0-rc3
+Configure / Makefile fixes.
+ librsb Version 1.0.0-rc2
+Configure / Makefile fixes.
+ librsb Version 1.0.0-rc1
+Configure / Makefile fixes.
+ librsb Version 1.0.0-rc0
+Configure / Makefile fixes.
+
+ librsb Version 1.0.0
+
+  * first public release
+

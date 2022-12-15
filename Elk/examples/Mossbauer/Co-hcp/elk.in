@@ -1,0 +1,76 @@
+
+! Calculating the Mossbauer effect hyperfine parameters for hcp Co, namely the
+! contact charge density, the contact magnetic hyperfine field and the electric
+! field gradient (EFG).
+
+! The hyperfine magnetic field is difficult to calculate accurately. This is
+! mainly because most of the contact magnetisation arises from the polarised
+! core s states. One therefore has to switch on core polarisation with
+! 'spincore=.true.', but in addition any semi-core s states should also be moved
+! to the core and thus treated with the full Dirac equation. Also note that the
+! field is quite sensitive to the number of empty states and k-points.
+
+! Also note that the hyperfine field also depends strongly on the choice of
+! functional with GGA functions usually yielding larger values. Try running the
+! calculation again with PBE (xctype=20).
+
+! Experimentally the hyperfine field is 21.9 Tesla [J. Phys. Soc. Jpn. 33, 1591
+! (1972)].
+
+tasks
+  0
+  110       : isomer shift and hyperfine field
+  115       : electric field gradient
+
+! enable calculation of the dipole magnetic field
+tbdip
+ .true.
+
+! enable calculation of the current density (i.e. orbital) contribution to the
+! dipole field
+tjr
+ .true.
+
+! enable spin-orbit coupling
+spinorb
+ .true.
+
+! switch on core polarisation for hyperfine field
+spincore
+  .true.
+
+! lmaxi should be at least 2 for the EFG calculation
+lmaxi
+  2
+
+! external field for breaking spin symmetry
+bfieldc
+  0.0  0.0  0.001
+
+! very large number of empty states required for hyperfine field
+nempty
+  80
+
+! conduction local-orbitals required
+lorbcnd
+ .true.
+
+! large number of k-points required
+ngridk
+  14 14 10
+
+avec
+  2.368866000       4.102996268       0.000000000    
+  4.737732000       0.000000000       0.000000000    
+  0.000000000       0.000000000       7.690240000    
+
+sppath
+ '../../../species/'
+
+atoms
+   1                                    : nspecies
+'Co.in'                                 : spfname
+   2                                    : natoms; atposl, bfcmt below
+   0.66666667    0.66666667    0.75000000
+   0.33333333    0.33333333    0.25000000
+

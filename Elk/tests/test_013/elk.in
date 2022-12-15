@@ -1,0 +1,58 @@
+
+! Force test with spin-orbit coupling, removal of the source term from B_xc and
+! application of a constanst A-field
+
+tasks
+ 0
+ 500
+
+test
+ .true.
+
+spinorb
+ .true.
+
+nosource
+ .true.
+
+tforce
+ .true.
+
+bfieldc
+  0.0 0.0 0.1
+
+afieldc
+  0.0 0.5 0.0
+
+rgkmax
+ 6.0
+
+maxscl
+ 4
+
+scale
+  5.496
+
+avec
+  1.0  0.0  0.0
+  0.0  1.0  0.0
+  0.0  0.0  1.0
+
+atoms
+  2                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms
+  0.0  0.0  0.0     0.1  0.2  0.3     : atposl, bfcmt
+  'Al.in'
+  1
+  0.51 0.52 0.485   0.4  0.4 -0.4     : atposl, bfcmt
+
+sppath
+  '../../species/'
+
+ngridk
+  4  4  4
+
+vkloff
+ 0.25 0.5 0.625
+

@@ -1,0 +1,57 @@
+
+! Calculation of the non-linear reponse function χ(-2ω;ω,ω) for GaAs. Note
+! that many k-points and empty states are required for good convergence.
+! Various contributions to the susceptibility are also written to file.
+
+! See Phys. Rev. B 48, 11705 (1993) and Phys. Rev. B 53, 10751 (1996).
+
+tasks
+  0
+  120
+  125
+
+! large number of empty states required
+nempty
+  20
+
+! scissor correction of Δ=1.243 eV (see Phys. Rev. B 80, 155205 (2009))
+scissor
+  0.0457
+
+! inverse lifetime is determined by swidth
+swidth
+  0.003
+
+! components of the optical tensor (x,y,z)
+optcomp
+  1  2  3
+
+! dense k-point set required for non-linear optics
+ngridk
+  32 32 32
+
+wplot
+  400  100  0  : nwplot, ngrkf, nswplot
+  0.0  0.3     : wplot
+
+! use GGA
+xctype
+  20
+
+avec
+  5.3435  5.3435  0.0000
+  5.3435  0.0000  5.3435
+  0.0000  5.3435  5.3435
+
+sppath
+  '../../../species/'
+
+atoms
+  2                                   : nspecies
+  'Ga.in'                             : spfname
+  1                                   : natoms; atposl below
+  0.0   0.0   0.0
+  'As.in'
+  1
+  0.25  0.25  0.25
+

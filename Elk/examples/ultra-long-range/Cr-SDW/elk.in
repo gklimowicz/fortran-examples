@@ -1,0 +1,118 @@
+
+! Ultracell simulation of the spin density wave in bcc Cr.
+
+! See: T. Muller, S. Sharma, E. K. U. Gross, and J. K. Dewhurst,
+! Phys. Rev. Lett. 125, 256402 (2020) or arXiv:2008.12573
+
+
+! First run a ground state calculation with a single unit cell while keeping
+! the moments in each muffin-tin fixed to zero.
+tasks
+  0
+
+ngridk
+  6  6  6
+
+mixtype
+  1
+
+beta0
+  0.01
+
+! Now uncomment the following lines and run the ultracell calculation.
+!tasks
+!  700    ! ultracell ground-state calculation
+!  771    ! 1D magnetisation density plot
+!
+!beta0
+!  0.001  ! very small mixing parameter required for ultra long-range calculations
+!
+!ngridk
+!  1  6  6  ! reduce k-points to prevent kappa-point overlap
+
+maxthd1
+  -4
+
+nxlo
+  1
+
+lorbcnd
+ .true.
+
+nempty
+  10
+
+tplotq0
+ .false.
+
+plot1d
+  2  10000
+  0.0  0.0  0.0
+ 21.0  0.0  0.0
+
+taufsm
+  0.001
+
+! start with a random magnetic field in the ultracell
+rndbfcu
+  1.0
+
+! reduce the magnetic field at each step
+reducebf
+  0.85
+
+! Fix the moment in each muffin-tin to zero. This is done for both the unit cell
+! and the Q=0 term of the ultracell.
+fsmtype
+  2
+
+mommtfix
+  1 1  0.0 0.0 0.0
+  1 2  0.0 0.0 0.0
+
+maxscl
+  2000
+
+epspot
+  1.e-8
+
+! switch on spin-orbit coupling
+spinorb
+ .true.
+
+! keep the magnetisation collinear along the z-axis
+cmagz
+ .true.
+
+avec
+  1.0 0.0 0.0
+  0.0 1.0 0.0
+  0.0 0.0 1.0
+
+scale
+  5.4897
+
+! ultracell lattice parameters
+avecu
+  21.0 0.0  0.0
+  0.0  1.0  0.0
+  0.0  0.0  1.0
+
+scaleu
+  5.4897
+
+! ultracell Q-point grid (see article for description).
+ngridq
+  21 1 1
+
+sppath
+  '../../../species/'
+
+! single antiferromagnetic unit cell
+atoms
+  1                                     : nspecies
+  'Cr.in'                               : spfname
+  2                                     : natoms
+  0.0  0.0  0.0       0.0   0.0   0.01   : atposl, bfcmt
+  0.5  0.5  0.5       0.0   0.0  -0.01 
+

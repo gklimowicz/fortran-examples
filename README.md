@@ -44,9 +44,11 @@ File names that begin with "all-" contain aggregated lists and metrics for the s
 # `provenance`
 Originally, this was to contain the provenance of each of the repositories.
 Since this is already saved in `.gitmodules` for the git-based projects,
-this now only contains the sources for the non-git projects.
+this now only contains the provenance for sources for non-git projects.
+(Note that this may not be a direct link to a `.tgz` or `.zip` file, but
+may be the page where such a link can be found.)
 
-This file is managed manually for the time being.
+This file is managed manually.
 
 
 # Makefile

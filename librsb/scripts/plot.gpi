@@ -1,0 +1,357 @@
+#!*gnuplot
+#
+# Copyright (C) 2020-2021 Michele Martone
+# 
+# This file is part of librsb.
+# 
+# librsb is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# librsb is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with librsb; see the file COPYING.
+# If not, see <http://www.gnu.org/licenses/>.
+
+# This script is intended for librsb developer usage.
+
+# gnuplot -c plot.gpi --no-plot
+# initial default options:
+want_plot='dumb'
+want_outdir='./'
+want_pause=0
+want_common_factors=1
+want_all=0
+want_extras=0
+want_mtx_grep=0
+want_boxes=0
+
+# initial default parameters:
+# limiting criteria:
+NCR=6
+MTXIDX=NCR
+array SCE[NCR] = [     0,      0,       0,      1,    1,     2 ] # if 1, should compute extremes
+array CRN[NCR] = [ "SYM", "TYPE", "TRANS", "NRHS", "NT", "MTX" ] # criteria names unless empty
+array CRV[NCR] # criteria values (where SCE[i]!=1)
+CRV[1] = "S G H" # symmetric general hermitian
+CRV[2] = "I D S C Z" # int double single complex double-complex
+CRV[3] = "N T C" # non-transposed transposed conjugated-transposed
+CRV[4] = "" # will use range
+CRV[5] = "" # will use range
+CRV[MTXIDX] = " dense-10000x10000-100000000nz COPY1_10000x10000-100000000nz COPY2_10000x10000-100000000nz"
+
+# plot quantities:
+array PQV[2] = ["RSBBEST-MFLOPS", "AT-OPTIME"]  # plotted quantities value codes array
+array PQC[|PQV|] = ["Gflops", "s"]  # plot quantities code arrays
+array QFC[|PQV|] = ["%.0f", "%.1e"]  # quantities format codes
+array PNA[|PQV|] = ["Operation Performance", "Operation Time"]  # plot names array
+
+# option processing:
+fidx=0
+lidx=0
+fn='plot_sample.dat' # produced from filtered rsbench log; can use --logfile instead
+ft='dat' # dat file type as default
+iss='*'
+df='' # datafile
+a=0;
+do for [i=1:|ARGV|] { 
+if (i+a<=|ARGV|) {
+	if ( ARGV[i+a] eq '-H' ) { print 'Invocation options: --datfile <file.dat> --datafile <file.dat> --boxes --dumb --eps --extras --fig --idx --jpg --logfile <file.log> --mtx <mtx1 mtx2 ...> --mtxgrep --no-common-factors --no-plot --outdir --pause --pdf --png --rprfile <file.rpr> --svg --tex --x11 # note: gnuplot supports max 10 args; filenames terminating in *.rpr, *.dat, or *.log can be passed without --rprfile,... etc.'; exit; continue; }
+	if ( ARGV[i+a] eq '--all' )    { want_all=1; continue; }
+	if ( ARGV[i+a] eq '--boxes' )    { want_boxes=1; continue; }
+	if ( ARGV[i+a] eq '--dumb' )    { want_plot='dumb'; continue; }
+	if ( ARGV[i+a] eq '--datafile' || ARGV[i+a] eq '--datfile' )    { a=a+1; fn=ARGV[i+a]; print "will read datafile from ".fn; ft="dat"; continue; }
+	if ( ARGV[i+a] eq '--logfile' )    { a=a+1; fn=ARGV[i+a]; ft="log"; continue; }
+	if ( ARGV[i+a] eq '--eps' )    { want_plot='eps'; continue; }
+	if ( ARGV[i+a] eq '--extras' )    { want_extras=1; continue; }
+	if ( ARGV[i+a] eq '--fig' )    { want_plot='fig'; continue; }
+	if ( ARGV[i+a] eq '--idx' )    { a=a+1; 
+		iss=ARGV[i+a]
+		colidx=strstrt(iss,":")
+		if ( colidx == 0 ) { colidx=strstrt(iss," ") }
+		lidx=word(iss[colidx+1:],1); # last index
+		fidx=word(iss[1:colidx-1],1); # first index
+		if ( iss ne "*" && iss ne ":" ) { iss=''; }
+		continue;
+	}
+	if ( ARGV[i+a] eq '--jpg' )    { want_plot='jpg'; continue; }
+	if ( ARGV[i+a] eq '--tex' )    { want_plot='tex'; continue; }
+	if ( ARGV[i+a] eq '--mtx' )    { a=a+1; if(want_all==0){ CRV[MTXIDX]=ARGV[i+a]; print "using matrices ".CRV[MTXIDX];};
+		continue; }
+	if ( ARGV[i+a] eq '--mtxgrep' )    { want_mtx_grep=1; continue; }
+	if ( ARGV[i+a] eq '--no-plot' ) { want_plot=''; continue; }
+	if ( ARGV[i+a] eq '--no-common-factors' ) { want_common_factors='0'; continue; }
+	if ( ARGV[i+a] eq '--pause' )    { want_pause=1; continue; }
+	if ( ARGV[i+a] eq '--pdf' )    { want_plot='pdf'; continue; }
+	if ( ARGV[i+a] eq '--png' )    { want_plot='png'; continue; }
+	if ( ARGV[i+a] eq '--rprfile' )    { a=a+1; fn=ARGV[i+a]; print "will pipe input from rsbench log ".df; ft="rpr"; continue; }
+	if ( ARGV[i+a] eq '--svg' )    { want_plot='svg'; continue; }
+	if ( ARGV[i+a] eq '--x11' ) { want_plot=''; continue; }
+	if ( ARGV[i+a] eq '--outdir' )    { a=a+1; want_outdir=ARGV[i+a]."/"; print "use output dir ".want_outdir; continue; }
+	# --rprfile shortcut:
+	fn=ARGV[i+a]
+	if( ( strstrt(fn,"--") != 1 ) && strlen(fn)>4 ) {
+		fext = substr(fn,strlen(fn)-3,strlen(fn))
+		if ( fext eq ".rpr" ) { ft="rpr"; continue; }
+		if ( fext eq ".dat" ) { ft="dat"; continue; }
+		if ( fext eq ".log" ) { ft="log"; continue; }
+	}
+	exit status -1;
+} }
+if( ft eq 'rpr' ) { 
+	df="< RSB_PR_ONLY_TOTAL_TABLE=1 rsbench --read ".fn." | grep -v '^#'"; 
+}
+if( ft eq 'log' ) { 
+	df="< grep -v '^#' ".fn." | sed 's/^\\(pr:.BESTCODE.*$\\)/\\n\\n\\1/g'";
+	print "will pipe input from rsbench log ".df; 
+}
+
+if( df eq '' ) { df=fn; }
+
+# NOTE: in my gnuplot 5.2.6 this has to be out of the 'if' in order to evaluate correctly. weird, isn't it ?
+matrices_cmd = sprintf('"`cat %s | grep -v "MTX NR" | grep ^pr: | sed "s%  *% %g" | cut -d " " -f 3 | sort | uniq | sed "s%^% %g" `"',fn)
+if (want_mtx_grep == 1) {
+	CRV[MTXIDX] = @matrices_cmd
+	print "Found matrices :", CRV[MTXIDX]
+}
+
+if ( iss eq ':' || iss eq '*' ) {
+	stats df using (column("RSBBEST-MFLOPS")) name "all" nooutput
+	fidx=0
+	lidx=all_blocks-1 # get block count
+}
+print "will read from data blocks ".fidx,":",lidx;
+
+do for [idx=fidx:lidx] { # criteria index
+# limiting criteria arrays working copies for current data block index
+INCR=NCR 
+array ISCE[INCR] 
+do for [i=1:INCR] { ISCE[i] = SCE[i] }
+array ICRN[INCR]
+do for [i=1:INCR] { ICRN[i] = CRN[i] }
+array ICRV[INCR]
+do for [i=1:INCR] { ICRV[i] = CRV[i] }
+
+if( want_outdir ne './' ) { system "mkdir ".want_outdir }
+# sample processing:
+set xtics out rotate by -45 autojustify noenhance  # bottom tics labels
+set x2tics out rotate by +45 autojustify noenhance #    top tics labels
+set key left autotitle columnhead # 'columnhead' here tells all subsequent stats (especially ones without "using..") to use columnheads
+#set datafile columnheaders # TODO: use this once you have version > 5.2
+stats df index idx using (column("RSBBEST-MFLOPS")) name "RSBBEST_MFLOPS" nooutput
+as=RSBBEST_MFLOPS_records
+print sprintf("%d",as)." samples total"
+
+# common parameters title string processing:
+cpt="" # common parameters title
+if ( want_common_factors == 1 ) {
+do for [ci=1:|ICRN|] { # criteria index
+	if ( ISCE[ci] == 1 ) { # compute extremes on numerical ranges. note ICRV[ci] eq ""
+		stats '' index idx using (column(ICRN[ci])) name ICRN[ci] nooutput
+		vmin = value(ICRN[ci]."_min")
+		vmax = value(ICRN[ci]."_max")
+		ICRV[ci] = ""
+		do for [vi=vmin:vmax] { ICRV[ci]=ICRV[ci]." ".vi } # use range vmin to vmax
+	}
+	do for [qi=1:1:1] { # plot quantity index
+		pq = PQV[qi] # plot quantity
+	evaluate "except_".ICRN[ci]."=0" # as default, include each criteria quantity from allexceptmtxname()
+	evaluate "except_l_".ICRN[ci]."=0" # as default, include each criteria quantity from allexceptmtxname()
+	do for [sv in ICRV[ci]] { # selected criterion value
+			cvs=ICRN[ci]."=".sv # common value string
+			only(VA,VB) = ( stringcolumn(ICRN[ci]) eq sv ? VA:VB ) # limit to samples having selected value on criteria quantity
+		if ( ISCE[ci] == 2 ) { ssv="RSB_MFLOPS"; } else { ssv=ICRN[ci]."_".sv; } # alternate quantity to get a viable '_records'
+		stats df index idx using (only(stringcolumn(pq),NaN)) name "TMP_STATS_".ssv nooutput
+		ns = value("TMP_STATS_".ssv."_records")
+		if ( ! ( ns > 0 && ns != NaN ) ) {
+			# print "0 samples for ", cvs
+		} else {
+			if (ns == as ) { 
+				cpt=cpt." ".cvs;
+				print "common values parm: ".cvs
+				evaluate "except_".ICRN[ci]."=1"; # exclude criteria quantity
+				evaluate "except_l_".ICRN[ci]."=1"; # exclude criteria quantity
+			}
+		}
+	}}}}
+if (cpt ne "") { cpt=",\n all with ".cpt; }
+
+# want_all parameters:
+if( want_all==1 ) {
+	INCR=1
+	array ISCE[INCR] = [-1 ] # 
+	array ICRN[INCR] = ["" ] # no limiting if empty
+	array ICRV[INCR] = ["all"] # no criteria values (must be a string, for 'stats')
+        evaluate "except_".ICRN[1]."=0" 
+}
+
+# plot loop:
+do for [ci=1:|ICRN|] { # criteria index
+	if ( ISCE[ci] == 1 ) { # compute extremes on numerical ranges. note ICRV[ci] eq ""
+		stats '' index idx using (column(ICRN[ci])) name ICRN[ci] nooutput
+		stats '' index idx using (column(ICRN[ci])) 
+		vmin = value(ICRN[ci]."_min")
+		vmax = value(ICRN[ci]."_max")
+		ICRV[ci] = ""
+		do for [vi=vmin:vmax] { ICRV[ci]=ICRV[ci]." ".vi } # use range vmin to vmax
+	}
+	do for [qi=1:|PQV|] { # plot quantity index
+		pq = PQV[qi] # plot quantity
+		set ylabel PQC[qi] # quantity code
+		set format y QFC[qi] # quantity format code
+	do for [cl=1:|ICRN|] { # criteria limiting index
+		evaluate "except_l_".ICRN[cl]."=except_".ICRN[cl].""; # 
+	}
+	do for [sv in ICRV[ci]] { # selected criterion value
+		if ( value("except_".ICRN[ci]) == 0 )  { 
+			evaluate "except_l_".ICRN[ci]."=1";
+		} else { # exclude criteria quantity
+			evaluate "except_l_".ICRN[ci]."=0";
+		}
+		if ( want_all == 0 ) {
+			cvs=ICRN[ci]." = ".sv # criteria value string
+			only(VA,VB) = ( stringcolumn(ICRN[ci]) eq sv ? VA:VB ) # limit to samples having selected value on criteria quantity
+		} else {
+			cvs=""
+			only(VA,VB) = ( VA ) # all in
+		}
+		onlyiftrans(VA,TV,VB) = ( stringcolumn("TRANS") eq TV ? only(VA,VB):VB ) # limit to samples having selected value on criteria quantity
+		if ( ISCE[ci] == 2 ) { ssv="RSB_MFLOPS"; } else { ssv=sv; } # alternate quantity to get a viable '_records'
+		stats '' index idx using (only(stringcolumn(pq),NaN)) name "STATS_".ssv nooutput
+		ns = value("STATS_".ssv."_records")
+		if ( ! ( ns > 0 && ns != NaN ) ) {
+			# print "0 samples for ", cvs
+		} else {
+			if (ns < as || want_all) { # don't replot entire dataset over and over
+			if (ns >= 2) { # plot from 2 samples on
+				#ms = value("STATS_".sv."_max")
+				if ( cvs ne "" ) { ett = " for ".cvs } else  { ett="" } # extra title text
+				print sprintf("%d",ns)." samples ", ett
+				#bf = value("STATS_".sv."_max")
+				#print sprintf("For %s %s best mflops rate is %g",ICRN[ci],sv,bf)
+				if(want_plot eq 'eps') {
+					set terminal postscript eps color enhanced
+				}
+				if(want_plot eq 'fig') {
+					set terminal fig color
+				}
+				if(want_plot eq 'jpg') {
+					set terminal jpeg
+				}
+				if(want_plot eq 'pdf') {
+					set terminal pdf color
+				}
+				if(want_plot eq 'png') {
+					set terminal pngcairo  transparent enhanced font "arial,10" fontscale 1.0 size 600, 400
+				}
+				if(want_plot eq 'svg') {
+					set terminal svg
+				}
+				if(want_plot eq 'tex') {
+					# documentation says need packages: amssymb latexsym graphics or graphicx
+					set terminal latex
+				}
+				if(want_plot eq 'dumb') { 
+					set terminal dumb # ascii art
+				}
+				set datafile missing NaN # default is 0, and would lead to zeroes in the plot
+				set title noenhanced PNA[qi]." (".pq.")".ett.cpt # plot title
+				allexceptmtxname(mn) = ( \
+		only(\
+			(except_l_TYPE==0?stringcolumn("TYPE")." ":"").\
+			(except_l_TRANS==0?stringcolumn("TRANS")." ":"").\
+			(except_l_NT==0?stringcolumn("NT")."T ":"").\
+			(except_l_NRHS==0?stringcolumn("NRHS")."RHS ":""), "")\
+ 		) # note that certain criteria quantities are excluded
+				#customizemtxname(mn) = ( only(allexceptmtxname(mn).":".stringcolumn(mn), "") ) # extra info + matrix name
+				trimnc(str,n) = ( strlen(str) > n ? substr(str,0,n)."..." : str ) # trim to n, dot completed
+				trimmn(str)=trimnc(str,12) # trim matrix name
+				customizemtxname(mn) = ( only(trimmn(stringcolumn(mn)), "") ) # matrix name only for xtics
+				type2idx(sct) = ( sct eq 'S' ? 1 : ( sct eq 'D' ? 2 : ( sct eq 'C' ? 3 : ( sct eq 'Z' ? 4 : 5))))
+				typecolor(i)  = type2idx(stringcolumn("TYPE")) # NOTE: is is ignored
+				trans2idx(sct) = ( sct eq 'N' ? 1 : ( sct eq 'T' ? 2 : 3 ))
+				transcolor(i) = trans2idx(stringcolumn("TRANS"))
+				if ( ICRN[ci] eq "TYPE" ) {
+					boxescolor(i) = transcolor(i) # color depends on TRANS
+				} else {
+					boxescolor(i) = typecolor(i) # color depends on TYPE
+				}
+				ticiftransop(sct) = ( stringcolumn("TRANS") eq 'N' ? "" : "'" ) # tic over box if transposed op
+				set style fill solid 1.00 border linecolor black  # fill the boxes with color (unless overridden)
+				if(want_plot ne 'dumb') { # don't clobber ascii art with grid
+					set grid ytics front # add one horizontal line per ytic (and whole grid on front)
+					set grid xtics       # add one vertical   line per xtic
+				}
+				set border dashtype "---" # dashed plot border
+				set boxwidth 1 # aesthetical fix to cope with skipped points
+				unset colorbox # no color box on the right
+				# NOTE: one can use histogram but gaps due to NaNs remain:
+				array ot2mfa[4] = ["RSB","MKL","RSB'","MKL'"]
+				ot2xf(i) = ot2mfa[i-19+1] # optime to xflops
+				if (PQV[qi] eq "RSBBEST-MFLOPS" ) {
+					gfpop(i) = ((1e-3)*stringcolumn("CMFLOPS"))/column(i) # gflops per operation (to be divided by time)
+				} else {
+					gfpop(i) = column(i) # operation time
+				}
+
+				if( ! ( want_plot eq 'dumb' || want_plot eq '' ) ) { 
+					bn=fn
+					if( strlen(fn)>4 && ( fn[strlen(fn)-3:strlen(fn)] eq ".log" \
+						|| fn[strlen(fn)-3:strlen(fn)] eq ".dat") ) {
+						bn=fn[1:strlen(fn)-4]
+					}
+					if( fidx != lidx ) {
+						bn=bn."_".idx # data index in name if multiple blocks
+					}
+					if (want_boxes==1) {
+					set output want_outdir.bn."_".pq."_for_".ICRN[ci]."_".sv."_boxes".".".want_plot
+					}
+				}
+
+			if (want_boxes==1) {
+				zu5(i) = (((i-19))+5*$0)
+				if1(i,VA) = ((i-19)==1?VA:"") # one tic every 4 columns of a sample
+				plot \
+				     for [i=19:22] '' index idx using (zu5(i)):(only( gfpop(i) ,NaN)):xticlabels(if1(i,customizemtxname("MTX"))):x2ticlabels(if1(i,allexceptmtxname("MTX"))) with boxes fill solid 0.9 noborder title ot2xf(i) ,\
+				     for [i=19:22] '' index idx using (zu5(i)):(onlyiftrans(gfpop(i),'T',NaN)) with boxes notitle fillstyle empty linecolor black dashtype "..",\
+				     for [i=19:22] '' index idx using (zu5(i)):(onlyiftrans(gfpop(i),'N',NaN)) with boxes notitle fillstyle empty linecolor black,              \
+				     for [i=19:22] [j=1:want_extras] '' index idx using (zu5(i)):(only(gfpop(i),NaN)):(ticiftransop($0)) with labels notitle, \
+				     for [i=19:22] [j=1:want_extras] '' index idx using (zu5(i)):(only(gfpop(i),NaN)):(sprintf("\n%.2gx",column("OPTIME")/column("AT-OPTIME"))) with labels textcolor "black" rotate by +30 title "autotuning-speedup", \
+				     for [i=19:22] [j=1:want_extras] '' index idx using (zu5(i)):(only(gfpop(i),NaN)):(sprintf("\n\n%.2gx",column("AT-MKL-OPTIME")/column("AT-OPTIME"))) with labels textcolor "black" rotate by +30 title "mkl/rsb ratio"
+				if(want_pause) { pause -1 "Press anything to continue..."; }
+			}
+
+				if( ! ( want_plot eq 'dumb' || want_plot eq '' ) ) {
+					set output want_outdir.bn."_".pq."_for_".ICRN[ci]."_".sv."".".".want_plot
+				}
+
+				set style data histogram # aka  plot ... with histogram
+				plot \
+					for [i=19:21:2] '' index idx using (only(gfpop(i),NaN)):xticlabels(customizemtxname("MTX")):x2ticlabels(allexceptmtxname("MTX")) title ot2xf(i), \
+					for [i=20:22:2] '' index idx using (only(gfpop(i),NaN)) ti \
+		 			ot2xf(i) # "ti col" aka "title columnhead"
+
+				if(want_pause) { pause -1 "Press anything to continue..."; }
+			}
+			}
+		}
+	}
+	}
+	undefine STATS_* # avoid STATS_S values clash
+}
+}
+print "done"
+
+# Possible TODOs list:
+# - compare two different but justapposable data files
+# - for each mix, plot performance & speedup
+# - extra dots or labels on each box to convey other info ?
+# - weird weaving of histogram plot and its key, and adding NaN-only round does not help
+# - any way to overcome |ARGV| count limitation ?
+# - need a --rprfile test
+# - --all or one plot be default instead

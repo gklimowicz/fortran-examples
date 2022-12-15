@@ -1,0 +1,64 @@
+
+! Time-dependent density functional theory (TDDFT) optical spectrum of lithium
+! fluoride.
+
+tasks
+  0
+  120
+  121
+  125
+  320
+  500
+
+test
+ .true.
+
+spinorb
+ .true.
+
+scissor
+  0.192
+
+xctype
+  3
+
+! bootstrap kernel
+fxctype
+  210
+
+lmaxi
+  2
+
+swidth
+  0.01
+
+gmaxrf
+  1.5
+
+nempty
+  10
+
+ngridk
+  8  8  8
+
+wplot
+  50  100  0
+  0.0  1.5
+
+avec
+  3.80402   3.80402   0.0
+  3.80402   0.0       3.80402
+  0.0       3.80402   3.80402
+
+sppath
+  '../../species/'
+
+atoms
+  2                                       : nspecies
+  'Li.in'                                 : spfname
+  1                                       : natoms; atposl below
+  0.0  0.0  0.0
+  'F.in'
+  1
+  0.5  0.5  0.5
+

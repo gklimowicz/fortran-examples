@@ -1,0 +1,42 @@
+#!/bin/bash
+
+function retr_quadr {
+(
+int2 << EOF
+$1
+EOF
+)
+echo "-n" $1 >> a.txt
+cat fort.11 >> a.txt
+echo >> a.txt
+}
+
+nquad=50
+
+while
+  test -n "$1"
+do
+#  echo "$1 "
+  case $1 in
+  '-v')
+  ;;
+  '-nq')
+    shift
+    nquad=$1
+  ;;
+  *)
+    args="$args $1"
+  ;;
+  esac
+  shift
+done
+
+echo $args
+
+
+nterms=0
+
+for (( $((nterms=1)) ; $((nterms<=nquad)) ; $((nterms=nterms+1)) )) ;  do
+   retr_quadr $nterms ;
+done
+

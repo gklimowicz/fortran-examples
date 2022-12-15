@@ -1,0 +1,59 @@
+
+! Elk can run a batch of calculations while varying a particular input
+! parameter.
+
+! In this example, we use this feature to generate an energy-volume curve of
+! AlAs. Only certain variables can be varied but more can be added on request.
+! The output data is stored in a standard format in the file VARIABLES.OUT.
+
+! To extract the set of volumes use:
+!
+!   sed -n '/omega/{n;n;p}' VARIABLES.OUT > omega
+!
+! and to extract the corresponding total energies use:
+!
+!   sed -n '/engytot/{n;n;p}' VARIABLES.OUT > engytot
+!
+! These can be combined into a single file using:
+!
+!   paste omega engytot > e_vs_v
+!
+! which can be plotted or fitted to an equation of state.
+
+
+! run several consecutive ground-state calculations
+tasks
+  0
+  1
+  1
+  1
+  1
+  1
+  1
+  1
+
+! enable a batch calculation
+batch
+ .true.
+
+! these are the lattice vectors and their changes between each calculation
+avec
+  5.0  5.0  0.0      0.1  0.1  0.0
+  5.0  0.0  5.0      0.1  0.0  0.1
+  0.0  5.0  5.0      0.0  0.1  0.1
+
+ngridk
+  8  8  8
+
+sppath
+  '../../../species/'
+
+atoms
+  2                                 : nspecies
+  'Al.in'                           : spfname
+  1                                 : natoms; atposl below
+  0.0   0.0   0.0
+  'As.in'
+  1
+  0.25  0.25  0.25
+

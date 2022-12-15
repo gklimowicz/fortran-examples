@@ -1,0 +1,1181 @@
+.TH "RsbMatrix< NT >" 3 "Sat Jan 29 2022" "RsbLib" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RsbMatrix< NT > \- Represent a sparse matrix in RSB format by means of \fClibrsb\fP\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <rsb\&.hpp>\fP
+.SS "Public Types"
+
+.in +1c
+.ti -1c
+.RI "enum \fBRsbSym\fP { \fBIsGen\fP = RSB_FLAG_NOFLAGS, \fBIsHer\fP = RSB_FLAG_HERMITIAN, \fBIsSym\fP = RSB_FLAG_SYMMETRIC, \fBIsTri\fP = RSB_FLAG_TRIANGULAR }"
+.br
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBRsbMatrix\fP (rsb_coo_idx_t nrA, rsb_coo_idx_t ncA, const \fBRsbSym\fP sym=\fBIsGen\fP)"
+.br
+.ti -1c
+.RI "\fBRsbMatrix\fP (rsb_coo_idx_t nrA, const rsb_coo_idx_t *RP, const rsb_coo_idx_t *JA, const NT *VA, const \fBRsbSym\fP sym=\fBIsGen\fP)"
+.br
+.ti -1c
+.RI "\fBRsbMatrix\fP (const rsb_coo_idx_t *IA, const rsb_coo_idx_t *JA, const NT *VA, rsb_nnz_idx_t nnzA, const rsb_flags_t flagsA=RSB_FLAG_NOFLAGS)"
+.br
+.ti -1c
+.RI "\fBRsbMatrix\fP (const rsb_char_t *filename, const \fBRsbSym\fP sym=\fBIsGen\fP)"
+.br
+.ti -1c
+.RI "\fBRsbMatrix\fP (const \fBRsbMatrix\fP &A_Rsb, bool do_trans=false, rsb_flags_t flagsA=RSB_FLAG_NOFLAGS)"
+.br
+.ti -1c
+.RI "\fBRsbMatrix\fP (\fBRsbMatrix\fP &&other)"
+.br
+.ti -1c
+.RI "\fB~RsbMatrix\fP (void)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fB_add\fP (rsb_coo_idx_t i, rsb_coo_idx_t j, NT val)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBclose\fP (void)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fB_close\fP (void)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspmv\fP (rsb_trans_t transA, const NT *alphap, const NT *Xp, rsb_coo_idx_t incX, const NT *betap, NT *Yp, rsb_coo_idx_t incY) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspmv\fP (rsb_trans_t transA, const NT alpha, const NT *Xp, rsb_coo_idx_t incX, const NT beta, NT *Yp, rsb_coo_idx_t incY) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspmv\fP (rsb_trans_t transA, const NT alpha, const NT *Xp, const NT beta, NT *Yp) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspmv\fP (NT *y, const NT *x, bool do_trans=false) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspmm\fP (rsb_trans_t transA, const NT *alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *Bp, rsb_nnz_idx_t ldB, const NT *betap, NT *Cp, rsb_nnz_idx_t ldC) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspmm\fP (rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *Bp, rsb_nnz_idx_t ldB, const NT beta, NT *Cp, rsb_nnz_idx_t ldC) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspmm\fP (rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *Bp, const NT beta, NT *Cp) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsm\fP (rsb_trans_t transT, const NT *alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *betap, const NT *Bp, rsb_nnz_idx_t ldB, NT *Cp, rsb_nnz_idx_t ldC) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsm\fP (rsb_trans_t transT, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT beta, const NT *Bp, rsb_nnz_idx_t ldB, NT *Cp, rsb_nnz_idx_t ldC) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsm\fP (rsb_trans_t transT, const NT alpha, rsb_coo_idx_t nrhs, const NT *Bp, NT *Cp) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsm\fP (NT *y, const NT *x, rsb_coo_idx_t nrhs, bool do_trans=false) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsm\fP (NT *y, rsb_coo_idx_t nrhs, bool do_trans=false) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsv\fP (rsb_trans_t transT, const NT *alphap, const NT *Xp, rsb_coo_idx_t incX, NT *Yp, rsb_coo_idx_t incY) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsv\fP (rsb_trans_t transT, const NT alpha, const NT *Xp, NT *Yp) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsv\fP (NT *y, const NT *x, bool do_trans=false) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBspsv\fP (NT *y, bool do_trans=false) const"
+.br
+.ti -1c
+.RI "size_t \fBget_info_size_t\fP (enum rsb_mif_t mif) const"
+.br
+.ti -1c
+.RI "rsb_flags_t \fBget_info_rsb_flags_t\fP (enum rsb_mif_t mif) const"
+.br
+.ti -1c
+.RI "rsb_blk_idx_t \fBget_info_blk_t\fP (enum rsb_mif_t mif) const"
+.br
+.ti -1c
+.RI "rsb_nnz_idx_t \fBget_info_nnz_t\fP (enum rsb_mif_t mif) const"
+.br
+.ti -1c
+.RI "rsb_flags_t \fBget_flags_t\fP (enum rsb_mif_t mif) const"
+.br
+.ti -1c
+.RI "rsb_type_t \fBget_type_t\fP (enum rsb_mif_t mif) const"
+.br
+.ti -1c
+.RI "rsb_coo_idx_t \fBget_info_coo_t\fP (enum rsb_mif_t mif) const"
+.br
+.ti -1c
+.RI "size_t \fB_get_index_storage_bytes\fP (void) const"
+.br
+.ti -1c
+.RI "size_t \fB_get_storage_bytes\fP (void) const"
+.br
+.ti -1c
+.RI "rsb_nnz_idx_t \fBnnz\fP (void) const"
+.br
+.ti -1c
+.RI "rsb_blk_idx_t \fBblocks\fP (void) const"
+.br
+.ti -1c
+.RI "rsb_coo_idx_t \fBrows\fP (void) const"
+.br
+.ti -1c
+.RI "rsb_coo_idx_t \fBcols\fP (void) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBget_vals\fP (NT *VA, const rsb_coo_idx_t *IA, const rsb_coo_idx_t *JA, rsb_nnz_idx_t \fBnnz\fP, rsb_flags_t flags) const"
+.br
+.ti -1c
+.RI "NT \fBget_val\fP (const rsb_coo_idx_t i, const rsb_coo_idx_t j, rsb_flags_t flags=RSB_FLAG_NOFLAGS) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBset_val\fP (const NT val, const rsb_coo_idx_t i, const rsb_coo_idx_t j, rsb_flags_t flags=RSB_FLAG_NOFLAGS)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBset_vals\fP (const NT *VA, const rsb_coo_idx_t *IA, const rsb_coo_idx_t *JA, rsb_nnz_idx_t \fBnnz\fP, rsb_flags_t flags)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBget_vec\fP (NT *Dp, enum rsb_extff_t flags) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBget_coo\fP (rsb_trans_t transA, NT *VA, rsb_coo_idx_t *IA, rsb_coo_idx_t *JA, rsb_flags_t flags) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBget_csr\fP (rsb_trans_t transA, NT *VA, rsb_coo_idx_t *RP, rsb_coo_idx_t *JA, rsb_flags_t flags) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBget_rows_sparse\fP (rsb_trans_t transA, const NT *alphap, NT *VA, rsb_coo_idx_t *IA, rsb_coo_idx_t *JA, rsb_coo_idx_t frA, rsb_coo_idx_t lrA, rsb_nnz_idx_t *rnzp, rsb_flags_t flags) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBupd_vals\fP (enum rsb_elopf_t elop_flags, const NT &omega)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBupd_vals\fP (enum rsb_elopf_t elop_flags, const NT *omegap)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBget_nrm\fP (NT *Np, enum rsb_extff_t flags) const"
+.br
+.ti -1c
+.RI "rsb_type_t \fBrsbtype\fP (void) const"
+.br
+.ti -1c
+.RI "rsb_flags_t \fBrsbflags\fP (void) const"
+.br
+.ti -1c
+.RI "rsb_string_t \fBget_info_str\fP (const char *key) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBget_info\fP (enum rsb_mif_t miflags, void *minfop) const"
+.br
+.ti -1c
+.RI "rsb_string_t \fB_info\fP (void) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBtune_spsm_threads\fP (rsb_real_t *sfp=RSBP_NULL, rsb_int_t *tnp=RSBP_NULL, rsb_int_t maxr=0, rsb_time_t maxt=0, rsb_trans_t transA=RSB_TRANSPOSITION_N, const NT *alphap=RSBP_NULL, rsb_coo_idx_t nrhs=1, rsb_flags_t order=RSB_FLAG_WANT_COLUMN_MAJOR_ORDER, const NT *Bp=RSBP_NULL, rsb_nnz_idx_t ldB=0, const NT *betap=RSBP_NULL, NT *Cp=RSBP_NULL, rsb_nnz_idx_t ldC=0) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBtune_spmm_threads\fP (rsb_real_t *sfp=RSBP_NULL, rsb_int_t *tnp=RSBP_NULL, rsb_int_t maxr=0, rsb_time_t maxt=0, rsb_trans_t transA=RSB_TRANSPOSITION_N, const NT *alphap=RSBP_NULL, rsb_coo_idx_t nrhs=1, rsb_flags_t order=RSB_FLAG_WANT_COLUMN_MAJOR_ORDER, const NT *Bp=RSBP_NULL, rsb_nnz_idx_t ldB=0, const NT *betap=RSBP_NULL, NT *Cp=RSBP_NULL, rsb_nnz_idx_t ldC=0) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBtune_spmm\fP (rsb_real_t *sfp, rsb_int_t *tnp, rsb_int_t maxr, rsb_time_t maxt, rsb_trans_t transA, const NT *alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *Bp, rsb_nnz_idx_t ldB, const NT *betap, NT *Cp, rsb_nnz_idx_t ldC)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBtune_spmm\fP (rsb_real_t *sfp, rsb_int_t *tnp, rsb_int_t maxr, rsb_time_t maxt, rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *Bp, rsb_nnz_idx_t ldB, const NT beta, NT *Cp, rsb_nnz_idx_t ldC)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBtune_spmm\fP (rsb_real_t &sf, rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *Bp, const NT beta, NT *Cp)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBtune_spsm\fP (rsb_real_t *sfp, rsb_int_t *tnp, rsb_int_t maxr, rsb_time_t maxt, rsb_trans_t transA, const NT *alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT *Bp, rsb_nnz_idx_t ldB, const NT *betap, NT *Cp, rsb_nnz_idx_t ldC)"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBfile_save\fP (const rsb_char_t *filename=RSBP_NULL) const"
+.br
+.ti -1c
+.RI "\fBRsbMatrix\fP & \fBoperator=\fP (const \fBRsbMatrix\fP &A_Rsb)"
+.br
+.ti -1c
+.RI "bool \fB_is_complex\fP (void) const"
+.br
+.ti -1c
+.RI "bool \fBoperator==\fP (const \fBRsbMatrix\fP &B_Rsb) const"
+.br
+.ti -1c
+.RI "bool \fBoperator!=\fP (const \fBRsbMatrix\fP &B_Rsb) const"
+.br
+.ti -1c
+.RI "NT \fBnormOne\fP (void) const"
+.br
+.ti -1c
+.RI "NT \fBnormInf\fP (void) const"
+.br
+.ti -1c
+.RI "template<typename Err_t  = void> Err_t \fBrndr\fP (const rsb_char_t *filename=RSBP_NULL, rsb_coo_idx_t pmWidth=512, rsb_coo_idx_t pmHeight=512, rsb_marf_t rflags=RSB_MARF_EPS) const"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<RSBP_Scalar_t NT>
+.br
+class RsbMatrix< NT >"
+Represent a sparse matrix in RSB format by means of \fClibrsb\fP\&. 
+
+Manage construction, destruction, and std::move of numerical matrices\&. 
+.br
+Most of the member functions here translate directly to a single function call to \fClibrsb\fP (\fCrsb\&.h\fP), and pass the parameters as they are, so the error checking is done by \fClibrsb\fP\&. 
+.br
+While most of \fClibrsb\fP \fCC\fP functions use \fCvoid*\fP pointers instead of numerical data, \fC\fBRsbMatrix\fP\fP is templated by a type parameter\&. This introduces type safety at compile time\&.
+.PP
+Users of member functions can choose among several overloads\&. So in additional to the more direct overloads passing e\&.g\&. $ \alpha $ and $ \beta $ by reference, here a user can pass them by value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fINT\fP the numerical type, at least for the four canonical ones (\fCfloat\fP, \fCdouble\fP, \fCstd::complex<float>\fP, \fCstd::complex<double>\fP); see \fBmatrix_supported_numerical_types_section\fP and #rsb_type_t for more\&.
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+Default error propagation is by exception throw for all constructors and most member functions\&. 
+.br
+Functions declared to return Err_t can be specialized in rsb_err_t so not to throw exceptions, but to return an error code instead\&. 
+.br
+Exceptions thrown by member functions (not constructors) can be deactivated at build time by defining \fBRSBP_NOTHROW\fP before including \fC<\fBrsb\&.hpp\fP>\fP\&.
+.PP
+One may turn on return error value as default at build time by defining \fBRSBP_WANT_REV\fP=1 \&.
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+The error model is work in progress and subject to change\&.
+.RE
+.PP
+\fBTodo\fP
+.RS 4
+While the \fCrsb\&.h\fP interface is stable, the \fC\fBrsb\&.hpp\fP\fP interface is neither stable, nor complete: early users' feedback is very welcome\&. 
+.br
+Shall all $ \alpha $ and $ \beta $ be passed by values only? This is natural and fits C++\&. But rsb_tune_spmm() / rsb_tune_spsm() have more parameters with a nullptr-like `default' value: how to deal with them in \fBRsbMatrix::tune_spmm()\fP / \fBRsbMatrix::tune_spsm()\fP without introducing too many special cases ? 
+.br
+Similarly for the consistency of \fBRsbMatrix::get_flags_t()\fP, \fBRsbMatrix::get_type_t()\fP, \fBRsbMatrix::get_info_coo_t()\fP, and similar: shall they throw an exception if given a flag not matching the return type ? 
+.br
+Or maybe keeping only \fBRsbMatrix::get_info()\fP, with per-type reference overloads ? 
+.br
+Furthermore: if working under C++20, shall \fB\fBRsbLib\fP\fP avoid pointer-based interfaces completely (using \fCstd::span\fP only)? 
+.RE
+.PP
+
+.SH "Member Enumeration Documentation"
+.PP 
+.SS "template<RSBP_Scalar_t NT> enum \fBRsbMatrix::RsbSym\fP"
+Matrix structure: either general, symmetric, hermitian, or triangular (also see #rsb_flags_t)\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIIsGen \fP\fP
+General matrix, no triangle structure or symmetry assumed\&. 
+.TP
+\fB\fIIsHer \fP\fP
+Hermitian ( $ A == A^H $)\&. Please pass only lower/upper triangle\&. 
+.TP
+\fB\fIIsSym \fP\fP
+Symmetric ( $ A == A^T $)\&. Please pass only lower/upper triangle\&. 
+.TP
+\fB\fIIsTri \fP\fP
+Triangular (required for \fBspsv\fP/\fBspsm\fP)\&. 
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP< NT >::\fBRsbMatrix\fP (rsb_coo_idx_t nrA, rsb_coo_idx_t ncA, const \fBRsbSym\fP sym = \fC\fBIsGen\fP\fP)\fC [inline]\fP"
+Begin assembling a sparse matrix of given dimensions and type\&. 
+.br
+Then you can use \fBset_val()\fP or \fBset_vals()\fP repeatedly to populate the matrix\&. 
+.br
+After populating the matrix, use \fBclose()\fP to terminate its assembly\&. 
+.br
+ Example snip from \fBexamples/assemble\&.cpp\fP: 
+.PP
+.nf
+  const rsb_coo_idx_t nrA { 4 }, ncA { 4 };
+  RsbMatrix<double> mtx(nrA,ncA); // begin matrix assembly
+
+  // insert elements of a tridiagonal matrix, one by one
+  for (auto i = 0; i < nrA; ++i )
+    for (auto j = i-1; j <= i+1; ++j )
+      if ( i >= 0 && i < nrA )
+        if ( j >= 0 && j < ncA )
+          mtx\&.set_val((i+1)*100+(j+1),i,j); // add entry
+
+  mtx\&.close(); // finish matrix assembly
+  assert(mtx\&.nnz() == 3 * nrA - 2);
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_alloc_from_coo_begin() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP< NT >::\fBRsbMatrix\fP (rsb_coo_idx_t nrA, const rsb_coo_idx_t * RP, const rsb_coo_idx_t * JA, const NT * VA, const \fBRsbSym\fP sym = \fC\fBIsGen\fP\fP)\fC [inline]\fP"
+Assemble a sparse matrix given CSR input\&. 
+.br
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_alloc_from_csr_const() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP< NT >::\fBRsbMatrix\fP (const rsb_coo_idx_t * IA, const rsb_coo_idx_t * JA, const NT * VA, rsb_nnz_idx_t nnzA, const rsb_flags_t flagsA = \fCRSB_FLAG_NOFLAGS\fP)\fC [inline]\fP"
+Assemble a sparse matrix given COO input\&. 
+.br
+Example snip from \fBexamples/misc\&.cpp\fP: 
+.PP
+.nf
+    const rsb_nnz_idx_t nnzA { 7 };
+    const rsb_coo_idx_t nrA { 6 }, ncA { 6 }, nrhs { 1 };
+    const std::vector<rsb_coo_idx_t> IA {0,1,2,3,4,5,1}, JA {0,1,2,3,4,5,0};
+    const std::vector<double> VA {1,1,1,1,1,1,2}, X(ncA,1);
+    RsbMatrix<double> mtx(IA\&.data(),JA\&.data(),VA\&.data(),nnzA);
+
+.fi
+.PP
+
+.br
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_alloc_from_coo_const() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP< NT >::\fBRsbMatrix\fP (const rsb_char_t * filename, const \fBRsbSym\fP sym = \fC\fBIsGen\fP\fP)\fC [inline]\fP"
+Assemble a sparse matrix given filename input\&. 
+.br
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_file_mtx_load() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP< NT >::\fBRsbMatrix\fP (const \fBRsbMatrix\fP< NT > & A_Rsb, bool do_trans = \fCfalse\fP, rsb_flags_t flagsA = \fCRSB_FLAG_NOFLAGS\fP)\fC [inline]\fP"
+Copy a sparse matrix given example input\&. 
+.br
+Can either clone it, or transpose it or change flags (structure) in the process\&.
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP< NT >::\fBRsbMatrix\fP (\fBRsbMatrix\fP< NT > && other)\fC [inline]\fP"
+Move constructor\&. 
+.br
+The moved matrix object will be invalid afterwards\&. 
+.br
+Example snip from \fBexamples/misc\&.cpp\fP: 
+.PP
+.nf
+  assert( mtx1\&.nnz() == nnzA );
+  RsbMatrix<double> mtx3 { std::move(mtx1) };
+  assert( mtx3\&.nnz() == nnzA );
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP< NT >::~\fBRsbMatrix\fP (void)\fC [inline]\fP"
+Destructor\&. 
+.br
+Frees matrix object memory\&. 
+.br
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_free() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SH "Member Function Documentation"
+.PP 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::_add (rsb_coo_idx_t i, rsb_coo_idx_t j, NT val)\fC [inline]\fP"
+
+.PP
+\fBDeprecated\fP
+.RS 4
+Use \fBset_val()\fP and \fBset_vals()\fP instead\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::_close (void)\fC [inline]\fP"
+
+.PP
+\fBDeprecated\fP
+.RS 4
+Use \fBclose()\fP instead\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> size_t \fBRsbMatrix\fP< NT >::_get_index_storage_bytes (void) const\fC [inline]\fP"
+
+.PP
+\fBWarning:\fP
+.RS 4
+The name of this member function is expected to change\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> size_t \fBRsbMatrix\fP< NT >::_get_storage_bytes (void) const\fC [inline]\fP"
+
+.PP
+\fBWarning:\fP
+.RS 4
+The name of this member function is expected to change\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_string_t \fBRsbMatrix\fP< NT >::_info (void) const\fC [inline]\fP"
+
+.PP
+\fBWarning:\fP
+.RS 4
+The name of this member function is expected to change\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> bool \fBRsbMatrix\fP< NT >::_is_complex (void) const\fC [inline]\fP"
+
+.PP
+\fBWarning:\fP
+.RS 4
+The name of this member function is expected to change\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_blk_idx_t \fBRsbMatrix\fP< NT >::blocks (void) const\fC [inline]\fP"
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::close (void)\fC [inline]\fP"
+Terminate assembly of a previously started and populated matrix\&. 
+.br
+Shall be called once\&.
+.PP
+Example snip from \fBexamples/assemble\&.cpp\fP: 
+.PP
+.nf
+  const rsb_coo_idx_t nrA { 4 }, ncA { 4 };
+  RsbMatrix<double> mtx(nrA,ncA); // begin matrix assembly
+
+  // insert elements of a tridiagonal matrix, one by one
+  for (auto i = 0; i < nrA; ++i )
+    for (auto j = i-1; j <= i+1; ++j )
+      if ( i >= 0 && i < nrA )
+        if ( j >= 0 && j < ncA )
+          mtx\&.set_val((i+1)*100+(j+1),i,j); // add entry
+
+  mtx\&.close(); // finish matrix assembly
+  assert(mtx\&.nnz() == 3 * nrA - 2);
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBRsbMatrix::RsbMatrix\fP(rsb_coo_idx_t nrA, rsb_coo_idx_t ncA, const \fBRsbSym\fP sym = \fBIsGen\fP ); 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_alloc_from_coo_end() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_coo_idx_t \fBRsbMatrix\fP< NT >::cols (void) const\fC [inline]\fP"
+Example snip from \fBexamples/twonnz\&.cpp\fP: 
+.PP
+.nf
+ std::cout << "# Matrix sized " << mtx\&.rows() << "x" << mtx\&.cols() << ", " << nnzA << " nnz  built in " << dt << " s and occupies " << mtxocc << " bytes " << std::endl;
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::file_save (const rsb_char_t * filename = \fCRSBP_NULL\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_file_mtx_save() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/misc\&.cpp\fP: 
+.PP
+.nf
+    mtx\&.file_save(); // print to stdout
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::get_coo (rsb_trans_t transA, NT * VA, rsb_coo_idx_t * IA, rsb_coo_idx_t * JA, rsb_flags_t flags) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_coo() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::get_csr (rsb_trans_t transA, NT * VA, rsb_coo_idx_t * RP, rsb_coo_idx_t * JA, rsb_flags_t flags) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_csr() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_flags_t \fBRsbMatrix\fP< NT >::get_flags_t (enum rsb_mif_t mif) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::get_info (enum rsb_mif_t miflags, void * minfop) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_blk_idx_t \fBRsbMatrix\fP< NT >::get_info_blk_t (enum rsb_mif_t mif) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_coo_idx_t \fBRsbMatrix\fP< NT >::get_info_coo_t (enum rsb_mif_t mif) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_nnz_idx_t \fBRsbMatrix\fP< NT >::get_info_nnz_t (enum rsb_mif_t mif) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_flags_t \fBRsbMatrix\fP< NT >::get_info_rsb_flags_t (enum rsb_mif_t mif) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> size_t \fBRsbMatrix\fP< NT >::get_info_size_t (enum rsb_mif_t mif) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_string_t \fBRsbMatrix\fP< NT >::get_info_str (const char * key) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info_str() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::get_nrm (NT * Np, enum rsb_extff_t flags) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_nrm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::get_rows_sparse (rsb_trans_t transA, const NT * alphap, NT * VA, rsb_coo_idx_t * IA, rsb_coo_idx_t * JA, rsb_coo_idx_t frA, rsb_coo_idx_t lrA, rsb_nnz_idx_t * rnzp, rsb_flags_t flags) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_rows_sparse() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_type_t \fBRsbMatrix\fP< NT >::get_type_t (enum rsb_mif_t mif) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_info() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> NT \fBRsbMatrix\fP< NT >::get_val (const rsb_coo_idx_t i, const rsb_coo_idx_t j, rsb_flags_t flags = \fCRSB_FLAG_NOFLAGS\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_vals() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::get_vals (NT * VA, const rsb_coo_idx_t * IA, const rsb_coo_idx_t * JA, rsb_nnz_idx_t nnz, rsb_flags_t flags) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_vals() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::get_vec (NT * Dp, enum rsb_extff_t flags) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_get_vec() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> rsb_nnz_idx_t \fBRsbMatrix\fP< NT >::nnz (void) const\fC [inline]\fP"
+
+.SS "template<RSBP_Scalar_t NT> NT \fBRsbMatrix\fP< NT >::normInf (void) const\fC [inline]\fP"
+
+.SS "template<RSBP_Scalar_t NT> NT \fBRsbMatrix\fP< NT >::normOne (void) const\fC [inline]\fP"
+
+.SS "template<RSBP_Scalar_t NT> bool \fBRsbMatrix\fP< NT >::operator!= (const \fBRsbMatrix\fP< NT > & B_Rsb) const\fC [inline]\fP"
+Example snip from \fBexamples/misc\&.cpp\fP: 
+.PP
+.nf
+  assert(   mtx1 == mtx2  );
+  assert( !(mtx1 != mtx2) );
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBRsbMatrix::operator==(const RsbMatrix & B_Rsb) const\fP;
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> \fBRsbMatrix\fP& \fBRsbMatrix\fP< NT >::operator= (const \fBRsbMatrix\fP< NT > & A_Rsb)\fC [inline]\fP"
+A copy constructor\&. Will clone the input matrix contents\&.
+.SS "template<RSBP_Scalar_t NT> bool \fBRsbMatrix\fP< NT >::operator== (const \fBRsbMatrix\fP< NT > & B_Rsb) const\fC [inline]\fP"
+Deep comparison: compare if the two matrices have same dimensions, nonzeroes count, nonzeroes pattern and value\&. Meant for very sporadic use\&. Inefficient: it can involve matrices copying\&.
+.PP
+Example snip from \fBexamples/misc\&.cpp\fP: 
+.PP
+.nf
+  assert(   mtx1 == mtx2  );
+  assert( !(mtx1 != mtx2) );
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::rndr (const rsb_char_t * filename = \fCRSBP_NULL\fP, rsb_coo_idx_t pmWidth = \fC512\fP, rsb_coo_idx_t pmHeight = \fC512\fP, rsb_marf_t rflags = \fCRSB_MARF_EPS\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_rndr() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/render\&.cpp\fP: 
+.PP
+.nf
+        mtx\&.rndr(psfilename\&.c_str());
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> rsb_coo_idx_t \fBRsbMatrix\fP< NT >::rows (void) const\fC [inline]\fP"
+Example snip from \fBexamples/twonnz\&.cpp\fP: 
+.PP
+.nf
+ std::cout << "# Matrix sized " << mtx\&.rows() << "x" << mtx\&.cols() << ", " << nnzA << " nnz  built in " << dt << " s and occupies " << mtxocc << " bytes " << std::endl;
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> rsb_flags_t \fBRsbMatrix\fP< NT >::rsbflags (void) const\fC [inline]\fP"
+
+.SS "template<RSBP_Scalar_t NT> rsb_type_t \fBRsbMatrix\fP< NT >::rsbtype (void) const\fC [inline]\fP"
+Example snip from \fBexamples/twonnz\&.cpp\fP: 
+.PP
+.nf
+        std::cout << "# type=" << mtx\&.rsbtype() << " nt=1," << rnt << " n=" << n << " nrhs=" << nrhs << " order=" << oc << " alpha=" << alpha << " beta=" << beta << " dt=" << dta[0] << "\&.\&." << dta[1] << " spmm-scalability=" << dta[0]/dta[1] << " nnz/s=" << nnzA/dta[0] << "\&.\&." << nnzA/dta[1] << " flops=" << flops_c/dta[0] << "\&.\&." << flops_c/dta[1] << " occ\&.=" << opocc << " " << std::endl;
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::set_val (const NT val, const rsb_coo_idx_t i, const rsb_coo_idx_t j, rsb_flags_t flags = \fCRSB_FLAG_NOFLAGS\fP)\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_set_vals() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/assemble\&.cpp\fP: 
+.PP
+.nf
+  const rsb_coo_idx_t nrA { 4 }, ncA { 4 };
+  RsbMatrix<double> mtx(nrA,ncA); // begin matrix assembly
+
+  // insert elements of a tridiagonal matrix, one by one
+  for (auto i = 0; i < nrA; ++i )
+    for (auto j = i-1; j <= i+1; ++j )
+      if ( i >= 0 && i < nrA )
+        if ( j >= 0 && j < ncA )
+          mtx\&.set_val((i+1)*100+(j+1),i,j); // add entry
+
+  mtx\&.close(); // finish matrix assembly
+  assert(mtx\&.nnz() == 3 * nrA - 2);
+
+.fi
+.PP
+ 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBset_vals()\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::set_vals (const NT * VA, const rsb_coo_idx_t * IA, const rsb_coo_idx_t * JA, rsb_nnz_idx_t nnz, rsb_flags_t flags)\fC [inline]\fP"
+Add a single entry during the assembly of a matrix created empty\&. 
+.br
+Use \fBclose()\fP to terminate matrix assembly\&.
+.PP
+Example snip from \fBexamples/assemble\&.cpp\fP: 
+.PP
+.nf
+  const rsb_coo_idx_t nrA { 4 }, ncA { 4 };
+  RsbMatrix<double> mtx(nrA,ncA); // begin matrix assembly
+
+  // insert elements of a tridiagonal matrix, one by one
+  for (auto i = 0; i < nrA; ++i )
+    for (auto j = i-1; j <= i+1; ++j )
+      if ( i >= 0 && i < nrA )
+        if ( j >= 0 && j < ncA )
+          mtx\&.set_val((i+1)*100+(j+1),i,j); // add entry
+
+  mtx\&.close(); // finish matrix assembly
+  assert(mtx\&.nnz() == 3 * nrA - 2);
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_set_vals() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spmm (rsb_trans_t transA, const NT * alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * Bp, rsb_nnz_idx_t ldB, const NT * betap, NT * Cp, rsb_nnz_idx_t ldC) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_spmm() from \fC<rsb\&.h>\fP\&. 
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spmm (rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * Bp, rsb_nnz_idx_t ldB, const NT beta, NT * Cp, rsb_nnz_idx_t ldC) const\fC [inline]\fP"
+Example snip from \fBexamples/bench\&.cpp\fP: 
+.PP
+.nf
+          mtx\&.spmm(transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC);
+
+.fi
+.PP
+ 
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spmm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spmm (rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * Bp, const NT beta, NT * Cp) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spmm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spmv (rsb_trans_t transA, const NT * alphap, const NT * Xp, rsb_coo_idx_t incX, const NT * betap, NT * Yp, rsb_coo_idx_t incY) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_spmv() from \fC<rsb\&.h>\fP\&. 
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spmv (rsb_trans_t transA, const NT alpha, const NT * Xp, rsb_coo_idx_t incX, const NT beta, NT * Yp, rsb_coo_idx_t incY) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spmv() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/span\&.cpp\fP: 
+.PP
+.nf
+  mtx\&.tune_spmm(nullptr,&tn,0,0\&.0,RSB_TRANSPOSITION_N,alpha,nrhs,RSB_FLAG_WANT_COLUMN_MAJOR_ORDER,X,ncA,beta,Y,nrA);
+  mtx\&.spmv(RSB_TRANSPOSITION_N, alpha, X, beta, Y);
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spmv (rsb_trans_t transA, const NT alpha, const NT * Xp, const NT beta, NT * Yp) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spmv() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/span\&.cpp\fP: 
+.PP
+.nf
+  mtx\&.tune_spmm(nullptr,&tn,0,0\&.0,RSB_TRANSPOSITION_N,alpha,nrhs,RSB_FLAG_WANT_COLUMN_MAJOR_ORDER,X,ncA,beta,Y,nrA);
+  mtx\&.spmv(RSB_TRANSPOSITION_N, alpha, X, beta, Y);
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spmv (NT * y, const NT * x, bool do_trans = \fCfalse\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spmv() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/span\&.cpp\fP: 
+.PP
+.nf
+  mtx\&.tune_spmm(nullptr,&tn,0,0\&.0,RSB_TRANSPOSITION_N,alpha,nrhs,RSB_FLAG_WANT_COLUMN_MAJOR_ORDER,X,ncA,beta,Y,nrA);
+  mtx\&.spmv(RSB_TRANSPOSITION_N, alpha, X, beta, Y);
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsm (rsb_trans_t transT, const NT * alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * betap, const NT * Bp, rsb_nnz_idx_t ldB, NT * Cp, rsb_nnz_idx_t ldC) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_spsm() from \fC<rsb\&.h>\fP\&. 
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsm (rsb_trans_t transT, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT beta, const NT * Bp, rsb_nnz_idx_t ldB, NT * Cp, rsb_nnz_idx_t ldC) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spsm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsm (rsb_trans_t transT, const NT alpha, rsb_coo_idx_t nrhs, const NT * Bp, NT * Cp) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spsm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsm (NT * y, const NT * x, rsb_coo_idx_t nrhs, bool do_trans = \fCfalse\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spsm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsm (NT * y, rsb_coo_idx_t nrhs, bool do_trans = \fCfalse\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spsm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsv (rsb_trans_t transT, const NT * alphap, const NT * Xp, rsb_coo_idx_t incX, NT * Yp, rsb_coo_idx_t incY) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_spsv() from \fC<rsb\&.h>\fP\&. 
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsv (rsb_trans_t transT, const NT alpha, const NT * Xp, NT * Yp) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spsv() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsv (NT * y, const NT * x, bool do_trans = \fCfalse\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spsv() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::spsv (NT * y, bool do_trans = \fCfalse\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_spsv() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::tune_spmm (rsb_real_t * sfp, rsb_int_t * tnp, rsb_int_t maxr, rsb_time_t maxt, rsb_trans_t transA, const NT * alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * Bp, rsb_nnz_idx_t ldB, const NT * betap, NT * Cp, rsb_nnz_idx_t ldC)\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_tune_spmm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/autotune\&.cpp\fP: 
+.PP
+.nf
+          tt = -rsb_time();
+            mtx\&.tune_spmm(&sf,&tn,maxr,tmax,transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC);
+            tt += rsb_time();
+
+            auto nnsmA {mtx\&.blocks()};
+            std::cout << "Tuning took " << tt << " s ( " << tt / dt << " ops ) and changed " << nsmA << " to " << nnsmA << " blocks" << std::endl;
+
+            mtx\&.spmm(transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC); // caches warmup
+
+.fi
+.PP
+ 
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::tune_spmm (rsb_real_t * sfp, rsb_int_t * tnp, rsb_int_t maxr, rsb_time_t maxt, rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * Bp, rsb_nnz_idx_t ldB, const NT beta, NT * Cp, rsb_nnz_idx_t ldC)\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_tune_spmm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/autotune\&.cpp\fP: 
+.PP
+.nf
+           tt = -rsb_time();
+            mtx\&.tune_spmm(&sf,&tn,maxr,tmax,transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC);
+            tt += rsb_time();
+
+            auto nnsmA {mtx\&.blocks()};
+            std::cout << "Tuning took " << tt << " s ( " << tt / dt << " ops ) and changed " << nsmA << " to " << nnsmA << " blocks" << std::endl;
+
+            mtx\&.spmm(transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC); // caches warmup
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::tune_spmm (rsb_real_t & sf, rsb_trans_t transA, const NT alpha, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * Bp, const NT beta, NT * Cp)\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Indirectly based on C function rsb_tune_spmm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/autotune\&.cpp\fP: 
+.PP
+.nf
+            tt = -rsb_time();
+            mtx\&.tune_spmm(&sf,&tn,maxr,tmax,transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC);
+            tt += rsb_time();
+
+            auto nnsmA {mtx\&.blocks()};
+            std::cout << "Tuning took " << tt << " s ( " << tt / dt << " ops ) and changed " << nsmA << " to " << nnsmA << " blocks" << std::endl;
+
+            mtx\&.spmm(transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC); // caches warmup
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::tune_spmm_threads (rsb_real_t * sfp = \fCRSBP_NULL\fP, rsb_int_t * tnp = \fCRSBP_NULL\fP, rsb_int_t maxr = \fC0\fP, rsb_time_t maxt = \fC0\fP, rsb_trans_t transA = \fCRSB_TRANSPOSITION_N\fP, const NT * alphap = \fCRSBP_NULL\fP, rsb_coo_idx_t nrhs = \fC1\fP, rsb_flags_t order = \fCRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP, const NT * Bp = \fCRSBP_NULL\fP, rsb_nnz_idx_t ldB = \fC0\fP, const NT * betap = \fCRSBP_NULL\fP, NT * Cp = \fCRSBP_NULL\fP, rsb_nnz_idx_t ldC = \fC0\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_tune_spmm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/autotune\&.cpp\fP: 
+.PP
+.nf
+          tt = -rsb_time();
+            mtx\&.tune_spmm(&sf,&tn,maxr,tmax,transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC);
+            tt += rsb_time();
+
+            auto nnsmA {mtx\&.blocks()};
+            std::cout << "Tuning took " << tt << " s ( " << tt / dt << " ops ) and changed " << nsmA << " to " << nnsmA << " blocks" << std::endl;
+
+            mtx\&.spmm(transA,&alpha,nrhs,order,B\&.data(),ldB,&beta,C\&.data(),ldC); // caches warmup
+
+.fi
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::tune_spsm (rsb_real_t * sfp, rsb_int_t * tnp, rsb_int_t maxr, rsb_time_t maxt, rsb_trans_t transA, const NT * alphap, rsb_coo_idx_t nrhs, rsb_flags_t order, const NT * Bp, rsb_nnz_idx_t ldB, const NT * betap, NT * Cp, rsb_nnz_idx_t ldC)\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_tune_spsm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::tune_spsm_threads (rsb_real_t * sfp = \fCRSBP_NULL\fP, rsb_int_t * tnp = \fCRSBP_NULL\fP, rsb_int_t maxr = \fC0\fP, rsb_time_t maxt = \fC0\fP, rsb_trans_t transA = \fCRSB_TRANSPOSITION_N\fP, const NT * alphap = \fCRSBP_NULL\fP, rsb_coo_idx_t nrhs = \fC1\fP, rsb_flags_t order = \fCRSB_FLAG_WANT_COLUMN_MAJOR_ORDER\fP, const NT * Bp = \fCRSBP_NULL\fP, rsb_nnz_idx_t ldB = \fC0\fP, const NT * betap = \fCRSBP_NULL\fP, NT * Cp = \fCRSBP_NULL\fP, rsb_nnz_idx_t ldC = \fC0\fP) const\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_tune_spsm() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::upd_vals (enum rsb_elopf_t elop_flags, const NT & omega)\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_upd_vals() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+Example snip from \fBexamples/bench\&.cpp\fP: 
+.PP
+.nf
+    mtx\&.upd_vals(RSB_ELOPF_POW,nt_t{0\&.0}); // set matrix values to ones
+
+.fi
+.PP
+ 
+.SS "template<RSBP_Scalar_t NT> template<typename Err_t  = void> Err_t \fBRsbMatrix\fP< NT >::upd_vals (enum rsb_elopf_t elop_flags, const NT * omegap)\fC [inline]\fP"
+
+.PP
+\fBNote:\fP
+.RS 4
+Directly based on C function rsb_mtx_upd_vals() from \fC<rsb\&.h>\fP\&.
+.RE
+.PP
+\fBDeprecated\fP
+.RS 4
+This function overload is deprecated: use the corresponding overload without the C-style pointers-to-scalar, or request one if non existing yet\&. 
+.RE
+.PP
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RsbLib from the source code\&.

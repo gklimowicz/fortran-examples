@@ -1,0 +1,62 @@
+
+! Compton profile determined for silicon from the GW approximation.
+
+! The density matrices are calculated from the interacting Green's function at
+! each k-point and the files EVECSV.OUT and OCCSV.OUT are updated. The electron
+! momentum density (EMD) is then computed from these.
+
+tasks
+  0             : ground state calculation
+  600           : determined the GW self-energy
+  640           : write the natural orbitals and occupaction numbers
+  170           : write the EMD for each k-point
+  171           : produce the 1D EMD plot
+
+! use LAPW
+nxoapwlo
+  1
+
+! Matsubara frequency cut-off
+wmaxgw
+  20.0
+
+! response function G-vector cut-off
+gmaxrf
+  3.0
+
+! temperature of many-body system (determines Matsubara frequency spacing)
+tempk
+  1000.0
+
+! define the plotting line in reciprocal lattice coordinates
+plot1d
+  2  150
+  0.0  0.0  0.0
+  3.0  3.0  0.0
+
+! maximum length of H+k-vectors for the EMD
+hkmax
+  8.d0
+
+ngridk
+  8  8  8
+
+! q-point grid can be smaller than (but commensurate with) the k-point set
+ngridq
+  2  2  2
+
+avec
+  5.13  5.13  0.00
+  5.13  0.00  5.13
+  0.00  5.13  5.13
+
+sppath
+  '../../../species/'
+
+atoms
+  1                                 : nspecies
+  'Si.in'                           : spfname
+  2                                 : natoms; atposl below
+  0.0  0.0  0.0
+  0.25 0.25 0.25
+

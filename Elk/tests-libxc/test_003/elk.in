@@ -1,0 +1,66 @@
+
+! Test of Libxc GGA, spin-polarised and with forces.
+
+tasks
+  0
+  500
+
+test
+ .true.
+
+mixtype
+  1
+
+xctype
+  100 101 130
+
+tforce
+ .true.
+
+ngridk
+  4  4  4
+
+autoswidth
+ .true.
+
+autolinengy
+ .true.
+
+msmooth
+  4
+
+spinorb
+ .true.
+
+cmagz
+ .true.
+
+bfieldc
+  0.0 0.0 0.1
+
+avec
+  0.5  0.5  0.0
+  0.0  1.0  0.0
+  0.0  0.0  1.0
+
+scale1
+  6.8
+
+scale2
+  6.8
+
+scale3
+  7.0
+
+sppath
+  '../../species/'
+
+atoms
+  2                                   : nspecies
+  'Fe.in'                             : spfname
+  1                                   : natoms; atposl below
+  0.0  0.0  0.0
+  'Co.in'
+  1
+  0.1  0.51  0.48
+
