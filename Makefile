@@ -1,8 +1,9 @@
 FORTRAN_LANG_URL = https://fortran-lang.org/en/packages
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" -o -iname "*.ftn" \)
 
-all:	all-projects all-files all-fortran-files \
-	all-projects-lc all-fortran-files-lc stats
+all:	all-projects all-projects-lc \
+			all-files all-fortran-files all-fortran-files-lc \
+			stats
 
 
 # Create a list of all Fortran projects we have,
