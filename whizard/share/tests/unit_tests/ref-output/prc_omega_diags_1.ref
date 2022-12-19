@@ -1,0 +1,232 @@
+* Test output: prc_omega_diags_1
+*   Purpose: generate Feynman diagrams
+
+* Initialize a process library with one entry
+
+* Configure and compile process
+    and generate diagrams
+
+* Probe library API
+
+ is active = T
+* Check produced diagram files
+
+\documentclass[10pt]{article}
+\usepackage{ifpdf}
+%\usepackage[colorlinks]{hyperref}
+\usepackage[a4paper,margin=1cm]{geometry}
+\usepackage{feynmp}
+\ifpdf
+   \DeclareGraphicsRule{*}{mps}{*}{}
+\else
+   \DeclareGraphicsRule{*}{eps}{*}{}
+\fi
+\setlength{\unitlength}{1mm}
+\setlength{\parindent}{0pt}
+\renewcommand{\mathstrut}{\protect\vphantom{\hat{0123456789}}}
+\begin{document}
+\tableofcontents
+\begin{fmffile}{prc_omega_diags_1_p_i1_diags-fmf}
+
+\section{$ u \bar{u} \to d \bar{d} $}
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o4,o3}
+    \fmflabel{${u(1)}$}{i1}
+    \fmflabel{${\bar{u}(2)}$}{i2}
+    \fmflabel{${\bar{d}(4)}$}{o4}
+    \fmflabel{${d(3)}$}{o3}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmfdot{v1}
+    \fmf{fermion}{v1,i2}
+    \fmf{boson,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v5}
+    \fmfdot{v1,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{v5,o3}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{o4,v5}
+  \end{fmfgraph*}}\hfil\allowbreak
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o4,o3}
+    \fmflabel{${u(1)}$}{i1}
+    \fmflabel{${\bar{u}(2)}$}{i2}
+    \fmflabel{${\bar{d}(4)}$}{o4}
+    \fmflabel{${d(3)}$}{o3}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmfdot{v1}
+    \fmf{fermion}{v1,i2}
+    \fmf{dbl_wiggly,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v5}
+    \fmfdot{v1,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{v5,o3}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{o4,v5}
+  \end{fmfgraph*}}\hfil\allowbreak
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o4,o3}
+    \fmflabel{${u(1)}$}{i1}
+    \fmflabel{${\bar{u}(2)}$}{i2}
+    \fmflabel{${\bar{d}(4)}$}{o4}
+    \fmflabel{${d(3)}$}{o3}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmfdot{v1}
+    \fmf{fermion}{v1,i2}
+    \fmf{gluon,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v5}
+    \fmfdot{v1,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{v5,o3}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{o4,v5}
+  \end{fmfgraph*}}\hfil\allowbreak
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o3,o4}
+    \fmflabel{${u(1)}$}{i1}
+    \fmflabel{${\bar{u}(2)}$}{i2}
+    \fmflabel{${d(3)}$}{o3}
+    \fmflabel{${\bar{d}(4)}$}{o4}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmf{dbl_wiggly,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v4}
+    \fmfdot{v1,v4}
+    \fmfdot{v4}
+    \fmf{fermion}{v4,i2}
+    \fmfdot{v4}
+    \fmf{fermion,tension=0.5}{o4,v4}
+    \fmfdot{v1}
+    \fmf{fermion,tension=0.5}{v1,o3}
+  \end{fmfgraph*}}\hfil\allowbreak
+\subsection{$ {u}_{\mathstrut 1} {\bar{u}}_{\mathstrut\overline{1}} \to {d}_{\mathstrut 2} {\bar{d}}_{\mathstrut\overline{2}} $}
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o3,o4}
+    \fmflabel{${{u}_{\mathstrut 1}(1)}$}{i1}
+    \fmflabel{${{\bar{u}}_{\mathstrut\overline{1}}(2)}$}{i2}
+    \fmflabel{${{d}_{\mathstrut 2}(3)}$}{o3}
+    \fmflabel{${{\bar{d}}_{\mathstrut\overline{2}}(4)}$}{o4}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmfdot{v1}
+    \fmf{fermion}{v1,i2}
+    \fmf{boson,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v5}
+    \fmfdot{v1,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{o4,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{v5,o3}
+  \end{fmfgraph*}}\hfil\allowbreak
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o3,o4}
+    \fmflabel{${{u}_{\mathstrut 1}(1)}$}{i1}
+    \fmflabel{${{\bar{u}}_{\mathstrut\overline{1}}(2)}$}{i2}
+    \fmflabel{${{d}_{\mathstrut 2}(3)}$}{o3}
+    \fmflabel{${{\bar{d}}_{\mathstrut\overline{2}}(4)}$}{o4}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmfdot{v1}
+    \fmf{fermion}{v1,i2}
+    \fmf{dbl_wiggly,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v5}
+    \fmfdot{v1,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{o4,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{v5,o3}
+  \end{fmfgraph*}}\hfil\allowbreak
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o3,o4}
+    \fmflabel{${{u}_{\mathstrut 1}(1)}$}{i1}
+    \fmflabel{${{\bar{u}}_{\mathstrut\overline{1}}(2)}$}{i2}
+    \fmflabel{${{d}_{\mathstrut 2}(3)}$}{o3}
+    \fmflabel{${{\bar{d}}_{\mathstrut\overline{2}}(4)}$}{o4}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmfdot{v1}
+    \fmf{fermion}{v1,i2}
+    \fmf{gluon,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v5}
+    \fmfdot{v1,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{o4,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{v5,o3}
+  \end{fmfgraph*}}\hfil\allowbreak
+\subsection{$ {u}_{\mathstrut 2} {\bar{u}}_{\mathstrut\overline{1}} \to {d}_{\mathstrut 2} {\bar{d}}_{\mathstrut\overline{1}} $}
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o3,o4}
+    \fmflabel{${{u}_{\mathstrut 2}(1)}$}{i1}
+    \fmflabel{${{\bar{u}}_{\mathstrut\overline{1}}(2)}$}{i2}
+    \fmflabel{${{d}_{\mathstrut 2}(3)}$}{o3}
+    \fmflabel{${{\bar{d}}_{\mathstrut\overline{1}}(4)}$}{o4}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmf{dbl_wiggly,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v4}
+    \fmfdot{v1,v4}
+    \fmfdot{v4}
+    \fmf{fermion}{v4,i2}
+    \fmfdot{v4}
+    \fmf{fermion,tension=0.5}{o4,v4}
+    \fmfdot{v1}
+    \fmf{fermion,tension=0.5}{v1,o3}
+  \end{fmfgraph*}}\hfil\allowbreak
+\fmfframe(8,7)(8,6){%
+  \begin{fmfgraph*}(35,30)
+   \fmfpen{thin}
+   \fmfset{arrow_len}{2mm}
+    \fmfleft{i1,i2}
+    \fmfright{o3,o4}
+    \fmflabel{${{u}_{\mathstrut 2}(1)}$}{i1}
+    \fmflabel{${{\bar{u}}_{\mathstrut\overline{1}}(2)}$}{i2}
+    \fmflabel{${{d}_{\mathstrut 2}(3)}$}{o3}
+    \fmflabel{${{\bar{d}}_{\mathstrut\overline{1}}(4)}$}{o4}
+    \fmf{fermion}{i1,v1}
+    \fmfdot{v1}
+    \fmfdot{v1}
+    \fmf{fermion}{v1,i2}
+    \fmf{gluon,label=\begin{scriptsize}${}$\end{scriptsize}}{v1,v5}
+    \fmfdot{v1,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{o4,v5}
+    \fmfdot{v5}
+    \fmf{fermion,tension=0.5}{v5,o3}
+  \end{fmfgraph*}}\hfil\allowbreak
+
+\end{fmffile}
+\end{document}
+[Feynman diagrams Postscript file exists and is nonempty]
+[Feynman diagrams PDF file exists and is nonempty]
+
+* Cleanup
+
+
+* Test output end: prc_omega_diags_1

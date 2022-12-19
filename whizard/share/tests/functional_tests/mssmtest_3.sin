@@ -1,0 +1,34 @@
+# SINDARIN input for WHIZARD self-test
+# (regression test: phase space file with SUSY PDG values)
+
+model = MSSM
+
+read_slha ("sps1a.slha")
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process mssmtest_3_p = e1, E1 => "ch1-", "ch1+", A
+
+compile
+
+!---------------------------------------------
+
+me = 0
+
+sqrts = 1 TeV
+beams = e1, E1
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+cuts =
+  all Pt > 100 GeV [A]
+and
+  all M > 200 GeV ["ch1-":"ch1+", A]
+
+integrate (mssmtest_3_p) { iterations = 1:200 }

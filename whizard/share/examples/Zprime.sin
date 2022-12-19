@@ -1,0 +1,88 @@
+# Zprime.sin 
+# Simple complete physics example: sequential Z' in Drell-Yan
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from 
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = Zprime
+
+alias pr = u:d:s:c:gl:U:D:S:C
+alias lepton = e1:E1
+process zp_drell_yan = pr, pr => e1, E1
+
+# Define model parameters
+mZH = 1500 GeV
+wZH = 50 GeV
+ms = 0
+mc = 0
+
+# Define reasonable cuts and integrate the cross section(s)
+# in order to initialize the phase space grids for similation
+cuts = all Pt >= 50 GeV [lepton]
+       and all -2.5 <= Eta <= 2.5 [e1:E1]
+       and all M >= 800 GeV [e1,E1]
+
+# Define the process scale 
+scale = 1500 GeV
+
+# Beam specification and integration
+sqrts = 14 TeV
+beams = p,p => pdf_builtin 
+integrate (zp_drell_yan) { iterations = 3:10000:"gw",6:20000 }
+
+?unweighted = false
+
+# Define title etc. as global variables, that will be used by PLOT
+$description =
+  "A WHIZARD 3.0 Example.
+   Cuts: $p_T^\ell\ge50 \textrm{ GeV}$, $M_{\ell\ell} \ge$800 GeV, 
+         $|\eta(\ell)|\le2.5$
+         \newline Using weighted events to produce smooth 
+   distributions."
+$y_label = "$N_{\textrm{events}}$"
+
+# Allocate plots
+$title = "$Z'$ Drell-Yan dilepton peak $pp\to \ell\ell$"
+$x_label = "$M_{\ell\ell}$/GeV"
+histogram m_lepton (1 TeV, 2 TeV, 50 GeV)
+
+$title = "$Z'$ Drell-Yan: $p_T$ distribution of the $\ell$"
+$x_label = "$p_T^{\ell}$/GeV"
+histogram pt_lepton (100 GeV, 2000 GeV, 100 GeV)
+ 
+$title = "$Z'$ Drell-Yan: Angular distribution of the $\ell$"
+$x_label = "$\theta^{\ell}$/rad"
+histogram th_lepton (0, pi)
+
+analysis = record m_lepton (eval M [e1,E1]);
+	   record pt_lepton (eval Pt [e1]);
+	   record th_lepton (eval Theta [e1]) 
+
+# Set the desired numbers of events...
+n_events = 100000
+
+# ... and simulate, requesting status information every 5000 events
+simulate (zp_drell_yan) {checkpoint = 5000}
+
+compile_analysis { $out_file = "Zprime.dat" }

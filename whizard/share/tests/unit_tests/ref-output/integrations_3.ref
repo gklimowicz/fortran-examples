@@ -1,0 +1,254 @@
+* Test output: integrations_3
+*   Purpose: integrate test process
+
+* Initialize process and parameters
+
+* Create a scratch phase-space file
+
+* Integrate
+
+========================================================================
+ Runtime data:
+========================================================================
+ Selected variables:
+------------------------------------------------------------------------
+$phs_method = "default"
+$phs_file = "integrations_3.phs"
+========================================================================
+ iterations = 1:1000
+========================================================================
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: integration_3
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = a
+
+ Process library entries: 1
+ Entry #1: [a] prc_config_a.1 = int (test_me)
+
+ Process #1:
+ ID = 'prc_config_a'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '2A76717511B79572A545610CB2C020E8'
+ Component #1
+   Component ID        = prc_config_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = 'FB82376D0341CBF30077236C0FD2233D'
+========================================================================
+ Beam structure: [any particles]
+========================================================================
+ Cuts: [undefined]
+------------------------------------------------------------------------
+ Scale: [undefined]
+------------------------------------------------------------------------
+ Factorization scale: [undefined]
+------------------------------------------------------------------------
+ Renormalization scale: [undefined]
+------------------------------------------------------------------------
+ Weight: [undefined]
+========================================================================
+ Event selection: [undefined]
+------------------------------------------------------------------------
+ Event reweighting factor: [undefined]
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+------------------------------------------------------------------------
+ Event callback: [undefined]
+========================================================================
+ Process stack:
+========================================================================
+ Process [scattering]: 'prc_config_a'
+   Run ID        = 'integrations1'
+   Library name  = 'integration_3'
+   Process index = 1
+   Process components:
+     1: 'prc_config_a_i1':   s, s => s, s [unit_test]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 2
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (fixed coupling):
+     alpha =  1.17800E-01
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Expressions (cut, scales, weight): [not shown]
+------------------------------------------------------------------------
+   MD5 sum (config)  = '18D53766C6D12AEE6CD1A21C79B87CC3'
+------------------------------------------------------------------------
+ RNG factory: tao (0,1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = prc_config_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = 'FB82376D0341CBF30077236C0FD2233D'
+   MD5 sum (phs)       = 'EBADC922A9FD973E6D4154625028CF1A'
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration (phase-space forest):
+   ID        = 'prc_config_a_i1'
+   n_in      = 2
+   n_out     = 2
+   n_tot     = 4
+   n_state   = 1
+   n_par     = 2
+   n_channel = 1
+   sqrts     =  1.000000000000E+03
+   s_fixed   = T
+   lab_is_cm = T
+   azim.dep. = F
+ Flavor combinations:
+   1: s s s s
+ Phase-space / structure-function channels:
+   1: 1
+     = 1 (1x 2+)
+     = 1 (1x 2-)
+   MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+   MD5 sum (phs config) = '57B13D38CE11BE0010B037405885DFF3'
+ Phase-space configuration parameters:
+   sqrts         =  1.000000000000E+03
+   m_threshold_s =  5.000000000000E+01
+   m_threshold_t =  1.000000000000E+02
+   off_shell = 2
+   t_channel = 6
+   keep_nonresonant = T
+   energy scale  =  1.000000000000E+01
+   mass scale    =  1.000000000000E+01
+   q scale       =  1.000000000000E+01
+   step mapping     = T
+   step exp. mode   = T
+   allow s mapping  = F
+   Run ID: 'integrations1'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 1
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Outgoing:
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = T
+   MD5 sum (beams/strf) = '80007D5E30CFD7B9BD09FF0704AAA3A6'
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 2
+   MC parameters (SF)    = 0
+   MC parameters (PHS)   = 2
+   Current pass          = 1
+   Number of iterations  = 1
+   Number of calls       = 1000
+   MD5 sum (components)  = '14D8C2F3C8B2FCBECE47F0340B343A56'
+ Single-channel midpoint rule integrator:
+   Integral             =  7.7464622036E+03
+   Efficiency           =  9.6824583655E-01
+   Number of channels   = 1
+   Number of dimensions = 2
+   Number of chains     = 1
+   Chains:
+     1: 1
+   Number of bins       = 31 31
+   Number of calls      = 961
+   Maximum of integrand =  8.0005117617E+03
+   Minimum of integrand =  8.0005117617E+03
+ TAO random-number generator:
+   seed  = 0
+   calls = 0
+ Call statistics (current run):
+   total       = 961
+   failed kin. = 0
+   failed cuts = 0
+   passed cuts = 0
+   evaluated   = 961
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        961  7.7464622E+03  0.00E+00    0.00    0.00*  96.82
+|-----------------------------------------------------------------------------|
+   1        961  7.7464622E+03  0.00E+00    0.00    0.00   96.82
+|=============================================================================|
+========================================================================
+ quit     : F
+ quit_code: 0
+========================================================================
+ Logfile  : ''
+========================================================================
+
+* Cleanup
+
+* Test output end: integrations_3

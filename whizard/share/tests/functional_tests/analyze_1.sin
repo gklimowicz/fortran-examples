@@ -1,0 +1,53 @@
+# SINDARIN input for WHIZARD self test
+
+model = QED
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+mmu = 0
+
+seed = 0
+
+process analyze_1_p = e1, E1 => e2, E2 { process_num_id = 42 }
+
+observable process_num_id
+observable n_in
+observable n_out
+observable n_tot
+observable sqrts
+observable sqrts_hat
+observable sqme
+observable sqme_ref
+observable event_index
+observable event_weight
+observable event_excess
+
+sqrts = 1000
+iterations = 1:1000
+?unweighted = false
+n_events = 1
+
+simulate (analyze_1_p) { 
+  analysis = 
+    if $process_id == "analyze_1_p" then
+      record process_num_id (process_num_id);
+      record n_in (n_in);
+      record n_out (n_out);
+      record n_tot (n_tot);
+      record sqrts (sqrts);
+      record sqrts_hat (sqrts_hat);
+      record sqme (sqme);
+      record sqme_ref (sqme_ref);
+      record event_index (event_index);
+      record event_weight (event_weight);
+      record event_excess (event_excess)
+    endif
+}
+
+$out_file = "analyze_1.dat"
+write_analysis
+
+    

@@ -1,0 +1,96 @@
+* Test output: models_4
+*   Purpose: set and unset decays and polarization
+
+* Read model from file
+
+ MD5 sum (parameters) = '34AE44487D84198697E1368F11F2C8D8'
+
+* Set particle decays and polarization
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay dec1 dec2
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+     a_decay fdec
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+ MD5 sum (parameters) = 'A119C0963C38898EB7FCA0BB09E4187A'
+
+* Create a model instance
+
+* Revert particle decays and polarization
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+ MD5 sum (parameters) = '34AE44487D84198697E1368F11F2C8D8'
+
+* Show the model instance
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay dec1 dec2
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+     a_decay fdec
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+ MD5 sum (parameters) = 'A119C0963C38898EB7FCA0BB09E4187A'
+
+* Cleanup
+
+* Test output end: models_4

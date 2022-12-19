@@ -1,0 +1,91 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+phs_off_shell = 1
+phs_t_channel = 2
+| Process library 'smtest_1_lib': recorded process 'smtest_1_nnh'
+SM.me =>  0.000000000000E+00
+SM.mH =>  1.250000000000E+02
+sqrts =  5.000000000000E+02
+n_events = 1000
+openmp_num_threads = 1
+?integration_timer = true
+safety_factor =  1.200000000000E+00
+| Starting simulation for process 'smtest_1_nnh'
+| Simulate: process 'smtest_1_nnh' needs integration
+| Integrate: current process library needs compilation
+| Process library 'smtest_1_lib': compiling ...
+| Process library 'smtest_1_lib': writing makefile
+| Process library 'smtest_1_lib': removing old files
+| Process library 'smtest_1_lib': writing driver
+| Process library 'smtest_1_lib': creating source code
+| Process library 'smtest_1_lib': compiling sources
+| Process library 'smtest_1_lib': linking
+| Process library 'smtest_1_lib': loading
+| Process library 'smtest_1_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process smtest_1_nnh:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'smtest_1_nnh.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'smtest_1_nnh'
+|   Library name  = 'smtest_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'smtest_1_nnh_i1':   e-, e+ => nue, nuebar, H [omega]
+| ------------------------------------------------------------------------
+| Phase space: 3 channels, 5 dimensions
+| Phase space: found 3 channels, collected in 2 groves.
+| Phase space: Using 3 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'smtest_1_nnh'
+| Integrate: iterations not specified, using default
+| Integrate: iterations = 5:5000:"gw", 3:10000:""
+| Integrator: 2 chains, 3 channels, 5 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 5000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       4998  7.6908211E+01  9.20E+00   11.96    8.46*   0.75
+   2       4996  7.7478304E+01  1.19E+00    1.54    1.09*  14.62
+   3       4995  7.7464862E+01  6.95E-01    0.90    0.63*  25.39
+   4       4994  7.7781586E+01  6.30E-01    0.81    0.57*  18.17
+   5       4993  7.7887790E+01  6.01E-01    0.77    0.55*  12.83
+|-----------------------------------------------------------------------------|
+   5      24976  7.7709021E+01  3.52E-01    0.45    0.72   12.83    0.07   5
+|-----------------------------------------------------------------------------|
+   6       9999  7.8703952E+01  4.31E-01    0.55    0.55   13.76
+   7       9999  7.7921040E+01  4.27E-01    0.55    0.55*  12.59
+   8       9999  7.7453832E+01  4.34E-01    0.56    0.56   11.52
+|-----------------------------------------------------------------------------|
+   8      29997  7.8027876E+01  2.49E-01    0.32    0.55   11.52    2.13   3
+|=============================================================================|
+| Time estimate [...]
+| Simulate: integration done
+| Simulate: using integration grids from file 'smtest_1_nnh.m1.vg'
+| Simulate: applying safety factor 1.200E+00 to event rejection
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1000
+|             corr. to luminosity [fb-1] =   1.2816E+01
+| Events: writing to raw file 'smtest_1_nnh.evx'
+| Events: generating 1000 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   9.54 %
+| Events: closing raw file 'smtest_1_nnh.evx'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

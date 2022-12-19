@@ -1,0 +1,78 @@
+!!! Process: dijet production at ILC
+!!! Reported by: BACN on 2015-07-15
+!!! Purpose: Tests consistency of separate integration with combined and
+!!!          simulated weighted events
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+!seed = 0
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.16637E-005
+wZ = 2.4952
+wW = 2.124
+
+# => alpha = 132.16066
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+$loop_me_method = "openloops"
+?alphas_is_fixed = true
+?alphas_from_mz = false
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+real pii = 3.14159265358
+printf "alphas / Pi = %f" (alphas / pii)
+show(alphas)
+
+# hardest jet pT
+!scale = eval Pt [sort by -Pt [colored]]
+
+# Needs OpenLoops library ee??
+process nlo_uu = E1, e1 => u, U { nlo_calculation = full }
+
+sqrts = 500 GeV
+
+iterations = 5:50000:"gw", 5:50000:""
+integrate (nlo_uu)
+show (integral(nlo_uu))
+show (error(nlo_uu))
+real separate_integral = integral(nlo_uu)
+real separate_error = error(nlo_uu)
+
+process nlo_uu_b = E1, e1 => u, U { nlo_calculation = born }
+integrate (nlo_uu_b)
+real ratio = (separate_integral - integral(nlo_uu_b)) / integral(nlo_uu_b)
+printf "ratio = %f" (ratio)
+printf "expect: alphas/pi = %f" (alphas / pii)
+expect (ratio == alphas / pii) {tolerance = 0.01 * alphas / pii}
+
+?combined_nlo_integration = true
+integrate (nlo_uu)
+show (integral(nlo_uu))
+show (error(nlo_uu))
+expect (integral(nlo_uu) == separate_integral)
+  {tolerance = 3 * sqrt (separate_error**2 + error(nlo_uu)**2)}
+
+?fixed_order_nlo_events = true
+?unweighted = false
+n_events = 10000
+sample_format = hepmc
+?hepmc_output_cross_section = true
+
+simulate (nlo_uu)

@@ -1,0 +1,95 @@
+* Test output: Particles
+*   Purpose: reconstruct decay interaction with reordering
+
+* Set up a 1 -> 3 interaction
+    + no quantum numbers
+
+ Interaction: 1
+ Virtual:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 2 3 4
+ Outgoing:
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ []
+   []
+     []
+       [] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+
+* Manually set up a flavor-content record
+*   assumed interaction: 6 12 5 -11
+
+  PDG = 6 5 -11 12 :: map = ( 1 4 2 3 )
+
+* Manually create a matching particle set
+
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] p(6)
+ E =   1.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ T =   1.000000000000E+00
+ Children: 2 3 4
+ Particle 2 [o] p(5)
+ E =   3.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ T =   9.000000000000E+00
+ Parents:  1
+ Particle 3 [o] p(12)
+ E =   2.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ T =   4.000000000000E+00
+ Parents:  1
+ Particle 4 [o] p(-11)
+ E =   4.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ T =   1.600000000000E+01
+ Parents:  1
+
+*   Fill interaction from particle set
+
+ Interaction: 1
+ Virtual:
+ Particle 1
+ E =   1.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: X => 2 3 4
+ Outgoing:
+ Particle 2
+ E =   2.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+ E =   3.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 4
+ E =   4.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ []
+   []
+     []
+       [] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+
+* Cleanup
+
+* Test output end: particles_7

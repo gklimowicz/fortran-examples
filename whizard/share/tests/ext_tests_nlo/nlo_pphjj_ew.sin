@@ -1,0 +1,28 @@
+include("nlo_settings_ew.sin")
+
+alias j = u:U:d:D:s:S:c:C:b:B:A
+
+wtop = 1.36918
+
+mZ=91.15347
+mW=80.35785
+wZ=2.494566
+wW=2.088994
+
+alpha_power = 3
+alphas_power = 0
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 30 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4.5 [@pt_selected] in
+       count [@eta_selected] >= 2
+
+scale = sum sqrt(Pt^2 + M^2)/2 [H] + sum Pt/2 [jet]
+
+$nlo_correction_type = "EW"
+
+seed=1
+process pphjj_ew = pr, pr => H, j, j {$restrictions ="^[c:b,cbar:bbar,H]" nlo_calculation = full}
+
+
+integrate (pphjj_ew) { iterations = 1:600:"gw"}

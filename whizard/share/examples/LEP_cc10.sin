@@ -1,0 +1,68 @@
+# LEP_cc10.sin
+# Simple complete physics example: W endpoint in the Standard Model
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = SM
+
+# This is the CC10 charged current process important
+# for LEP physics. No flavor summation for jets here.
+process cc10 = e1, E1 => e2, N2, u, D
+
+compile
+
+# We set the muon mass to zero.
+mmu = 0
+
+sqrts = 209 GeV
+
+integrate (cc10) { iterations = 12:20000 }
+
+# We set a luminosity of 10 inverse femtobarn. Note that this is roughly
+# two orders of magnitude higher than the final LEP2 integrated luminosity.
+
+luminosity = 10 
+
+# Define title etc. as global variables, that will be used by PLOT
+$description =
+  "A WHIZARD 3.0 Example.
+   Charged current CC10 process from LEP 2."
+$y_label = "$N_{\textrm{events}}$"
+
+# Allocate plots
+$title = "Di-jet invariant mass $M_{jj}$ in $e^+e^- \to \mu^- \bar\nu_\mu u \bar d$"
+$x_label = "$M_{jj}$/GeV"
+histogram m_jets (70 GeV, 90 GeV, 0.5 GeV)
+
+$title = "Muon energy $E_\mu$ in $e^+e^- \to \mu^- \bar\nu_\mu u \bar d$"
+$x_label = "$E_\mu$/GeV"
+histogram e_muon (0 GeV, 209 GeV, 4)
+
+analysis = record m_jets (eval M [u,D]);
+ 	   record e_muon (eval E [e2])
+
+simulate (cc10) 
+
+compile_analysis { $out_file = "cc10.dat" }

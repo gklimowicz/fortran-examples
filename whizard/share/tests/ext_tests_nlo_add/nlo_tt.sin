@@ -1,0 +1,67 @@
+!!! Process: ttbar production at ILC
+!!! Reported by: BACN on 2015-07-15
+!!! Purpose: Tests consistency of separate integration with combined and
+!!!          simulated weighted events
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+!seed = 0
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.16637E-005
+wZ = 2.4952
+wW = 2.124
+
+# => alpha = 132.16066
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+$loop_me_method = "openloops"
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+
+scale = 2 * mtop
+
+# Needs OpenLoops library eett
+process nlo_tt = E1, e1 => t, T { nlo_calculation = full }
+
+sqrts = 500 GeV
+
+iterations = 5:50000:"gw", 5:50000:""
+integrate (nlo_tt)
+show (integral(nlo_tt))
+show (error(nlo_tt))
+real separate_integral = integral(nlo_tt)
+real separate_error = error(nlo_tt)
+
+?combined_nlo_integration = true
+integrate (nlo_tt)
+show (integral(nlo_tt))
+show (error(nlo_tt))
+expect (integral(nlo_tt) == separate_integral)
+  {tolerance = 3 * sqrt (separate_error**2 + error(nlo_tt)**2)}
+
+?fixed_order_nlo_events = true
+?unweighted = false
+n_events = 10000
+sample_format = hepmc
+?hepmc_output_cross_section = true
+
+simulate (nlo_tt)

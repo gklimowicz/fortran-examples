@@ -1,0 +1,58 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "SM"
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?fatal_beam_decay = false
+?pacify = true
+
+$method = "omega"
+process ep_3_p1 = Z, u => Z, "u"
+process ep_3_p2 = Wp, u => Wp, "u"
+process ep_3_p3 = Z, u => Z, "u"
+process ep_3_p4 = Wp, u => Wp, "u"
+
+process ep_3_q1 = u, Z => Z, "u"
+process ep_3_q2 = u, Wp => Wp, "u"
+process ep_3_q3 = u, Z => Z, "u"
+process ep_3_q4 = u, Wp => Wp, "u"
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+sqrts = 1000
+iterations = 1:100
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+cuts = sqrts_hat > 100 and all Pt > mW [u:Z:Wp]
+
+beams = Z, p => none, pdf_builtin
+integrate (ep_3_p1)
+beams = Wp, p => none, pdf_builtin
+integrate (ep_3_p2)
+beams = p, Z => pdf_builtin, none
+integrate (ep_3_q1)
+beams = p, Wp => pdf_builtin, none
+integrate (ep_3_q2)
+
+ewa_x_min = 0.01
+
+beams = "e+", p => ewa, pdf_builtin
+integrate (ep_3_p3)
+beams = "e+", p => ewa, pdf_builtin
+integrate (ep_3_p4)
+beams = p, "e+" => pdf_builtin, ewa
+integrate (ep_3_q3)
+beams = p, "e+" => pdf_builtin, ewa
+integrate (ep_3_q4)
+

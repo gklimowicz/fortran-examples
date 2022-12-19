@@ -1,0 +1,133 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "omega"
+| Process library 'event_failed_1_lib': recorded process 'event_failed_1_p'
+| Process library 'event_failed_1_lib': compiling ...
+| Process library 'event_failed_1_lib': writing makefile
+| Process library 'event_failed_1_lib': removing old files
+| Process library 'event_failed_1_lib': writing driver
+| Process library 'event_failed_1_lib': creating source code
+| Process library 'event_failed_1_lib': compiling sources
+| Process library 'event_failed_1_lib': linking
+| Process library 'event_failed_1_lib': loading
+| Process library 'event_failed_1_lib': ... success.
+seed = 2
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+01
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Initializing integration for process event_failed_1_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+01 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'event_failed_1_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'event_failed_1_p'
+|   Library name  = 'event_failed_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'event_failed_1_p_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'event_failed_1_p'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  4.3415052E+05  5.59E+02    0.13    0.04*  33.37
+|-----------------------------------------------------------------------------|
+   1        800  4.3415052E+05  5.59E+02    0.13    0.04   33.37
+|=============================================================================|
+?unweighted = false
+n_events = 2
+$sample = "event_failed_1"
+?keep_failed_events = true
+| Starting simulation for process 'event_failed_1_p'
+| Simulate: using integration grids from file 'event_failed_1_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Events: writing to event dump file 'event_failed_1.pset.dat'
+| Events: writing to ASCII file 'event_failed_1.debug'
+| Events: writing to raw file 'event_failed_1.evx'
+| Events: generating 2 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing event dump file 'event_failed_1.pset.dat'
+| Events: closing ASCII file 'event_failed_1.debug'
+| Events: closing raw file 'event_failed_1.evx'
+| WHIZARD run finished.
+|=============================================================================|
+Contents of event_failed_1.pset.dat:
+========================================================================
+ Event #1
+========================================================================
+ count  = 1
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(11)
+ E =   5.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  5.000000000000E+00
+ T =   0.000000000000E+00
+ Children: 3 4
+ Particle 2 [i] f(-11)
+ E =   5.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00 -5.000000000000E+00
+ T =   0.000000000000E+00
+ Children: 3 4
+ Particle 3 [o] f(13)
+ E =   5.000000000000E+00
+ P =  -2.631080972765E+00 -4.084333129001E+00 -1.181370308623E+00
+ T =   0.000000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(-13)
+ E =   5.000000000000E+00
+ P =   2.631080972765E+00  4.084333129001E+00  1.181370308623E+00
+ T =   0.000000000000E+00
+ Parents:  1 2
+========================================================================
+ Event #2
+========================================================================
+ count  = 2
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(11)
+ E =   5.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00  5.000000000000E+00
+ T =   0.000000000000E+00
+ Children: 3 4
+ Particle 2 [i] f(-11)
+ E =   5.000000000000E+00
+ P =   0.000000000000E+00  0.000000000000E+00 -5.000000000000E+00
+ T =   0.000000000000E+00
+ Children: 3 4
+ Particle 3 [o] f(13)
+ E =   5.000000000000E+00
+ P =   2.681904761235E-01 -4.934645961758E+00  7.598309684545E-01
+ T =   0.000000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(-13)
+ E =   5.000000000000E+00
+ P =  -2.681904761235E-01  4.934645961758E+00 -7.598309684545E-01
+ T =   0.000000000000E+00
+ Parents:  1 2

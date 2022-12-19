@@ -1,0 +1,5638 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+submodule (variables) variables_s
+
+  use io_units
+  use format_utils, only: pac_fmt
+  use format_defs, only: FMT_12, FMT_19
+  use constants, only: eps0
+  use physics_defs, only: LAMBDA_QCD_REF
+  use system_dependencies
+  use diagnostics
+  use fastjet !NODEP!
+
+  implicit none
+
+contains
+
+  subroutine var_entry_init_log (var, name, lval, intrinsic, user)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    logical, intent(in), optional :: lval
+    logical, intent(in), optional :: intrinsic, user
+    var%name = name
+    var%type = V_LOG
+    allocate (var%lval, var%is_known)
+    if (present (lval)) then
+       var%lval = lval
+       var%is_defined = .true.
+       var%is_known = .true.
+    else
+       var%is_known = .false.
+    end if
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    if (present (user))  var%is_user_var = user
+    var%is_allocated = .true.
+  end subroutine var_entry_init_log
+
+  subroutine var_entry_init_int (var, name, ival, intrinsic, user)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    integer, intent(in), optional :: ival
+    logical, intent(in), optional :: intrinsic, user
+    var%name = name
+    var%type = V_INT
+    allocate (var%ival, var%is_known)
+    if (present (ival)) then
+       var%ival = ival
+       var%is_defined = .true.
+       var%is_known = .true.
+    else
+       var%is_known = .false.
+    end if
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    if (present (user))  var%is_user_var = user
+    var%is_allocated = .true.
+  end subroutine var_entry_init_int
+
+  subroutine var_entry_init_real (var, name, rval, intrinsic, user)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    real(default), intent(in), optional :: rval
+    logical, intent(in), optional :: intrinsic, user
+    var%name = name
+    var%type = V_REAL
+    allocate (var%rval, var%is_known)
+    if (present (rval)) then
+       var%rval = rval
+       var%is_defined = .true.
+       var%is_known = .true.
+    else
+       var%is_known = .false.
+    end if
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    if (present (user))  var%is_user_var = user
+    var%is_allocated = .true.
+  end subroutine var_entry_init_real
+
+  subroutine var_entry_init_cmplx (var, name, cval, intrinsic, user)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    complex(default), intent(in), optional :: cval
+    logical, intent(in), optional :: intrinsic, user
+    var%name = name
+    var%type = V_CMPLX
+    allocate (var%cval, var%is_known)
+    if (present (cval)) then
+       var%cval = cval
+       var%is_defined = .true.
+       var%is_known = .true.
+    else
+       var%is_known = .false.
+    end if
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    if (present (user))  var%is_user_var = user
+    var%is_allocated = .true.
+  end subroutine var_entry_init_cmplx
+
+  subroutine var_entry_init_subevt (var, name, pval, intrinsic, user)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    type(subevt_t), intent(in), optional :: pval
+    logical, intent(in), optional :: intrinsic, user
+    var%name = name
+    var%type = V_SEV
+    allocate (var%pval, var%is_known)
+    if (present (pval)) then
+       var%pval = pval
+       var%is_defined = .true.
+       var%is_known = .true.
+    else
+       var%is_known = .false.
+    end if
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    if (present (user))  var%is_user_var = user
+    var%is_allocated = .true.
+  end subroutine var_entry_init_subevt
+
+  subroutine var_entry_init_pdg_array (var, name, aval, intrinsic, user)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    type(pdg_array_t), intent(in), optional :: aval
+    logical, intent(in), optional :: intrinsic, user
+    var%name = name
+    var%type = V_PDG
+    allocate (var%aval, var%is_known)
+    if (present (aval)) then
+       var%aval = aval
+       var%is_defined = .true.
+       var%is_known = .true.
+    else
+       var%is_known = .false.
+    end if
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    if (present (user))  var%is_user_var = user
+    var%is_allocated = .true.
+  end subroutine var_entry_init_pdg_array
+
+  subroutine var_entry_init_string (var, name, sval, intrinsic, user)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    type(string_t), intent(in), optional :: sval
+    logical, intent(in), optional :: intrinsic, user
+    var%name = name
+    var%type = V_STR
+    allocate (var%sval, var%is_known)
+    if (present (sval)) then
+       var%sval = sval
+       var%is_defined = .true.
+       var%is_known = .true.
+    else
+       var%is_known = .false.
+    end if
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    if (present (user))  var%is_user_var = user
+    var%is_allocated = .true.
+  end subroutine var_entry_init_string
+
+  subroutine var_entry_init_log_ptr (var, name, lval, is_known, intrinsic)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    logical, intent(in), target :: lval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: intrinsic
+    var%name = name
+    var%type = V_LOG
+    var%lval => lval
+    var%is_known => is_known
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    var%is_defined = .true.
+  end subroutine var_entry_init_log_ptr
+
+  subroutine var_entry_init_int_ptr (var, name, ival, is_known, intrinsic)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    integer, intent(in), target :: ival
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: intrinsic
+    var%name = name
+    var%type = V_INT
+    var%ival => ival
+    var%is_known => is_known
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    var%is_defined = .true.
+  end subroutine var_entry_init_int_ptr
+
+  subroutine var_entry_init_real_ptr (var, name, rval, is_known, intrinsic)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    real(default), intent(in), target :: rval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: intrinsic
+    var%name = name
+    var%type = V_REAL
+    var%rval => rval
+    var%is_known => is_known
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    var%is_defined = .true.
+  end subroutine var_entry_init_real_ptr
+
+  subroutine var_entry_init_cmplx_ptr (var, name, cval, is_known, intrinsic)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    complex(default), intent(in), target :: cval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: intrinsic
+    var%name = name
+    var%type = V_CMPLX
+    var%cval => cval
+    var%is_known => is_known
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    var%is_defined = .true.
+  end subroutine var_entry_init_cmplx_ptr
+
+  subroutine var_entry_init_pdg_array_ptr (var, name, aval, is_known, intrinsic)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    type(pdg_array_t), intent(in), target :: aval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: intrinsic
+    var%name = name
+    var%type = V_PDG
+    var%aval => aval
+    var%is_known => is_known
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    var%is_defined = .true.
+  end subroutine var_entry_init_pdg_array_ptr
+
+  subroutine var_entry_init_subevt_ptr (var, name, pval, is_known, intrinsic)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    type(subevt_t), intent(in), target :: pval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: intrinsic
+    var%name = name
+    var%type = V_SEV
+    var%pval => pval
+    var%is_known => is_known
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    var%is_defined = .true.
+  end subroutine var_entry_init_subevt_ptr
+
+  subroutine var_entry_init_string_ptr (var, name, sval, is_known, intrinsic)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    type(string_t), intent(in), target :: sval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: intrinsic
+    var%name = name
+    var%type = V_STR
+    var%sval => sval
+    var%is_known => is_known
+    if (present (intrinsic))  var%is_intrinsic = intrinsic
+    var%is_defined = .true.
+  end subroutine var_entry_init_string_ptr
+
+  subroutine var_entry_init_obs (var, name, type, prt1, prt2)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    integer, intent(in) :: type
+    type(prt_t), intent(in), target :: prt1
+    type(prt_t), intent(in), optional, target :: prt2
+    var%type = type
+    var%name = name
+    var%prt1 => prt1
+    if (present (prt2))  var%prt2 => prt2
+    var%is_intrinsic = .true.
+    var%is_defined = .true.
+  end subroutine var_entry_init_obs
+
+  subroutine var_entry_init_obs_sev (var, name, type, pval)
+    type(var_entry_t), intent(out) :: var
+    type(string_t), intent(in) :: name
+    integer, intent(in) :: type
+    type(subevt_t), intent(in), target :: pval
+    var%type = type
+    var%name = name
+    var%pval => pval
+    var%is_intrinsic = .true.
+    var%is_defined = .true.
+  end subroutine var_entry_init_obs_sev
+
+  subroutine var_entry_undefine (var)
+    type(var_entry_t), intent(inout) :: var
+    var%is_defined = .not. var%is_user_var
+    var%is_known = var%is_defined .and. var%is_known
+  end subroutine var_entry_undefine
+
+  subroutine var_entry_clear (var)
+    type(var_entry_t), intent(inout) :: var
+    var%is_known = .false.
+  end subroutine var_entry_clear
+
+  subroutine var_entry_lock (var, locked)
+    type(var_entry_t), intent(inout) :: var
+    logical, intent(in), optional :: locked
+    if (present (locked)) then
+       var%is_locked = locked
+    else
+       var%is_locked = .true.
+    end if
+  end subroutine var_entry_lock
+
+  subroutine var_entry_final (var)
+    type(var_entry_t), intent(inout) :: var
+    if (var%is_allocated) then
+       select case (var%type)
+       case (V_LOG); deallocate (var%lval)
+       case (V_INT); deallocate (var%ival)
+       case (V_REAL);deallocate (var%rval)
+       case (V_CMPLX);deallocate (var%cval)
+       case (V_SEV); deallocate (var%pval)
+       case (V_PDG); deallocate (var%aval)
+       case (V_STR); deallocate (var%sval)
+       end select
+       deallocate (var%is_known)
+       var%is_allocated = .false.
+       var%is_defined = .false.
+    end if
+  end subroutine var_entry_final
+
+  recursive subroutine var_entry_write (var, unit, model_name, &
+       intrinsic, pacified, descriptions, ascii_output)
+    type(var_entry_t), intent(in) :: var
+    integer, intent(in), optional :: unit
+    type(string_t), intent(in), optional :: model_name
+    logical, intent(in), optional :: intrinsic
+    logical, intent(in), optional :: pacified
+    logical, intent(in), optional :: descriptions
+    logical, intent(in), optional :: ascii_output
+    type(string_t) :: col_string
+    logical :: show_desc, ao
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    show_desc = .false.; if (present (descriptions))  show_desc = descriptions
+    ao = .false.; if (present (ascii_output))  ao = ascii_output
+    if (show_desc) then
+       if (ao) then
+          col_string = create_col_string (COL_BLUE)
+          if (var%is_locked) then
+             write (u, "(A)", advance="no") char (achar(27) // col_string) // &
+                  char (var%name) // achar(27) // "[0m" //" fixed-value="
+          else
+             write (u, "(A)", advance="no") char (achar(27) // col_string) // &
+                  char (var%name) // achar(27) // "[0m" //" default="
+          end if
+          col_string = create_col_string (COL_RED)
+          write (u, "(A)", advance="no") char (achar(27) // col_string)
+          call var_write_val (var, u, "no", pacified=.true.)
+          write (u, "(A)") achar(27) // "[0m"
+          write (u, "(A)")  char (var%description)
+          return
+       else
+          write (u, "(A)")  "\item"
+          write (u, "(A)", advance="no")  "\ttt{" // char ( &
+               replace (replace (var%name, "_", "\_", every=.true.), "$", "\$" )) // &
+               "} "
+          if (var%is_known) then
+             if (var%is_locked) then
+                write (u, "(A)", advance="no")  "\qquad (fixed value: \ttt{"
+             else
+                write (u, "(A)", advance="no")  "\qquad (default: \ttt{"
+             end if
+             call var_write_val (var, u, "no", pacified=.true., escape_tex=.true.)
+             write (u, "(A)", advance="no")  "})"
+          end if
+          write (u, "(A)") " \newline"
+          write (u, "(A)") char (var%description)
+          write (u, "(A)") "%%%%%"
+          return
+       end if
+    end if
+    if (present (intrinsic)) then
+       if (var%is_intrinsic .neqv. intrinsic)  return
+    end if
+    if (.not. var%is_defined) then
+       write (u, "(A,1x)", advance="no")  "[undefined]"
+    end if
+    if (.not. var%is_intrinsic) then
+       write (u, "(A,1x)", advance="no")  "[user variable]"
+    end if
+    if (present (model_name)) then
+       write (u, "(A,A)", advance="no")  char(model_name), "."
+    end if
+    write (u, "(A)", advance="no")  char (var%name)
+    if (var%is_locked)  write (u, "(A)", advance="no")  "*"
+    if (var%is_allocated) then
+       write (u, "(A)", advance="no")  " = "
+    else if (var%type /= V_NONE) then
+       write (u, "(A)", advance="no")  " => "
+    end if
+    call var_write_val (var, u, "yes", pacified)
+  end subroutine var_entry_write
+
+  subroutine var_write_val (var, u, advance, pacified, escape_tex)
+    type(var_entry_t), intent(in) :: var
+    integer, intent(in) :: u
+    character(*), intent(in) :: advance
+    logical, intent(in), optional :: pacified, escape_tex
+    logical :: num_pac, et
+    real(default) :: rval
+    complex(default) :: cval
+    character(len=7) :: fmt
+    call pac_fmt (fmt, FMT_19, FMT_12, pacified)
+    num_pac = .false.; if (present (pacified))  num_pac = pacified
+    et = .false.; if (present (escape_tex))  et = escape_tex
+    select case (var%type)
+    case (V_NONE); write (u, '()', advance=advance)
+    case (V_LOG)
+       if (var%is_known) then
+          if (var%lval) then
+             write (u, "(A)", advance=advance)  "true"
+          else
+             write (u, "(A)", advance=advance)  "false"
+          end if
+       else
+          write (u, "(A)", advance=advance)  "[unknown logical]"
+       end if
+    case (V_INT)
+       if (var%is_known) then
+          write (u, "(I0)", advance=advance)  var%ival
+       else
+          write (u, "(A)", advance=advance)  "[unknown integer]"
+       end if
+    case (V_REAL)
+       if (var%is_known) then
+          rval = var%rval
+          if (num_pac) then
+             call pacify (rval, 10 * eps0)
+          end if
+          write (u, "(" // fmt // ")", advance=advance)  rval
+       else
+          write (u, "(A)", advance=advance)  "[unknown real]"
+       end if
+    case (V_CMPLX)
+       if (var%is_known) then
+          cval = var%cval
+          if (num_pac) then
+             call pacify (cval, 10 * eps0)
+          end if
+          write (u, "('('," // fmt // ",','," // fmt // ",')')", advance=advance)  cval
+       else
+          write (u, "(A)", advance=advance)  "[unknown complex]"
+       end if
+    case (V_SEV)
+       if (var%is_known) then
+          call var%pval%write (u, prefix="       ", pacified = pacified)
+       else
+          write (u, "(A)", advance=advance)  "[unknown subevent]"
+       end if
+    case (V_PDG)
+       if (var%is_known) then
+          call var%aval%write (u);  write (u, *)
+       else
+          write (u, "(A)", advance=advance)  "[unknown PDG array]"
+       end if
+    case (V_STR)
+       if (var%is_known) then
+          if (et) then
+             write (u, "(A)", advance=advance)  '"' // char (replace ( &
+                  replace (var%sval, "_", "\_", every=.true.), "$", "\$" )) // '"'
+          else
+             write (u, "(A)", advance=advance)  '"' // char (var%sval) // '"'
+          end if
+       else
+          write (u, "(A)", advance=advance)  "[unknown string]"
+       end if
+    case (V_OBS1_INT);  write (u, "(A)", advance=advance) "[int] = unary observable"
+    case (V_OBS2_INT);  write (u, "(A)", advance=advance) "[int] = binary observable"
+    case (V_OBSEV_INT);  write (u, "(A)", advance=advance) "[int] = subeventary observable"
+    case (V_OBS1_REAL); write (u, "(A)", advance=advance) "[real] = unary observable"
+    case (V_OBS2_REAL); write (u, "(A)", advance=advance) "[real] = binary observable"
+    case (V_OBSEV_REAL); write (u, "(A)", advance=advance) "[real] = subeventary observable"
+    case (V_UOBS1_INT);  write (u, "(A)", advance=advance) "[int] = unary user observable"
+    case (V_UOBS2_INT);  write (u, "(A)", advance=advance) "[int] = binary user observable"
+    case (V_UOBS1_REAL); write (u, "(A)", advance=advance) "[real] = unary user observable"
+    case (V_UOBS2_REAL); write (u, "(A)", advance=advance) "[real] = binary user observable"
+    end select
+  end subroutine var_write_val
+
+  function var_entry_get_name (var) result (name)
+    type(string_t) :: name
+    type(var_entry_t), intent(in) :: var
+    name = var%name
+  end function var_entry_get_name
+
+  function var_entry_get_type (var) result (type)
+    integer :: type
+    type(var_entry_t), intent(in) :: var
+    type = var%type
+  end function var_entry_get_type
+
+  function var_entry_is_defined (var) result (defined)
+    logical :: defined
+    type(var_entry_t), intent(in) :: var
+    defined = var%is_defined
+  end function var_entry_is_defined
+
+  function var_entry_is_locked (var, force) result (locked)
+    logical :: locked
+    type(var_entry_t), intent(in) :: var
+    logical, intent(in), optional :: force
+    if (present (force)) then
+       if (force) then
+          locked = .false.;  return
+       end if
+    end if
+    locked = var%is_locked
+  end function var_entry_is_locked
+
+  function var_entry_is_intrinsic (var) result (flag)
+    logical :: flag
+    type(var_entry_t), intent(in) :: var
+    flag = var%is_intrinsic
+  end function var_entry_is_intrinsic
+
+  function var_entry_is_known (var) result (flag)
+    logical :: flag
+    type(var_entry_t), intent(in) :: var
+    flag = var%is_known
+  end function var_entry_is_known
+
+  function var_entry_get_lval (var) result (lval)
+    logical :: lval
+    type(var_entry_t), intent(in) :: var
+    lval = var%lval
+  end function var_entry_get_lval
+
+  function var_entry_get_ival (var) result (ival)
+    integer :: ival
+    type(var_entry_t), intent(in) :: var
+    ival = var%ival
+  end function var_entry_get_ival
+
+  function var_entry_get_rval (var) result (rval)
+    real(default) :: rval
+    type(var_entry_t), intent(in) :: var
+    rval = var%rval
+  end function var_entry_get_rval
+
+  function var_entry_get_cval (var) result (cval)
+    complex(default) :: cval
+    type(var_entry_t), intent(in) :: var
+    cval = var%cval
+  end function var_entry_get_cval
+
+  function var_entry_get_aval (var) result (aval)
+    type(pdg_array_t) :: aval
+    type(var_entry_t), intent(in) :: var
+    aval = var%aval
+  end function var_entry_get_aval
+
+  function var_entry_get_pval (var) result (pval)
+    type(subevt_t) :: pval
+    type(var_entry_t), intent(in) :: var
+    pval = var%pval
+  end function var_entry_get_pval
+
+  function var_entry_get_sval (var) result (sval)
+    type(string_t) :: sval
+    type(var_entry_t), intent(in) :: var
+    sval = var%sval
+  end function var_entry_get_sval
+
+  function var_entry_get_known_ptr (var) result (ptr)
+    logical, pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%is_known
+  end function var_entry_get_known_ptr
+
+  function var_entry_get_lval_ptr (var) result (ptr)
+    logical, pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%lval
+  end function var_entry_get_lval_ptr
+
+  function var_entry_get_ival_ptr (var) result (ptr)
+    integer, pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%ival
+  end function var_entry_get_ival_ptr
+
+  function var_entry_get_rval_ptr (var) result (ptr)
+    real(default), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%rval
+  end function var_entry_get_rval_ptr
+
+  function var_entry_get_cval_ptr (var) result (ptr)
+    complex(default), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%cval
+  end function var_entry_get_cval_ptr
+
+  function var_entry_get_pval_ptr (var) result (ptr)
+    type(subevt_t), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%pval
+  end function var_entry_get_pval_ptr
+
+  function var_entry_get_aval_ptr (var) result (ptr)
+    type(pdg_array_t), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%aval
+  end function var_entry_get_aval_ptr
+
+  function var_entry_get_sval_ptr (var) result (ptr)
+    type(string_t), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%sval
+  end function var_entry_get_sval_ptr
+
+  function var_entry_get_prt1_ptr (var) result (ptr)
+    type(prt_t), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%prt1
+  end function var_entry_get_prt1_ptr
+
+  function var_entry_get_prt2_ptr (var) result (ptr)
+    type(prt_t), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%prt2
+  end function var_entry_get_prt2_ptr
+
+  subroutine var_entry_assign_obs1_int_ptr (ptr, var)
+    procedure(obs_unary_int), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%obs1_int
+  end subroutine var_entry_assign_obs1_int_ptr
+
+  subroutine var_entry_assign_obs1_real_ptr (ptr, var)
+    procedure(obs_unary_real), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%obs1_real
+  end subroutine var_entry_assign_obs1_real_ptr
+
+  subroutine var_entry_assign_obs2_int_ptr (ptr, var)
+    procedure(obs_binary_int), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%obs2_int
+  end subroutine var_entry_assign_obs2_int_ptr
+
+  subroutine var_entry_assign_obs2_real_ptr (ptr, var)
+    procedure(obs_binary_real), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%obs2_real
+  end subroutine var_entry_assign_obs2_real_ptr
+
+  subroutine var_entry_assign_obsev_int_ptr (ptr, var)
+    procedure(obs_sev_int), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%obsev_int
+  end subroutine var_entry_assign_obsev_int_ptr
+
+  subroutine var_entry_assign_obsev_real_ptr (ptr, var)
+    procedure(obs_sev_real), pointer :: ptr
+    type(var_entry_t), intent(in), target :: var
+    ptr => var%obsev_real
+  end subroutine var_entry_assign_obsev_real_ptr
+
+  subroutine var_entry_clear_value (var)
+    type(var_entry_t), intent(inout) :: var
+    var%is_known = .false.
+  end subroutine var_entry_clear_value
+
+  recursive subroutine var_entry_set_log &
+       (var, lval, is_known, verbose, model_name)
+    type(var_entry_t), intent(inout) :: var
+    logical, intent(in) :: lval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: verbose
+    type(string_t), intent(in), optional :: model_name
+    integer :: u
+    u = logfile_unit ()
+    var%lval = lval
+    var%is_known = is_known
+    var%is_defined = .true.
+    if (present (verbose)) then
+       if (verbose) then
+          call var_entry_write (var, model_name=model_name)
+          call var_entry_write (var, model_name=model_name, unit=u)
+          if (u >= 0) flush (u)
+       end if
+    end if
+  end subroutine var_entry_set_log
+
+  recursive subroutine var_entry_set_int &
+       (var, ival, is_known, verbose, model_name)
+    type(var_entry_t), intent(inout) :: var
+    integer, intent(in) :: ival
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: verbose
+    type(string_t), intent(in), optional :: model_name
+    integer :: u
+    u = logfile_unit ()
+    var%ival = ival
+    var%is_known = is_known
+    var%is_defined = .true.
+    if (present (verbose)) then
+       if (verbose) then
+          call var_entry_write (var, model_name=model_name)
+          call var_entry_write (var, model_name=model_name, unit=u)
+          if (u >= 0) flush (u)
+       end if
+    end if
+  end subroutine var_entry_set_int
+
+  recursive subroutine var_entry_set_real &
+       (var, rval, is_known, verbose, model_name, pacified)
+    type(var_entry_t), intent(inout) :: var
+    real(default), intent(in) :: rval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: verbose, pacified
+    type(string_t), intent(in), optional :: model_name
+    integer :: u
+    u = logfile_unit ()
+    var%rval = rval
+    var%is_known = is_known
+    var%is_defined = .true.
+    if (present (verbose)) then
+       if (verbose) then
+          call var_entry_write &
+               (var, model_name=model_name, pacified = pacified)
+          call var_entry_write &
+               (var, model_name=model_name, unit=u, pacified = pacified)
+          if (u >= 0) flush (u)
+       end if
+    end if
+  end subroutine var_entry_set_real
+
+  recursive subroutine var_entry_set_cmplx &
+       (var, cval, is_known, verbose, model_name, pacified)
+    type(var_entry_t), intent(inout) :: var
+    complex(default), intent(in) :: cval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: verbose, pacified
+    type(string_t), intent(in), optional :: model_name
+    integer :: u
+    u = logfile_unit ()
+    var%cval = cval
+    var%is_known = is_known
+    var%is_defined = .true.
+    if (present (verbose)) then
+       if (verbose) then
+          call var_entry_write &
+               (var, model_name=model_name, pacified = pacified)
+          call var_entry_write &
+               (var, model_name=model_name, unit=u, pacified = pacified)
+          if (u >= 0) flush (u)
+       end if
+    end if
+  end subroutine var_entry_set_cmplx
+
+  recursive subroutine var_entry_set_pdg_array &
+       (var, aval, is_known, verbose, model_name)
+    type(var_entry_t), intent(inout) :: var
+    type(pdg_array_t), intent(in) :: aval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: verbose
+    type(string_t), intent(in), optional :: model_name
+    integer :: u
+    u = logfile_unit ()
+    var%aval = aval
+    var%is_known = is_known
+    var%is_defined = .true.
+    if (present (verbose)) then
+       if (verbose) then
+          call var_entry_write (var, model_name=model_name)
+          call var_entry_write (var, model_name=model_name, unit=u)
+          if (u >= 0) flush (u)
+       end if
+    end if
+  end subroutine var_entry_set_pdg_array
+
+  recursive subroutine var_entry_set_subevt &
+       (var, pval, is_known, verbose, model_name)
+    type(var_entry_t), intent(inout) :: var
+    type(subevt_t), intent(in) :: pval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: verbose
+    type(string_t), intent(in), optional :: model_name
+    integer :: u
+    u = logfile_unit ()
+    var%pval = pval
+    var%is_known = is_known
+    var%is_defined = .true.
+    if (present (verbose)) then
+       if (verbose) then
+          call var_entry_write (var, model_name=model_name)
+          call var_entry_write (var, model_name=model_name, unit=u)
+          if (u >= 0) flush (u)
+       end if
+    end if
+  end subroutine var_entry_set_subevt
+
+  recursive subroutine var_entry_set_string &
+       (var, sval, is_known, verbose, model_name)
+    type(var_entry_t), intent(inout) :: var
+    type(string_t), intent(in) :: sval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: verbose
+    type(string_t), intent(in), optional :: model_name
+    integer :: u
+    u = logfile_unit ()
+    var%sval = sval
+    var%is_known = is_known
+    var%is_defined = .true.
+    if (present (verbose)) then
+       if (verbose) then
+          call var_entry_write (var, model_name=model_name)
+          call var_entry_write (var, model_name=model_name, unit=u)
+          if (u >= 0) flush (u)
+       end if
+    end if
+  end subroutine var_entry_set_string
+
+  pure subroutine var_entry_set_description (var_entry, description)
+    type(var_entry_t), intent(inout) :: var_entry
+    type(string_t), intent(in) :: description
+    var_entry%description = description
+  end subroutine var_entry_set_description
+
+  subroutine var_entry_init_copy (var, original, user)
+    type(var_entry_t), intent(out) :: var
+    type(var_entry_t), intent(in), target :: original
+    logical, intent(in), optional :: user
+    type(string_t) :: name
+    logical :: intrinsic
+    name = var_entry_get_name (original)
+    intrinsic = original%is_intrinsic
+    select case (original%type)
+    case (V_LOG)
+       call var_entry_init_log (var, name, intrinsic=intrinsic, user=user)
+    case (V_INT)
+       call var_entry_init_int (var, name, intrinsic=intrinsic, user=user)
+    case (V_REAL)
+       call var_entry_init_real (var, name, intrinsic=intrinsic, user=user)
+    case (V_CMPLX)
+       call var_entry_init_cmplx (var, name, intrinsic=intrinsic, user=user)
+    case (V_SEV)
+       call var_entry_init_subevt (var, name, intrinsic=intrinsic, user=user)
+    case (V_PDG)
+       call var_entry_init_pdg_array (var, name, intrinsic=intrinsic, user=user)
+    case (V_STR)
+       call var_entry_init_string (var, name, intrinsic=intrinsic, user=user)
+    end select
+  end subroutine var_entry_init_copy
+
+  subroutine var_entry_copy_value (var, original)
+    type(var_entry_t), intent(inout) :: var
+    type(var_entry_t), intent(in), target :: original
+    if (var_entry_is_known (original)) then
+       select case (original%type)
+       case (V_LOG)
+          call var_entry_set_log (var, var_entry_get_lval (original), .true.)
+       case (V_INT)
+          call var_entry_set_int (var, var_entry_get_ival (original), .true.)
+       case (V_REAL)
+          call var_entry_set_real (var, var_entry_get_rval (original), .true.)
+       case (V_CMPLX)
+          call var_entry_set_cmplx (var, var_entry_get_cval (original), .true.)
+       case (V_SEV)
+          call var_entry_set_subevt (var, var_entry_get_pval (original), .true.)
+       case (V_PDG)
+          call var_entry_set_pdg_array (var, var_entry_get_aval (original), .true.)
+       case (V_STR)
+          call var_entry_set_string (var, var_entry_get_sval (original), .true.)
+       end select
+    else
+       call var_entry_clear (var)
+    end if
+  end subroutine var_entry_copy_value
+
+  module subroutine var_list_link (vars, target_vars)
+    class(var_list_t), intent(inout) :: vars
+    class(vars_t), intent(in), target :: target_vars
+    select type (target_vars)
+    type is (var_list_t)
+       vars%next => target_vars
+    class default
+       call msg_bug ("var_list_link: unsupported target type")
+    end select
+  end subroutine var_list_link
+
+  subroutine var_list_append (var_list, var, verbose)
+    type(var_list_t), intent(inout), target :: var_list
+    type(var_entry_t), intent(inout), target :: var
+    logical, intent(in), optional :: verbose
+    if (associated (var_list%last)) then
+       var%previous => var_list%last
+       var_list%last%next => var
+    else
+       var%previous => null ()
+       var_list%first => var
+    end if
+    var_list%last => var
+    if (present (verbose)) then
+       if (verbose)  call var_entry_write (var)
+    end if
+  end subroutine var_list_append
+
+  module subroutine var_list_sort (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    type(var_entry_t), pointer :: var, previous
+    if (associated (var_list%first)) then
+       var => var_list%first
+       do while (associated (var))
+          previous => var%previous
+          do while (associated (previous))
+             if (larger_var (previous, var)) then
+                call var_list%swap_with_next (previous)
+             end if
+             previous => previous%previous
+          end do
+          var => var%next
+       end do
+    end if
+  end subroutine var_list_sort
+
+  pure function larger_var (var1, var2) result (larger)
+    logical :: larger
+    type(var_entry_t), intent(in) :: var1, var2
+    type(string_t) :: str1, str2
+    str1 = replace (var1%name, "?", "")
+    str1 = replace (str1, "$", "")
+    str2 = replace (var2%name, "?", "")
+    str2 = replace (str2, "$", "")
+    larger = str1 > str2
+  end function larger_var
+
+  module function var_list_get_previous &
+       (var_list, var_entry) result (previous)
+    type(var_entry_t), pointer :: previous
+    class(var_list_t), intent(in) :: var_list
+    type(var_entry_t), intent(in) :: var_entry
+    previous => var_list%first
+    if (previous%name == var_entry%name) then
+       previous => null ()
+    else
+       do while (associated (previous))
+          if (previous%next%name == var_entry%name) exit
+          previous => previous%next
+       end do
+    end if
+  end function var_list_get_previous
+
+  module subroutine var_list_swap_with_next (var_list, var_entry)
+    class(var_list_t), intent(inout) :: var_list
+    type(var_entry_t), intent(in) :: var_entry
+    type(var_entry_t), pointer :: previous, this, next, next_next
+    previous => var_list%get_previous (var_entry)
+    if (.not. associated (previous)) then
+       this => var_list%first
+    else
+       this => previous%next
+    end if
+    next => this%next
+    next_next => next%next
+    if (associated (previous)) then
+       previous%next => next
+       next%previous => previous
+    else
+       var_list%first => next
+       next%previous => null ()
+    end if
+    this%next => next_next
+    if (associated (next_next)) then
+       next_next%previous => this
+    end if
+    next%next => this
+    this%previous => next
+    if (.not. associated (next%next)) then
+       var_list%last => next
+    end if
+  end subroutine var_list_swap_with_next
+
+  module subroutine var_list_append_log_s &
+       (var_list, name, lval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    logical, intent(in), optional :: lval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_log (var, name, lval, intrinsic, user)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_log_s
+
+  module subroutine var_list_append_int_s &
+       (var_list, name, ival, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    integer, intent(in), optional :: ival
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_int (var, name, ival, intrinsic, user)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_int_s
+
+  module subroutine var_list_append_real_s &
+       (var_list, name, rval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    real(default), intent(in), optional :: rval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_real (var, name, rval, intrinsic, user)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_real_s
+
+  module subroutine var_list_append_cmplx_s &
+       (var_list, name, cval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    complex(default), intent(in), optional :: cval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_cmplx (var, name, cval, intrinsic, user)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_cmplx_s
+
+  module subroutine var_list_append_subevt_s &
+       (var_list, name, pval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(subevt_t), intent(in), optional :: pval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_subevt (var, name, pval, intrinsic, user)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_subevt_s
+
+  module subroutine var_list_append_pdg_array_s &
+       (var_list, name, aval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(pdg_array_t), intent(in), optional :: aval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_pdg_array (var, name, aval, intrinsic, user)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_pdg_array_s
+
+  module subroutine var_list_append_string_s &
+       (var_list, name, sval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(string_t), intent(in), optional :: sval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_string (var, name, sval, intrinsic, user)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_string_s
+
+  module subroutine var_list_append_log_c &
+       (var_list, name, lval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    character(*), intent(in) :: name
+    logical, intent(in), optional :: lval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    call var_list_append_log_s &
+         (var_list, var_str (name), lval, locked, verbose, &
+         intrinsic, user, description)
+  end subroutine var_list_append_log_c
+
+  module subroutine var_list_append_int_c &
+       (var_list, name, ival, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    character(*), intent(in) :: name
+    integer, intent(in), optional :: ival
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    call var_list_append_int_s &
+         (var_list, var_str (name), ival, locked, verbose, &
+         intrinsic, user, description)
+  end subroutine var_list_append_int_c
+
+  module subroutine var_list_append_real_c &
+       (var_list, name, rval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    character(*), intent(in) :: name
+    real(default), intent(in), optional :: rval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    call var_list_append_real_s &
+         (var_list, var_str (name), rval, locked, verbose, &
+         intrinsic, user, description)
+  end subroutine var_list_append_real_c
+
+  module subroutine var_list_append_cmplx_c &
+       (var_list, name, cval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    character(*), intent(in) :: name
+    complex(default), intent(in), optional :: cval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    call var_list_append_cmplx_s &
+         (var_list, var_str (name), cval, locked, verbose, &
+         intrinsic, user, description)
+  end subroutine var_list_append_cmplx_c
+
+  module subroutine var_list_append_subevt_c &
+       (var_list, name, pval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    character(*), intent(in) :: name
+    type(subevt_t), intent(in), optional :: pval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    call var_list_append_subevt_s &
+         (var_list, var_str (name), pval, locked, verbose, &
+         intrinsic, user, description)
+  end subroutine var_list_append_subevt_c
+
+  module subroutine var_list_append_pdg_array_c &
+       (var_list, name, aval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    character(*), intent(in) :: name
+    type(pdg_array_t), intent(in), optional :: aval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    call var_list_append_pdg_array_s &
+         (var_list, var_str (name), aval, locked, verbose, &
+         intrinsic, user, description)
+  end subroutine var_list_append_pdg_array_c
+
+  module subroutine var_list_append_string_c &
+       (var_list, name, sval, locked, verbose, intrinsic, user, description)
+    class(var_list_t), intent(inout) :: var_list
+    character(*), intent(in) :: name
+    character(*), intent(in), optional :: sval
+    logical, intent(in), optional :: locked, verbose, intrinsic, user
+    type(string_t), intent(in), optional :: description
+    if (present (sval)) then
+       call var_list_append_string_s &
+            (var_list, var_str (name), var_str (sval), &
+            locked, verbose, intrinsic, user, description)
+    else
+       call var_list_append_string_s &
+            (var_list, var_str (name), &
+            locked=locked, verbose=verbose, intrinsic=intrinsic, &
+            user=user, description=description)
+    end if
+  end subroutine var_list_append_string_c
+
+  module subroutine var_list_append_log_ptr &
+       (var_list, name, lval, is_known, locked, verbose, &
+        intrinsic, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    logical, intent(in), target :: lval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: locked, verbose, intrinsic
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_log_ptr (var, name, lval, is_known, intrinsic)
+    if (present (description))  &
+         call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_log_ptr
+
+  module subroutine var_list_append_int_ptr &
+       (var_list, name, ival, is_known, locked, verbose, intrinsic, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    integer, intent(in), target :: ival
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: locked, verbose, intrinsic
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_int_ptr (var, name, ival, is_known, intrinsic)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_int_ptr
+
+  module subroutine var_list_append_real_ptr &
+       (var_list, name, rval, is_known, locked, verbose, intrinsic, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    real(default), intent(in), target :: rval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: locked, verbose, intrinsic
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_real_ptr (var, name, rval, is_known, intrinsic)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_real_ptr
+
+  module subroutine var_list_append_cmplx_ptr &
+       (var_list, name, cval, is_known, locked, verbose, intrinsic, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    complex(default), intent(in), target :: cval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: locked, verbose, intrinsic
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_cmplx_ptr (var, name, cval, is_known, intrinsic)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_cmplx_ptr
+
+  module subroutine var_list_append_pdg_array_ptr &
+       (var_list, name, aval, is_known, locked, verbose, intrinsic, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(pdg_array_t), intent(in), target :: aval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: locked, verbose, intrinsic
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_pdg_array_ptr (var, name, aval, is_known, intrinsic)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_pdg_array_ptr
+
+  module subroutine var_list_append_subevt_ptr &
+       (var_list, name, pval, is_known, locked, verbose, intrinsic, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(subevt_t), intent(in), target :: pval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: locked, verbose, intrinsic
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_subevt_ptr (var, name, pval, is_known, intrinsic)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_subevt_ptr
+
+  module subroutine var_list_append_string_ptr &
+       (var_list, name, sval, is_known, locked, verbose, intrinsic, description)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(string_t), intent(in), target :: sval
+    logical, intent(in), target :: is_known
+    logical, intent(in), optional :: locked, verbose, intrinsic
+    type(string_t), intent(in), optional :: description
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_string_ptr (var, name, sval, is_known, intrinsic)
+    if (present (description))  call var_entry_set_description (var, description)
+    if (present (locked))  call var_entry_lock (var, locked)
+    call var_list_append (var_list, var, verbose)
+  end subroutine var_list_append_string_ptr
+
+  recursive module subroutine var_list_final (vars, follow_link)
+    class(var_list_t), intent(inout) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    vars%last => null ()
+    do while (associated (vars%first))
+       var => vars%first
+       vars%first => var%next
+       call var_entry_final (var)
+       deallocate (var)
+    end do
+    if (present (follow_link)) then
+       if (follow_link) then
+          if (associated (vars%next)) then
+             call vars%next%final (follow_link)
+             deallocate (vars%next)
+          end if
+       end if
+    end if
+  end subroutine var_list_final
+
+  recursive module subroutine var_list_write &
+       (var_list, unit, follow_link, only_type, prefix, model_name, &
+        intrinsic, pacified, descriptions, ascii_output)
+    class(var_list_t), intent(in), target :: var_list
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: follow_link
+    integer, intent(in), optional :: only_type
+    character(*), intent(in), optional :: prefix
+    type(string_t), intent(in), optional :: model_name
+    logical, intent(in), optional :: intrinsic
+    logical, intent(in), optional :: pacified
+    logical, intent(in), optional :: descriptions
+    logical, intent(in), optional :: ascii_output
+    type(var_entry_t), pointer :: var
+    integer :: u, length
+    logical :: write_this, write_next
+    u = given_output_unit (unit);  if (u < 0)  return
+    if (present (prefix))  length = len (prefix)
+    var => var_list%first
+    if (associated (var)) then
+       do while (associated (var))
+          if (present (only_type)) then
+             write_this = only_type == var%type
+          else
+             write_this = .true.
+          end if
+          if (write_this .and. present (prefix)) then
+             if (prefix /= extract (var%name, 1, length)) &
+                  write_this = .false.
+          end if
+          if (write_this) then
+             call var_entry_write &
+                  (var, unit, model_name=model_name, &
+                   intrinsic=intrinsic, pacified=pacified, &
+                   descriptions=descriptions, ascii_output=ascii_output)
+          end if
+          var => var%next
+       end do
+    end if
+    if (present (follow_link)) then
+       write_next = follow_link .and. associated (var_list%next)
+    else
+       write_next = associated (var_list%next)
+    end if
+    if (write_next) then
+       call var_list_write (var_list%next, &
+            unit, follow_link, only_type, prefix, model_name, &
+            intrinsic, pacified)
+    end if
+  end subroutine var_list_write
+
+  recursive module subroutine var_list_write_var &
+       (var_list, name, unit, type, follow_link, &
+       model_name, pacified, defined, descriptions, ascii_output)
+    class(var_list_t), intent(in), target :: var_list
+    type(string_t), intent(in) :: name
+    integer, intent(in), optional :: unit
+    integer, intent(in), optional :: type
+    logical, intent(in), optional :: follow_link
+    type(string_t), intent(in), optional :: model_name
+    logical, intent(in), optional :: pacified
+    logical, intent(in), optional :: defined
+    logical, intent(in), optional :: descriptions
+    logical, intent(in), optional :: ascii_output
+    type(var_entry_t), pointer :: var
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    var => var_list_get_var_ptr &
+         (var_list, name, type, follow_link=follow_link, defined=defined)
+    if (associated (var)) then
+       call var_entry_write &
+            (var, unit, model_name = model_name, &
+            pacified = pacified, &
+            descriptions=descriptions, ascii_output=ascii_output)
+    else
+       write (u, "(A)")  char (name) // " = [undefined]"
+    end if
+  end subroutine var_list_write_var
+
+  function var_list_get_next_ptr (var_list) result (next_ptr)
+    type(var_list_t), pointer :: next_ptr
+    type(var_list_t), intent(in) :: var_list
+    next_ptr => var_list%next
+  end function var_list_get_next_ptr
+
+  recursive function var_list_get_var_ptr &
+       (var_list, name, type, follow_link, defined) result (var)
+    type(var_entry_t), pointer :: var
+    type(var_list_t), intent(in), target :: var_list
+    type(string_t), intent(in) :: name
+    integer, intent(in), optional :: type
+    logical, intent(in), optional :: follow_link, defined
+    logical :: ignore_undef, search_next
+    ignore_undef = .true.;  if (present (defined))  ignore_undef = .not. defined
+    var => var_list%first
+    if (present (type)) then
+       do while (associated (var))
+          if (var%type == type) then
+             if (var%name == name) then
+                if (ignore_undef .or. var%is_defined)  return
+             end if
+          end if
+          var => var%next
+       end do
+    else
+       do while (associated (var))
+          if (var%name == name) then
+             if (ignore_undef .or. var%is_defined)  return
+          end if
+          var => var%next
+       end do
+    end if
+    search_next = associated (var_list%next)
+    if (present (follow_link)) &
+         search_next = search_next .and. follow_link
+    if (search_next) &
+         var => var_list_get_var_ptr &
+              (var_list%next, name, type, defined=defined)
+  end function var_list_get_var_ptr
+
+  module function var_list_get_type &
+       (var_list, name, follow_link) result (type)
+    class(var_list_t), intent(in), target :: var_list
+    type(string_t), intent(in) :: name
+    logical, intent(in), optional :: follow_link
+    integer :: type
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, follow_link=follow_link)
+    if (associated (var)) then
+       type = var%type
+    else
+       type = V_NONE
+    end if
+  end function var_list_get_type
+
+  module function var_list_exists (vars, name, follow_link) result (lval)
+    logical :: lval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    lval = associated (var)
+  end function var_list_exists
+
+  module function var_list_is_intrinsic &
+       (vars, name, follow_link) result (lval)
+    logical :: lval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       lval = var%is_intrinsic
+    else
+       lval = .false.
+    end if
+  end function var_list_is_intrinsic
+
+  module function var_list_is_known (vars, name, follow_link) result (lval)
+    logical :: lval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       lval = var%is_known
+    else
+       lval = .false.
+    end if
+  end function var_list_is_known
+
+  module function var_list_is_locked (vars, name, follow_link) result (lval)
+    logical :: lval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       lval = var_entry_is_locked (var)
+    else
+       lval = .false.
+    end if
+  end function var_list_is_locked
+
+  module subroutine var_list_get_var_properties &
+       (vars, name, req_type, follow_link, &
+        type, is_defined, is_known, is_locked)
+    class(var_list_t), intent(in) :: vars
+    type(string_t), intent(in) :: name
+    integer, intent(in), optional :: req_type
+    logical, intent(in), optional :: follow_link
+    integer, intent(out), optional :: type
+    logical, intent(out), optional :: is_defined, is_known, is_locked
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, type=req_type, follow_link=follow_link)
+    if (associated (var)) then
+       if (present (type))  type = var_entry_get_type (var)
+       if (present (is_defined))  is_defined = var_entry_is_defined (var)
+       if (present (is_known))  is_known = var_entry_is_known (var)
+       if (present (is_locked))  is_locked = var_entry_is_locked (var)
+    else
+       if (present (type))  type = V_NONE
+       if (present (is_defined))  is_defined = .false.
+       if (present (is_known))  is_known = .false.
+       if (present (is_locked))  is_locked = .false.
+    end if
+  end subroutine var_list_get_var_properties
+
+  module function var_list_get_lval (vars, name, follow_link) result (lval)
+    logical :: lval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, V_LOG, follow_link, defined=.true.)
+    if (associated (var)) then
+       if (var_has_value (var)) then
+          lval = var%lval
+       else
+          lval = .false.
+       end if
+    else
+       lval = .false.
+    end if
+  end function var_list_get_lval
+
+  module function var_list_get_ival (vars, name, follow_link) result (ival)
+    integer :: ival
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, V_INT, follow_link, defined=.true.)
+    if (associated (var)) then
+       if (var_has_value (var)) then
+          ival = var%ival
+       else
+          ival = 0
+       end if
+    else
+       ival = 0
+    end if
+  end function var_list_get_ival
+
+  module function var_list_get_rval (vars, name, follow_link) result (rval)
+    real(default) :: rval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, V_REAL, follow_link, defined=.true.)
+    if (associated (var)) then
+       if (var_has_value (var)) then
+          rval = var%rval
+       else
+          rval = 0
+       end if
+    else
+       rval = 0
+    end if
+  end function var_list_get_rval
+
+  module function var_list_get_cval (vars, name, follow_link) result (cval)
+    complex(default) :: cval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, V_CMPLX, follow_link, defined=.true.)
+    if (associated (var)) then
+       if (var_has_value (var)) then
+          cval = var%cval
+       else
+          cval = 0
+       end if
+    else
+       cval = 0
+    end if
+  end function var_list_get_cval
+
+  module function var_list_get_aval (vars, name, follow_link) result (aval)
+    type(pdg_array_t) :: aval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, V_PDG, follow_link, defined=.true.)
+    if (associated (var)) then
+       if (var_has_value (var)) then
+          aval = var%aval
+       end if
+    end if
+  end function var_list_get_aval
+
+  module function var_list_get_pval (vars, name, follow_link) result (pval)
+    type(subevt_t) :: pval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, V_SEV, follow_link, defined=.true.)
+    if (associated (var)) then
+       if (var_has_value (var)) then
+          pval = var%pval
+       end if
+    end if
+  end function var_list_get_pval
+
+  module function var_list_get_sval (vars, name, follow_link) result (sval)
+    type(string_t) :: sval
+    type(string_t), intent(in) :: name
+    class(var_list_t), intent(in) :: vars
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr &
+         (vars, name, V_STR, follow_link, defined=.true.)
+    if (associated (var)) then
+       if (var_has_value (var)) then
+          sval = var%sval
+       else
+          sval = ""
+       end if
+    else
+       sval = ""
+    end if
+  end function var_list_get_sval
+
+  function var_has_value (var) result (valid)
+    logical :: valid
+    type(var_entry_t), pointer :: var
+    if (associated (var)) then
+       if (var%is_known) then
+          valid = .true.
+       else
+          call msg_error ("The value of variable '" // char (var%name) &
+               // "' is unknown but must be known at this point.")
+          valid = .false.
+       end if
+    else
+       call msg_error ("Variable '" // char (var%name) &
+            // "' is undefined but must have a known value at this point.")
+       valid = .false.
+    end if
+  end function var_has_value
+
+  module subroutine var_list_get_lptr (var_list, name, lptr, known)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    logical, pointer, intent(out) :: lptr
+    logical, pointer, intent(out), optional :: known
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_LOG)
+    if (associated (var)) then
+       lptr => var_entry_get_lval_ptr (var)
+       if (present (known))  known => var_entry_get_known_ptr (var)
+    else
+       lptr => null ()
+       if (present (known))  known => null ()
+    end if
+  end subroutine var_list_get_lptr
+
+  module subroutine var_list_get_iptr (var_list, name, iptr, known)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    integer, pointer, intent(out) :: iptr
+    logical, pointer, intent(out), optional :: known
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_INT)
+    if (associated (var)) then
+       iptr => var_entry_get_ival_ptr (var)
+       if (present (known))  known => var_entry_get_known_ptr (var)
+    else
+       iptr => null ()
+       if (present (known))  known => null ()
+    end if
+  end subroutine var_list_get_iptr
+
+  module subroutine var_list_get_rptr (var_list, name, rptr, known)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    real(default), pointer, intent(out) :: rptr
+    logical, pointer, intent(out), optional :: known
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_REAL)
+    if (associated (var)) then
+       rptr => var_entry_get_rval_ptr (var)
+       if (present (known))  known => var_entry_get_known_ptr (var)
+    else
+       rptr => null ()
+       if (present (known))  known => null ()
+    end if
+  end subroutine var_list_get_rptr
+
+  module subroutine var_list_get_cptr (var_list, name, cptr, known)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    complex(default), pointer, intent(out) :: cptr
+    logical, pointer, intent(out), optional :: known
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_CMPLX)
+    if (associated (var)) then
+       cptr => var_entry_get_cval_ptr (var)
+       if (present (known))  known => var_entry_get_known_ptr (var)
+    else
+       cptr => null ()
+       if (present (known))  known => null ()
+    end if
+  end subroutine var_list_get_cptr
+
+  module subroutine var_list_get_aptr (var_list, name, aptr, known)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    type(pdg_array_t), pointer, intent(out) :: aptr
+    logical, pointer, intent(out), optional :: known
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_PDG)
+    if (associated (var)) then
+       aptr => var_entry_get_aval_ptr (var)
+       if (present (known))  known => var_entry_get_known_ptr (var)
+    else
+       aptr => null ()
+       if (present (known))  known => null ()
+    end if
+  end subroutine var_list_get_aptr
+
+  module subroutine var_list_get_pptr (var_list, name, pptr, known)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    type(subevt_t), pointer, intent(out) :: pptr
+    logical, pointer, intent(out), optional :: known
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_SEV)
+    if (associated (var)) then
+       pptr => var_entry_get_pval_ptr (var)
+       if (present (known))  known => var_entry_get_known_ptr (var)
+    else
+       pptr => null ()
+       if (present (known))  known => null ()
+    end if
+  end subroutine var_list_get_pptr
+
+  module subroutine var_list_get_sptr (var_list, name, sptr, known)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    type(string_t), pointer, intent(out) :: sptr
+    logical, pointer, intent(out), optional :: known
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_STR)
+    if (associated (var)) then
+       sptr => var_entry_get_sval_ptr (var)
+       if (present (known))  known => var_entry_get_known_ptr (var)
+    else
+       sptr => null ()
+       if (present (known))  known => null ()
+    end if
+  end subroutine var_list_get_sptr
+
+  module subroutine var_list_get_obs1_iptr (var_list, name, obs1_iptr, p1)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_unary_int), pointer, intent(out) :: obs1_iptr
+    type(prt_t), pointer, intent(out) :: p1
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_OBS1_INT)
+    if (associated (var)) then
+       call var_entry_assign_obs1_int_ptr (obs1_iptr, var)
+       p1 => var_entry_get_prt1_ptr (var)
+    else
+       obs1_iptr => null ()
+       p1 => null ()
+    end if
+  end subroutine var_list_get_obs1_iptr
+
+  module subroutine var_list_get_obs2_iptr (var_list, name, obs2_iptr, p1, p2)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_binary_int), pointer, intent(out) :: obs2_iptr
+    type(prt_t), pointer, intent(out) :: p1, p2
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_OBS2_INT)
+    if (associated (var)) then
+       call var_entry_assign_obs2_int_ptr (obs2_iptr, var)
+       p1 => var_entry_get_prt1_ptr (var)
+       p2 => var_entry_get_prt2_ptr (var)
+    else
+       obs2_iptr => null ()
+       p1 => null ()
+       p2 => null ()
+    end if
+  end subroutine var_list_get_obs2_iptr
+
+  module subroutine var_list_get_obsev_iptr (var_list, name, obsev_iptr, pval)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_sev_int), pointer, intent(out) :: obsev_iptr
+    type(subevt_t), pointer, intent(out) :: pval
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_OBSEV_INT)
+    if (associated (var)) then
+       call var_entry_assign_obsev_int_ptr (obsev_iptr, var)
+       pval => var_entry_get_pval_ptr (var)
+    else
+       obsev_iptr => null ()
+       pval => null ()
+    end if
+  end subroutine var_list_get_obsev_iptr
+
+  module subroutine var_list_get_obs1_rptr (var_list, name, obs1_rptr, p1)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_unary_real), pointer, intent(out) :: obs1_rptr
+    type(prt_t), pointer, intent(out) :: p1
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_OBS1_REAL)
+    if (associated (var)) then
+       call var_entry_assign_obs1_real_ptr (obs1_rptr, var)
+       p1 => var_entry_get_prt1_ptr (var)
+    else
+       obs1_rptr => null ()
+       p1 => null ()
+    end if
+  end subroutine var_list_get_obs1_rptr
+
+  module subroutine var_list_get_obs2_rptr (var_list, name, obs2_rptr, p1, p2)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_binary_real), pointer, intent(out) :: obs2_rptr
+    type(prt_t), pointer, intent(out) :: p1, p2
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_OBS2_REAL)
+    if (associated (var)) then
+       call var_entry_assign_obs2_real_ptr (obs2_rptr, var)
+       p1 => var_entry_get_prt1_ptr (var)
+       p2 => var_entry_get_prt2_ptr (var)
+    else
+       obs2_rptr => null ()
+       p1 => null ()
+       p2 => null ()
+    end if
+  end subroutine var_list_get_obs2_rptr
+
+  module subroutine var_list_get_obsev_rptr (var_list, name, obsev_rptr, pval)
+    class(var_list_t), intent(in) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_sev_real), pointer, intent(out) :: obsev_rptr
+    type(subevt_t), pointer, intent(out) :: pval
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_OBSEV_REAL)
+    if (associated (var)) then
+       call var_entry_assign_obsev_real_ptr (obsev_rptr, var)
+       pval => var_entry_get_pval_ptr (var)
+    else
+       obsev_rptr => null ()
+       pval => null ()
+    end if
+  end subroutine var_list_get_obsev_rptr
+
+  module subroutine var_list_set_procvar_int (var_list, proc_id, name, ival)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: proc_id
+    type(string_t), intent(in) :: name
+    integer, intent(in), optional :: ival
+    type(string_t) :: var_name
+    type(var_entry_t), pointer :: var
+    var_name = name // "(" // proc_id // ")"
+    var => var_list_get_var_ptr (var_list, var_name)
+    if (.not. associated (var)) then
+       call var_list%append_int (var_name, ival, intrinsic=.true.)
+    else if (present (ival)) then
+       call var_list%set_int (var_name, ival, is_known=.true.)
+    end if
+  end subroutine var_list_set_procvar_int
+
+  module subroutine var_list_set_procvar_real (var_list, proc_id, name, rval)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: proc_id
+    type(string_t), intent(in) :: name
+    real(default), intent(in), optional :: rval
+    type(string_t) :: var_name
+    type(var_entry_t), pointer :: var
+    var_name = name // "(" // proc_id // ")"
+    var => var_list_get_var_ptr (var_list, var_name)
+    if (.not. associated (var)) then
+       call var_list%append_real (var_name, rval, intrinsic=.true.)
+    else if (present (rval)) then
+       call var_list%set_real (var_name, rval, is_known=.true.)
+    end if
+  end subroutine var_list_set_procvar_real
+
+  module subroutine var_list_append_obs1_iptr &
+       (var_list, name, obs1_iptr, p1)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_unary_int) :: obs1_iptr
+    type(prt_t), intent(in), target :: p1
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_obs (var, name, V_OBS1_INT, p1)
+    var%obs1_int => obs1_iptr
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_obs1_iptr
+
+  module subroutine var_list_append_obs2_iptr &
+       (var_list, name, obs2_iptr, p1, p2)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_binary_int) :: obs2_iptr
+    type(prt_t), intent(in), target :: p1, p2
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_obs (var, name, V_OBS2_INT, p1, p2)
+    var%obs2_int => obs2_iptr
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_obs2_iptr
+
+  module subroutine var_list_append_obsev_iptr &
+       (var_list, name, obsev_iptr, sev)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_sev_int) :: obsev_iptr
+    type(subevt_t), intent(in), target :: sev
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_obs_sev (var, name, V_OBSEV_INT, sev)
+    var%obsev_int => obsev_iptr
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_obsev_iptr
+
+  module subroutine var_list_append_obs1_rptr &
+       (var_list, name, obs1_rptr, p1)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_unary_real) :: obs1_rptr
+    type(prt_t), intent(in), target :: p1
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_obs (var, name, V_OBS1_REAL, p1)
+    var%obs1_real => obs1_rptr
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_obs1_rptr
+
+  module subroutine var_list_append_obs2_rptr &
+       (var_list, name, obs2_rptr, p1, p2)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_binary_real) :: obs2_rptr
+    type(prt_t), intent(in), target :: p1, p2
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_obs (var, name, V_OBS2_REAL, p1, p2)
+    var%obs2_real => obs2_rptr
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_obs2_rptr
+
+  module subroutine var_list_append_obsev_rptr &
+       (var_list, name, obsev_rptr, sev)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    procedure(obs_sev_real) :: obsev_rptr
+    type(subevt_t), intent(in), target :: sev
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    call var_entry_init_obs_sev (var, name, V_OBSEV_REAL, sev)
+    var%obsev_real => obsev_rptr
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_obsev_rptr
+
+  module subroutine var_list_append_uobs_int (var_list, name, p1, p2)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(prt_t), intent(in), target :: p1
+    type(prt_t), intent(in), target, optional :: p2
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    if (present (p2)) then
+       call var_entry_init_obs (var, name, V_UOBS2_INT, p1, p2)
+    else
+       call var_entry_init_obs (var, name, V_UOBS1_INT, p1)
+    end if
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_uobs_int
+
+  module subroutine var_list_append_uobs_real (var_list, name, p1, p2)
+    class(var_list_t), intent(inout) :: var_list
+    type(string_t), intent(in) :: name
+    type(prt_t), intent(in), target :: p1
+    type(prt_t), intent(in), target, optional :: p2
+    type(var_entry_t), pointer :: var
+    allocate (var)
+    if (present (p2)) then
+       call var_entry_init_obs (var, name, V_UOBS2_REAL, p1, p2)
+    else
+       call var_entry_init_obs (var, name, V_UOBS1_REAL, p1)
+    end if
+    call var_list_append (var_list, var)
+  end subroutine var_list_append_uobs_real
+
+  module subroutine var_list_clear (vars, name, follow_link)
+    class(var_list_t), intent(inout) :: vars
+    type(string_t), intent(in) :: name
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       call var_entry_clear (var)
+    end if
+  end subroutine var_list_clear
+
+  module subroutine var_list_set_ival (vars, name, ival, follow_link)
+    class(var_list_t), intent(inout) :: vars
+    type(string_t), intent(in) :: name
+    integer, intent(in) :: ival
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       call var_entry_set_int (var, ival, is_known=.true.)
+    end if
+  end subroutine var_list_set_ival
+
+  module subroutine var_list_set_rval (vars, name, rval, follow_link)
+    class(var_list_t), intent(inout) :: vars
+    type(string_t), intent(in) :: name
+    real(default), intent(in) :: rval
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       call var_entry_set_real (var, rval, is_known=.true.)
+    end if
+  end subroutine var_list_set_rval
+
+  module subroutine var_list_set_cval (vars, name, cval, follow_link)
+    class(var_list_t), intent(inout) :: vars
+    type(string_t), intent(in) :: name
+    complex(default), intent(in) :: cval
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       call var_entry_set_cmplx (var, cval, is_known=.true.)
+    end if
+  end subroutine var_list_set_cval
+
+  module subroutine var_list_set_lval (vars, name, lval, follow_link)
+    class(var_list_t), intent(inout) :: vars
+    type(string_t), intent(in) :: name
+    logical, intent(in) :: lval
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       call var_entry_set_log (var, lval, is_known=.true.)
+    end if
+  end subroutine var_list_set_lval
+
+  module subroutine var_list_set_sval (vars, name, sval, follow_link)
+    class(var_list_t), intent(inout) :: vars
+    type(string_t), intent(in) :: name
+    type(string_t), intent(in) :: sval
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (vars, name, follow_link=follow_link)
+    if (associated (var)) then
+       call var_entry_set_string (var, sval, is_known=.true.)
+    end if
+  end subroutine var_list_set_sval
+
+  module subroutine var_list_set_log &
+       (var_list, name, lval, is_known, ignore, force, verbose, model_name)
+    class(var_list_t), intent(inout), target :: var_list
+    type(string_t), intent(in) :: name
+    logical, intent(in) :: lval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: ignore, force, verbose
+    type(string_t), intent(in), optional :: model_name
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_LOG)
+    if (associated (var)) then
+       if (.not. var_entry_is_locked (var, force)) then
+          select case (var%type)
+          case (V_LOG)
+             call var_entry_set_log (var, lval, is_known, verbose, model_name)
+          case default
+             call var_mismatch_error (name)
+          end select
+       else
+          call var_locked_error (name)
+       end if
+    else
+       call var_missing_error (name, ignore)
+    end if
+  end subroutine var_list_set_log
+
+  module subroutine var_list_set_int &
+       (var_list, name, ival, is_known, ignore, force, verbose, model_name)
+    class(var_list_t), intent(inout), target :: var_list
+    type(string_t), intent(in) :: name
+    integer, intent(in) :: ival
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: ignore, force, verbose
+    type(string_t), intent(in), optional :: model_name
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_INT)
+    if (associated (var)) then
+       if (.not. var_entry_is_locked (var, force)) then
+          select case (var%type)
+          case (V_INT)
+             call var_entry_set_int (var, ival, is_known, verbose, model_name)
+          case default
+             call var_mismatch_error (name)
+          end select
+       else
+          call var_locked_error (name)
+       end if
+    else
+       call var_missing_error (name, ignore)
+    end if
+  end subroutine var_list_set_int
+
+  module subroutine var_list_set_real &
+       (var_list, name, rval, is_known, ignore, force, &
+        verbose, model_name, pacified)
+    class(var_list_t), intent(inout), target :: var_list
+    type(string_t), intent(in) :: name
+    real(default), intent(in) :: rval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: ignore, force, verbose, pacified
+    type(string_t), intent(in), optional :: model_name
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_REAL)
+    if (associated (var)) then
+       if (.not. var_entry_is_locked (var, force)) then
+          select case (var%type)
+          case (V_REAL)
+             call var_entry_set_real &
+                  (var, rval, is_known, verbose, model_name, pacified)
+          case default
+             call var_mismatch_error (name)
+          end select
+       else
+          call var_locked_error (name)
+       end if
+    else
+       call var_missing_error (name, ignore)
+    end if
+  end subroutine var_list_set_real
+
+  module subroutine var_list_set_cmplx &
+       (var_list, name, cval, is_known, ignore, force, &
+        verbose, model_name, pacified)
+    class(var_list_t), intent(inout), target :: var_list
+    type(string_t), intent(in) :: name
+    complex(default), intent(in) :: cval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: ignore, force, verbose, pacified
+    type(string_t), intent(in), optional :: model_name
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_CMPLX)
+    if (associated (var)) then
+       if (.not. var_entry_is_locked (var, force)) then
+          select case (var%type)
+          case (V_CMPLX)
+             call var_entry_set_cmplx &
+                  (var, cval, is_known, verbose, model_name, pacified)
+          case default
+             call var_mismatch_error (name)
+          end select
+       else
+          call var_locked_error (name)
+       end if
+    else
+       call var_missing_error (name, ignore)
+    end if
+  end subroutine var_list_set_cmplx
+
+  module subroutine var_list_set_pdg_array &
+       (var_list, name, aval, is_known, ignore, force, verbose, model_name)
+    class(var_list_t), intent(inout), target :: var_list
+    type(string_t), intent(in) :: name
+    type(pdg_array_t), intent(in) :: aval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: ignore, force, verbose
+    type(string_t), intent(in), optional :: model_name
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_PDG)
+    if (associated (var)) then
+       if (.not. var_entry_is_locked (var, force)) then
+          select case (var%type)
+          case (V_PDG)
+             call var_entry_set_pdg_array &
+                  (var, aval, is_known, verbose, model_name)
+          case default
+             call var_mismatch_error (name)
+          end select
+       else
+          call var_locked_error (name)
+       end if
+    else
+       call var_missing_error (name, ignore)
+    end if
+  end subroutine var_list_set_pdg_array
+
+  module subroutine var_list_set_subevt &
+       (var_list, name, pval, is_known, ignore, force, verbose, model_name)
+    class(var_list_t), intent(inout), target :: var_list
+    type(string_t), intent(in) :: name
+    type(subevt_t), intent(in) :: pval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: ignore, force, verbose
+    type(string_t), intent(in), optional :: model_name
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_SEV)
+    if (associated (var)) then
+       if (.not. var_entry_is_locked (var, force)) then
+          select case (var%type)
+          case (V_SEV)
+             call var_entry_set_subevt &
+                  (var, pval, is_known, verbose, model_name)
+          case default
+             call var_mismatch_error (name)
+          end select
+       else
+          call var_locked_error (name)
+       end if
+    else
+       call var_missing_error (name, ignore)
+    end if
+  end subroutine var_list_set_subevt
+
+  module subroutine var_list_set_string &
+       (var_list, name, sval, is_known, ignore, force, verbose, model_name)
+    class(var_list_t), intent(inout), target :: var_list
+    type(string_t), intent(in) :: name
+    type(string_t), intent(in) :: sval
+    logical, intent(in) :: is_known
+    logical, intent(in), optional :: ignore, force, verbose
+    type(string_t), intent(in), optional :: model_name
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name, V_STR)
+    if (associated (var)) then
+       if (.not. var_entry_is_locked (var, force)) then
+          select case (var%type)
+          case (V_STR)
+             call var_entry_set_string &
+                  (var, sval, is_known, verbose, model_name)
+          case default
+             call var_mismatch_error (name)
+          end select
+       else
+          call var_locked_error (name)
+       end if
+    else
+       call var_missing_error (name, ignore)
+    end if
+  end subroutine var_list_set_string
+
+  subroutine var_mismatch_error (name)
+    type(string_t), intent(in) :: name
+    call msg_fatal ("Type mismatch for variable '" // char (name) // "'")
+  end subroutine var_mismatch_error
+
+  subroutine var_locked_error (name)
+    type(string_t), intent(in) :: name
+    call msg_error ("Variable '" // char (name) // "' is not user-definable")
+  end subroutine var_locked_error
+
+  subroutine var_missing_error (name, ignore)
+    type(string_t), intent(in) :: name
+    logical, intent(in), optional :: ignore
+    logical :: error
+    if (present (ignore)) then
+       error = .not. ignore
+    else
+       error = .true.
+    end if
+    if (error) then
+       call msg_fatal ("Variable '" // char (name) // "' has not been declared")
+    end if
+  end subroutine var_missing_error
+
+  module subroutine var_list_import (var_list, src_list)
+    class(var_list_t), intent(inout) :: var_list
+    type(var_list_t), intent(in) :: src_list
+    type(var_entry_t), pointer :: var, src
+    var => var_list%first
+    do while (associated (var))
+       src => var_list_get_var_ptr (src_list, var%name)
+       if (associated (src)) then
+          call var_entry_copy_value (var, src)
+       end if
+       var => var%next
+    end do
+  end subroutine var_list_import
+
+  recursive module subroutine var_list_undefine (var_list, follow_link)
+    class(var_list_t), intent(inout) :: var_list
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var
+    logical :: rec
+    rec = .true.;  if (present (follow_link))  rec = follow_link
+    var => var_list%first
+    do while (associated (var))
+       call var_entry_undefine (var)
+       var => var%next
+    end do
+    if (rec .and. associated (var_list%next)) then
+       call var_list_undefine (var_list%next, follow_link=follow_link)
+    end if
+  end subroutine var_list_undefine
+
+  recursive module subroutine var_list_init_snapshot &
+       (var_list, vars_in, follow_link)
+    class(var_list_t), intent(out) :: var_list
+    type(var_list_t), intent(in) :: vars_in
+    logical, intent(in), optional :: follow_link
+    type(var_entry_t), pointer :: var, var_in
+    type(var_list_t), pointer :: var_list_next
+    logical :: rec
+    rec = .true.;  if (present (follow_link))  rec = follow_link
+    var_in => vars_in%first
+    do while (associated (var_in))
+       allocate (var)
+       call var_entry_init_copy (var, var_in)
+       call var_entry_copy_value (var, var_in)
+       call var_list_append (var_list, var)
+       var_in => var_in%next
+    end do
+    if (rec .and. associated (vars_in%next)) then
+       allocate (var_list_next)
+       call var_list_init_snapshot (var_list_next, vars_in%next)
+       call var_list%link (var_list_next)
+    end if
+  end subroutine var_list_init_snapshot
+
+  module subroutine var_list_check_user_var (var_list, name, type, new)
+    class(var_list_t), intent(in), target :: var_list
+    type(string_t), intent(in) :: name
+    integer, intent(inout) :: type
+    logical, intent(in) :: new
+    type(var_entry_t), pointer :: var
+    var => var_list_get_var_ptr (var_list, name)
+    if (associated (var)) then
+       if (type == V_NONE) then
+          type = var_entry_get_type (var)
+       end if
+       if (var_entry_is_locked (var)) then
+          call msg_fatal ("Variable '" // char (name) &
+               // "' is not user-definable")
+          type = V_NONE
+          return
+       else if (new) then
+          if (var_entry_is_intrinsic (var)) then
+             call msg_fatal ("Intrinsic variable '" &
+                  // char (name) // "' redeclared")
+             type = V_NONE
+             return
+          end if
+          if (var_entry_get_type (var) /= type) then
+             call msg_fatal ("Variable '" // char (name) // "' " &
+                  // "redeclared with different type")
+             type = V_NONE
+             return
+          end if
+       end if
+    end if
+  end subroutine var_list_check_user_var
+
+  module subroutine var_list_init_defaults (var_list, seed, paths)
+    class(var_list_t), intent(out) :: var_list
+    integer, intent(in) :: seed
+    type(paths_t), intent(in), optional :: paths
+    call var_list%set_beams_defaults (paths)
+    call var_list%set_core_defaults (seed)
+    call var_list%set_integration_defaults ()
+    call var_list%set_phase_space_defaults ()
+    call var_list%set_gamelan_defaults ()
+    call var_list%set_clustering_defaults ()
+    call var_list%set_isolation_recomb_defaults ()
+    call var_list%set_eio_defaults ()
+    call var_list%set_shower_defaults ()
+    call var_list%set_hadronization_defaults ()
+    call var_list%set_tauola_defaults  ()
+    call var_list%set_mlm_matching_defaults ()
+    call var_list%set_powheg_matching_defaults ()
+    call var_list%append_log (var_str ("?ckkw_matching"), .false., &
+            intrinsic=.true., description=var_str ('Master flag that switches ' // &
+            'on the CKKW(-L) (LO) matching between hard scattering matrix ' // &
+            'elements and QCD parton showers. Note that this is not yet ' // &
+            '(completely) implemented in \whizard. (cf. also \ttt{?allow\_shower}, ' // &
+            '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...})'))
+    call var_list%set_openmp_defaults ()
+    call var_list%set_mpi_defaults ()
+    call var_list%set_nlo_defaults ()
+  end subroutine var_list_init_defaults
+
+  module subroutine var_list_set_beams_defaults (var_list, paths)
+    type(paths_t), intent(in), optional :: paths
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_real (var_str ("sqrts"), &
+          intrinsic=.true., &
+          description=var_str ('Real variable in order to set the center-of-mass ' // &
+          'energy for the collisions (collider energy $\sqrt{s}$, not ' // &
+          'hard interaction energy $\sqrt{\hat{s}}$): \ttt{sqrts = {\em ' // &
+          '<num>} [ {\em <phys\_unit>} ]}. The physical unit can be one ' // &
+          'of the following \ttt{eV}, \ttt{keV}, \ttt{MeV}, \ttt{GeV}, ' // &
+          'and \ttt{TeV}. If absent, \whizard\ takes \ttt{GeV} as its ' // &
+          'standard unit. Note that this variable is absolutely mandatory ' // &
+          'for integration and simulation of scattering processes.'))
+    call var_list%append_real (var_str ("luminosity"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('This specifier \ttt{luminosity = {\em ' // &
+          '<num>}} sets the integrated luminosity (in inverse femtobarns, ' // &
+          'fb${}^{-1}$) for the event generation of the processes in the ' // &
+          '\sindarin\ input files. Note that WHIZARD itself chooses the ' // &
+          'number from the \ttt{luminosity} or from the \ttt{n\_events} ' // &
+          'specifier, whichever would give the larger number of events. ' // &
+          'As this depends on the cross section under consideration, it ' // &
+          'might be different for different processes in the process list.  ' // &
+          '(cf. \ttt{n\_events}, \ttt{\$sample}, \ttt{sample\_format}, \ttt{?unweighted})'))
+    call var_list%append_log (var_str ("?sf_trace"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Debug flag that writes out detailed information ' // &
+          'about the structure function setup into the file \ttt{{\em ' // &
+          '<proc\_name>}\_sftrace.dat}. This file name can be changed ' // &
+          'with ($\to$) \ttt{\$sf\_trace\_file}.'))
+    call var_list%append_string (var_str ("$sf_trace_file"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('\ttt{\$sf\_trace\_file = "{\em <file\_name>}"} ' // &
+          'allows to change the detailed structure function information ' // &
+          'switched on by the debug flag ($\to$) \ttt{?sf\_trace} into ' // &
+          'a different file \ttt{{\em <file\_name>}} than the default ' // &
+          '\ttt{{\em <proc\_name>}\_sftrace.dat}.'))
+    call var_list%append_log (var_str ("?sf_allow_s_mapping"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that determines whether special mappings ' // &
+          'for processes with structure functions and $s$-channel resonances ' // &
+          'are applied, e.g. Drell-Yan at hadron colliders, or $Z$ production ' // &
+          'at linear colliders with beamstrahlung and ISR.'))
+    if (present (paths)) then
+       call var_list%append_string (var_str ("$lhapdf_dir"), paths%lhapdfdir, &
+             intrinsic=.true., &
+             description=var_str ('String variable that tells the path ' // &
+             'where the \lhapdf\ library and PDF sets can be found. When ' // &
+             'the library has been correctly recognized during configuration, ' // &
+             'this is automatically set by \whizard. (cf. also \ttt{lhapdf}, ' // &
+             '\ttt{\$lhapdf\_file}, \ttt{lhapdf\_photon}, \ttt{\$lhapdf\_photon\_file}, ' // &
+             '\ttt{lhapdf\_member}, \ttt{lhapdf\_photon\_scheme})'))
+    else
+       call var_list%append_string (var_str ("$lhapdf_dir"), var_str(""), &
+             intrinsic=.true., &
+             description=var_str ('String variable that tells the path ' // &
+             'where the \lhapdf\ library and PDF sets can be found. When ' // &
+             'the library has been correctly recognized during configuration, ' // &
+             'this is automatically set by \whizard. (cf. also \ttt{lhapdf}, ' // &
+             '\ttt{\$lhapdf\_file}, \ttt{lhapdf\_photon}, \ttt{\$lhapdf\_photon\_file}, ' // &
+             '\ttt{lhapdf\_member}, \ttt{lhapdf\_photon\_scheme})'))
+    end if
+    call var_list%append_string (var_str ("$lhapdf_file"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('This string variable \ttt{\$lhapdf\_file ' // &
+          '= "{\em <pdf\_set>}"} allows to specify the PDF set \ttt{{\em ' // &
+          '<pdf\_set>}} from the external \lhapdf\ library. It must match ' // &
+          'the exact name of the PDF set from the \lhapdf\ library. The ' // &
+          'default is empty, and the default set from \lhapdf\ is taken. ' // &
+          'Only one argument is possible, the PDF set must be identical ' // &
+          'for both beams, unless there are fundamentally different beam ' // &
+          'particles like proton and photon. (cf. also \ttt{lhapdf}, \ttt{\$lhapdf\_dir}, ' // &
+          '\ttt{lhapdf\_photon}, \ttt{\$lhapdf\_photon\_file}, \ttt{lhapdf\_photon\_scheme}, ' // &
+          '\ttt{lhapdf\_member})'))
+    call var_list%append_string (var_str ("$lhapdf_photon_file"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable \ttt{\$lhapdf\_photon\_file ' // &
+          '= "{\em <pdf\_set>}"} analagous to ($\to$) \ttt{\$lhapdf\_file} ' // &
+          'for photon PDF structure functions from the external \lhapdf\ ' // &
+          'library. The name must exactly match the one of the set from ' // &
+          '\lhapdf.  (cf. \ttt{beams}, \ttt{lhapdf}, \ttt{\$lhapdf\_dir}, ' // &
+          '\ttt{\$lhapdf\_file}, \ttt{\$lhapdf\_photon\_file}, \ttt{lhapdf\_member}, ' // &
+          '\ttt{lhapdf\_photon\_scheme})'))
+    call var_list%append_int (var_str ("lhapdf_member"), 0, &
+          intrinsic=.true., &
+          description=var_str ('Integer variable that specifies the number ' // &
+          'of the corresponding PDF set chosen via the command ($\to$) ' // &
+          '\ttt{\$lhapdf\_file} or ($\to$) \ttt{\$lhapdf\_photon\_file} ' // &
+          'from the external \lhapdf\ library. E.g. error PDF sets can ' // &
+          'be chosen by this. (cf. also \ttt{lhapdf}, \ttt{\$lhapdf\_dir}, ' // &
+          '\ttt{\$lhapdf\_file}, \ttt{lhapdf\_photon}, \ttt{\$lhapdf\_photon\_file}, ' // &
+          '\ttt{lhapdf\_photon\_scheme})'))
+    call var_list%append_int (var_str ("lhapdf_photon_scheme"), 0, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that controls the different ' // &
+          'available schemes for photon PDFs inside the external \lhapdf\ ' // &
+          'library. For more details see the \lhapdf\ manual.  (cf. also ' // &
+          '\ttt{lhapdf}, \ttt{\$lhapdf\_dir}, \ttt{\$lhapdf\_file}, \ttt{lhapdf\_photon}, ' // &
+          '\ttt{\$lhapdf\_photon\_file}, \ttt{lhapdf\_member})'))
+    call var_list%append_string (var_str ("$pdf_builtin_set"), var_str ("CTEQ6L"), &
+         intrinsic=.true., &
+         description=var_str ("For \whizard's internal PDF structure functions " // &
+         'for hadron colliders, this string variable allows to set the ' // &
+         'particular PDF set. (cf. also \ttt{pdf\_builtin}, \ttt{pdf\_builtin\_photon})'))
+    call var_list%append_log (var_str ("?hoppet_b_matching"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that switches on the matching between ' // &
+          '4- and 5-flavor schemes for hadron collider $b$-parton initiated ' // &
+          'processes. Works either with builtin PDFs or with the external ' // &
+          '\lhapdf\ interface. Needs the external \ttt{HOPPET} library ' // &
+          'to be linked. (cf. \ttt{beams}, \ttt{pdf\_builtin}, \ttt{lhapdf})'))
+    call var_list%append_real (var_str ("isr_alpha"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('For lepton collider initial-state QED ' // &
+          'radiation (ISR), this real parameter sets the value of $\alpha_{em}$ ' // &
+          'used in the structure function. If not set, it is taken from ' // &
+          'the parameter set of the physics model in use (cf. also \ttt{isr}, ' // &
+          '\ttt{isr\_q\_max}, \ttt{isr\_mass}, \ttt{isr\_order}, \ttt{?isr\_recoil}, ' // &
+          '\ttt{?isr\_keep\_energy})'))
+    call var_list%append_real (var_str ("isr_q_max"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('This real parameter allows to set the ' // &
+          'scale of the initial-state QED radiation (ISR) structure function. ' // &
+          'If not set, it is taken internally to be $\sqrt{s}$.  (cf. ' // &
+          'also \ttt{isr}, \ttt{isr\_alpha}, \ttt{isr\_mass}, \ttt{isr\_order}, ' // &
+          '\ttt{?isr\_recoil}, \ttt{?isr\_keep\_energy})'))
+    call var_list%append_real (var_str ("isr_mass"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('This real parameter allows to set by hand ' // &
+          'the mass of the incoming particle for lepton collider initial-state ' // &
+          'QED radiation (ISR). If not set, the mass for the initial beam ' // &
+          'particle is taken from the model in use. (cf. also \ttt{isr}, ' // &
+          '\ttt{isr\_q\_max}, \ttt{isr\_alpha}, \ttt{isr\_order}, \ttt{?isr\_recoil}, ' // &
+          '\ttt{?isr\_keep\_energy}, \ttt{isr\_log\_order})'))
+    call var_list%append_int (var_str ("isr_order"), 3, &
+          intrinsic=.true., &
+          description=var_str ('For lepton collider initial-state QED ' // &
+          'radiation (ISR), this integer parameter allows to set the order ' // &
+          'up to which hard-collinear radiation is taken into account. ' // &
+          'Default is the highest available, namely third order. (cf. ' // &
+          'also \ttt{isr}, \ttt{isr\_q\_max}, \ttt{isr\_mass}, \ttt{isr\_alpha}, ' // &
+          '\ttt{?isr\_recoil}, \ttt{?isr\_keep\_energy}, \ttt{isr\_log\_order})'))
+    call var_list%append_int (var_str ("isr_log_order"), 0, &
+          intrinsic=.true., &
+          description=var_str ('For lepton collider initial-state QED ' // &
+          'radiation (ISR), this integer parameters sets the logarithmic ' // &
+          'order: 0 (default) is LL, 1 is NLL. (cf. ' // &
+          'also \ttt{isr}, \ttt{isr\_q\_max}, \ttt{isr\_mass}, \ttt{isr\_alpha}, ' // &
+          '\ttt{?isr\_recoil}, \ttt{?isr\_keep\_energy}, \ttt{isr\_order})'))
+    call var_list%append_real (var_str ("isr_q_in"), -1._default, &
+          intrinsic=.true., &
+          description=var_str ('This is the starting scale for the running ' // &
+          'of the QED coupling alpha. If negative, the electron mass is taken. ' // &
+          '(cf. also \ttt{isr}, ' // &
+          '\ttt{isr\_q\_max}, \ttt{isr\_alpha}, \ttt{isr\_order}, \ttt{?isr\_recoil}, ' // &
+          '\ttt{?isr\_keep\_energy}, \ttt{isr\_log\_order})'))
+    call var_list%append_log (var_str ("?isr_recoil"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag to switch on recoil, i.e. a non-vanishing ' // &
+          '$p_T$-kick for the lepton collider initial-state QED radiation ' // &
+          '(ISR).  (cf. also \ttt{isr}, \ttt{isr}, \ttt{isr\_alpha}, \ttt{isr\_mass}, ' // &
+          '\ttt{isr\_order}, \ttt{isr\_q\_max}, \ttt{isr\_log\_order})'))
+    call var_list%append_log (var_str ("?isr_keep_energy"), .false., &
+          intrinsic=.true., &
+          description=var_str ('As the splitting kinematics for the ISR ' // &
+          'structure function violates Lorentz invariance when the recoil ' // &
+          'is switched on, this flag forces energy conservation when set ' // &
+          'to true, otherwise violating energy conservation.  (cf. also ' // &
+          '\ttt{isr}, \ttt{isr\_q\_max}, \ttt{isr\_mass}, \ttt{isr\_order}, ' // &
+          '\ttt{?isr\_recoil}, \ttt{?isr\_alpha})'))
+    call var_list%append_log (var_str ("?isr_handler"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Activate ISR ' // &
+          'handler for event generation (no effect on integration). ' // &
+          'Requires \ttt{isr\_recoil = false}'))
+    call var_list%append_string (var_str ("$isr_handler_mode"), &
+          var_str ("trivial"), &
+          intrinsic=.true., &
+          description=var_str ('Operation mode for the ISR ' // &
+          'event handler.  Allowed values: \ttt{trivial} (no effect), ' // &
+          '\ttt{recoil} (recoil kinematics with two photons)'))
+    call var_list%append_log (var_str ("?isr_handler_keep_mass"), .true., &
+          intrinsic=.true., &
+          description=var_str ('If \ttt{true} (default), force the incoming ' // &
+          'partons of the hard process (after radiation) on their mass ' // &
+          'shell.  Otherwise, insert massless on-shell momenta.  This ' // &
+          'applies only for event generation (no effect on integration, ' // &
+          'cf.\ also \ttt{?isr\_handler})'))
+    call var_list%append_string (var_str ("$epa_mode"), &
+          var_str ("default"), intrinsic=.true., &
+          description=var_str ('For the equivalent photon approximation ' // &
+          '(EPA), this string variable defines the mode, i.e. the explicit ' // &
+          'formula for the EPA distribution. For more details cf. the manual. ' // &
+          'Possible are \ttt{default} (\ttt{Budnev\_617}), \ttt{Budnev\_616e}, ' // &
+          '\ttt{log\_power}, \ttt{log\_simple}, and \ttt{log}. ' // &
+          '(cf. also \ttt{epa}, \ttt{epa\_x\_min}, \ttt{epa\_mass}, \ttt{epa\_e\_max}, ' // &
+          '\ttt{epa\_q\_min}, \ttt{?epa\_recoil}, \ttt{?epa\_keep\_energy}, ' // &
+          '\ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_real (var_str ("epa_alpha"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('For the equivalent photon approximation ' // &
+          '(EPA), this real parameter sets the value of $\alpha_{em}$ ' // &
+          'used in the structure function. If not set, it is taken from ' // &
+          'the parameter set of the physics model in use (cf. also \ttt{epa}, ' // &
+          '\ttt{epa\_x\_min}, \ttt{epa\_mass}, \ttt{epa\_e\_max}, \ttt{epa\_q\_min}, ' // &
+          '\ttt{?epa\_recoil}, \ttt{?epa\_keep\_energy}, \ttt{\$epa\_mode}, ' // &
+          '\ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_real (var_str ("epa_x_min"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that sets the lower cutoff ' // &
+          'for the energy fraction in the splitting for the equivalent-photon ' // &
+          'approximation (EPA). This parameter has to be set by the user ' // &
+          'to a non-zero value smaller than one. (cf. also \ttt{epa}, ' // &
+          '\ttt{epa\_e\_max}, \ttt{epa\_mass}, \ttt{epa\_alpha}, \ttt{epa\_q\_min}, ' // &
+          '\ttt{?epa\_recoil}, \ttt{?epa\_keep\_energy}, \ttt{\$epa\_mode}, ' // &
+                    '\ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_real (var_str ("epa_q_min"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('In the equivalent-photon approximation ' // &
+          '(EPA), this real parameters sets the minimal value for the ' // &
+          'transferred momentum. Either this parameter or the mass of ' // &
+          'the beam particle has to be non-zero.  (cf. also \ttt{epa}, ' // &
+          '\ttt{epa\_x\_min}, \ttt{epa\_mass}, \ttt{epa\_alpha}, \ttt{epa\_q\_max}, ' // &
+          '\ttt{?epa\_recoil}, \ttt{?epa\_keep\_energy}, \ttt{\$epa\_mode}, ' // &
+          '\ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_real (var_str ("epa_q_max"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('This real parameter allows to set the ' // &
+          'upper energy cutoff for the equivalent-photon approximation ' // &
+          '(EPA). If not set, \whizard\ simply takes the collider energy, ' // &
+          '$\sqrt{s}$. (cf. also \ttt{epa}, \ttt{epa\_x\_min}, \ttt{epa\_mass}, ' // &
+          '\ttt{epa\_alpha}, \ttt{epa\_q\_min}, \ttt{?epa\_recoil}, \ttt{\$epa\_mode}, ' // &
+          '\ttt{?epa\_keep\_energy}, \ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_real (var_str ("epa_mass"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('This real parameter allows to set by hand ' // &
+          'the mass of the incoming particle for the equivalent-photon ' // &
+          'approximation (EPA). If not set, the mass for the initial beam ' // &
+          'particle is taken from the model in use. (cf. also \ttt{epa}, ' // &
+          '\ttt{epa\_x\_min}, \ttt{epa\_e\_max}, \ttt{epa\_alpha}, \ttt{epa\_q\_min}, ' // &
+          '\ttt{?epa\_recoil}, \ttt{?epa\_keep\_energy}, \ttt{\$epa\_mode}. ' // &
+          '\ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_log (var_str ("?epa_recoil"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag to switch on recoil, i.e. a non-vanishing ' // &
+          '$p_T$-kick for the equivalent-photon approximation (EPA).  ' // &
+          '(cf. also \ttt{epa}, \ttt{epa\_x\_min}, \ttt{epa\_mass}, \ttt{epa\_alpha}, ' // &
+          '\ttt{epa\_e\_max}, \ttt{epa\_q\_min}, \ttt{?epa\_keep\_energy}, ' // &
+          '\ttt{\$epa\_mode}, \ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_log (var_str ("?epa_keep_energy"), .false., &
+          intrinsic=.true., &
+          description=var_str ('As the splitting kinematics for the EPA ' // &
+          'structure function violates Lorentz invariance when the recoil ' // &
+          'is switched on, this flag forces energy conservation when set ' // &
+          'to true, otherwise violating energy conservation. (cf. also ' // &
+          '\ttt{epa}, \ttt{epa\_x\_min}, \ttt{epa\_mass}, \ttt{epa\_alpha}, ' // &
+          '\ttt{epa\_q\_min}, \ttt{?epa\_recoil}, \ttt{\$epa\_mode}, ' // &
+          '\ttt{?epa\_handler}, \ttt{\$epa\_handler\_mode})'))
+    call var_list%append_log (var_str ("?epa_handler"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Activate EPA ' // &
+          'handler for event generation (no effect on integration). ' // &
+          'Requires \ttt{epa\_recoil = false}'))
+    call var_list%append_string (var_str ("$epa_handler_mode"), &
+          var_str ("trivial"), &
+          intrinsic=.true., &
+          description=var_str ('Operation mode for the EPA ' // &
+          'event handler.  Allowed values: \ttt{trivial} (no effect), ' // &
+          '\ttt{recoil} (recoil kinematics with two beams)'))
+    call var_list%append_real (var_str ("ewa_x_min"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that sets the lower cutoff ' // &
+          'for the energy fraction in the splitting for the equivalent ' // &
+          '$W$ approximation (EWA). This parameter has to be set by the ' // &
+          'user to a non-zero value smaller than one. (cf. also \ttt{ewa}, ' // &
+          '\ttt{ewa\_pt\_max}, \ttt{ewa\_mass}, \ttt{?ewa\_keep\_energy}, ' // &
+          '\ttt{?ewa\_recoil})'))
+    call var_list%append_real (var_str ("ewa_pt_max"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('This real parameter allows to set the ' // &
+          'upper $p_T$ cutoff for the equivalent $W$ approximation (EWA). ' // &
+          'If not set, \whizard\ simply takes the collider energy, $\sqrt{s}$. ' // &
+          '(cf. also \ttt{ewa}, \ttt{ewa\_x\_min}, \ttt{ewa\_mass}, \ttt{?ewa\_keep\_energy}, ' // &
+          '\ttt{?ewa\_recoil})'))
+    call var_list%append_real (var_str ("ewa_mass"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('This real parameter allows to set by hand ' // &
+          'the mass of the incoming particle for the equivalent $W$ approximation ' // &
+          '(EWA). If not set, the mass for the initial beam particle is ' // &
+          'taken from the model in use. (cf. also \ttt{ewa}, \ttt{ewa\_x\_min}, ' // &
+          '\ttt{ewa\_pt\_max}, \ttt{?ewa\_keep\_energy}, \ttt{?ewa\_recoil})'))
+    call var_list%append_log (var_str ("?ewa_recoil"), .false., &
+         intrinsic=.true., &
+         description=var_str ('For the equivalent $W$ approximation (EWA), ' // &
+         'this flag switches on recoil, i.e. non-collinear splitting.  ' // &
+         '(cf. also \ttt{ewa}, \ttt{ewa\_x\_min}, \ttt{ewa\_pt\_max},  ' // &
+         '\ttt{ewa\_mass}, \ttt{?ewa\_keep\_energy})'))
+    call var_list%append_log (var_str ("?ewa_keep_energy"), .false., &
+          intrinsic=.true., &
+          description=var_str ('As the splitting kinematics for the equivalent ' // &
+          '$W$ approximation (EWA) violates Lorentz invariance when the ' // &
+          'recoil is switched on, this flag forces energy conservation ' // &
+          'when set to true, otherwise violating energy conservation. ' // &
+          '(cf. also \ttt{ewa}, \ttt{ewa\_x\_min}, \ttt{ewa\_pt\_max},  ' // &
+          '\ttt{ewa\_mass}, \ttt{?ewa\_recoil})'))
+    call var_list%append_log (var_str ("?circe1_photon1"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag to tell \whizard\ to use the photon ' // &
+          'of the \circeone\ beamstrahlung structure function as initiator ' // &
+          'for the hard scattering process in the first beam. (cf. also ' // &
+          '\ttt{circe1}, \ttt{?circe1\_photon2}, \ttt{circe1\_sqrts},  ' // &
+          '\ttt{?circe1\_generate}, \ttt{?circe1\_map}, \ttt{circe1\_eps}, ' // &
+          '\newline \ttt{circe1\_mapping\_slope}, \ttt{circe1\_ver}, ' // &
+          '\ttt{circe1\_rev}, \ttt{\$circe1\_acc}, \ttt{circe1\_chat}, \newline' // &
+          '\ttt{?circe1\_with\_radiation})'))
+    call var_list%append_log (var_str ("?circe1_photon2"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag to tell \whizard\ to use the photon ' // &
+          'of the \circeone\ beamstrahlung structure function as initiator ' // &
+          'for the hard scattering process in the second beam. (cf. also ' // &
+          '\ttt{circe1}, \ttt{?circe1\_photon1}, \ttt{circe1\_sqrts},  ' // &
+          '\ttt{?circe1\_generate}, \ttt{?circe1\_map}, \ttt{circe1\_eps}, ' // &
+          '\newline \ttt{circe1\_mapping\_slope}, \ttt{circe1\_ver}, ' // &
+          '\ttt{circe1\_rev}, \ttt{\$circe1\_acc}, \ttt{circe1\_chat}, ' // &
+          '\newline\ttt{?circe1\_with\_radiation})'))
+    call var_list%append_real (var_str ("circe1_sqrts"), &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that allows to set the ' // &
+          'value of the collider energy for the lepton collider beamstrahlung ' // &
+          'structure function \circeone. If not set, $\sqrt{s}$ is taken. ' // &
+          '(cf. also \ttt{circe1}, \ttt{?circe1\_photon1}, \ttt{?circe1\_photon2},  ' // &
+          '\ttt{?circe1\_generate}, \ttt{?circe1\_map}, \ttt{circe1\_eps}, ' // &
+          '\newline \ttt{circe1\_mapping\_slope}, \ttt{circe1\_ver}, ' // &
+          '\ttt{circe1\_rev}, \ttt{\$circe1\_acc}, \ttt{circe1\_chat}, \newline' // &
+          '\ttt{?circe1\_with\_radiation})'))
+    call var_list%append_log (var_str ("?circe1_generate"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that determines whether the \circeone\ ' // &
+          'structure function for lepton collider beamstrahlung uses the ' // &
+          'generator mode for the spectrum, or a pre-defined (semi-)analytical ' // &
+          'parameterization. Default is the generator mode. (cf. also ' // &
+          '\ttt{circe1}, \ttt{?circe1\_photon1}, \newline \ttt{?circe1\_photon2},  ' // &
+          '\ttt{circe1\_sqrts}, \ttt{?circe1\_map}, \ttt{circe1\_mapping\_slope}, ' // &
+          '\ttt{circe1\_eps}, \newline \ttt{circe1\_ver}, \ttt{circe1\_rev}, ' // &
+          '\ttt{\$circe1\_acc}, \ttt{circe1\_chat}, \ttt{?circe1\_with\_radiation})'))
+    call var_list%append_log (var_str ("?circe1_map"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that determines whether the \circeone\ ' // &
+          'structure function for lepton collider beamstrahlung uses special ' // &
+          'mappings for $s$-channel resonances. (cf. also \ttt{circe1}, ' // &
+          '\ttt{?circe1\_photon1}, \newline \ttt{?circe1\_photon2},  ' // &
+          '\ttt{circe1\_sqrts}, \ttt{?circe1\_generate}, ' // &
+          '\ttt{circe1\_mapping\_slope}, \ttt{circe1\_eps}, \newline ' // &
+          '\ttt{circe1\_ver}, \ttt{circe1\_rev}, \ttt{\$circe1\_acc}, ' // &
+          '\ttt{circe1\_chat}, \ttt{?circe1\_with\_radiation})'))
+    call var_list%append_real (var_str ("circe1_mapping_slope"), 2._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that allows to vary the ' // &
+          'slope of the mapping function for the \circeone\ structure ' // &
+          'function for lepton collider beamstrahlung from the default ' // &
+          'value \ttt{2.}. (cf. also \ttt{circe1}, \ttt{?circe1\_photon1}, ' // &
+          '\ttt{?circe1\_photon2}, \ttt{circe1\_sqrts},  \ttt{?circe1\_generate}, ' // &
+          '\ttt{?circe1\_map}, \ttt{circe1\_eps}, \ttt{circe1\_ver}, ' // &
+          '\ttt{circe1\_rev}, \ttt{\$circe1\_acc}, \ttt{circe1\_chat}, \newline' // &
+          '\ttt{?circe1\_with\_radiation})'))
+    call var_list%append_real (var_str ("circe1_eps"), 1e-5_default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter, that takes care of the ' // &
+          'mapping of the peak in the lepton collider beamstrahlung structure ' // &
+          'function spectrum of \circeone.  (cf. also \ttt{circe1}, \ttt{?circe1\_photons}, ' // &
+          '\ttt{?circe1\_photon2}, \ttt{circe1\_sqrts}, \ttt{?circe1\_generate}, ' // &
+          '\ttt{?circe1\_map}, \ttt{circe1\_eps}, \newline ' // &
+          '\ttt{circe1\_mapping\_slope}, \ttt{circe1\_ver}, \ttt{circe1\_rev}, ' // &
+          '\ttt{\$circe1\_acc}, \ttt{circe1\_chat}, \newline\ttt{?circe1\_with\_radiation})'))
+    call var_list%append_int (var_str ("circe1_ver"), 0, intrinsic=.true., &
+         description=var_str ('Integer parameter that sets the internal ' // &
+         'versioning number of the \circeone\ structure function for lepton-collider ' // &
+         'beamstrahlung. It has to be set by the user explicitly, it takes ' // &
+         'values from one to ten.  (cf. also \ttt{circe1}, \ttt{?circe1\_photon1}, ' // &
+         '\ttt{?circe1\_photon2},  \ttt{?circe1\_generate}, \ttt{?circe1\_map}, ' // &
+         '\ttt{circe1\_eps}, \ttt{circe1\_mapping\_slope}, \ttt{circe1\_sqrts}, ' // &
+         '\ttt{circe1\_rev}, \ttt{\$circe1\_acc}, \ttt{circe1\_chat}, ' // &
+         '\ttt{?circe1\_with\_radiation})'))
+    call var_list%append_int (var_str ("circe1_rev"), 0, intrinsic=.true., &
+         description=var_str ('Integer parameter that sets the internal ' // &
+         'revision number of the \circeone\ structure function for lepton-collider ' // &
+         'beamstrahlung. The default \ttt{0} translates always into the ' // &
+         'most recent version; older versions have to be accessed through ' // &
+         'the explicit revision date. For more details cf.~the \circeone ' // &
+         'manual.  (cf. also \ttt{circe1}, \ttt{?circe1\_photon1}, \ttt{?circe1\_photon2},  ' // &
+         '\ttt{?circe1\_generate}, \ttt{?circe1\_map}, \ttt{circe1\_eps}, ' // &
+         '\ttt{circe1\_mapping\_slope}, \ttt{circe1\_sqrts}, \ttt{circe1\_ver}, ' // &
+         '\ttt{\$circe1\_acc}, \ttt{circe1\_chat}, \ttt{?circe1\_with\_radiation})'))
+    call var_list%append_string (var_str ("$circe1_acc"), var_str ("SBAND"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that specifies the accelerator ' // &
+          'type for the \circeone\ structure function for lepton-collider ' // &
+          'beamstrahlung.  (\ttt{?circe1\_photons}, \ttt{?circe1\_photon2}, ' // &
+          '\ttt{circe1\_sqrts}, \ttt{?circe1\_generate}, \ttt{?circe1\_map}, ' // &
+          '\ttt{circe1\_eps}, \ttt{circe1\_mapping\_slope}, \ttt{circe1\_ver}, ' // &
+          '\newline \ttt{circe1\_rev}, \ttt{circe1\_chat}, \ttt{?circe1\_with\_radiation})'))
+    call var_list%append_int (var_str ("circe1_chat"), 0, intrinsic=.true., &
+         description=var_str ('Chattiness of the \circeone\ structure ' // &
+         'function for lepton-collider beamstrahlung. The higher the integer ' // &
+         'value, the more information will be given out by the \circeone\ ' // &
+         'package. (\ttt{?circe1\_photons}, \ttt{?circe1\_photon2}, ' // &
+         '\ttt{circe1\_sqrts}, \ttt{?circe1\_generate}, \ttt{?circe1\_map}, ' // &
+         '\ttt{circe1\_eps}, \ttt{circe1\_mapping\_slope}, \ttt{circe1\_ver}, ' // &
+         '\newline \ttt{circe1\_rev}, \ttt{\$circe1\_acc}, \ttt{?circe1\_with\_radiation})'))
+    call var_list%append_log (var_str ("?circe1_with_radiation"), .false., &
+         intrinsic=.true., &
+         description=var_str ('This logical decides whether the additional photon ' // &
+         'or electron ("beam remnant") will be considered in the event record or ' // &
+         'not. (\ttt{?circe1\_photons}, \ttt{?circe1\_photon2}, ' // &
+         '\ttt{circe1\_sqrts}, \ttt{?circe1\_generate}, \ttt{?circe1\_map}, ' // &
+         '\ttt{circe1\_eps}, \ttt{circe1\_mapping\_slope}, \ttt{circe1\_ver}, ' // &
+         '\newline \ttt{circe1\_rev}, \ttt{\$circe1\_acc})'))
+    call var_list%append_log (var_str ("?circe2_polarized"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag whether the photon spectra from the ' // &
+          '\circetwo\ structure function for lepton colliders should be ' // &
+          'treated polarized. (cf. also \ttt{circe2}, \ttt{\$circe2\_file}, ' // &
+          '\ttt{\$circe2\_design})'))
+    call var_list%append_string (var_str ("$circe2_file"), &
+          intrinsic=.true., &
+          description=var_str ('String variable by which the corresponding ' // &
+          'photon collider spectrum for the \circetwo\ structure function ' // &
+          'can be selected. (cf. also \ttt{circe2}, \ttt{?circe2\_polarized}, ' // &
+          '\ttt{\$circe2\_design})'))
+    call var_list%append_string (var_str ("$circe2_design"), var_str ("*"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that sets the collider ' // &
+          'design for the \circetwo\ structure function for photon collider ' // &
+          'spectra. (cf. also \ttt{circe2}, \ttt{\$circe2\_file}, \ttt{?circe2\_polarized})'))
+    call var_list%append_real (var_str ("gaussian_spread1"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Parameter that sets the energy spread ' // &
+          '($\sigma$ value) of the first beam for a Gaussian spectrum.  ' // &
+          '(cf. \ttt{gaussian})'))
+     call var_list%append_real (var_str ("gaussian_spread2"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Ditto, for the second beam.'))
+    call var_list%append_string (var_str ("$beam_events_file"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to set the ' // &
+          "name of the external file from which a beamstrahlung's spectrum " // &
+          'for lepton colliders as pairs of energy fractions is read in. ' // &
+          '(cf. also \ttt{beam\_events}, \ttt{?beam\_events\_warn\_eof})'))
+    call var_list%append_log (var_str ("?beam_events_warn_eof"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to ' // &
+          'issue a warning when in a simulation the end of an external ' // &
+          "file for beamstrahlung's spectra for lepton colliders are reached, " // &
+          'and energy fractions from the beginning of the file are reused. ' // &
+          '(cf. also \ttt{beam\_events}, \ttt{\$beam\_events\_file})'))
+    call var_list%append_log (var_str ("?energy_scan_normalize"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Normalization flag for the energy scan ' // &
+          'structure function: if set the total cross section is normalized ' // &
+          'to unity. (cf. also \ttt{energy\_scan})'))
+    call var_list%append_string (var_str ("$negative_sf"), var_str ("default"), &
+          intrinsic=.true., &
+          description=var_str ('String variable to set the behavior to either ' // &
+          'keep negative structure function/PDF values or set them to zero. ' // &
+          'The default (\ttt{"default"}) takes the first option for NLO and the ' // &
+          'second for LO processes. Explicit behavior can be set with ' // &
+          '\ttt{"positive"} or \ttt{"negative"}.'))
+  end subroutine var_list_set_beams_defaults
+
+  module subroutine var_list_set_core_defaults (var_list, seed)
+    class(var_list_t), intent(inout) :: var_list
+    integer, intent(in) :: seed
+    logical, target, save :: known = .true.     !!! ??????
+    real(default), parameter :: real_specimen = 1.
+    call var_list_append_log_ptr &
+         (var_list, var_str ("?logging"), logging, known, &
+         intrinsic=.true., &
+         description=var_str ('This logical -- when set to \ttt{false} ' // &
+         '-- suppresses writing out a logfile (default: \ttt{whizard.log}) ' // &
+         'for the whole \whizard\ run, or when \whizard\ is run with the ' // &
+         '\ttt{--no-logging} option, to suppress parts of the logging ' // &
+         'when setting it to \ttt{true} again at a later part of the ' // &
+         '\sindarin\ input file. Mainly for debugging purposes.  ' // &
+         '(cf. also \ttt{?openmp\_logging}, \ttt{?mpi\_logging})'))
+    call var_list%append_string (var_str ("$job_id"), &
+         intrinsic=.true., &
+         description=var_str ('Arbitrary string that can be used for ' // &
+         'creating unique names.  The variable is initialized with the ' // &
+         'value of the \ttt{job\_id} option on startup. (cf. also ' // &
+         '\ttt{\$compile\_workspace}, \ttt{\$run\_id})'))
+    call var_list%append_string (var_str ("$compile_workspace"), &
+         intrinsic=.true., &
+         description=var_str ('If set, create process source code ' // &
+         'and process-driver library code in a subdirectory with this ' // &
+         'name.  If non-existent, the directory will be created. (cf. ' // &
+         'also \ttt{\$job\_id}, \ttt{\$run\_id}, \ttt{\$integrate\_workspace})'))
+    call var_list%append_int (var_str ("seed"), seed, &
+          intrinsic=.true., &
+          description=var_str ('Integer variable \ttt{seed = {\em <num>}} ' // &
+          'that allows to set a specific random seed \ttt{num}. If not ' // &
+          'set, \whizard\ takes the time from the system clock to determine ' // &
+          'the random seed.'))
+    call var_list%append_string (var_str ("$model_name"), &
+          intrinsic=.true., &
+          description=var_str ('This variable makes the locally used physics ' // &
+          'model available as a string, e.g. as \ttt{show (\$model\_name)}. ' // &
+          'However, the user is not able to change the current model by ' // &
+          'setting this variable to a different string. (cf. also \ttt{model}, ' // &
+          '\ttt{\$library\_name}, \ttt{printf}, \ttt{show})'))
+    call var_list%append_int (var_str ("process_num_id"), &
+         intrinsic=.true., &
+         description=var_str ('Using the integer \ttt{process\_num\_id ' // &
+         '= {\em <int\_var>}} one can set a numerical identifier for processes ' // &
+         'within a process library. This can be set either just before ' // &
+         'the corresponding \ttt{process} definition or as an optional ' // &
+         'local argument of the latter. (cf. also \ttt{process}, ' // &
+         '\ttt{?proc\_as\_run\_id}, \ttt{lcio\_run\_id})'))
+    call var_list%append_log (var_str ("?proc_as_run_id"), .true., &
+         intrinsic=.true., &
+         description=var_str ('Normally, for LCIO the process ID (cf. ' // &
+         '\ttt{process\_num\_id}) is used as run ID, unless this flag is ' // &
+         'set to \ttt{false}, cf. also \ttt{process}, \ttt{lcio\_run\_id}.'))
+    call var_list%append_int (var_str ("lcio_run_id"), 0, &
+         intrinsic=.true., &
+         description=var_str ('Allows to set an integer run ID for the LCIO ' // &
+         'event format. Normally, the process ID is taken as run ID, unless ' // &
+         'the flag (cf.) \ttt{?proc\_as\_run\_id} is set to \ttt{false}, ' // &
+         'cf. also \ttt{process}.'))
+    call var_list%append_string (var_str ("$method"), var_str ("omega"), &
+         intrinsic=.true., &
+         description=var_str ('This string variable specifies the method ' // &
+         'for the matrix elements to be used in the evaluation. The default ' // &
+         "is the intrinsic \oMega\ matrix element generator " // &
+         '(\ttt{"omega"}), other options are: \ttt{"ovm"}, \ttt{"unit\_test"}, ' // &
+         '\ttt{"template\_unity"}, \ttt{"threshold"}. For processes defined ' // &
+         '\ttt{"template"}, with \ttt{nlo\_calculation = ...}, please refer to ' // &
+         '\ttt{\$born\_me\_method}, \ttt{\$real\_tree\_me\_method}, ' // &
+         '\ttt{\$loop\_me\_method} and \ttt{\$correlation\_me\_method}.'))
+    call var_list%append_log (var_str ("?report_progress"), .true., &
+         intrinsic=.true., &
+         description=var_str ('Flag for the \oMega\ matrix element generator ' // &
+         'whether to print out status messages about progress during ' // &
+         'matrix element generation. (cf. also \ttt{\$method}, \ttt{\$omega\_flags})'))
+    call var_list%append_log (var_str ("?me_verbose"), .false., &
+         description=var_str ("Flag determining whether " // &
+         "the makefile command for generating and compiling the \oMega\ matrix " // &
+         "element code is silent or verbose. Default is silent."))
+    call var_list%append_string (var_str ("$restrictions"), var_str (""), &
+         intrinsic=.true., &
+         description=var_str ('This is an optional argument for process ' // &
+         'definitions for the matrix element method \ttt{"omega"}. Using ' // &
+         'the following construction, it defines a string variable, \ttt{process ' // &
+         '\newline {\em <process\_name>} = {\em <particle1>}, {\em <particle2>} ' // &
+         '=> {\em <particle3>}, {\em <particle4>}, ... \{ \$restrictions ' // &
+         '= "{\em <restriction\_def>}" \}}. The string argument \ttt{{\em ' // &
+         '<restriction\_def>}} is directly transferred during the code ' // &
+         'generation to the ME generator \oMega. It has to be of the form ' // &
+         '\ttt{n1 + n2 + ...  \url{~} {\em <particle (list)>}}, where ' // &
+         '\ttt{n1} and so on are the numbers of the particles above in ' // &
+         'the process definition. The tilde specifies a certain intermediate ' // &
+         'state to be equal to the particle(s) in \ttt{particle (list)}. ' // &
+         'An example is \ttt{process eemm\_z =     e1, E1  =>  e2, E2 ' // &
+         '\{ \$restrictions = "1+2 \url{~} Z" \} } restricts the code ' // &
+         'to be generated for the process $e^- e^+ \to \mu^- \mu^+$ to ' // &
+         'the $s$-channel $Z$-boson exchange. For more details see Sec.~\ref{sec:omega_me} ' // &
+         '(cf. also \ttt{process})'))
+    call var_list%append_log (var_str ("?omega_write_phs_output"), .false., &
+         intrinsic=.true., &
+         description=var_str ('This flag decides whether a the phase-space ' // &
+         'output is produced by the \oMega\ matrix element generator. This ' // &
+         'output is written to file(s) and contains the Feynman diagrams ' // &
+         'which belong to the process(es) under consideration. The file is ' // &
+         'mandatory whenever the variable \ttt{\$phs\_method} has the value ' // &
+         '\ttt{fast\_wood}, i.e. if the phase-space file is provided by ' // &
+         'cascades2.'))
+    call var_list%append_string (var_str ("$omega_flags"), var_str (""), &
+         intrinsic=.true., &
+         description=var_str ('String variable that allows to pass flags ' // &
+         'to the \oMega\ matrix element generator. Normally, \whizard\ ' // &
+         'takes care of all flags automatically. Note that for restrictions ' // &
+         'of intermediate states, there is a special string variable: ' // &
+         '(cf. $\to$) \ttt{\$restrictions}.'))
+    call var_list%append_log (var_str ("?read_color_factors"), .true., &
+          intrinsic=.true., &
+          description=var_str ('This flag decides whether to read QCD ' // &
+          'color factors from the matrix element provided by each method, ' // &
+          'or to try and calculate the color factors in \whizard\ internally.'))
+    call var_list%append_log (var_str ("?slha_read_input"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag which decides whether \whizard\ reads ' // &
+          'in the SM and parameter information from the \ttt{SMINPUTS} ' // &
+          'and \ttt{MINPAR} common blocks of the SUSY Les Houches Accord ' // &
+          'files. (cf. also \ttt{read\_slha}, \ttt{write\_slha}, \ttt{?slha\_read\_spectrum}, ' // &
+          '\ttt{?slha\_read\_decays})'))
+    call var_list%append_log (var_str ("?slha_read_spectrum"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag which decides whether \whizard\ reads ' // &
+          'in the whole spectrum and mixing angle information from the ' // &
+          'common blocks of the SUSY Les Houches Accord files. (cf. also ' // &
+          '\ttt{read\_slha}, \ttt{write\_slha}, \ttt{?slha\_read\_decays}, ' // &
+          '\ttt{?slha\_read\_input})'))
+    call var_list%append_log (var_str ("?slha_read_decays"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag which decides whether \whizard\ reads ' // &
+          'in the widths and branching ratios from the \ttt{DCINFO} common ' // &
+          'block of the SUSY Les Houches Accord files. (cf. also \ttt{read\_slha}, ' // &
+          '\ttt{write\_slha}, \ttt{?slha\_read\_spectrum}, \ttt{?slha\_read\_input})'))
+    call var_list%append_string (var_str ("$library_name"), &
+          intrinsic=.true., &
+          description=var_str ('Similar to \ttt{\$model\_name}, this string ' // &
+          'variable is used solely to access the name of the active process ' // &
+          'library, e.g. in \ttt{printf} statements. (cf. \ttt{compile}, ' // &
+          '\ttt{library}, \ttt{printf}, \ttt{show}, \ttt{\$model\_name})'))
+    call var_list%append_log (var_str ("?alphas_is_fixed"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to use a non-running ' // &
+          'QCD $\alpha_s$. Note that this has to be set explicitly to $\ttt{false}$ ' // &
+          'if the user wants to use one of the running $\alpha_s$ options. ' // &
+          '(cf. also \ttt{alphas\_order}, \ttt{?alphas\_from\_lhapdf}, ' // &
+          '\ttt{?alphas\_from\_pdf\_builtin}, \ttt{alphas\_nf}, \ttt{?alphas\_from\_mz}, ' // &
+          '\newline \ttt{?alphas\_from\_lambda\_qcd}, \ttt{lambda\_qcd})'))
+    call var_list%append_log (var_str ("?alpha_is_fixed"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to use a non-running ' // &
+          'QED $\alpha$. Note that this has to be set explicitly to $\ttt{false}$ ' // &
+          'if the user wants to use one of the running $\alpha$ options. ' // &
+          '(cf. also \ttt{alpha\_order}, \ttt{alpha\_nf}, \ttt{alpha\_lep}, ' // &
+          '\ttt{?alphas\_from\_me}'))
+    call var_list%append_log (var_str ("?alphas_from_lhapdf"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to use a running ' // &
+          '$\alpha_s$ from the \lhapdf\ library (which has to be correctly ' // &
+          'linked). Note that \ttt{?alphas\_is\_fixed} has to be set ' // &
+          'explicitly to $\ttt{false}$. (cf. also \ttt{alphas\_order}, ' // &
+          '\ttt{?alphas\_is\_fixed}, \ttt{?alphas\_from\_pdf\_builtin}, ' // &
+          '\ttt{alphas\_nf}, \ttt{?alphas\_from\_mz}, \ttt{?alphas\_from\_lambda\_qcd}, ' // &
+          '\ttt{lambda\_qcd})'))
+    call var_list%append_log (var_str ("?alphas_from_pdf_builtin"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to use a running ' // &
+          '$\alpha_s$ from the internal PDFs. Note that in that case \ttt{?alphas\_is\_fixed} ' // &
+          'has to be set explicitly to $\ttt{false}$. (cf. also ' // &
+          '\ttt{alphas\_order}, \ttt{?alphas\_is\_fixed}, \ttt{?alphas\_from\_lhapdf}, ' // &
+          '\ttt{alphas\_nf}, \ttt{?alphas\_from\_mz}, \newline \ttt{?alphas\_from\_lambda\_qcd}, ' // &
+          '\ttt{lambda\_qcd})'))
+    call var_list%append_log (var_str ("?alpha_evolve_analytic"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to use analytic running ' // &
+          'formulae for $\alpha$ instead of a numeric Runge-Kutta. ' // &
+          '(cf. also \ttt{alpha\_order}, \ttt{?alpha\_is\_fixed}, ' // &
+          '\ttt{alpha\_nf}, \ttt{alpha\_nlep}, \ttt{?alpha\_from\_me}) '))
+    call var_list%append_int (var_str ("alphas_order"), 0, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that sets the order ' // &
+          'of the internal evolution for running $\alpha_s$ in \whizard: ' // &
+          'the default, \ttt{0}, is LO running, \ttt{1} is NLO, \ttt{2} ' // &
+          'is NNLO. (cf. also \ttt{alphas\_is\_fixed}, \ttt{?alphas\_from\_lhapdf}, ' // &
+          '\ttt{?alphas\_from\_pdf\_builtin}, \ttt{alphas\_nf}, \ttt{?alphas\_from\_mz}, ' // &
+          '\newline \ttt{?alphas\_from\_lambda\_qcd}, \ttt{lambda\_qcd})'))
+    call var_list%append_int (var_str ("alpha_order"), 0, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that sets the order ' // &
+          'of the internal evolution for running $\alpha$ in \whizard: ' // &
+          'the default, \ttt{0}, is LO running, \ttt{1} is NLO. ' // &
+          '(cf. also \ttt{alpha\_is\_fixed}, \ttt{alpha\_nf}, \ttt{alphas\_lep}, ' // &
+          '\ttt{?alpha\_from\_me})'))
+    call var_list%append_int (var_str ("alphas_nf"), 5, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that sets the number ' // &
+          'of active quark flavors for the internal evolution for running ' // &
+          '$\alpha_s$ in \whizard. (cf. also ' // &
+          '\ttt{alphas\_is\_fixed}, \ttt{?alphas\_from\_lhapdf}, \ttt{?alphas\_from\_pdf\_builtin}, ' // &
+          '\ttt{alphas\_order}, \ttt{?alphas\_from\_mz}, \newline ' // &
+          '\ttt{?alphas\_from\_lambda\_qcd}, \ttt{lambda\_qcd})'))
+    call var_list%append_int (var_str ("alpha_nf"), -1, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that sets the number ' // &
+          'of active quark flavors for the internal evolution for running ' // &
+          '$\alpha$ in \whizard. The default, \ttt{-1}, keeps it equal to \ttt{alphas\_nf} ' // &
+          '\ttt{alpha\_is\_fixed}, \ttt{alphas\_order}, \ttt{?alpha\_from\_me}, ' // &
+          '\ttt{?alpha\_evolve\_analytic}'))
+    call var_list%append_int (var_str ("alpha_nlep"), 1, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that sets the number ' // &
+          'of active leptons in the running of $\alpha$ in \whizard. The deffault is' // &
+          'one, with only the electron considered massless (cf. also ' // &
+          '\ttt{alpha\_is\_fixed}, \ttt{alpha\_nf}, ' // &
+          '\ttt{alpha\_order}, \ttt{?alpha\_from\_me}, \ttt{?alpha\_evolve\_analytic})'))
+    call var_list%append_log (var_str ("?alphas_from_mz"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to use its internal ' // &
+          'running $\alpha_s$ from $\alpha_s(M_Z)$. Note that in that ' // &
+          'case \ttt{?alphas\_is\_fixed} has to be set explicitly to ' // &
+          '$\ttt{false}$. (cf. also \ttt{alphas\_order}, \ttt{?alphas\_is\_fixed}, ' // &
+          '\ttt{?alphas\_from\_lhapdf}, \ttt{alphas\_nf}, \ttt{?alphas\_from\_pdf\_builtin}, ' // &
+          '\newline \ttt{?alphas\_from\_lambda\_qcd}, \ttt{lambda\_qcd})'))
+    call var_list%append_log (var_str ("?alphas_from_lambda_qcd"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to use its internal ' // &
+          'running $\alpha_s$ from $\alpha_s(\Lambda_{QCD})$. Note that ' // &
+          'in that case \ttt{?alphas\_is\_fixed} has  to be set explicitly ' // &
+          'to $\ttt{false}$. (cf. also \ttt{alphas\_order}, \ttt{?alphas\_is\_fixed}, ' // &
+          '\ttt{?alphas\_from\_lhapdf}, \ttt{alphas\_nf}, \ttt{?alphas\_from\_pdf\_builtin}, ' // &
+          '\newline \ttt{?alphas\_from\_mz}, \ttt{lambda\_qcd})'))
+    call var_list%append_real (var_str ("lambda_qcd"), 200.e-3_default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that sets the value for ' // &
+          '$\Lambda_{QCD}$ used in the internal evolution for running ' // &
+          '$\alpha_s$ in \whizard. (cf. also \ttt{alphas\_is\_fixed}, ' // &
+          '\ttt{?alphas\_from\_lhapdf}, \ttt{alphas\_nf}, ' // &
+          '\newline \ttt{?alphas\_from\_pdf\_builtin}, ' // &
+          '\ttt{?alphas\_from\_mz}, \ttt{?alphas\_from\_lambda\_qcd}, ' // &
+          '\ttt{alphas\_order})'))
+    call var_list%append_log (var_str ("?fatal_beam_decay"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Logical variable that let the user decide ' // &
+          'whether the possibility of a beam decay is treated as a fatal ' // &
+          'error or only as a warning. An example is a process $b t \to ' // &
+          'X$, where the bottom quark as an inital state particle appears ' // &
+          'as a possible decay product of the second incoming particle, ' // &
+          'the top quark. This might trigger inconsistencies or instabilities ' // &
+          'in the phase space set-up.'))
+    call var_list%append_log (var_str ("?helicity_selection_active"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether \whizard\ uses ' // &
+          'a numerical selection rule for vanishing helicities: if active, ' // &
+          'then, if a certain helicity combination yields an absolute ' // &
+          '(\oMega) matrix element smaller than a certain threshold ($\to$ ' // &
+          '\ttt{helicity\_selection\_threshold}) more often than a certain ' // &
+          'cutoff ($\to$ \ttt{helicity\_selection\_cutoff}), it will be dropped.'))
+    call var_list%append_real (var_str ("helicity_selection_threshold"), &
+          1E10_default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that gives the threshold ' // &
+          'for the absolute value of a certain helicity combination of ' // &
+          'an (\oMega) amplitude. If a certain number ($\to$ ' // &
+          '\ttt{helicity\_selection\_cutoff}) of calls stays below this ' // &
+          'threshold, that combination will be dropped from then on. (cf. ' // &
+          'also \ttt{?helicity\_selection\_active})'))
+    call var_list%append_int (var_str ("helicity_selection_cutoff"), 1000, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that gives the number ' // &
+          "a certain helicity combination of an (\oMega) amplitude has " // &
+          'to be below a certain threshold ($\to$ \ttt{helicity\_selection\_threshold}) ' // &
+          'in order to be dropped from then on. (cf. also \ttt{?helicity\_selection\_active})'))
+    call var_list%append_string (var_str ("$rng_method"), var_str ("tao"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to set the ' // &
+          'method for the random number generation. Default is Donald ' // &
+          "Knuth' RNG method \ttt{TAO}."))
+    call var_list%append_log (var_str ("?vis_diags"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Logical variable that allows to give out ' // &
+          "a Postscript or PDF file for the Feynman diagrams for a \oMega\ " // &
+          'process.  (cf. \ttt{?vis\_diags\_color}).'))
+    call var_list%append_log (var_str ("?vis_diags_color"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Same as \ttt{?vis\_diags}, but switches ' // &
+          'on color flow instead of Feynman diagram generation. (cf. \ttt{?vis\_diags}).'))
+    call var_list%append_log (var_str ("?check_event_file"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Setting this to false turns off all sanity ' // &
+          'checks when reading a raw event file with previously generated ' // &
+          'events.  Use this at your own risk; the program may return ' // &
+          'wrong results or crash if data do not match. (cf. also \ttt{?check\_grid\_file}, ' // &
+          '\ttt{?check\_phs\_file})'))
+    call var_list%append_string (var_str ("$event_file_version"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to set the ' // &
+          'format version of the \whizard\ internal binary event format.'))
+    call var_list%append_int (var_str ("n_events"), 0, &
+          intrinsic=.true., &
+          description=var_str ('This specifier \ttt{n\_events = {\em <num>}} ' // &
+          'sets the number of events for the event generation of the processes ' // &
+          'in the \sindarin\ input files. Note that WHIZARD itself chooses ' // &
+          'the number from the \ttt{n\_events} or from the \ttt{luminosity} ' // &
+          'specifier, whichever would give the larger number of events. ' // &
+          'As this depends on the cross section under consideration, it ' // &
+          'might be different for different processes in the process list.  ' // &
+          '(cf. \ttt{luminosity}, \ttt{\$sample}, \ttt{sample\_format}, ' // &
+          '\ttt{?unweighted}, \ttt{event\_index\_offset})'))
+    call var_list%append_int (var_str ("event_index_offset"), 0, &
+          intrinsic=.true., &
+          description=var_str ('The value ' // &
+          '\ttt{event\_index\_offset = {\em <num>}} ' // &
+          'initializes the event counter for a subsequent ' // &
+          'event sample.  By default (value 0), the first event ' // &
+          'gets index value 1, incrementing by one for each generated event ' // &
+          'within a sample.  The event counter is initialized again ' // &
+          'for each new sample (i.e., \ttt{integrate} command). ' // &
+          'If events are read from file, and the ' // &
+          'event file format supports event numbering, the event numbers ' // &
+          'will be taken from file instead, and the value of ' // &
+          '\ttt{event\_index\_offset} has no effect. ' // &
+          '(cf. \ttt{luminosity}, \ttt{\$sample}, \ttt{sample\_format}, ' // &
+          '\ttt{?unweighted}, \ttt{n\_events})'))
+    call var_list%append_log (var_str ("?unweighted"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that distinguishes between unweighted ' // &
+          'and weighted event generation. (cf. also \ttt{simulate}, \ttt{n\_events}, ' // &
+          '\ttt{luminosity}, \ttt{event\_index\_offset})'))
+    call var_list%append_real (var_str ("safety_factor"), 1._default, &
+          intrinsic=.true., &
+          description=var_str ('This real variable \ttt{safety\_factor ' // &
+          '= {\em <num>}} reduces the acceptance probability for unweighting.  ' // &
+          'If greater than one, excess events become less likely, but ' // &
+          'the reweighting efficiency also drops. (cf. \ttt{simulate}, \ttt{?unweighted})'))
+    call var_list%append_log (var_str ("?negative_weights"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that tells \whizard\ to allow negative ' // &
+          'weights in integration and simulation. (cf. also \ttt{simulate}, ' // &
+          '\ttt{?unweighted})'))
+    call var_list%append_log (var_str ("?resonance_history"), .false., &
+          intrinsic=.true., &
+          description=var_str ( &
+          'The logical variable \texttt{?resonance\_history ' // &
+          '= true/false} specifies whether during a simulation pass, ' // &
+          'the event generator should try to reconstruct intermediate ' // &
+          'resonances.  If activated, appropriate resonant subprocess ' // &
+          'matrix element code will be automatically generated. '))
+    call var_list%append_real (var_str ("resonance_on_shell_limit"), &
+          4._default, &
+          intrinsic=.true., &
+          description=var_str ( &
+          'The real variable \texttt{resonance\_on\_shell\_limit ' // &
+          '= {\em <num>}} specifies the maximum relative distance from a ' // &
+          'resonance peak, such that the kinematical configuration ' // &
+          'can still be considered on-shell.  This is relevant only if ' // &
+          '\texttt{?resonance\_history = true}.'))
+    call var_list%append_real (var_str ("resonance_on_shell_turnoff"), &
+          0._default, &
+          intrinsic=.true., &
+          description=var_str ( &
+          'The real variable \texttt{resonance\_on\_shell\_turnoff ' // &
+          '= {\em <num>}}, if positive, ' // &
+          'controls the smooth transition from resonance-like ' // &
+          'to background-like events.  The relative strength of a ' // &
+          'resonance is reduced by a Gaussian with width given by this ' // &
+          'variable.  In any case, events are treated as background-like ' // &
+          'when the off-shellness is greater than ' // &
+          '\texttt{resonance\_on\_shell\_limit}.  All of this applies ' // &
+          'only if \texttt{?resonance\_history = true}.'))
+    call var_list%append_real (var_str ("resonance_background_factor"), &
+          1._default, &
+          intrinsic=.true., &
+          description=var_str ( &
+          'The real variable \texttt{resonance\_background\_factor} ' // &
+          'controls resonance insertion if a resonance ' // &
+          'history applies to a particular event.  In determining '// &
+          'whether event kinematics qualifies as resonant or non-resonant, ' //&
+          'the non-resonant probability is multiplied by this factor ' // &
+          'Setting the factor to zero removes the background ' // &
+          'configuration as long as the kinematics qualifies as on-shell ' // &
+          'as qualified by \texttt{resonance\_on\_shell\_limit}.'))
+     call var_list%append_log (var_str ("?keep_beams"), .false., &
+          intrinsic=.true., &
+          description=var_str ('The logical variable \ttt{?keep\_beams ' // &
+          '= true/false} specifies whether beam particles and beam remnants ' // &
+          'are included when writing event files.  For example, in order ' // &
+          'to read Les Houches accord event files into \pythia, no beam ' // &
+          'particles are allowed.'))
+    call var_list%append_log (var_str ("?keep_remnants"), .true., &
+          intrinsic=.true., &
+          description=var_str ('The logical variable \ttt{?keep\_beams ' // &
+          '= true/false} is respected only if \ttt{?keep\_beams} is set.  ' // &
+          'If \ttt{true}, beam remnants are tagged as outgoing particles ' // &
+          'if they have been neither showered nor hadronized, i.e., have ' // &
+          'no children.  If \ttt{false}, beam remnants are also included ' // &
+          'in the event record, but tagged as unphysical.  Note that for ' // &
+          'ISR and/or beamstrahlung spectra, the radiated photons are ' // &
+          'considered as beam remnants.'))
+    call var_list%append_log (var_str ("?rescan_force"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that allows to bypass essential ' // &
+          'checks on the particle set when reading event/rescanning files ' // &
+          'into \whizard. (cf. \ttt{rescan}, \ttt{?update\_event}, \ttt{?update\_sqme}, ' // &
+          '\newline \ttt{?update\_weight})'))
+    call var_list%append_log (var_str ("?recover_beams"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether the beam particles ' // &
+          'should be reconstructed when reading event/rescanning files ' // &
+          'into \whizard. (cf. \ttt{rescan}, \ttt{?update\_event}, \ttt{?update\_sqme}, ' // &
+          '\newline \ttt{?update\_weight})'))
+    call var_list%append_log (var_str ("?update_event"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether the events in ' // &
+          'an event file should be rebuilt from the hard process when ' // &
+          'reading event/rescanning files into \whizard. (cf. \ttt{rescan}, ' // &
+          '\ttt{?recover\_beams}, \ttt{?update\_sqme}, \ttt{?update\_weight})'))
+    call var_list%append_log (var_str ("?update_sqme"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether the squared ' // &
+          'matrix element in an event file should be updated/recalculated ' // &
+          'when reading event/rescanning files into \whizard. (cf. \ttt{rescan}, ' // &
+          '\newline \ttt{?recover\_beams}, \ttt{?update\_event}, \ttt{?update\_weight})'))
+    call var_list%append_log (var_str ("?update_weight"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether the weights ' // &
+          'in an event file should be updated/recalculated when reading ' // &
+          'event/rescanning files into \whizard. (cf. \ttt{rescan}, \ttt{?recover\_beams}, ' // &
+          '\newline \ttt{?update\_event}, \ttt{?update\_sqme})'))
+    call var_list%append_log (var_str ("?use_alphas_from_file"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether the current ' // &
+          '$\alpha_s$ definition should be used when recalculating matrix ' // &
+          'elements for events read from file, or the value that is stored ' // &
+          'in the file for that event. (cf. \ttt{rescan}, \ttt{?update\_sqme}, ' // &
+          '\ttt{?use\_scale\_from\_file})'))
+    call var_list%append_log (var_str ("?use_scale_from_file"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether the current ' // &
+          'energy-scale expression should be used when recalculating matrix ' // &
+          'elements for events read from file, or the value that is stored ' // &
+          'in the file for that event. (cf. \ttt{rescan}, \ttt{?update\_sqme}, ' // &
+          '\ttt{?use\_alphas\_from\_file})'))
+    call var_list%append_log (var_str ("?allow_decays"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Master flag to switch on cascade decays ' // &
+          'for final state particles as an event transform. As a default, ' // &
+          'it is switched on. (cf. also \ttt{?auto\_decays}, ' // &
+          '\ttt{auto\_decays\_multiplicity}, \ttt{?auto\_decays\_radiative}, ' // &
+          '\ttt{?decay\_rest\_frame})'))
+    call var_list%append_log (var_str ("?auto_decays"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag, particularly as optional argument of the ($\to$) ' // &
+          '\ttt{unstable} command, that tells \whizard\ to automatically ' // &
+          'determine the decays of that particle up to the final state ' // &
+          'multplicity ($\to$) \ttt{auto\_decays\_multiplicity}. Depending ' // &
+          'on the flag ($\to$) \ttt{?auto\_decays\_radiative}, radiative ' // &
+          'decays will be taken into account or not. (cf. also \ttt{unstable}, ' // &
+          '\ttt{?isotropic\_decay}, \ttt{?diagonal\_decay})'))
+    call var_list%append_int (var_str ("auto_decays_multiplicity"), 2, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter, that sets -- ' // &
+          'for the ($\to$) \ttt{?auto\_decays} option to let \whizard\ ' // &
+          'automatically determine the decays of a particle set as ($\to$) ' // &
+          '\ttt{unstable} -- the maximal final state multiplicity that ' // &
+          'is taken into account. The default is \ttt{2}. The flag \ttt{?auto\_decays\_radiative} ' // &
+          'decides whether radiative decays are taken into account. (cf.\ ' // &
+          'also \ttt{unstable}, \ttt{?auto\_decays})'))
+    call var_list%append_log (var_str ("?auto_decays_radiative"), .false., &
+          intrinsic=.true., &
+          description=var_str ("If \whizard's automatic detection " // &
+          'of decay channels are switched on ($\to$ \ttt{?auto\_decays} ' // &
+          'for the ($\to$) \ttt{unstable} command, this flags decides ' // &
+          'whether radiative decays (e.g. containing additional photon(s)/gluon(s)) ' // &
+          'are taken into account or not. (cf. also \ttt{unstable}, \ttt{auto\_decays\_multiplicity})'))
+    call var_list%append_log (var_str ("?decay_rest_frame"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that allows to force a particle decay ' // &
+          'to be simulated in its rest frame.  This simplifies the calculation ' // &
+          'for decays as stand-alone processes, but makes the process ' // &
+          'unsuitable for use in a decay chain.'))
+    call var_list%append_log (var_str ("?isotropic_decay"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that -- in case of using factorized ' // &
+          'production and decays using the ($\to$) \ttt{unstable} command ' // &
+          '-- tells \whizard\ to switch off spin correlations completely ' // &
+          '(isotropic decay). (cf. also \ttt{unstable}, \ttt{?auto\_decays}, ' // &
+          '\ttt{decay\_helicity}, \ttt{?diagonal\_decay})'))
+    call var_list%append_log (var_str ("?diagonal_decay"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that -- in case of using factorized ' // &
+          'production and decays using the ($\to$) \ttt{unstable} command ' // &
+          '-- tells \whizard\ instead of full spin correlations to take ' // &
+          'only the diagonal entries in the spin-density matrix (i.e. ' // &
+          'classical spin correlations). (cf. also \ttt{unstable}, \ttt{?auto\_decays}, ' // &
+          '\ttt{decay\_helicity}, \ttt{?isotropic\_decay})'))
+    call var_list%append_int (var_str ("decay_helicity"), &
+          intrinsic=.true., &
+          description=var_str ('If this parameter is given an integer ' // &
+          'value, any particle decay triggered by a subsequent \ttt{unstable} ' // &
+          'declaration will receive a projection on the given helicity ' // &
+          'state for the unstable particle.  (cf. also \ttt{unstable}, ' // &
+          '\ttt{?isotropic\_decay}, \ttt{?diagonal\_decay}.  The latter ' // &
+          'parameters, if true, take precdence over any \ttt{?decay\_helicity} setting.)'))
+    call var_list%append_log (var_str ("?polarized_events"), .false., &
+            intrinsic=.true., &
+            description=var_str ('Flag that allows to select certain helicity ' // &
+            'combinations in final state particles in the event files, ' // &
+            'and perform analysis on polarized event samples. (cf. also ' // &
+            '\ttt{simulate}, \ttt{polarized}, \ttt{unpolarized})'))
+    call var_list%append_string (var_str ("$polarization_mode"), &
+         var_str ("helicity"), &
+         intrinsic=.true., &
+         description=var_str ('String variable that specifies the mode in ' // &
+         'which the polarization of particles is handled when polarized events ' // &
+         'are written out. Possible options are \ttt{"ignore"}, \ttt{"helicity"}, ' // &
+         '\ttt{"factorized"}, and \ttt{"correlated"}. For more details cf. the ' // &
+         'detailed section.'))
+    call var_list%append_log (var_str ("?colorize_subevt"), .false., &
+            intrinsic=.true., &
+            description=var_str ('Flag that enables color-index tracking ' // &
+            'in the subevent (\ttt{subevt}) objects that are used for ' // &
+            'internal event analysis.'))
+    call var_list%append_real (var_str ("tolerance"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Real variable that defines the absolute ' // &
+          'tolerance with which the (logical) function \ttt{expect} accepts ' // &
+          'equality or inequality: \ttt{tolerance = {\em <num>}}. This ' // &
+          'can e.g. be used for cross-section tests and backwards compatibility ' // &
+          'checks.  (cf. also \ttt{expect})'))
+    call var_list%append_int (var_str ("checkpoint"), 0, &
+         intrinsic = .true., &
+         description=var_str ('Setting this integer variable to a positive ' // &
+         'integer $n$ instructs simulate to print out a progress summary ' // &
+         'every $n$ events.'))
+    call var_list%append_int (var_str ("event_callback_interval"), 0, &
+         intrinsic = .true., &
+         description=var_str ('Setting this integer variable to a positive ' // &
+         'integer $n$ instructs simulate to print out a progress summary ' // &
+         'every $n$ events.'))
+    call var_list%append_log (var_str ("?pacify"), .false., &
+         intrinsic=.true., &
+         description=var_str ('Flag that allows to suppress numerical ' // &
+         'noise and give screen and log file output with a lower number ' // &
+         'of significant digits. Mainly for debugging purposes. (cf. also ' // &
+         '\ttt{?sample\_pacify})'))
+    call var_list%append_string (var_str ("$out_file"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('This character variable allows to specify ' // &
+          'the name of the data file to which the histogram and plot data ' // &
+          'are written (cf. also \ttt{write\_analysis}, \ttt{open\_out}, ' // &
+          '\ttt{close\_out})'))
+    call var_list%append_log (var_str ("?out_advance"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that sets advancing in the \ttt{printf} ' // &
+          'output commands, i.e. continuous printing with no line feed ' // &
+          'etc. (cf. also \ttt{printf})'))
+    call var_list%append_int (var_str ("real_range"), &
+         range (real_specimen), intrinsic = .true., locked = .true., &
+         description=var_str ('This integer gives the decimal exponent ' // &
+         'range of the numeric model for the real float type in use. It cannot ' // &
+         'be set by the user. (cf. also \ttt{real\_precision}, ' // &
+         '\ttt{real\_epsilon}, \ttt{real\_tiny}).'))
+    call var_list%append_int (var_str ("real_precision"), &
+         precision (real_specimen), intrinsic = .true., locked = .true., &
+         description=var_str ('This integer gives the precision of ' // &
+         'the numeric model for the real float type in use. It cannot ' // &
+         'be set by the user. (cf. also \ttt{real\_range}, ' // &
+         '\ttt{real\_epsilon}, \ttt{real\_tiny}).'))
+    call var_list%append_real (var_str ("real_epsilon"), &
+         epsilon (real_specimen), intrinsic = .true., locked = .true., &
+         description=var_str ('This gives the smallest number $E$ ' // &
+         'of the same kind as the float type for which $1 + E > 1$. ' // &
+         'It cannot be set by the user. (cf. also \ttt{real\_range}, ' // &
+         '\ttt{real\_tiny}, \ttt{real\_precision}).'))
+    call var_list%append_real (var_str ("real_tiny"), &
+         tiny (real_specimen), intrinsic = .true., locked = .true., &
+         description=var_str ('This gives the smallest positive (non-zero) ' // &
+         'number in the numeric model for the real float type in use. ' // &
+         'It cannot be set by the user. (cf. also \ttt{real\_range}, ' // &
+         '\ttt{real\_epsilon}, \ttt{real\_precision}).'))
+  end subroutine var_list_set_core_defaults
+
+  module subroutine var_list_set_integration_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_string (var_str ("$integration_method"), var_str ("vamp"), &
+          intrinsic=.true., &
+          description=var_str ('This string variable specifies the method ' // &
+          'for performing the multi-dimensional phase-space integration. ' // &
+          'The default is the \vamp\ algorithm (\ttt{"vamp"}), other options ' // &
+          'are via the numerical midpoint rule (\ttt{"midpoint"}) or an ' // &
+          'alternate \vamptwo\ implementation that is MPI-parallelizable ' // &
+          '(\ttt{"vamp2"}).'))
+    call var_list%append_int (var_str ("threshold_calls"), 10, &
+          intrinsic=.true., &
+          description=var_str ('This integer variable gives a limit for ' // &
+          'the number of calls in a given channel which acts as a lower ' // &
+          'threshold for the channel weight. If the number of calls in ' // &
+          'that channel falls below this threshold, the weight is not ' // &
+          'lowered further but kept at this threshold. (cf. also ' // &
+          '\ttt{channel\_weights\_power})'))
+    call var_list%append_int (var_str ("min_calls_per_channel"), 10, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that modifies the settings ' // &
+          "of the \vamp\ integrator's grid parameters. It sets the minimal " // &
+          'number every channel must be called. If the number of calls ' // &
+          'from the iterations is too small, \whizard\ will automatically ' // &
+          'increase the number of calls. (cf. \ttt{iterations}, \ttt{min\_calls\_per\_bin}, ' // &
+          '\ttt{min\_bins}, \ttt{max\_bins})'))
+    call var_list%append_int (var_str ("min_calls_per_bin"), 10, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that modifies the settings ' // &
+          "of the \vamp\ integrator's grid parameters. It sets the minimal " // &
+          'number every bin in an integration dimension must be called. ' // &
+          'If the number of calls from the iterations is too small, \whizard\ ' // &
+          'will automatically increase the number of calls. (cf. \ttt{iterations}, ' // &
+          '\ttt{min\_calls\_per\_channel}, \ttt{min\_bins}, \ttt{max\_bins})'))
+    call var_list%append_int (var_str ("min_bins"), 3, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that modifies the settings ' // &
+          "of the \vamp\ integrator's grid parameters. It sets the minimal " // &
+          'number of bins per integration dimension. (cf. \ttt{iterations}, ' // &
+          '\ttt{max\_bins}, \ttt{min\_calls\_per\_channel}, \ttt{min\_calls\_per\_bin})'))
+    call var_list%append_int (var_str ("max_bins"), 20, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that modifies the settings ' // &
+          "of the \vamp\ integrator's grid parameters. It sets the maximal " // &
+          'number of bins per integration dimension. (cf. \ttt{iterations}, ' // &
+          '\ttt{min\_bins}, \ttt{min\_calls\_per\_channel}, \ttt{min\_calls\_per\_bin})'))
+    call var_list%append_log (var_str ("?stratified"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that switches between stratified ' // &
+          'and importance sampling for the \vamp\ integration method.'))
+    call var_list%append_log (var_str ("?use_vamp_equivalences"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether equivalence ' // &
+          'relations (symmetries) between different integration channels ' // &
+          'are used by the \vamp\ integrator.'))
+    call var_list%append_log (var_str ("?vamp_verbose"), .false., &
+         intrinsic=.true., &
+         description=var_str ('Flag that sets the chattiness of the \vamp\ ' // &
+         'integrator. If set, not only errors, but also all warnings and ' // &
+         'messages will be written out (not the default). (cf. also \newline ' // &
+         '\ttt{?vamp\_history\_global}, \ttt{?vamp\_history\_global\_verbose}, ' // &
+         '\ttt{?vamp\_history\_channels}, \newline \ttt{?vamp\_history\_channels\_verbose})'))
+    call var_list%append_log (var_str ("?vamp_history_global"), &
+         .true., intrinsic=.true., &
+         description=var_str ('Flag that decides whether the global history ' // &
+         'of the grid adaptation of the \vamp\ integrator are written ' // &
+         'into the process logfiles.  (cf. also \ttt{?vamp\_history\_global\_verbose}, ' // &
+         '\ttt{?vamp\_history\_channels}, \ttt{?vamp\_history\_channels\_verbose}, ' // &
+         '\ttt{?vamp\_verbose})'))
+    call var_list%append_log (var_str ("?vamp_history_global_verbose"), &
+         .false., intrinsic=.true., &
+         description=var_str ('Flag that decides whether the global history ' // &
+         'of the grid adaptation of the \vamp\ integrator are written ' // &
+         'into the process logfiles in an extended version. Only for debugging ' // &
+         'purposes.  (cf. also \ttt{?vamp\_history\_global}, \ttt{?vamp\_history\_channels}, ' // &
+         '\ttt{?vamp\_verbose}, \ttt{?vamp\_history\_channels\_verbose})'))
+    call var_list%append_log (var_str ("?vamp_history_channels"), &
+         .false., intrinsic=.true., &
+         description=var_str ('Flag that decides whether the history of ' // &
+         'the grid adaptation of the \vamp\ integrator for every single ' // &
+         'channel are written into the process logfiles. Only for debugging ' // &
+         'purposes.  (cf. also \ttt{?vamp\_history\_global\_verbose}, ' // &
+         '\ttt{?vamp\_history\_global}, \ttt{?vamp\_verbose}, \newline ' // &
+         '\ttt{?vamp\_history\_channels\_verbose})'))
+    call var_list%append_log (var_str ("?vamp_history_channels_verbose"), &
+         .false., intrinsic=.true., &
+         description=var_str ('Flag that decides whether the history of ' // &
+         'the grid adaptation of the \vamp\ integrator for every single ' // &
+         'channel are written into the process logfiles in an extended ' // &
+         'version. Only for debugging purposes.  (cf. also \ttt{?vamp\_history\_global}, ' // &
+         '\ttt{?vamp\_history\_channels}, \ttt{?vamp\_verbose}, \ttt{?vamp\_history\_global\_verbose})'))
+    call var_list%append_string (var_str ("$run_id"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable \ttt{\$run\_id = "{\em ' // &
+          '<id>}"} that allows to set a special ID for a particular process ' // &
+          'run, e.g. in a scan. The run ID is then attached to the process ' // &
+          'log file: \newline \ttt{{\em <proc\_name>}\_{\em <proc\_comp>}.{\em ' // &
+          '<id>}.log}, the \vamp\ grid file: \newline \ttt{{\em <proc\_name>}\_{\em ' // &
+          '<proc\_comp>}.{\em <id>}.vg}, and the phase space file: \newline ' // &
+          '\ttt{{\em <proc\_name>}\_{\em <proc\_comp>}.{\em <id>}.phs}. ' // &
+          'The run ID string distinguishes among several runs for the ' // &
+          'same process.  It identifies process instances with respect ' // &
+          'to adapted integration grids and similar run-specific data.  ' // &
+          'The run ID is kept when copying processes for creating instances, ' // &
+          'however, so it does not distinguish event samples. (cf.\ also ' // &
+          '\ttt{\$job\_id}, \ttt{\$compile\_workspace}'))
+    call var_list%append_int (var_str ("n_calls_test"), 0, &
+          intrinsic=.true., &
+          description=var_str ('Integer variable that allows to set a ' // &
+          'certain number of matrix element sampling test calls without ' // &
+          'actually integrating the process under consideration. (cf. ' // &
+          '\ttt{integrate})'))
+    call var_list%append_log (var_str ("?integration_timer"), .true., &
+          intrinsic=.true., &
+          description=var_str ('This flag switches the integration timer ' // &
+          'on and off, that gives the estimate for the duration of the ' // &
+          'generation of 10,000 unweighted events for each integrated ' // &
+          'process.'))
+    call var_list%append_log (var_str ("?check_grid_file"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Setting this to false turns off all sanity ' // &
+          'checks when reading a grid file with previous integration data.  ' // &
+          'Use this at your own risk; the program may return wrong results ' // &
+          'or crash if data do not match. (cf. also \ttt{?check\_event\_file}, \ttt{?check\_phs\_file}) '))
+    call var_list%append_real (var_str ("accuracy_goal"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that allows the user to ' // &
+          'set a minimal accuracy that should be achieved in the Monte-Carlo ' // &
+          'integration of a certain process. If that goal is reached, ' // &
+          'grid and weight adapation stop, and this result is used for ' // &
+          'simulation. (cf. also \ttt{integrate}, \ttt{iterations}, ' // &
+          '\ttt{error\_goal}, \ttt{relative\_error\_goal}, ' // &
+          '\ttt{error\_threshold})'))
+    call var_list%append_real (var_str ("error_goal"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that allows the user to ' // &
+          'set a minimal absolute error that should be achieved in the ' // &
+          'Monte-Carlo integration of a certain process. If that goal ' // &
+          'is reached, grid and weight adapation stop, and this result ' // &
+          'is used for simulation. (cf. also \ttt{integrate}, \ttt{iterations}, ' // &
+          '\ttt{accuracy\_goal}, \ttt{relative\_error\_goal}, \ttt{error\_threshold})'))
+    call var_list%append_real (var_str ("relative_error_goal"), 0._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that allows the user to ' // &
+          'set a minimal relative error that should be achieved in the ' // &
+          'Monte-Carlo integration of a certain process. If that goal ' // &
+          'is reached, grid and weight adaptation stop, and this result ' // &
+          'is used for simulation. (cf. also \ttt{integrate}, \ttt{iterations}, ' // &
+          '\ttt{accuracy\_goal}, \ttt{error\_goal}, \ttt{error\_threshold})'))
+    call var_list%append_int (var_str ("integration_results_verbosity"), 1, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter for the verbosity of ' // &
+          'the integration results in the process-specific logfile.'))
+    call var_list%append_real (var_str ("error_threshold"), &
+         0._default, intrinsic=.true., &
+         description=var_str ('The real parameter \ttt{error\_threshold ' // &
+         '= {\em <num>}} declares that any error value (in absolute numbers) ' // &
+         'smaller than \ttt{{\em <num>}} is to be considered zero. The ' // &
+         'units are \ttt{fb} for scatterings and \ttt{GeV} for decays. ' // &
+         '(cf. also \ttt{integrate}, \ttt{iterations}, \ttt{accuracy\_goal}, ' // &
+         '\ttt{error\_goal}, \ttt{relative\_error\_goal})'))
+    call var_list%append_real (var_str ("channel_weights_power"), 0.25_default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that allows to vary the ' // &
+          'exponent of the channel weights for the \vamp\ integrator.'))
+    call var_list%append_string (var_str ("$integrate_workspace"), &
+          intrinsic=.true., &
+          description=var_str ('Character string that tells \whizard\ ' // &
+          'the subdirectory where to find the run-specific phase-space ' // &
+          'configuration and the \vamp\ and \vamptwo\ grid files. ' // &
+          'If undefined (as per default), \whizard\ creates them and ' // &
+          'searches for them in the ' // &
+          'current directory.  (cf. also  \ttt{\$job\_id}, ' // &
+          '\ttt{\$run\_id}, \ttt{\$compile\_workspace})'))
+    call var_list%append_int (var_str ("vamp_grid_checkpoint"), 1, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter for setting checkpoints to save ' // &
+          'the current state of the grids and the results so far of the integration. ' // &
+          'Allowed are all positive integer. Zero values corresponds to a checkpoint ' // &
+          'after each integration pass, a one value to a checkpoint after each iteration ' // &
+          '(default) and an \(N\) value correspond to a checkpoint after \(N\) iterations ' // &
+          ' or after each pass, respectively.'))
+    call var_list%append_string (var_str ("$vamp_grid_format"), var_str ("ascii"), &
+         intrinsic=.true., &
+         description=var_str ('Character string that tells \whizard\ ' // &
+         'the file format for \ttt{vamp2} to use for writing and reading ' // &
+         'the configuration for the multi-channel integration setup and the ' // &
+         '\vamptwo\ (only) grid data. The values can be \ttt{ascii} for a single ' // &
+         'human-readable grid file with ending \ttt{.vg2} or \ttt{binary} for two files, ' // &
+         'a human-readable header file with ending \ttt{.vg2} and binary file with ending ' // &
+         '\ttt{.vgx2} storing the grid data.' // &
+         'The main purpose of the binary format is to perform faster I/O, e.g. for HPC runs.' // &
+         '\whizard\ can convert between the different file formats automatically.'))
+    call var_list%append_string (var_str ("$vamp_parallel_method"), var_str ("simple"), &
+         intrinsic=.true., &
+         description=var_str ('Character string that tells \whizard\ ' // &
+         'the parallel method to use for parallel integration within \ttt{vamp2}.' // &
+         ' (i) \ttt{simple} (default) is a local work sharing approach without the need of communication ' // &
+         'between all workers except for the communication during result collection.' // &
+         ' (ii) \ttt{load} is a global queue approach where the master worker acts as a' // &
+         'governor listening and providing work for each worker. The queue is filled and assigned with workers ' // &
+         'a-priori with respect to the assumed computational impact of each channel.' // &
+         'Both approaches use the same mechanism for result collection using non-blocking ' // &
+         'communication allowing for a efficient usage of the computing resources.'))
+  end subroutine var_list_set_integration_defaults
+
+  module subroutine var_list_set_phase_space_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_string (var_str ("$phs_method"), var_str ("default"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to choose ' // &
+          'the phase-space parameterization method. The default is the ' // &
+          '\ttt{"wood"} method that takes into account electroweak/BSM ' // &
+          'resonances. Note that this might not be the best choice for ' // &
+          '(pure) QCD amplitudes. (cf. also \ttt{\$phs\_file})'))
+    call var_list%append_log (var_str ("?vis_channels"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Optional logical argument for the \ttt{integrate} ' // &
+          'command that demands \whizard\ to generate a PDF or postscript ' // &
+          'output showing the classification of the found phase space ' // &
+          'channels (if the phase space method \ttt{wood} has been used) ' // &
+          'according to their properties: \ttt{integrate (foo) \{ iterations=3:10000 ' // &
+          '?vis\_channels = true \}}. The default is \ttt{false}.  (cf. ' // &
+          'also \ttt{integrate}, \ttt{?vis\_history})'))
+    call var_list%append_log (var_str ("?check_phs_file"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Setting this to false turns off all sanity ' // &
+          'checks when reading a previously generated phase-space configuration ' // &
+          'file.  Use this at your own risk; the program may return wrong ' // &
+          'results or crash if data do not match. (cf. also \ttt{?check\_event\_file}, ' // &
+          '\ttt{?check\_grid\_file})'))
+    call var_list%append_string (var_str ("$phs_file"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('This string variable allows the user to ' // &
+          'set an individual file name for the phase space parameterization ' // &
+          'for a particular process: \ttt{\$phs\_file = "{\em <file\_name>}"}. ' // &
+          'If not set, the default is \ttt{{\em <proc\_name>}\_{\em <proc\_comp>}.{\em ' // &
+          '<run\_id>}.phs}. (cf. also \ttt{\$phs\_method})'))
+    call var_list%append_log (var_str ("?phs_only"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag (particularly as optional argument ' // &
+          'of the $\to$ \ttt{integrate} command) that allows to only generate ' // &
+          'the phase space file, but not perform the integration. (cf. ' // &
+          'also \ttt{\$phs\_method}, \ttt{\$phs\_file})'))
+    call var_list%append_real (var_str ("phs_threshold_s"), 50._default, &
+          intrinsic=.true., &
+          description=var_str ('For the phase space method \ttt{wood}, ' // &
+          'this real parameter sets the threshold below which particles ' // &
+          'are assumed to be massless in the $s$-channel like kinematic ' // &
+          'regions. (cf. also \ttt{phs\_threshold\_t}, \ttt{phs\_off\_shell}, ' // &
+          '\ttt{phs\_t\_channel}, \ttt{phs\_e\_scale}, \ttt{phs\_m\_scale}, ' // &
+          '\newline \ttt{phs\_q\_scale}, \ttt{?phs\_keep\_resonant}, \ttt{?phs\_step\_mapping}, ' // &
+          '\ttt{?phs\_step\_mapping\_exp}, \newline \ttt{?phs\_s\_mapping})'))
+    call var_list%append_real (var_str ("phs_threshold_t"), 100._default, &
+          intrinsic=.true., &
+          description=var_str ('For the phase space method \ttt{wood}, ' // &
+          'this real parameter sets the threshold below which particles ' // &
+          'are assumed to be massless in the $t$-channel like kinematic ' // &
+          'regions. (cf. also \ttt{phs\_threshold\_s}, \ttt{phs\_off\_shell}, ' // &
+          '\ttt{phs\_t\_channel}, \ttt{phs\_e\_scale}, \ttt{phs\_m\_scale}, ' // &
+          '\newline \ttt{phs\_q\_scale}, \ttt{?phs\_keep\_resonant}, \ttt{?phs\_step\_mapping}, ' // &
+          '\ttt{?phs\_step\_mapping\_exp}, \newline \ttt{?phs\_s\_mapping})'))
+    call var_list%append_int (var_str ("phs_off_shell"), 2, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that sets the number ' // &
+          'of off-shell (not $t$-channel-like, non-resonant) lines that ' // &
+          'are taken into account to find a valid phase-space setup in ' // &
+          'the \ttt{wood} phase-space method.  (cf. also \ttt{phs\_threshold\_t}, ' // &
+          '\ttt{phs\_threshold\_s}, \ttt{phs\_t\_channel}, \ttt{phs\_e\_scale}, ' // &
+          '\ttt{phs\_m\_scale}, \ttt{phs\_q\_scale}, \ttt{?phs\_keep\_resonant}, ' // &
+          '\ttt{?phs\_step\_mapping}, \newline \ttt{?phs\_step\_mapping\_exp}, ' // &
+          '\ttt{?phs\_s\_mapping})'))
+    call var_list%append_int (var_str ("phs_t_channel"), 6, &
+          intrinsic=.true., &
+          description=var_str ('Integer parameter that sets the number ' // &
+          'of $t$-channel propagators in multi-peripheral diagrams that ' // &
+          'are taken into account to find a valid phase-space setup in ' // &
+          'the \ttt{wood} phase-space method.  (cf. also \ttt{phs\_threshold\_t}, ' // &
+          '\ttt{phs\_threshold\_s}, \ttt{phs\_off\_shell}, \ttt{phs\_e\_scale}, ' // &
+          '\ttt{phs\_m\_scale}, \ttt{phs\_q\_scale}, \ttt{?phs\_keep\_resonant}, ' // &
+          '\ttt{?phs\_step\_mapping}, \newline \ttt{?phs\_step\_mapping\_exp}, ' // &
+          '\ttt{?phs\_s\_mapping})'))
+    call var_list%append_real (var_str ("phs_e_scale"), 10._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that sets the energy scale ' // &
+          'that acts as a cutoff for parameterizing radiation-like kinematics ' // &
+          'in the \ttt{wood} phase space method. \whizard\ takes the maximum ' // &
+          'of this value and the width of the propagating particle as ' // &
+          'a cutoff. (cf. also \ttt{phs\_threshold\_t}, \ttt{phs\_threshold\_s}, ' // &
+          '\ttt{phs\_t\_channel}, \ttt{phs\_off\_shell}, \ttt{phs\_m\_scale}, ' // &
+          '\ttt{phs\_q\_scale}, \newline \ttt{?phs\_keep\_resonant}, \ttt{?phs\_step\_mapping}, ' // &
+          '\ttt{?phs\_step\_mapping\_exp}, \ttt{?phs\_s\_mapping})'))
+    call var_list%append_real (var_str ("phs_m_scale"), 10._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that sets the mass scale ' // &
+          'that acts as a cutoff for parameterizing collinear and infrared ' // &
+          'kinematics in the \ttt{wood} phase space method. \whizard\ ' // &
+          'takes the maximum of this value and the mass of the propagating ' // &
+          'particle as a cutoff. (cf. also \ttt{phs\_threshold\_t}, \ttt{phs\_threshold\_s}, ' // &
+          '\ttt{phs\_t\_channel}, \ttt{phs\_off\_shell},  \ttt{phs\_e\_scale}, ' // &
+          '\ttt{phs\_q\_scale}, \newline \ttt{?phs\_keep\_resonant}, \ttt{?phs\_step\_mapping}, ' // &
+          '\ttt{?phs\_step\_mapping\_exp}, \ttt{?phs\_s\_mapping})'))
+    call var_list%append_real (var_str ("phs_q_scale"), 10._default, &
+          intrinsic=.true., &
+          description=var_str ('Real parameter that sets the momentum ' // &
+          'transfer scale that acts as a cutoff for parameterizing $t$- ' // &
+          'and $u$-channel like kinematics in the \ttt{wood} phase space ' // &
+          'method. \whizard\ takes the maximum of this value and the mass ' // &
+          'of the propagating particle as a cutoff. (cf. also \ttt{phs\_threshold\_t}, ' // &
+          '\ttt{phs\_threshold\_s}, \ttt{phs\_t\_channel}, \ttt{phs\_off\_shell},  ' // &
+          '\ttt{phs\_e\_scale}, \ttt{phs\_m\_scale}, \ttt{?phs\_keep\_resonant}, ' // &
+          '\ttt{?phs\_step\_mapping}, \ttt{?phs\_step\_mapping\_exp}, ' // &
+          '\newline \ttt{?phs\_s\_mapping})'))
+    call var_list%append_log (var_str ("?phs_keep_nonresonant"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether the \ttt{wood} ' // &
+          'phase space method takes into account also non-resonant contributions.  ' // &
+          '(cf. also \ttt{phs\_threshold\_t}, \ttt{phs\_threshold\_s}, ' // &
+          '\ttt{phs\_t\_channel}, \ttt{phs\_off\_shell}, \ttt{phs\_m\_scale}, ' // &
+          '\ttt{phs\_q\_scale}, \ttt{phs\_e\_scale}, \ttt{?phs\_step\_mapping}, ' // &
+          '\newline \ttt{?phs\_step\_mapping\_exp}, \ttt{?phs\_s\_mapping})'))
+    call var_list%append_log (var_str ("?phs_step_mapping"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that switches on (or off) a particular ' // &
+          'phase space mapping for resonances, where the mass and width ' // &
+          'of the resonance are explicitly set as channel cutoffs. (cf. ' // &
+          'also \ttt{phs\_threshold\_t}, \ttt{phs\_threshold\_s}, \ttt{phs\_t\_channel}, ' // &
+          '\ttt{phs\_off\_shell},  \ttt{phs\_e\_scale}, \newline \ttt{phs\_m\_scale}, ' // &
+          '\ttt{?phs\_keep\_resonant}, \ttt{?phs\_q\_scale}, \ttt{?phs\_step\_mapping\_exp}, ' // &
+          '\newline \ttt{?phs\_s\_mapping})'))
+    call var_list%append_log (var_str ("?phs_step_mapping_exp"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that switches on (or off) a particular ' // &
+          'phase space mapping for resonances, where the mass and width ' // &
+          'of the resonance are explicitly set as channel cutoffs. This ' // &
+          'is an exponential mapping in contrast to ($\to$) \ttt{?phs\_step\_mapping}. ' // &
+          '(cf. also \ttt{phs\_threshold\_t}, \ttt{phs\_threshold\_s}, ' // &
+          '\ttt{phs\_t\_channel}, \ttt{phs\_off\_shell},  \ttt{phs\_e\_scale}, ' // &
+          '\ttt{phs\_m\_scale}, \newline \ttt{?phs\_q\_scale}, \ttt{?phs\_keep\_resonant}, ' // &
+          '\ttt{?phs\_step\_mapping}, \ttt{?phs\_s\_mapping})'))
+    call var_list%append_log (var_str ("?phs_s_mapping"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that allows special mapping for $s$-channel ' // &
+          'resonances.  (cf. also \ttt{phs\_threshold\_t}, \ttt{phs\_threshold\_s}, ' // &
+          '\ttt{phs\_t\_channel}, \ttt{phs\_off\_shell},  \ttt{phs\_e\_scale}, ' // &
+          '\ttt{phs\_m\_scale}, \newline \ttt{?phs\_keep\_resonant}, \ttt{?phs\_q\_scale}, ' // &
+          '\ttt{?phs\_step\_mapping}, \ttt{?phs\_step\_mapping\_exp})'))
+    call var_list%append_log (var_str ("?vis_history"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Optional logical argument for the \ttt{integrate} ' // &
+          'command that demands \whizard\ to generate a PDF or postscript ' // &
+          'output showing the adaptation history of the Monte-Carlo integration ' // &
+          'of the process under consideration. (cf. also \ttt{integrate}, ' // &
+          '\ttt{?vis\_channels})'))
+  end subroutine var_list_set_phase_space_defaults
+
+  module subroutine var_list_set_gamelan_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_int (&
+         var_str ("n_bins"), 20, &
+         intrinsic=.true., &
+         description=var_str ("Settings for \whizard's internal graphics " // &
+         'output: integer value that sets the number of bins in histograms. ' // &
+         '(cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, \ttt{\$obs\_unit}, ' // &
+         '\ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, \ttt{\$y\_label}, ' // &
+         '\ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, \ttt{?y\_log}, ' // &
+         '\ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, ' // &
+         '\ttt{\$gmlcode\_bg}, \ttt{\$gmlcode\_fg}, \ttt{?draw\_histogram}, ' // &
+         '\ttt{?draw\_base}, \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, ' // &
+         '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{?draw\_symbols}, ' // &
+         '\newline \ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options}, ' // &
+         '\ttt{\$symbol})'))
+    call var_list%append_log (&
+         var_str ("?normalize_bins"), .false., &
+         intrinsic=.true., &
+         description=var_str ("Settings for \whizard's internal graphics " // &
+         'output: flag that determines whether the weights shall be normalized ' // &
+         'to the bin width or not. (cf. also \ttt{n\_bins}, \ttt{\$obs\_label}, ' // &
+         '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+         '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+         '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+         '\ttt{y\_max}, \ttt{\$gmlcode\_bg}, \ttt{\$gmlcode\_fg}, \ttt{?draw\_histogram}, ' // &
+         '\newline \ttt{?draw\_base}, \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, ' // &
+         '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{\$symbol}, \newline ' // &
+         '\ttt{?draw\_symbols}, \ttt{\$fill\_options}, \ttt{\$draw\_options}, ' // &
+         '\ttt{\$err\_options})'))
+    call var_list%append_string (var_str ("$obs_label"), var_str (""), &
+         intrinsic=.true., &
+         description=var_str ("Settings for \whizard's internal graphics " // &
+         'output: this is a string variable \ttt{\$obs\_label = "{\em ' // &
+         '<LaTeX\_Code>}"} that allows to attach a label to a plotted ' // &
+         'or histogrammed observable. (cf. also \ttt{n\_bins}, \ttt{?normalize\_bins}, ' // &
+         '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+         '\ttt{\$y\_label}, \ttt{?y\_log}, \ttt{?x\_log}, \ttt{graph\_width\_mm}, ' // &
+         '\ttt{graph\_height\_mm}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+         '\ttt{y\_max}, \ttt{\$gmlcode\_bg}, \ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, ' // &
+         '\ttt{?draw\_histogram}, \ttt{?draw\_piecewise}, \newline \ttt{?fill\_curve}, ' // &
+         '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{\$symbol}, \ttt{?draw\_symbols}, ' // &
+         '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options})'))
+    call var_list%append_string (var_str ("$obs_unit"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: this is a string variable \ttt{\$obs\_unit = "{\em ' // &
+          '<LaTeX\_Code>}"} that allows to attach a \LaTeX\ physical unit ' // &
+          'to a plotted or histogrammed observable. (cf. also \ttt{n\_bins}, ' // &
+          '\ttt{?normalize\_bins}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{?y\_log}, \ttt{?x\_log}, ' // &
+          '\ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, \ttt{x\_min}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?fill\_curve}, \ttt{?draw\_piecewise}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \ttt{\$symbol}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options})'))
+    call var_list%append_string (var_str ("$title"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('This string variable sets the title of ' // &
+          'a plot in a \whizard\ analysis setup, e.g. a histogram or an ' // &
+          'observable. The syntax is \ttt{\$title = "{\em <your title>}"}. ' // &
+          'This title appears as a section header in the analysis file, ' // &
+          'but not in the screen output of the analysis.  (cf. also \ttt{n\_bins}, ' // &
+          '\ttt{?normalize\_bins}, \ttt{\$obs\_unit}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{?y\_log}, \ttt{?x\_log}, ' // &
+          '\ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, \ttt{x\_min}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?fill\_curve}, \ttt{?draw\_piecewise}, \newline \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \ttt{\$symbol}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options})'))
+    call var_list%append_string (var_str ("$description"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to specify ' // &
+          'a description text for the analysis, \ttt{\$description = "{\em ' // &
+          '<LaTeX analysis descr.>}"}.  This line appears below the title ' // &
+          'of a corresponding analysis, on top of the respective plot.  ' // &
+          '(cf. also \ttt{analysis}, \ttt{n\_bins}, \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{?y\_log}, ' // &
+          '\ttt{?x\_log}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?fill\_curve}, \ttt{?draw\_piecewise}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \ttt{\$symbol}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options})'))
+    call var_list%append_string (var_str ("$x_label"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable, \ttt{\$x\_label = "{\em ' // &
+          '<LaTeX code>}"}, that sets the $x$ axis label in a plot or ' // &
+          'histogram in a \whizard\ analysis.  (cf. also \ttt{analysis}, ' // &
+          '\ttt{n\_bins}, \ttt{?normalize\_bins}, \ttt{\$obs\_unit}, \ttt{\$y\_label}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \newline ' // &
+          '\ttt{\$gmlcode\_bg}, \ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, ' // &
+          '\ttt{?draw\_histogram}, \ttt{?fill\_curve}, \newline \ttt{?draw\_piecewise}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{\$symbol}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options})'))
+    call var_list%append_string (var_str ("$y_label"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable, \ttt{\$y\_label = "{\em ' // &
+          '<LaTeX\_code>}"}, that sets the $y$ axis label in a plot or ' // &
+          'histogram in a \whizard\ analysis.  (cf. also \ttt{analysis}, ' // &
+          '\ttt{n\_bins}, \ttt{?normalize\_bins}, \ttt{\$obs\_unit}, \ttt{?y\_log}, ' // &
+          '\ttt{?x\_log}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \newline ' // &
+          '\ttt{\$gmlcode\_bg}, \ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, ' // &
+          '\ttt{?draw\_histogram}, \ttt{?fill\_curve}, \newline \ttt{?draw\_piecewise}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{\$symbol}, \ttt{?draw\_symbols}, ' // &
+          '\newline \ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options})'))
+    call var_list%append_int (var_str ("graph_width_mm"), 130, &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: integer value that sets the width of a graph or histogram ' // &
+          'in millimeters. (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_height\_mm}, \ttt{?y\_log}, \ttt{?x\_log}, ' // &
+          '\ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_histogram}, \ttt{?draw\_base}, ' // &
+          '\newline \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \ttt{?draw\_symbols}, \newline \ttt{\$fill\_options}, ' // &
+          '\ttt{\$draw\_options}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_int (var_str ("graph_height_mm"), 90, &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: integer value that sets the height of a graph or histogram ' // &
+          'in millimeters. (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{?y\_log}, \ttt{?x\_log}, ' // &
+          '\ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_histogram}, \ttt{?draw\_base}, ' // &
+          '\newline \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \ttt{?draw\_symbols}, \newline \ttt{\$fill\_options}, ' // &
+          '\ttt{\$draw\_options}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_log (var_str ("?y_log"), .false., &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that makes the $y$ axis logarithmic. (cf. also ' // &
+          '\ttt{?normalize\_bins}, \ttt{\$obs\_label}, \ttt{\$obs\_unit}, ' // &
+          '\ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, \ttt{\$y\_label}, ' // &
+          '\ttt{graph\_height\_mm}, \ttt{graph\_width\_mm}, \ttt{?y\_log}, ' // &
+          '\ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \newline ' // &
+          '\ttt{\$gmlcode\_bg}, \ttt{\$gmlcode\_fg}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_base}, \ttt{?draw\_piecewise}, \newline \ttt{?fill\_curve}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \newline \ttt{\$draw\_options}, \ttt{\$err\_options}, ' // &
+          '\ttt{\$symbol})'))
+    call var_list%append_log (var_str ("?x_log"), .false., &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that makes the $x$ axis logarithmic. (cf. also ' // &
+          '\ttt{?normalize\_bins}, \ttt{\$obs\_label}, \ttt{\$obs\_unit}, ' // &
+          '\ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, \ttt{\$y\_label}, ' // &
+          '\ttt{graph\_height\_mm}, \ttt{graph\_width\_mm}, \ttt{?y\_log}, ' // &
+          '\ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \newline ' // &
+          '\ttt{\$gmlcode\_bg}, \ttt{\$gmlcode\_fg}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_base}, \ttt{?draw\_piecewise}, \newline \ttt{?fill\_curve}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \newline \ttt{\$draw\_options}, \ttt{\$err\_options}, ' // &
+          '\ttt{\$symbol})'))
+    call var_list%append_real (var_str ("x_min"),  &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: real parameter that sets the lower limit of the $x$ ' // &
+          'axis plotting or histogram interval. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \newline \ttt{?x\_log}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, \newline \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \newline \ttt{?draw\_symbols}, \ttt{\$fill\_options}, ' // &
+          '\ttt{\$draw\_options}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_real (var_str ("x_max"),  &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: real parameter that sets the upper limit of the $x$ ' // &
+          'axis plotting or histogram interval. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \newline \ttt{?x\_log}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{x\_min}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, \newline \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \newline \ttt{?draw\_symbols}, \ttt{\$fill\_options}, ' // &
+          '\ttt{\$draw\_options}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_real (var_str ("y_min"),  &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: real parameter that sets the lower limit of the $y$ ' // &
+          'axis plotting or histogram interval. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \newline \ttt{?x\_log}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{x\_max}, \ttt{y\_max}, \ttt{x\_min}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, \newline \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \newline \ttt{?draw\_symbols}, \ttt{\$fill\_options}, ' // &
+          '\ttt{\$draw\_options}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_real (var_str ("y_max"),  &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: real parameter that sets the upper limit of the $y$ ' // &
+          'axis plotting or histogram interval. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \newline \ttt{?x\_log}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{x\_max}, \ttt{x\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{\$gmlcode\_fg}, \ttt{?draw\_base}, \newline \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \newline \ttt{?draw\_symbols}, \ttt{\$fill\_options}, ' // &
+          '\ttt{\$draw\_options}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_string (var_str ("$gmlcode_bg"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: string variable that allows to define a background ' // &
+          'for plots and histograms (i.e. it is overwritten by the plot/histogram), ' // &
+          'e.g. a grid: \ttt{\$gmlcode\_bg = "standardgrid.lr(5);"}. For ' // &
+          'more details, see the \gamelan\ manual. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{graph\_height\_mm}, \ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_fg}, ' // &
+          '\ttt{?draw\_histogram}, \ttt{?draw\_base}, \ttt{?draw\_piecewise}, ' // &
+          '\newline \ttt{?fill\_curve}, \ttt{?draw\_curve}, \ttt{?draw\_errors}, ' // &
+          '\ttt{?draw\_symbols}, \ttt{\$fill\_options}, \newline \ttt{\$draw\_options}, ' // &
+          '\ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_string (var_str ("$gmlcode_fg"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: string variable that allows to define a foreground ' // &
+          'for plots and histograms (i.e. it overwrites the plot/histogram), ' // &
+          'e.g. a grid: \ttt{\$gmlcode\_bg = "standardgrid.lr(5);"}. For ' // &
+          'more details, see the \gamelan\ manual. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{graph\_height\_mm}, \ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{?draw\_histogram}, \ttt{?draw\_base}, \ttt{?draw\_piecewise}, ' // &
+          '\newline \ttt{?fill\_curve}, \ttt{?draw\_curve}, \ttt{?draw\_errors}, ' // &
+          '\ttt{?draw\_symbols}, \ttt{\$fill\_options}, \newline \ttt{\$draw\_options}, ' // &
+          '\ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_log (var_str ("?draw_histogram"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that tells \whizard\ to either plot data as a ' // &
+          'histogram or as a continuous line (if $\to$ \ttt{?draw\_curve} ' // &
+          'is set \ttt{true}). (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+          '\ttt{y\_max}, \newline \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{?draw\_base}, \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_errors}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options}, ' // &
+          '\ttt{\$symbol})'))
+    call var_list%append_log (var_str ("?draw_base"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that tells \whizard\ to insert a \ttt{base} statement ' // &
+          'in the analysis code to calculate the plot data from a data ' // &
+          'set. (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+          '\ttt{y\_max}, \newline \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, ' // &
+          '\ttt{\$symbol}, \newline \ttt{?draw\_histogram}, \ttt{?draw\_errors}, ' // &
+          '\ttt{?draw\_symbols}, \ttt{\$fill\_options}, \ttt{\$draw\_options}, ' // &
+          '\newline \ttt{\$err\_options})'))
+    call var_list%append_log (var_str ("?draw_piecewise"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that tells \whizard\ to data from a data set piecewise, ' // &
+          'i.e. histogram style. (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit},  \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max},  ' // &
+          '\ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg},  ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_base}, \ttt{?fill\_curve}, ' // &
+          '\ttt{\$symbol}, \ttt{?draw\_histogram}, \ttt{?draw\_errors}, ' // &
+          '\ttt{?draw\_symbols}, \ttt{\$fill\_options}, \ttt{\$draw\_options}, ' // &
+          '\ttt{\$err\_options})'))
+    call var_list%append_log (var_str ("?fill_curve"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that tells \whizard\ to fill data curves (e.g. ' // &
+          'as a histogram). The style can be set with $\to$ \ttt{\$fill\_options ' // &
+          '= "{\em <LaTeX\_code>}"}. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{graph\_height\_mm}, \ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \newline \ttt{\$gmlcode\_fg}, ' // &
+          '\ttt{\$gmlcode\_bg}, \ttt{?draw\_base}, \ttt{?draw\_piecewise}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_histogram}, \ttt{?draw\_errors}, ' // &
+          '\ttt{?draw\_symbols}, \ttt{\$fill\_options}, \ttt{\$draw\_options}, ' // &
+          '\ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_log (var_str ("?draw_curve"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that tells \whizard\ to either plot data as a ' // &
+          'continuous line or as a histogram (if $\to$ \ttt{?draw\_histogram} ' // &
+          'is set \ttt{true}). (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+          '\ttt{y\_max}, \newline \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{?draw\_base}, \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, ' // &
+          '\ttt{?draw\_histogram}, \ttt{?draw\_errors}, \ttt{?draw\_symbols}, ' // &
+          '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \ttt{\$err\_options}, ' // &
+          '\ttt{\$symbol})'))
+    call var_list%append_log (var_str ("?draw_errors"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that determines whether error bars should be drawn ' // &
+          'or not. (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+          '\ttt{y\_max}, \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg}, \ttt{?draw\_base}, ' // &
+          '\ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_symbols}, \ttt{\$fill\_options}, ' // &
+          '\newline \ttt{\$draw\_options}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_log (var_str ("?draw_symbols"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: flag that determines whether particular symbols (specified ' // &
+          'by $\to$ \ttt{\$symbol = "{\em <LaTeX\_code>}"}) should be ' // &
+          'used for plotting data points  (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{graph\_height\_mm}, \ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_fg}, ' // &
+          '\ttt{\$gmlcode\_bg}, \ttt{?draw\_base}, \ttt{?draw\_piecewise}, ' // &
+          '\ttt{?fill\_curve}, \ttt{?draw\_histogram}, \ttt{?draw\_curve}, ' // &
+          '\ttt{?draw\_errors}, \ttt{\$fill\_options}, \ttt{\$draw\_options}, ' // &
+          '\newline \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_string (var_str ("$fill_options"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: \ttt{\$fill\_options = "{\em <LaTeX\_code>}"} is a ' // &
+          'string variable that allows to set fill options when plotting ' // &
+          'data as filled curves with the $\to$ \ttt{?fill\_curve} flag. ' // &
+          'For more details see the \gamelan\ manual. (cf. also \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_label}, \ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, ' // &
+          '\ttt{\$x\_label}, \ttt{\$y\_label}, \ttt{graph\_width\_mm}, ' // &
+          '\ttt{graph\_height\_mm}, \ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, ' // &
+          '\ttt{x\_max}, \ttt{y\_min}, \ttt{y\_max}, \ttt{\$gmlcode\_fg}, ' // &
+          '\ttt{\$gmlcode\_bg}, \ttt{?draw\_base}, \ttt{?draw\_piecewise}, ' // &
+          '\ttt{?draw\_curve}, \ttt{?draw\_histogram}, \ttt{?draw\_errors}, ' // &
+          '\newline \ttt{?draw\_symbols}, \ttt{?fill\_curve}, \ttt{\$draw\_options}, ' // &
+          '\ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_string (var_str ("$draw_options"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: \ttt{\$draw\_options = "{\em <LaTeX\_code>}"} is a ' // &
+          'string variable that allows to set specific drawing options ' // &
+          'for plots and histograms. For more details see the \gamelan\ ' // &
+          'manual. (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+          '\ttt{y\_max}, \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg}, \ttt{?draw\_base}, ' // &
+          '\newline \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_errors}, \ttt{?draw\_symbols}, \newline \ttt{\$fill\_options}, ' // &
+          '\ttt{?draw\_histogram}, \ttt{\$err\_options}, \ttt{\$symbol})'))
+    call var_list%append_string (var_str ("$err_options"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: \ttt{\$err\_options = "{\em <LaTeX\_code>}"} is a string ' // &
+          'variable that allows to set specific drawing options for errors ' // &
+          'in plots and histograms. For more details see the \gamelan\ ' // &
+          'manual. (cf. also \ttt{?normalize\_bins}, \ttt{\$obs\_label}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+          '\ttt{y\_max}, \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg}, \ttt{?draw\_base}, ' // &
+          '\ttt{?draw\_piecewise}, \ttt{?fill\_curve}, \ttt{?draw\_histogram}, ' // &
+          '\ttt{?draw\_errors}, \newline \ttt{?draw\_symbols}, \ttt{\$fill\_options}, ' // &
+          '\ttt{?draw\_histogram}, \ttt{\$draw\_options}, \ttt{\$symbol})'))
+    call var_list%append_string (var_str ("$symbol"), &
+          intrinsic=.true., &
+          description=var_str ("Settings for \whizard's internal graphics " // &
+          'output: \ttt{\$symbol = "{\em <LaTeX\_code>}"} is a string ' // &
+          'variable for the symbols that should be used for plotting data ' // &
+          'points.  (cf. also \ttt{\$obs\_label}, \ttt{?normalize\_bins}, ' // &
+          '\ttt{\$obs\_unit}, \ttt{\$title}, \ttt{\$description}, \ttt{\$x\_label}, ' // &
+          '\ttt{\$y\_label}, \newline \ttt{graph\_width\_mm}, \ttt{graph\_height\_mm}, ' // &
+          '\ttt{?y\_log}, \ttt{?x\_log}, \ttt{x\_min}, \ttt{x\_max}, \ttt{y\_min}, ' // &
+          '\ttt{y\_max}, \newline \ttt{\$gmlcode\_fg}, \ttt{\$gmlcode\_bg}, ' // &
+          '\ttt{?draw\_base}, \ttt{?draw\_piecewise}, \ttt{?fill\_curve}, ' // &
+          '\newline \ttt{?draw\_histogram}, \ttt{?draw\_curve}, \ttt{?draw\_errors}, ' // &
+          '\ttt{\$fill\_options}, \ttt{\$draw\_options}, \newline \ttt{\$err\_options}, ' // &
+          '\ttt{?draw\_symbols})'))
+    call var_list%append_log (&
+         var_str ("?analysis_file_only"), .false., &
+         intrinsic=.true., &
+         description=var_str ('Allows to specify that only \LaTeX\ files ' // &
+         "for \whizard's graphical analysis are written out, but not processed. " // &
+         '(cf. \ttt{compile\_analysis}, \ttt{write\_analysis})'))
+  end subroutine var_list_set_gamelan_defaults
+
+  module subroutine var_list_set_clustering_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_int (&
+         var_str ("kt_algorithm"), &
+         kt_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the ' // &
+         'interfaced external \fastjet\ package.  (cf. also ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, ' // &
+         '\ttt{plugin\_algorithm}, ' // &
+         '\newline\ttt{genkt\_[for\_passive\_]algorithm}, ' // &
+         '\ttt{ee\_[gen]kt\_algorithm}, \ttt{jet\_r})'))
+    call var_list%append_int (&
+         var_str ("cambridge_algorithm"), &
+         cambridge_algorithm, intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_for\_passive\_algorithm}, \ttt{plugin\_algorithm}, ' // &
+         '\ttt{genkt\_[for\_passive\_]algorithm}, \ttt{ee\_[gen]kt\_algorithm}, ' // &
+         '\ttt{jet\_r})'))
+    call var_list%append_int (&
+         var_str ("antikt_algorithm"), &
+         antikt_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, \ttt{plugin\_algorithm}, ' // &
+         '\ttt{genkt\_[for\_passive\_]algorithm}, \ttt{ee\_[gen]kt\_algorithm}, ' // &
+         '\ttt{jet\_r})'))
+    call var_list%append_int (&
+         var_str ("genkt_algorithm"), &
+         genkt_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_for\_passive\_algorithm}, \ttt{plugin\_algorithm}, ' // &
+         '\ttt{genkt\_for\_passive\_algorithm}, \ttt{ee\_[gen]kt\_algorithm}, ' // &
+         '\ttt{jet\_r}), \ttt{jet\_p}'))
+    call var_list%append_int (&
+         var_str ("cambridge_for_passive_algorithm"), &
+         cambridge_for_passive_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_algorithm}, \ttt{plugin\_algorithm}, \newline ' // &
+         '\ttt{genkt\_[for\_passive\_]algorithm}, \ttt{ee\_[gen]kt\_algorithm}, ' // &
+         '\ttt{jet\_r})'))
+    call var_list%append_int (&
+         var_str ("genkt_for_passive_algorithm"), &
+         genkt_for_passive_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_for\_passive\_algorithm}, \ttt{plugin\_algorithm}, ' // &
+         '\ttt{genkt\_algorithm}, \ttt{ee\_[gen]kt\_algorithm}, \ttt{jet\_r})'))
+    call var_list%append_int (&
+         var_str ("ee_kt_algorithm"), &
+         ee_kt_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, \ttt{plugin\_algorithm}, ' // &
+         '\ttt{genkt\_[for\_passive\_]algorithm}, \ttt{ee\_genkt\_algorithm}, ' // &
+         '\ttt{jet\_r})'))
+    call var_list%append_int (&
+         var_str ("ee_genkt_algorithm"), &
+         ee_genkt_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, \ttt{plugin\_algorithm}, ' // &
+         '\ttt{genkt\_[for\_passive\_]algorithm}, \ttt{ee\_kt\_algorithm}, ' // &
+         '\ttt{jet\_r}), \ttt{jet\_p})'))
+    call var_list%append_int (&
+         var_str ("plugin_algorithm"), &
+         plugin_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('Specifies a jet algorithm for the ($\to$) ' // &
+         '\ttt{jet\_algorithm} command, used in the ($\to$) \ttt{cluster} ' // &
+         'subevent function. At the moment only available for the interfaced ' // &
+         'external \fastjet\ package.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_for\_passive\_algorithm}, \newline ' // &
+         '\ttt{genkt\_[for\_passive\_]algorithm}, \ttt{ee\_[gen]kt\_algorithm}, ' // &
+         '\ttt{jet\_r})'))
+    call var_list%append_int (&
+         var_str ("undefined_jet_algorithm"), &
+         undefined_jet_algorithm, &
+         intrinsic = .true., locked = .true., &
+         description=var_str ('This is just a place holder for any kind of jet ' // &
+         'jet algorithm that is not further specified.  (cf. also \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_for\_passive\_algorithm}, \newline ' // &
+         '\ttt{genkt\_[for\_passive\_]algorithm}, \ttt{ee\_[gen]kt\_algorithm}, ' // &
+         '\ttt{jet\_r}, \ttt{plugin\_algorithm})'))
+    call var_list%append_int (&
+         var_str ("jet_algorithm"), undefined_jet_algorithm, &
+         intrinsic = .true., &
+         description=var_str ('Variable that allows to set the type of ' // &
+         'jet algorithm when using the external \fastjet\ library. It ' // &
+         'accepts one of the following algorithms: ($\to$) \ttt{kt\_algorithm}, ' // &
+         '\newline ($\to$) \ttt{cambridge\_[for\_passive\_]algorithm}, ' // &
+         '($\to$) \ttt{antikt\_algorithm}, ($\to$) \ttt{plugin\_algorithm}, ' // &
+         '($\to$) \ttt{genkt\_[for\_passive\_]algorithm}, ($\to$) ' // &
+         '\ttt{ee\_[gen]kt\_algorithm}).  (cf. also \ttt{cluster}, ' // &
+         '\ttt{jet\_p}, \ttt{jet\_r}, \ttt{jet\_ycut})'))
+    call var_list%append_real (&
+         var_str ("jet_r"), 0._default, &
+         intrinsic = .true., &
+         description=var_str ('Value for the distance measure $R$ used in ' // &
+         'some algorithms that are available via the interface ' // &
+         'to the \fastjet\ package.  (cf. also \ttt{cluster}, \ttt{combine}, ' // &
+         '\ttt{jet\_algorithm}, \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, \ttt{antikt\_algorithm}, ' // &
+         '\newline \ttt{plugin\_algorithm}, \ttt{genkt\_[for\_passive\_]algorithm}, ' // &
+         '\ttt{ee\_[gen]kt\_algorithm}, \ttt{jet\_p}, \newline\ttt{jet\_ycut})'))
+    call var_list%append_real (&
+         var_str ("jet_p"), 0._default, &
+         intrinsic = .true., &
+         description=var_str ('Value for the exponent of the distance measure $R$ in ' // &
+         'the generalized $k_T$ algorithms that are available via the interface ' // &
+         'to the \fastjet\ package.  (cf. also \ttt{cluster}, \ttt{combine}, ' // &
+         '\ttt{jet\_algorithm}, \ttt{kt\_algorithm}, ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, \ttt{antikt\_algorithm}, ' // &
+         '\newline \ttt{plugin\_algorithm}, \ttt{genkt\_[for\_passive\_]algorithm}, ' // &
+         '\ttt{ee\_[gen]kt\_algorithm}, \ttt{jet\_r}, \newline\ttt{jet\_ycut})'))
+    call var_list%append_real (&
+         var_str ("jet_ycut"), 0._default, &
+         intrinsic = .true., &
+         description=var_str ('Value for the $y$ separation measure used in ' // &
+         'the Cambridge-Aachen algorithms that are available via the interface ' // &
+         'to the \fastjet\ package.  (cf. also \ttt{cluster}, \ttt{combine}, ' // &
+         '\ttt{kt\_algorithm}, \ttt{jet\_algorithm}, ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, \ttt{antikt\_algorithm}, ' // &
+         '\newline \ttt{plugin\_algorithm}, \ttt{genkt\_[for\_passive\_]algorithm}, ' // &
+         '\ttt{ee\_[gen]kt\_algorithm}, \ttt{jet\_p}, \newline\ttt{jet\_r})'))
+    call var_list%append_real (&
+         var_str ("jet_dcut"), 0._default, &
+         intrinsic = .true., &
+         description=var_str ('Value for the $d_{ij}$ separation measure used in ' // &
+         'the $e^+e^- k_T$ algorithms that are available via the interface ' // &
+         'to the \fastjet\ package.  (cf. also \ttt{cluster}, \ttt{combine}, ' // &
+         '\ttt{kt\_algorithm}, \ttt{jet\_algorithm}, ' // &
+         '\ttt{cambridge\_[for\_passive\_]algorithm}, \ttt{antikt\_algorithm}, ' // &
+         '\newline \ttt{plugin\_algorithm}, \ttt{genkt\_[for\_passive\_]algorithm}, ' // &
+         '\ttt{ee\_[gen]kt\_algorithm}, \ttt{jet\_p}, \newline\ttt{jet\_r})'))
+    call var_list%append_log (&
+         var_str ("?keep_flavors_when_clustering"), .false., &
+         intrinsic = .true., &
+         description=var_str ('The logical variable \ttt{?keep\_flavors\_when\_clustering ' // &
+         '= true/false} specifies whether the flavor of a jet should be ' // &
+         'kept during \ttt{cluster} when a jet consists of one quark and ' // &
+         'zero or more gluons. Especially useful for cuts on b-tagged ' // &
+         'jets (cf. also \ttt{cluster}).'))
+  end subroutine var_list_set_clustering_defaults
+
+  module subroutine var_list_set_isolation_recomb_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_real (var_str ("photon_iso_eps"), 1._default, &
+         intrinsic=.true., &
+         description=var_str ('Photon isolation parameter $\epsilon_\gamma$ ' // &
+         '(energy fraction) from hep-ph/9801442 (cf. also ' // &
+         '\ttt{photon\_iso\_n}, \ttt{photon\_iso\_r0})'))
+    call var_list%append_real (var_str ("photon_iso_n"), 1._default, &
+         intrinsic=.true., &
+         description=var_str ('Photon isolation parameter $n$ ' // &
+         '(cone function exponent) from hep-ph/9801442 (cf. also ' // &
+         '\ttt{photon\_iso\_eps}, \ttt{photon\_iso\_r0})'))
+    call var_list%append_real (var_str ("photon_iso_r0"), 0.4_default, &
+         intrinsic=.true., &
+         description=var_str ('Photon isolation parameter $R_0^\gamma$ ' // &
+         '(isolation cone radius) from hep-ph/9801442 (cf. also ' // &
+         '\ttt{photon\_iso\_eps}, \ttt{photon\_iso\_n})'))
+    call var_list%append_real (var_str ("photon_rec_r0"), 0.1_default, &
+         intrinsic=.true., &
+         description=var_str ('Photon recombination parameter $R_0^\gamma$ ' // &
+         'for photon recombination in NLO EW calculations'))
+    call var_list%append_log (&
+         var_str ("?keep_flavors_when_recombining"), .true., &
+         intrinsic = .true., &
+         description=var_str ('The logical variable \ttt{?keep\_flavors\_when\_recombining ' // &
+         '= true/false} specifies whether the flavor of a particle should be ' // &
+         'kept during \ttt{photon\_recombination} when a jet/lepton consists of one lepton/quark ' // &
+         'and zero or more photons (cf. also \ttt{photon\_recombination}).'))
+  end subroutine var_list_set_isolation_recomb_defaults
+
+  module subroutine var_list_set_eio_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_string (var_str ("$sample"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable to set the (base) name ' // &
+          'of the event output format, e.g. \ttt{\$sample = "foo"} will ' // &
+          'result in an intrinsic binary format event file \ttt{foo.evx}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{simulate}, \ttt{hepevt}, ' // &
+          '\ttt{ascii}, \ttt{athena}, \ttt{debug}, \ttt{long}, \ttt{short}, ' // &
+          '\ttt{hepmc}, \ttt{lhef}, \ttt{lha}, \ttt{stdhep}, \ttt{stdhep\_up}, ' // &
+          '\ttt{\$sample\_normalization}, \ttt{?sample\_pacify}, \ttt{sample\_max\_tries})'))
+    call var_list%append_string (var_str ("$sample_normalization"), var_str ("auto"),&
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to set the ' // &
+          'normalization of generated events. There are four options: ' // &
+          'option \ttt{"1"} (events normalized to one), \ttt{"1/n"} (sum ' // &
+          'of all events in a sample normalized to one), \ttt{"sigma"} ' // &
+          '(events normalized to the cross section of the process), and ' // &
+          '\ttt{"sigma/n"} (sum of all events normalized to the cross ' // &
+          'section). The default is \ttt{"auto"} where unweighted events ' // &
+          'are normalized to one, and weighted ones to the cross section. ' // &
+          '(cf. also \ttt{simulate}, \ttt{\$sample}, \ttt{sample\_format}, ' // &
+          '\ttt{?sample\_pacify}, \ttt{sample\_max\_tries}, \ttt{sample\_split\_n\_evt}, ' // &
+          '\ttt{sample\_split\_n\_kbytes})'))
+    call var_list%append_log (var_str ("?sample_pacify"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag, mainly for debugging purposes: suppresses ' // &
+          'numerical noise in the output of a simulation. (cf. also \ttt{simulate}, ' // &
+          '\ttt{\$sample}, \ttt{sample\_format}, \ttt{\$sample\_normalization}, ' // &
+          '\ttt{sample\_max\_tries}, \ttt{sample\_split\_n\_evt}, ' // &
+          '\ttt{sample\_split\_n\_kbytes})'))
+    call var_list%append_log (var_str ("?sample_select"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Logical that determines whether a selection should ' // &
+          'be applied to the output event format or not. If set to \ttt{false} a ' // &
+          'selection is only considered for the evaluation of observables. (cf. ' // &
+          '\ttt{select}, \ttt{selection}, \ttt{analysis})'))
+    call var_list%append_int (var_str ("sample_max_tries"), 10000, &
+         intrinsic = .true., &
+         description=var_str ('Integer variable that sets the maximal ' // &
+         'number of tries for generating a single event. The event might ' // &
+         'be vetoed because of a very low unweighting efficiency, errors ' // &
+         'in the event transforms like decays, shower, matching, hadronization ' // &
+         'etc. (cf. also \ttt{simulate}, \ttt{\$sample}, \ttt{sample\_format}, ' // &
+         '\ttt{?sample\_pacify}, \ttt{\$sample\_normalization}, ' // &
+         '\ttt{sample\_split\_n\_evt}, \newline\ttt{sample\_split\_n\_kbytes})'))
+    call var_list%append_int (var_str ("sample_split_n_evt"), 0, &
+         intrinsic = .true., &
+         description=var_str ('When generating events, this integer parameter ' // &
+         '\ttt{sample\_split\_n\_evt = {\em <num>}} gives the number \ttt{{\em ' // &
+         '<num>}} of breakpoints in the event files, i.e. it splits the ' // &
+         'event files into \ttt{{\em <num>} + 1} parts. The parts are ' // &
+         'denoted by \ttt{{\em <proc\_name>}.{\em <split\_index>}.{\em ' // &
+         '<evt\_extension>}}. Here, \ttt{{\em <split\_index>}} is an integer ' // &
+         'running from \ttt{0} to \ttt{{\em <num>}}. The start can be ' // &
+         'reset by ($\to$) \ttt{sample\_split\_index}. (cf. also \ttt{simulate}, ' // &
+         '\ttt{\$sample}, \ttt{sample\_format}, \ttt{sample\_max\_tries}, ' // &
+         '\ttt{\$sample\_normalization}, \ttt{?sample\_pacify}, ' // &
+         '\ttt{sample\_split\_n\_kbytes})'))
+    call var_list%append_int (var_str ("sample_split_n_kbytes"), 0, &
+         intrinsic = .true., &
+         description=var_str ('When generating events, this integer parameter ' // &
+         '\ttt{sample\_split\_n\_kbytes = {\em <num>}} limits the file ' // &
+         'size of event files.  Whenever an event file has exceeded this ' // &
+         'size, counted in kilobytes, the following events will be written ' // &
+         'to a new file.  The naming conventions are the same as for ' // &
+         '\ttt{sample\_split\_n\_evt}. (cf. also \ttt{simulate}, \ttt{\$sample}, ' // &
+         '\ttt{sample\_format}, \ttt{sample\_max\_tries}, \ttt{\$sample\_normalization}, ' // &
+         '\ttt{?sample\_pacify})'))
+    call var_list%append_int (var_str ("sample_split_index"), 0, &
+         intrinsic = .true., &
+         description=var_str ('Integer number that gives the starting ' // &
+         'index \ttt{sample\_split\_index = {\em <split\_index>}} for ' // &
+         'the numbering of event samples \ttt{{\em <proc\_name>}.{\em ' // &
+         '<split\_index>}.{\em <evt\_extension>}} split by the \ttt{sample\_split\_n\_evt ' // &
+         '= {\em <num>}}. The index runs from \ttt{{\em <split\_index>}} ' // &
+         'to \newline \ttt{{\em <split\_index>} + {\em <num>}}. (cf. also \ttt{simulate}, ' // &
+         '\ttt{\$sample}, \ttt{sample\_format}, \newline\ttt{\$sample\_normalization}, ' // &
+         '\ttt{sample\_max\_tries}, \ttt{?sample\_pacify})'))
+    call var_list%append_string (var_str ("$rescan_input_format"), var_str ("raw"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to set the ' // &
+          'event format of the event file that is to be rescanned by the ' // &
+          '($\to$) \ttt{rescan} command.'))
+    call var_list%append_log (var_str ("?read_raw"), .true., &
+          intrinsic=.true., &
+          description=var_str ('This flag demands \whizard\ to (try to) ' // &
+          'read events (from the internal binary format) first before ' // &
+          'generating new ones. (cf. \ttt{simulate}, \ttt{?write\_raw}, ' // &
+          '\ttt{\$sample}, \ttt{sample\_format})'))
+    call var_list%append_log (var_str ("?write_raw"), .true., &
+          intrinsic=.true., &
+          description=var_str ("Flag to write out events in \whizard's " // &
+          'internal binary format. (cf. \ttt{simulate}, \ttt{?read\_raw}, ' // &
+          '\ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_raw"), var_str ("evx"), &
+         intrinsic=.true., &
+         description=var_str ('String variable that allows via \ttt{\$extension\_raw ' // &
+         '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+         "to which events in \whizard's internal format are written. If " // &
+         'not set, the default file name and suffix is \ttt{{\em <process\_name>}.evx}. ' // &
+         '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_default"), var_str ("evt"), &
+         intrinsic=.true., &
+         description=var_str ('String variable that allows via \ttt{\$extension\_default ' // &
+         '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+         'to which events in a the standard \whizard\ verbose ASCII format ' // &
+         'are written. If not set, the default file name and suffix is ' // &
+         '\ttt{{\em <process\_name>}.evt}. (cf. also \ttt{sample\_format}, ' // &
+         '\ttt{\$sample})'))
+    call var_list%append_string (var_str ("$debug_extension"), var_str ("debug"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$debug\_extension ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in a long verbose format with debugging information ' // &
+          'are written. If not set, the default file name and suffix is ' // &
+          '\ttt{{\em <process\_name>}.debug}. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample}, \ttt{?debug\_process}, \ttt{?debug\_transforms}, ' // &
+          '\ttt{?debug\_decay}, \ttt{?debug\_verbose})'))
+    call var_list%append_log (var_str ("?debug_process"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether process information ' // &
+          'will be displayed in the ASCII debug event format ($\to$) \ttt{debug}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample}, \ttt{\$debug\_extension}, ' // &
+          '\ttt{?debug\_decay}, \ttt{?debug\_transforms}, \ttt{?debug\_verbose})'))
+    call var_list%append_log (var_str ("?debug_transforms"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether information ' // &
+          'about event transforms will be displayed in the ASCII debug ' // &
+          'event format ($\to$) \ttt{debug}. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample}, \ttt{?debug\_decay}, \ttt{\$debug\_extension}, ' // &
+          '\ttt{?debug\_process}, \ttt{?debug\_verbose})'))
+    call var_list%append_log (var_str ("?debug_decay"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether decay information ' // &
+          'will be displayed in the ASCII debug event format ($\to$) \ttt{debug}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample}, \ttt{\$debug\_extension}, ' // &
+          '\ttt{?debug\_process}, \ttt{?debug\_transforms}, \ttt{?debug\_verbose})'))
+    call var_list%append_log (var_str ("?debug_verbose"), .true., &
+          intrinsic=.true., &
+          description=var_str ('Flag that decides whether extensive verbose ' // &
+          'information will be included in the ASCII debug event format ' // &
+          '($\to$) \ttt{debug}. (cf. also \ttt{sample\_format}, \ttt{\$sample}, ' // &
+          '\ttt{\$debug\_extension}, \ttt{?debug\_decay}, \ttt{?debug\_transforms}, ' // &
+          '\ttt{?debug\_process})'))
+    call var_list%append_string (var_str ("$dump_extension"), var_str ("pset.dat"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$dump\_extension ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          "to which events in \whizard's internal particle set format " // &
+          'are written. If not set, the default file name and suffix is ' // &
+          '\ttt{{\em <process\_name>}.pset.dat}. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample}, \ttt{dump}, \ttt{?dump\_compressed}, ' // &
+          '\ttt{?dump\_screen}, \ttt{?dump\_summary}, \ttt{?dump\_weights})'))
+    call var_list%append_log (var_str ("?dump_compressed"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that, if set to \ttt{true}, issues ' // &
+          'a very compressed and clear version of the \ttt{dump} ($\to$) ' // &
+          'event format. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample}, \ttt{dump}, \ttt{\$dump\_extension},  ' // &
+          '\ttt{?dump\_screen}, \ttt{?dump\_summary}, \ttt{?dump\_weights})'))
+    call var_list%append_log (var_str ("?dump_weights"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that, if set to \ttt{true}, includes ' // &
+          'cross sections, weights and excess in the \ttt{dump} ($\to$) ' // &
+          'event format. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample}, \ttt{dump}, \ttt{?dump\_compressed}, ' // &
+          '\ttt{\$dump\_extension}, \ttt{?dump\_screen}, \ttt{?dump\_summary})'))
+    call var_list%append_log (var_str ("?dump_summary"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that, if set to \ttt{true}, includes ' // &
+          'a summary with momentum sums for incoming and outgoing particles ' // &
+          'as well as for beam remnants in the \ttt{dump} ($\to$) ' // &
+          'event format. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample}, \ttt{dump}, \ttt{?dump\_compressed}, ' // &
+          '\ttt{\$dump\_extension}, \ttt{?dump\_screen}, \ttt{?dump\_weights})'))
+    call var_list%append_log (var_str ("?dump_screen"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag that, if set to \ttt{true}, outputs ' // &
+          'events for the \ttt{dump} ($\to$) event format on screen ' // &
+          ' instead of to a file. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample}, \ttt{dump}, \ttt{?dump\_compressed}, ' // &
+          '\ttt{\$dump\_extension}, \ttt{?dump\_summary}, \ttt{?dump\_weights})'))
+    call var_list%append_log (var_str ("?hepevt_ensure_order"), .false., &
+          intrinsic=.true., &
+          description=var_str ('Flag to ensure that the particle set confirms ' // &
+          'the HEPEVT standard. This involves some copying and reordering ' // &
+          'to guarantee that mothers and daughters are always next to ' // &
+          'each other. Usually this is not necessary.'))
+    call var_list%append_string (var_str ("$extension_hepevt"), var_str ("hepevt"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_hepevt ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the \whizard\ version 1 style HEPEVT ASCII ' // &
+          'format are written. If not set, the default file name and suffix ' // &
+          'is \ttt{{\em <process\_name>}.hepevt}. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_ascii_short"), &
+          var_str ("short.evt"), intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_ascii\_short ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the so called short variant of the \whizard\ ' // &
+          'version 1 style HEPEVT ASCII format are written. If not set, ' // &
+          'the default file name and suffix is \ttt{{\em <process\_name>}.short.evt}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_ascii_long"), &
+          var_str ("long.evt"), intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_ascii\_long ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the so called long variant of the \whizard\ ' // &
+          'version 1 style HEPEVT ASCII format are written. If not set, ' // &
+          'the default file name and suffix is \ttt{{\em <process\_name>}.long.evt}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_athena"), &
+          var_str ("athena.evt"), intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_athena ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the ATHENA file format are written. If not ' // &
+          'set, the default file name and suffix is \ttt{{\em <process\_name>}.athena.evt}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_mokka"), &
+           var_str ("mokka.evt"), intrinsic=.true., &
+           description=var_str ('String variable that allows via \ttt{\$extension\_mokka ' // &
+           '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+           'to which events in the MOKKA format are written. If not set, ' // &
+           'the default file name and suffix is \ttt{{\em <process\_name>}.mokka.evt}. ' // &
+           '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$lhef_version"), var_str ("2.0"), &
+         intrinsic = .true., &
+         description=var_str ('Specifier for the Les Houches Accord (LHEF) ' // &
+         'event format files with XML headers to discriminate among different ' // &
+         'versions of this format.  (cf. also \ttt{\$sample}, \ttt{sample\_format}, ' // &
+         '\ttt{lhef}, \ttt{\$lhef\_extension}, \ttt{\$lhef\_extension}, ' // &
+         '\ttt{?lhef\_write\_sqme\_prc}, \ttt{?lhef\_write\_sqme\_ref}, ' // &
+         '\ttt{?lhef\_write\_sqme\_alt})'))
+    call var_list%append_string (var_str ("$lhef_extension"), var_str ("lhe"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$lhef\_extension ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the LHEF format are written. If not set, ' // &
+          'the default file name and suffix is \ttt{{\em <process\_name>}.lhe}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample}, \ttt{lhef}, ' // &
+          '\ttt{\$lhef\_extension}, \ttt{\$lhef\_version}, \ttt{?lhef\_write\_sqme\_prc}, ' // &
+          '\ttt{?lhef\_write\_sqme\_ref}, \ttt{?lhef\_write\_sqme\_alt})'))
+    call var_list%append_log (var_str ("?lhef_write_sqme_prc"), .true., &
+         intrinsic = .true., &
+         description=var_str ('Flag that decides whether in the ($\to$) ' // &
+         '\ttt{lhef} event format the weights of the squared matrix element ' // &
+         'of the corresponding process shall be written in the LHE file. ' // &
+         '(cf. also \ttt{\$sample}, \ttt{sample\_format}, \ttt{lhef}, ' // &
+         '\ttt{\$lhef\_extension}, \ttt{\$lhef\_extension}, \ttt{?lhef\_write\_sqme\_ref}, ' // &
+         '\newline \ttt{?lhef\_write\_sqme\_alt})'))
+    call var_list%append_log (var_str ("?lhef_write_sqme_ref"), .false., &
+         intrinsic = .true., &
+         description=var_str ('Flag that decides whether in the ($\to$) ' // &
+         '\ttt{lhef} event format reference weights of the squared matrix ' // &
+         'element shall be written in the LHE file. (cf. also \ttt{\$sample}, ' // &
+         '\ttt{sample\_format}, \ttt{lhef}, \ttt{\$lhef\_extension}, \ttt{\$lhef\_extension}, ' // &
+         '\ttt{?lhef\_write\_sqme\_prc}, \ttt{?lhef\_write\_sqme\_alt})'))
+    call var_list%append_log (var_str ("?lhef_write_sqme_alt"), .true., &
+         intrinsic = .true., &
+         description=var_str ('Flag that decides whether in the ($\to$) ' // &
+         '\ttt{lhef} event format alternative weights of the squared matrix ' // &
+         'element shall be written in the LHE file. (cf. also \ttt{\$sample}, ' // &
+         '\ttt{sample\_format}, \ttt{lhef}, \ttt{\$lhef\_extension}, \ttt{\$lhef\_extension}, ' // &
+         '\ttt{?lhef\_write\_sqme\_prc}, \ttt{?lhef\_write\_sqme\_ref})'))
+    call var_list%append_string (var_str ("$extension_lha"), var_str ("lha"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_lha ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the (deprecated) LHA format are written. ' // &
+          'If not set, the default file name and suffix is \ttt{{\em <process\_name>}.lha}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_hepmc"), var_str ("hepmc"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_hepmc ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the HepMC format are written. If not set, ' // &
+          'the default file name and suffix is \ttt{{\em <process\_name>}.hepmc}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_log (var_str ("?hepmc_output_cross_section"), .false., &
+         intrinsic = .true., &
+         description=var_str ('Flag for the HepMC event format that allows ' // &
+         'to write out the cross section (and error) from the integration ' // &
+         'together with each HepMC event. This can be used by programs ' // &
+         'like Rivet to scale histograms according to the cross section. ' // &
+         '(cf.  also \ttt{hepmc})'))
+    call var_list%append_log (var_str ("?hepmc3_write_flows"), .false., &
+         intrinsic = .true., &
+         description=var_str ('Flag for the HepMC3 event format that decides' // &
+         'whether to write out color flows. The default is \ttt{false}. ' // &
+         '(cf.  also \ttt{hepmc})'))
+    call var_list%append_string (var_str ("$hepmc3_mode"), var_str ("HepMC3"), &
+         intrinsic = .true., &
+         description=var_str ('This specifies the writer mode for HepMC3. ' // &
+         'Possible values are \ttt{HepMC2}, \ttt{HepMC3} (default),  ' // &
+         '\ttt{HepEVT}, \ttt{Root}. and \ttt{RootTree} (cf. also \ttt{hepmc})'))
+    call var_list%append_string (var_str ("$extension_lcio"), var_str ("slcio"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_lcio ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the LCIO format are written. If not set, ' // &
+          'the default file name and suffix is \ttt{{\em <process\_name>}.slcio}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_stdhep"), var_str ("hep"), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_stdhep ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the StdHEP format via the HEPEVT common ' // &
+          'block are written. If not set, the default file name and suffix ' // &
+          'is \ttt{{\em <process\_name>}.hep}. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_stdhep_up"), &
+          var_str ("up.hep"), intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_stdhep\_up ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the StdHEP format via the HEPRUP/HEPEUP ' // &
+          'common blocks are written. \ttt{{\em <process\_name>}.up.hep} ' // &
+          'is the default file name and suffix, if this variable not set. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_stdhep_ev4"), &
+          var_str ("ev4.hep"), intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_stdhep\_ev4 ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the StdHEP format via the HEPEVT/HEPEV4 ' // &
+          'common blocks are written. \ttt{{\em <process\_name>}.up.hep} ' // &
+          'is the default file name and suffix, if this variable not set. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_hepevt_verb"), &
+          var_str ("hepevt.verb"), intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_hepevt\_verb ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the \whizard\ version 1 style extended or ' // &
+          'verbose HEPEVT ASCII format are written. If not set, the default ' // &
+          'file name and suffix is \ttt{{\em <process\_name>}.hepevt.verb}. ' // &
+          '(cf. also \ttt{sample\_format}, \ttt{\$sample})'))
+    call var_list%append_string (var_str ("$extension_lha_verb"), &
+          var_str ("lha.verb"), intrinsic=.true., &
+          description=var_str ('String variable that allows via \ttt{\$extension\_lha\_verb ' // &
+          '= "{\em <suffix>}"} to specify the suffix for the file \ttt{name.suffix} ' // &
+          'to which events in the (deprecated) extended or verbose LHA ' // &
+          'format are written. If not set, the default file name and suffix ' // &
+          'is \ttt{{\em <process\_name>}.lha.verb}. (cf. also \ttt{sample\_format}, ' // &
+          '\ttt{\$sample})'))
+  end subroutine var_list_set_eio_defaults
+
+  module subroutine var_list_set_shower_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_log (var_str ("?allow_shower"), .true., &
+         intrinsic=.true., &
+         description=var_str ('Master flag to switch on (initial and ' // &
+         'final state) parton shower, matching/merging as an event ' // &
+         'transform. As a default, it is switched on. (cf. also \ttt{?ps\_ ' // &
+         '....}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?ps_fsr_active"), .false., &
+         intrinsic=.true., &
+         description=var_str ('Flag that switches final-state QCD radiation ' // &
+         '(FSR) on.  (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, ' // &
+         '\ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?ps_isr_active"), .false., &
+         intrinsic=.true., &
+         description=var_str ('Flag that switches initial-state QCD ' // &
+         'radiation (ISR) on.  (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ' // &
+         '...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?ps_taudec_active"), .false., &
+            intrinsic=.true., &
+            description=var_str ('Flag to switch on $\tau$ decays, at ' // &
+            'the moment only via the included external package \ttt{TAUOLA} ' // &
+            'and \ttt{PHOTOS}.  (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ' // &
+            '...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?muli_active"), .false., &
+            intrinsic=.true., &
+            description=var_str ("Master flag that switches on \whizard's " // &
+            'module for multiple interaction with interleaved QCD parton ' // &
+            'showers for hadron colliders. Note that this feature is still ' // &
+            'experimental. (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ' // &
+            '...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...})'))
+    call var_list%append_string (var_str ("$shower_method"), var_str ("WHIZARD"), &
+            intrinsic=.true., &
+            description=var_str ('String variable that allows to specify ' // &
+            'which parton shower is being used, the default, \ttt{"WHIZARD"}, ' // &
+            'is one of the in-house showers of \whizard. Other possibilities ' // &
+            'at the moment are only \ttt{"PYTHIA6"}.'))
+    call var_list%append_log (var_str ("?shower_verbose"), .false., &
+            intrinsic=.true., &
+            description=var_str ('Flag to switch on verbose messages when ' // &
+            'using shower and/or hadronization. (cf. also \ttt{?allow\_shower}, ' // &
+            '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...},'))
+    call var_list%append_string (var_str ("$ps_PYTHIA_PYGIVE"), var_str (""), &
+          intrinsic=.true., &
+          description=var_str ('String variable that allows to pass options ' // &
+          'for tunes etc. to the attached \pythia\ parton shower or hadronization, ' // &
+          'e.g.: \ttt{\$ps\_PYTHIA\_PYGIVE = "MSTJ(41)=1"}.  (cf. also ' // &
+          '\newline \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+          '...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_string (var_str ("$ps_PYTHIA8_config"), var_str (""), &
+         intrinsic=.true., &
+         description=var_str ('String variable that allows to pass options ' // &
+         'for tunes etc. to the attached \pythia\ttt{8} parton shower or hadronization, ' // &
+         'e.g.: \ttt{\$ps\_PYTHIA8\_config = "PartonLevel:MPI = off"}.  (cf. also ' // &
+         '\newline \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_string (var_str ("$ps_PYTHIA8_config_file"), var_str (""), &
+         intrinsic=.true., &
+         description=var_str ('String variable that allows to pass a filename to a ' // &
+         '\pythia\ttt{8} configuration file.'))
+    call var_list%append_real (&
+         var_str ("ps_mass_cutoff"), 1._default, intrinsic = .true., &
+         description=var_str ('Real value that sets the QCD parton shower ' // &
+         'lower cutoff scale, where hadronization sets in. (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (&
+         var_str ("ps_fsr_lambda"), 0.29_default, intrinsic = .true., &
+         description=var_str ('By this real parameter, the value of $\Lambda_{QCD}$ ' // &
+         'used in running $\alpha_s$ for time-like showers is set (except ' // &
+         'for showers in the decay of a resonance). (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (&
+         var_str ("ps_isr_lambda"), 0.29_default, intrinsic = .true., &
+         description=var_str ('By this real parameter, the value of $\Lambda_{QCD}$ ' // &
+         'used in running $\alpha_s$ for space-like showers is set. (cf. ' // &
+         'also \ttt{?allow\_shower}, \ttt{?ps\_   ...}, \ttt{\$ps\_ ...}, ' // &
+         '\ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_int (&
+         var_str ("ps_max_n_flavors"), 5, intrinsic = .true., &
+         description=var_str ('This integer parameter sets the maxmimum ' // &
+         'number of flavors that can be produced in a QCD shower $g\to ' // &
+         'q\bar q$. It is also used as the maximal number of active flavors ' // &
+         'for the running of $\alpha_s$ in the shower (with a minimum ' // &
+         'of 3). (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?ps_isr_alphas_running"), .true., &
+            intrinsic=.true., &
+            description=var_str ('Flag that decides whether a running ' // &
+            '$\alpha_s$ is taken in space-like QCD parton showers. (cf. ' // &
+            'also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, ' // &
+            '\ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?ps_fsr_alphas_running"), .true., &
+            intrinsic=.true., &
+            description=var_str ('Flag that decides whether a running ' // &
+            '$\alpha_s$ is taken in time-like QCD parton showers. (cf. ' // &
+            'also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, ' // &
+            '\ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str ("ps_fixed_alphas"), &
+         0._default, intrinsic = .true., &
+         description=var_str ('This real parameter sets the value of $\alpha_s$ ' // &
+         'if it is (cf. $\to$ \ttt{?ps\_isr\_alphas\_running}, \newline ' // &
+         '\ttt{?ps\_fsr\_alphas\_running}) not running in initial and/or ' // &
+         'final-state QCD showers.  (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ' // &
+         '...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?ps_isr_pt_ordered"), .false., &
+            intrinsic=.true., &
+            description=var_str ('By this flag, it can be switched between ' // &
+            'the analytic QCD ISR shower (\ttt{false}, default) and the ' // &
+            '$p_T$ ISR QCD shower (\ttt{true}). (cf. also \ttt{?allow\_shower}, ' // &
+            '\ttt{?ps\_   ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str ("?ps_isr_angular_ordered"), .true., &
+            intrinsic=.true., &
+            description=var_str ('If switched one, this flag forces opening ' // &
+            'angles of emitted partons in the QCD ISR shower to be strictly ' // &
+            'ordered, i.e. increasing towards the hard interaction.  (cf. ' // &
+            'also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, ' // &
+            '\ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("ps_isr_primordial_kt_width"), 0._default, intrinsic = .true., &
+         description=var_str ('This real parameter sets the width $\sigma ' // &
+         '= \braket{k_T^2}$ for the Gaussian primordial $k_T$ distribution ' // &
+         'inside the hadron, given by: $\exp[-k_T^2/\sigma^2] k_T dk_T$.  ' // &
+         '(cf. also \ttt{?allow\_shower}, \ttt{?ps\_   ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("ps_isr_primordial_kt_cutoff"), 5._default, intrinsic = .true., &
+         description=var_str ('Real parameter that sets the upper cutoff ' // &
+         'for the primordial $k_T$ distribution inside a hadron.  (cf. ' // &
+         'also \ttt{?allow\_shower}, \ttt{?ps\_   ...}, \ttt{\$ps\_ ...}, ' // &
+         '\ttt{?hadronization\_active}, \ttt{?mlm\_ ...})'))
+    call var_list%append_real (var_str &
+         ("ps_isr_z_cutoff"), 0.999_default, intrinsic = .true., &
+         description=var_str ('This real parameter allows to set the upper ' // &
+         'cutoff on the splitting variable $z$ in space-like QCD parton ' // &
+         'showers. (cf. also \ttt{?allow\_shower}, \ttt{?ps\_   ...}, ' // &
+         '\ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("ps_isr_minenergy"), 1._default, intrinsic = .true., &
+         description=var_str ('By this real parameter, the minimal effective ' // &
+         'energy (in the c.m. frame) of a time-like or on-shell-emitted ' // &
+         'parton in a space-like QCD shower is set. For a hard subprocess ' // &
+         'that is not in the rest frame, this number is roughly reduced ' // &
+         'by a boost factor $1/\gamma$ to the rest frame of the hard scattering ' // &
+         'process.  (cf. also \ttt{?allow\_shower}, \ttt{?ps\_   ...}, ' // &
+         '\ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("ps_isr_tscalefactor"), 1._default, intrinsic = .true., &
+         description=var_str ('The $Q^2$ scale of the hard scattering ' // &
+         'process is multiplied by this real factor to define the maximum ' // &
+         'parton virtuality allowed in time-like QCD showers. This does ' // &
+         'only apply to $t$- and $u$-channels, while for $s$-channel resonances ' // &
+         'the maximum virtuality is set by $m^2$.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_   ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_log (var_str &
+         ("?ps_isr_only_onshell_emitted_partons"), .false., intrinsic=.true., &
+         description=var_str ('This flag if set true sets all emitted ' // &
+         'partons off space-like showers on-shell, i.e. it would not allow ' // &
+         'associated time-like showers.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_   ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?hadronization\_active})'))
+  end subroutine var_list_set_shower_defaults
+
+  module subroutine var_list_set_hadronization_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_log &
+         (var_str ("?allow_hadronization"), .true., intrinsic=.true., &
+         description=var_str ('Master flag to switch on hadronization ' // &
+         'as an event transform. As a default, it is switched on. (cf. ' // &
+         'also \ttt{?ps\_ ....}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, ' // &
+         '\ttt{?hadronization\_active})'))
+    call var_list%append_log &
+         (var_str ("?hadronization_active"), .false., intrinsic=.true., &
+         description=var_str ('Master flag to switch hadronization (through ' // &
+         'the attached \pythia\ package) on or off. As a default, it is ' // &
+         'off. (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...})'))
+    call var_list%append_string &
+         (var_str ("$hadronization_method"), var_str ("PYTHIA6"), intrinsic = .true., &
+         description=var_str ("Determines whether \whizard's own " // &
+         "hadronization or the (internally included) \pythiasix\ should be used."))
+    call var_list%append_real &
+         (var_str ("hadron_enhanced_fraction"), 0.01_default, intrinsic = .true., &
+         description=var_str ('Fraction of Lund strings that break with enhanced ' // &
+         'width. [not yet active]'))
+    call var_list%append_real &
+         (var_str ("hadron_enhanced_width"), 2.0_default, intrinsic = .true., &
+         description=var_str ('Enhancement factor for the width of breaking ' // &
+         'Lund strings. [not yet active]'))
+  end subroutine var_list_set_hadronization_defaults
+
+  module subroutine var_list_set_tauola_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_log (&
+         var_str ("?ps_tauola_photos"), .false., intrinsic=.true., &
+         description=var_str ('Flag to switch on \ttt{PHOTOS} for photon ' // &
+         'showering inside the \ttt{TAUOLA} package.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+    call var_list%append_log (&
+         var_str ("?ps_tauola_transverse"), .false., intrinsic=.true., &
+         description=var_str ('Flag to switch transverse $\tau$ polarization ' // &
+         'on or off for Higgs decays into $\tau$ leptons.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+    call var_list%append_log (&
+         var_str ("?ps_tauola_dec_rad_cor"), .true., intrinsic=.true., &
+         description=var_str ('Flag to switch radiative corrections for ' // &
+         '$\tau$ decays in \ttt{TAUOLA} on or off.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+    call var_list%append_int (&
+         var_str ("ps_tauola_dec_mode1"), 0, intrinsic = .true., &
+         description=var_str ('Integer code to request a specific $\tau$ ' // &
+         'decay within \ttt{TAUOLA} for the decaying $\tau$, and -- ' // &
+         'in correlated decays -- for the second $\tau$. For more information ' // &
+         'cf. the comments in the code or the \ttt{TAUOLA} manual.  ' // &
+         '(cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+    call var_list%append_int (&
+         var_str ("ps_tauola_dec_mode2"), 0, intrinsic = .true., &
+         description=var_str ('Integer code to request a specific $\tau$ ' // &
+         'decay within \ttt{TAUOLA} for the decaying $\tau$, and -- ' // &
+         'in correlated decays -- for the second $\tau$. For more information ' // &
+         'cf. the comments in the code or the \ttt{TAUOLA} manual.  ' // &
+         '(cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+    call var_list%append_real (&
+         var_str ("ps_tauola_mh"), 125._default, intrinsic = .true., &
+         description=var_str ('Real option to set the Higgs mass for Higgs ' // &
+         'decays into $\tau$ leptons in the interface to \ttt{TAUOLA}.  ' // &
+         '(cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+    call var_list%append_real (&
+         var_str ("ps_tauola_mix_angle"), 90._default, intrinsic = .true., &
+         description=var_str ('Option to set the mixing angle between ' // &
+         'scalar and pseudoscalar Higgs bosons for Higgs decays into $\tau$ ' // &
+         'leptons in the interface to \ttt{TAUOLA}.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+    call var_list%append_log (&
+         var_str ("?ps_tauola_pol_vector"), .false., intrinsic = .true., &
+         description=var_str ('Flag to decide whether for transverse $\tau$ ' // &
+         'polarization, polarization information should be taken from ' // &
+         '\ttt{TAUOLA} or not.  The default is just based on random numbers.  ' // &
+         '(cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{?mlm\_ ...}, \ttt{?ps\_taudec\_active})'))
+  end subroutine var_list_set_tauola_defaults
+
+  module subroutine var_list_set_mlm_matching_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_log (var_str ("?mlm_matching"), .false., &
+            intrinsic=.true., &
+            description=var_str ('Master flag to switch on MLM (LO) jet ' // &
+            'matching between hard matrix elements and the QCD parton ' // &
+            'shower. (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, ' // &
+            '\ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_Qcut_ME"), 0._default, intrinsic = .true., &
+         description=var_str ('Real parameter that in the MLM jet matching ' // &
+         'between hard matrix elements and QCD parton shower sets a possible ' // &
+         'virtuality cut on jets from the hard matrix element. (cf. also ' // &
+         '\ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ' // &
+         '...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_Qcut_PS"), 0._default, intrinsic = .true., &
+         description=var_str ('Real parameter that in the MLM jet matching ' // &
+         'between hard matrix elements and QCD parton shower sets a possible ' // &
+         'virtuality cut on jets from the parton shower. (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_ptmin"), 0._default, intrinsic = .true., &
+         description=var_str ('This real parameter sets a minimal $p_T$ ' // &
+         'that enters the $y_{cut}$ jet clustering measure in the MLM ' // &
+         'jet matching between hard matrix elements and QCD parton showers.  ' // &
+         '(cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_etamax"), 0._default, intrinsic = .true., &
+         description=var_str ('This real parameter sets a maximal pseudorapidity ' // &
+         'that enters the MLM jet matching between hard matrix elements ' // &
+         'and QCD parton showers.  (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ' // &
+         '...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_Rmin"), 0._default, intrinsic = .true., &
+         description=var_str ('Real parameter that sets a minimal $R$ ' // &
+         'distance value that enters the $y_{cut}$ jet clustering measure ' // &
+         'in the MLM jet matching between hard matrix elements and QCD ' // &
+         'parton showers.  (cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ' // &
+         '...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_Emin"), 0._default, intrinsic = .true., &
+         description=var_str ('Real parameter that sets a minimal energy ' // &
+         '$E_{min}$ value as an infrared cutoff in the MLM jet matching ' // &
+         'between hard matrix elements and QCD parton showers.  (cf. also ' // &
+         '\ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ' // &
+         '...}, \ttt{?hadronization\_active})'))
+    call var_list%append_int (var_str &
+         ("mlm_nmaxMEjets"), 0, intrinsic = .true., &
+         description=var_str ('This integer sets the maximal number of ' // &
+         'jets that are available from hard matrix elements in the MLM ' // &
+         'jet matching between hard matrix elements and QCD parton shower. ' // &
+         '(cf. also \ttt{?allow\_shower}, \ttt{?ps\_ ...}, \ttt{\$ps\_ ' // &
+         '...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_ETclusfactor"), 0.2_default, intrinsic = .true., &
+         description=var_str ('This real parameter is a factor that enters ' // &
+         'the calculation of the $y_{cut}$ measure for jet clustering ' // &
+         'after the parton shower in the MLM jet matching between hard ' // &
+         'matrix elements and QCD parton showers.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_ETclusminE"), 5._default, intrinsic = .true., &
+         description=var_str ('This real parameter is a minimal energy ' // &
+         'that enters the calculation of the $y_{cut}$ measure for jet ' // &
+         'clustering after the parton shower in the MLM jet matching between ' // &
+         'hard matrix elements and QCD parton showers.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_etaclusfactor"), 1._default, intrinsic = .true., &
+         description=var_str ('This real parameter is a factor that enters ' // &
+         'the calculation of the $y_{cut}$ measure for jet clustering ' // &
+         'after the parton shower in the MLM jet matching between hard ' // &
+         'matrix elements and QCD parton showers.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_Rclusfactor"), 1._default, intrinsic = .true., &
+         description=var_str ('This real parameter is a factor that enters ' // &
+         'the calculation of the $y_{cut}$ measure for jet clustering ' // &
+         'after the parton shower in the MLM jet matching between hard ' // &
+         'matrix elements and QCD parton showers.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+    call var_list%append_real (var_str &
+         ("mlm_Eclusfactor"), 1._default, intrinsic = .true., &
+         description=var_str ('This real parameter is a factor that enters ' // &
+         'the calculation of the $y_{cut}$ measure for jet clustering ' // &
+         'after the parton shower in the MLM jet matching between hard ' // &
+         'matrix elements and QCD parton showers.  (cf. also \ttt{?allow\_shower}, ' // &
+         '\ttt{?ps\_ ...}, \ttt{\$ps\_ ...}, \ttt{mlm\_ ...}, \ttt{?hadronization\_active})'))
+
+  end subroutine var_list_set_mlm_matching_defaults
+
+  module subroutine var_list_set_powheg_matching_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_log (var_str ("?powheg_matching"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Activates Powheg matching. Needs to be ' // &
+         'combined with the \ttt{?combined\_nlo\_integration}-method.'))
+    call var_list%append_log (var_str ("?powheg_use_singular_jacobian"), &
+         .false., intrinsic = .true., &
+         description=var_str ('This allows to give a different ' // &
+         'normalization of the Jacobian, resulting in an alternative ' // &
+         'POWHEG damping in the singular regions.'))
+    call var_list%append_int (var_str ("powheg_grid_size_xi"), &
+         5, intrinsic = .true., &
+         description=var_str ('Number of $\xi$ points in the POWHEG grid.'))
+    call var_list%append_int (var_str ("powheg_grid_size_y"), &
+         5, intrinsic = .true., &
+         description=var_str ('Number of $y$ points in the POWHEG grid.'))
+    call var_list%append_real (var_str ("powheg_pt_min"), &
+          1._default, intrinsic = .true., &
+          description=var_str ('Lower $p_T$-cut-off for the POWHEG ' // &
+          'hardest emission.'))
+    call var_list%append_real (var_str ("powheg_lambda"), &
+          0._default, intrinsic = .true., &
+          description=var_str ('Reference scale of the $\alpha_s$ evolution ' // &
+          'in the POWHEG matching algorithm. Per default we use ' // &
+          '$\Lambda^{n_f=5}_{\overline{MS}}$.' ))
+    call var_list%append_log (var_str ("?powheg_test_sudakov"), &
+          .false., intrinsic = .true., &
+          description=var_str ('Performs an internal consistency check ' // &
+          'on the POWHEG event generation.'))
+    call var_list%append_log (var_str ("?powheg_disable_sudakov"), &
+          .false., intrinsic = .true., &
+          description=var_str ('This flag allows to set the Sudakov form ' // &
+          'factor to one. This effectively results in a version of ' // &
+          'the matrix-element method (MEM) at NLO.'))
+  end subroutine var_list_set_powheg_matching_defaults
+
+  module subroutine var_list_set_openmp_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_log (var_str ("?omega_openmp"), &
+         openmp_is_active (), &
+         intrinsic=.true., &
+         description=var_str ('Flag to switch on or off OpenMP multi-threading ' // &
+         "for \oMega\ matrix elements. (cf. also \ttt{\$method}, \ttt{\$omega\_flag})"))
+    call var_list%append_log (var_str ("?openmp_is_active"), &
+         openmp_is_active (), &
+         locked=.true., intrinsic=.true., &
+         description=var_str ('Flag to switch on or off OpenMP multi-threading ' // &
+         'for \whizard. (cf. also \ttt{?openmp\_logging}, \ttt{openmp\_num\_threads}, ' // &
+         '\ttt{openmp\_num\_threads\_default}, \ttt{?omega\_openmp})'))
+    call var_list%append_int (var_str ("openmp_num_threads_default"), &
+         openmp_get_default_max_threads (), &
+         locked=.true., intrinsic=.true., &
+         description=var_str ('Integer parameter that shows the number ' // &
+         'of default OpenMP threads for multi-threading. Note that this ' // &
+         'parameter can only be accessed, but not reset by the user. (cf. ' // &
+         'also \ttt{?openmp\_logging}, \ttt{openmp\_num\_threads}, \ttt{?omega\_openmp})'))
+    call var_list%append_int (var_str ("openmp_num_threads"), &
+         openmp_get_max_threads (), &
+         intrinsic=.true., &
+         description=var_str ('Integer parameter that sets the number ' // &
+         'of OpenMP threads for multi-threading.  (cf. also \ttt{?openmp\_logging}, ' // &
+         '\ttt{openmp\_num\_threads\_default}, \ttt{?omega\_openmp})'))
+    call var_list%append_log (var_str ("?openmp_logging"), &
+         .true., intrinsic=.true., &
+         description=var_str ('This logical -- when set to \ttt{false} ' // &
+         '-- suppresses writing out messages about OpenMP parallelization ' // &
+         '(number of used threads etc.) on screen and into the logfile ' // &
+         '(default name \ttt{whizard.log}) for the whole \whizard\ run. ' // &
+         'Mainly for debugging purposes.  (cf. also \ttt{?logging}, ' // &
+         '\ttt{?mpi\_logging})'))
+  end subroutine var_list_set_openmp_defaults
+
+  module subroutine var_list_set_mpi_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_log (var_str ("?mpi_logging"), &
+         .false., intrinsic=.true., &
+         description=var_str('This logical -- when set to \ttt{false} ' // &
+         '-- suppresses writing out messages about MPI parallelization ' // &
+         '(number of used workers etc.) on screen and into the logfile ' // &
+         '(default name \ttt{whizard.log}) for the whole \whizard\ run. ' // &
+         'Mainly for debugging purposes.  (cf. also \ttt{?logging}, ' // &
+         '\ttt{?openmp\_logging})'))
+  end subroutine var_list_set_mpi_defaults
+
+  module subroutine var_list_set_nlo_defaults (var_list)
+    class(var_list_t), intent(inout) :: var_list
+    call var_list%append_string (var_str ("$born_me_method"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ("This string variable specifies the method " // &
+         "for the matrix elements to be used in the evaluation of the " // &
+         "Born part of the NLO computation. The default is the empty string, " // &
+         "i.e. the \ttt{\$method} being the intrinsic \oMega\ matrix element " // &
+         'generator (\ttt{"omega"}), other options ' // &
+         'are: \ttt{"ovm"}, \ttt{"unit\_test"}, \ttt{"template"}, ' // &
+         '\ttt{"template\_unity"}, \ttt{"threshold"}, \ttt{"gosam"}, ' // &
+         '\ttt{"openloops"}. Note that this option is inoperative if ' // &
+         'no NLO calculation is specified in the process definition. ' // &
+         'If you want ot use different matrix element methods in a LO ' // &
+         'computation, use the usual \ttt{method} command. (cf. also ' // &
+         '\ttt{\$correlation\_me\_method}, ' // &
+         '\ttt{\$dglap\_me\_method}, \ttt{\$loop\_me\_method} and ' // &
+         '\ttt{\$real\_tree\_me\_method}.)'))
+    call var_list%append_string (var_str ("$loop_me_method"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('This string variable specifies the method ' // &
+         'for the matrix elements to be used in the evaluation of the ' // &
+         'virtual part of the NLO computation. The default is the empty string, ' // &
+         'i.e. the same as \ttt{\$method}. Working options are: ' // &
+         '\ttt{"threshold"}, \ttt{"openloops"}, \ttt{"recola"}, \ttt{"gosam"}. ' // &
+         '(cf. also \ttt{\$real\_tree\_me\_method}, \ttt{\$correlation\_me\_method} ' // &
+         'and \ttt{\$born\_me\_method}.)'))
+    call var_list%append_string (var_str ("$correlation_me_method"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('This string variable specifies ' // &
+         'the method for the matrix elements to be used in the evaluation ' // &
+         'of the color (and helicity) correlated part of the NLO computation. ' // &
+         "The default is the same as the \ttt{\$method}, i.e. the intrinsic " // &
+         "\oMega\ matrix element generator " // &
+         '(\ttt{"omega"}), other options are: \ttt{"ovm"}, \ttt{"unit\_test"}, ' // &
+         '\ttt{"template"}, \ttt{"template\_unity"}, \ttt{"threshold"}, ' // &
+         '\ttt{"gosam"}, \ttt{"openloops"}. (cf. also ' // &
+         '\ttt{\$born\_me\_method}, \ttt{\$dglap\_me\_method}, ' // &
+         '\ttt{\$loop\_me\_method} and \newline' // &
+         '\ttt{\$real\_tree\_me\_method}.)'))
+    call var_list%append_string (var_str ("$real_tree_me_method"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('This string variable specifies the method ' // &
+         'for the matrix elements to be used in the evaluation of the ' // &
+         'real part of the NLO computation. The default is the same as ' // &
+         'the \ttt{\$method}, i.e. the intrinsic ' // &
+         "\oMega\ matrix element generator " // &
+         '(\ttt{"omega"}), other options ' // &
+         'are: \ttt{"ovm"}, \ttt{"unit\_test"}, \ttt{"template"}, \ttt{"template\_unity"}, ' // &
+         '\ttt{"threshold"}, \ttt{"gosam"}, \ttt{"openloops"}. (cf. also ' // &
+         '\ttt{\$born\_me\_method}, \ttt{\$correlation\_me\_method}, ' // &
+         '\ttt{\$dglap\_me\_method} and \ttt{\$loop\_me\_method}.)'))
+    call var_list%append_string (var_str ("$dglap_me_method"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('This string variable specifies the method ' // &
+         'for the matrix elements to be used in the evaluation of the ' // &
+         'DGLAP remnants of the NLO computation. The default is the same as ' // &
+         "\ttt{\$method}, i.e. the \oMega\ matrix element generator " // &
+         '(\ttt{"omega"}), other options ' // &
+         'are: \ttt{"ovm"}, \ttt{"unit\_test"}, \ttt{"template"}, \ttt{"template\_unity"}, ' // &
+         '\ttt{"threshold"}, \ttt{"gosam"}, \ttt{"openloops"}. (cf. also \newline' // &
+         '\ttt{\$born\_me\_method}, \ttt{\$correlation\_me\_method}, ' // &
+         '\ttt{\$loop\_me\_method} and \ttt{\$real\_tree\_me\_method}.)'))
+    call var_list%append_log (&
+         var_str ("?test_soft_limit"), .false., intrinsic = .true., &
+         description=var_str ('Sets the fixed values $\tilde{\xi} = 0.00001$ ' // &
+         'and $y = 0.5$ as radiation variables.  This way, only soft, ' // &
+         'but non-collinear phase space points are generated, which allows ' // &
+         'for testing subtraction in this region.'))
+    call var_list%append_log (&
+         var_str ("?test_coll_limit"), .false., intrinsic = .true., &
+         description=var_str ('Sets the fixed values $\tilde{\xi} = 0.5$ ' // &
+         'and $y = 0.9999999$ as radiation variables.  This way, only collinear, ' // &
+         'but non-soft phase space points are generated, which allows ' // &
+         'for testing subtraction in this region. Can be combined with ' // &
+         '\ttt{?test\_soft\_limit} to probe soft-collinear regions.'))
+    call var_list%append_log (&
+         var_str ("?test_anti_coll_limit"), .false., intrinsic = .true., &
+         description=var_str ('Sets the fixed values $\tilde{\xi} = 0.5$ ' // &
+         'and $y = -0.9999999$ as radiation variables.  This way, only anti-collinear, ' // &
+         'but non-soft phase space points are generated, which allows ' // &
+         'for testing subtraction in this region. Can be combined with ' // &
+         '\ttt{?test\_soft\_limit} to probe soft-collinear regions.'))
+    call var_list%append_string (var_str ("$select_alpha_regions"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('Fixes the $\alpha_r$ in the real ' // &
+         'subtraction as well as the DGLAP component. Allows for ' // &
+         'testing in a list of selected singular regions.'))
+    call var_list%append_string (var_str ("$virtual_selection"), &
+         var_str ("Full"), intrinsic = .true., &
+         description=var_str ('String variable to select either the full ' // &
+         'or only parts of the virtual components of an NLO calculation. ' // &
+         'Possible modes are \ttt{"Full"}, \ttt{"OLP"} and ' // &
+         '\ttt{"Subtraction."}. Mainly for debugging purposes.'))
+    call var_list%append_log (var_str ("?virtual_collinear_resonance_aware"), &
+         .true., intrinsic = .true., &
+         description=var_str ('This flag allows to switch between two ' // &
+         'different implementations of the collinear subtraction in the ' // &
+         'resonance-aware FKS setup.'))
+    call var_list%append_real (&
+         var_str ("blha_top_yukawa"), -1._default, intrinsic = .true., &
+         description=var_str ('If this value is set, the given value will ' // &
+         'be used as the top Yukawa coupling instead of the top mass. ' // &
+         'Note that having different values for $y_t$ and $m_t$ must be ' // &
+         'supported by your OLP-library and yield errors if this is not the case.'))
+    call var_list%append_string (var_str ("$blha_ew_scheme"), &
+         var_str ("alpha_internal"), intrinsic = .true., &
+         description=var_str ('String variable that transfers the electroweak ' // &
+         'renormalization scheme via BLHA to the one-loop provider. Possible ' // &
+         'values are \ttt{GF} or \ttt{Gmu} for the $G_\mu$ scheme, ' // &
+         '\ttt{alpha\_internal} (default, $G_\mu$ scheme, but value of ' // &
+         '$\alpha_S$ calculated internally by \whizard), \ttt{alpha\_mz} ' // &
+         'and \ttt{alpha\_0} (or \ttt{alpha\_thompson}) for different schemes ' // &
+         'with $\alpha$ as input.'))
+    call var_list%append_int (var_str ("openloops_verbosity"), 1, &
+         intrinsic = .true., &
+         description=var_str ('Decides how much \openloops\ output is printed. ' // &
+         'Can have values 0, 1 and 2, where 2 is the highest verbosity level.'))
+    call var_list%append_log (var_str ("?openloops_use_cms"), &
+         .true., intrinsic = .true., &
+         description=var_str ('Activates the complex mass scheme in ' // &
+         '\openloops. (cf. also ' // &
+         '\ttt{openloos\_verbosity}, \ttt{\$method}, ' // &
+         '\ttt{?openloops\_switch\_off\_muon\_yukawa}, ' // &
+         '\ttt{openloops\_stability\_log}, \newline' // &
+         '\ttt{\$openloops\_extra\_cmd})'))
+    call var_list%append_int (var_str ("openloops_phs_tolerance"), 7, &
+         intrinsic = .true., &
+         description=var_str ('This integer parameter gives via ' // &
+         '\ttt{openloops\_phs\_tolerance = <n>} the relative numerical ' // &
+         'tolerance $10^{-n}$ for the momentum conservation of the ' // &
+         'external particles within \openloops. (cf. also ' // &
+         '\ttt{openloos\_verbosity}, \ttt{\$method}, ' // &
+         '\ttt{?openloops\_switch\_off\_muon\_yukawa}, ' // &
+         '\newline\ttt{openloops\_stability\_log}, ' // &
+         '\ttt{\$openloops\_extra\_cmd})'))
+    call var_list%append_int (var_str ("openloops_stability_log"), 0, &
+         intrinsic = .true., &
+         description=var_str ('Creates the directory \ttt{stability\_log} ' // &
+         'containing information about the performance of the \openloops ' // &
+         'matrix elements. Possible values are 0 (No output), 1 (On ' // &
+         '\ttt{finish()}-call), 2 (Adaptive) and 3 (Always).'))
+    call var_list%append_log (var_str ("?openloops_switch_off_muon_yukawa"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Sets the Yukawa coupling of muons for ' // &
+         '\openloops\ to zero. (cf. also ' // &
+         '\ttt{openloos\_verbosity}, \ttt{\$method}, ' // &
+         '\ttt{?openloops\_use\_cms}, \ttt{openloops\_stability\_log}, ' // &
+         '\ttt{\$openloops\_extra\_cmd})'))
+    call var_list%append_string (var_str ("$openloops_extra_cmd"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('String variable to transfer customized ' // &
+         'special commands to \openloops. The three supported examples ' // &
+         '\ttt{\$openloops\_extra\_command = "extra approx top/stop/not"} ' // &
+         'are for selection of subdiagrams in top production. (cf. also ' // &
+         '\ttt{\$method}, \ttt{openloos\_verbosity}, ' // &
+         '\ttt{?openloops\_use\_cms}, \ttt{openloops\_stability\_log}, ' // &
+         '\ttt{?openloops\_switch\_off\_muon\_yukawa})'))
+    call var_list%append_string (var_str ("$openloops_allowed_libs"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('String variable to restrict the ' // &
+         'allowed \openloops process libraries for a process. ' // &
+         '(cf. also \ttt{\$method}, \ttt{openloos\_verbosity}, ' // &
+         '\ttt{?openloops\_use\_cms}, \ttt{openloops\_stability\_log}, ' // &
+         '\ttt{?openloops\_switch\_off\_muon\_yukawa})'))
+    call var_list%append_real (var_str ("ellis_sexton_scale"), &
+         -1._default, intrinsic = .true., &
+         description = var_str ('Real positive paramter for the Ellis-Sexton scale' // &
+         '$\mathcal{Q}$ used both in the finite one-loop contribution provided by' // &
+         'the OLP and in the virtual counter terms. The NLO cross section is' // &
+         'independent of $\mathcal{Q}$. Therefore, this allows for debugging of' // &
+         'the implemention of the virtual counter terms. As the default' // &
+         '$\mathcal{Q} = \mu_{\rm{R}}$ is chosen. So far, setting this parameter' // &
+         'only works for OpenLoops2, otherwise the default behaviour is invoked.'))
+    call var_list%append_log (var_str ("?disable_subtraction"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Disables the subtraction of soft and collinear ' // &
+         'divergences from the real matrix element.'))
+    call var_list%append_real (var_str ("fks_dij_exp1"), &
+         1._default, intrinsic = .true., &
+         description=var_str ('Fine-tuning parameters of the FKS ' // &
+         'final state partition functions. The exact meaning depends ' // &
+         'on the mapping implementation. (cf. also \ttt{fks\_dij\_exp2}, ' // &
+         '\ttt{\$fks\_mapping\_type}, \ttt{fks\_xi\_min}, \ttt{fks\_y\_max})'))
+    call var_list%append_real (var_str ("fks_dij_exp2"), &
+         1._default, intrinsic = .true., &
+         description=var_str ('Fine-tuning parameters of the FKS ' // &
+         'initial state partition functions. The exact meaning depends ' // &
+         'on the mapping implementation. (cf. also \ttt{fks\_dij\_exp1}, ' // &
+         '\ttt{\$fks\_mapping\_type}, \ttt{fks\_xi\_min}, \ttt{fks\_y\_max})'))
+    call var_list%append_real (var_str ("fks_xi_min"), &
+         0._default, intrinsic = .true., &
+         description=var_str ('Real parameter for the FKS ' // &
+         'phase space that sets the numerical lower value of the $\xi$ ' // &
+         'variable. Valid for the value range $[\texttt{tiny\_07},1]$, where ' // &
+         'value inputs out of bounds will take the value of the closest bound. ' // &
+         'Here, $\texttt{tiny\_07} = \texttt{1E9\_default * epsilon (0.\_default)}$, where ' // &
+         '\ttt{epsilon} is an intrinsic Fortran function. (cf. also \ttt{fks\_dij\_exp1}, ' // &
+         '\ttt{fks\_dij\_exp2}, \ttt{\$fks\_mapping\_type}, \ttt{fks\_y\_max})'))
+    call var_list%append_real (var_str ("fks_y_max"), &
+         1._default, intrinsic = .true., &
+         description=var_str ('Real parameter for the FKS ' // &
+         'phase space that sets the numerical upper value of the $\left|y\right|$ ' // &
+         'variable. Valid for ranges $[0,1]$, where value inputs out of bounds will take ' // &
+         'the value of the closest bound. Only supported for massless FSR. ' // &
+         '(cf. also \ttt{fks\_dij\_exp1}, \ttt{\$fks\_mapping\_type}, \ttt{fks\_dij\_exp2})'))
+    call var_list%append_log (var_str ("?vis_fks_regions"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Logical variable that, if set to ' // &
+         '\ttt{true}, generates \LaTeX\ code and executes it into a PDF ' // &
+         ' to produce a table of all singular FKS regions and their ' // &
+         ' flavor structures. The default is \ttt{false}.'))
+    call var_list%append_real (var_str ("fks_xi_cut"), &
+         1.0_default, intrinsic = .true., &
+         description = var_str ('(Experimental) Real parameter for the FKS ' // &
+         'phase space that applies a cut to $\xi$ variable with $0 < \xi_{\text{cut}}' // &
+         '\leq \xi_{\text{max}}$. The dependence on the parameter vanishes between ' // &
+         'real subtraction and integrated subtraction term. Could thus be used for debugging. ' // &
+         'This is not implemented properly, use at your own risk!'))
+    call var_list%append_real (var_str ("fks_delta_o"), &
+         2._default, intrinsic = .true., &
+         description = var_str ('Real parameter for the FKS ' // &
+         'phase space that applies a cut to the $y$ variable with $0 < \delta_o \leq 2$ ' // &
+         'for final state singularities only. ' // &
+         'The dependence on the parameter vanishes between real subtraction and integrated ' // &
+         'subtraction term. For debugging purposes.'))
+    call var_list%append_real (var_str ("fks_delta_i"), &
+         2._default, intrinsic = .true., &
+         description = var_str ('Real parameter for the FKS ' // &
+         'phase space that applies a cut to the $y$ variable with ' // &
+         '$0 < \delta_{\mathrm{I}} \leq 2$ '// &
+         'for initial state singularities only. ' // &
+         'The dependence on the parameter vanishes between real subtraction and integrated ' // &
+         'subtraction term. For debugging purposes.'))
+    call var_list%append_string (var_str ("$fks_mapping_type"), &
+         var_str ("default"), intrinsic = .true., &
+         description=var_str ('Sets the FKS mapping type. Possible values ' // &
+         'are \ttt{"default"} and \ttt{"resonances"}. The latter option ' // &
+         'activates the resonance-aware subtraction mode and induces the ' // &
+         'generation of a soft mismatch component. (cf. also ' // &
+         '\ttt{fks\_dij\_exp1}, \ttt{fks\_dij\_exp2}, \ttt{fks\_xi\_min}, ' // &
+         '\ttt{fks\_y\_max})'))
+    call var_list%append_string (var_str ("$resonances_exclude_particles"), &
+         var_str ("default"), intrinsic = .true., &
+         description=var_str ('Accepts a string of particle names. These ' // &
+         'particles will be ignored when the resonance histories are generated. ' // &
+         'If \ttt{\$fks\_mapping\_type} is not \ttt{"resonances"}, this ' // &
+         'option does nothing.'))
+    call var_list%append_int (var_str ("alpha_power"), &
+         2, intrinsic = .true., &
+         description=var_str ('Fixes the electroweak coupling ' // &
+         'powers used by BLHA matrix element generators. Setting these ' // &
+         'values is necessary for the correct generation of OLP-files. ' // &
+         'Having inconsistent values yields to error messages by the corresponding ' // &
+         'OLP-providers.'))
+    call var_list%append_int (var_str ("alphas_power"), &
+         0, intrinsic = .true., &
+         description=var_str ('Fixes the strong coupling ' // &
+         'powers used by BLHA matrix element generators. Setting these ' // &
+         'values is necessary for the correct generation of OLP-files. ' // &
+         'Having inconsistent values yields to error messages by the corresponding ' // &
+         'OLP-providers.'))
+    call var_list%append_log (var_str ("?combined_nlo_integration"), &
+         .false., intrinsic = .true., &
+         description=var_str ('When this option is set to \ttt{true}, ' // &
+         'the NLO integration will not be performed in the separate components, ' // &
+         'but instead the sum of all components will be integrated directly. ' // &
+         'When fixed-order NLO events are requested, this integration ' // &
+         'mode is possible, but not necessary.  However, it is necessary ' // &
+         'for POWHEG events.'))
+    call var_list%append_log (var_str ("?fixed_order_nlo_events"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Induces the generation of fixed-order ' // &
+         'NLO events.'))
+    call var_list%append_log (var_str ("?check_event_weights_against_xsection"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Activates an internal recording of event ' // &
+         'weights when unweighted events are generated.  At the end of ' // &
+         'the simulation, the mean value of the weights and its standard ' // &
+         'deviation are displayed. This allows to cross-check event generation ' // &
+         'and integration, because the value displayed must be equal to ' // &
+         'the integration result.'))
+    call var_list%append_log (var_str ("?keep_failed_events"), &
+         .false., intrinsic = .true., &
+         description=var_str ('In the context of weighted event generation, ' // &
+         'if set to \ttt{true}, events with failed kinematics will be ' // &
+         'written to the event output with an associated weight of zero. ' // &
+         'This way, the total cross section can be reconstructed from the event output.'))
+    call var_list%append_int (var_str ("gks_multiplicity"), &
+         0, intrinsic = .true., &
+         description=var_str ('Jet multiplicity for the GKS merging scheme.'))
+    call var_list%append_string (var_str ("$gosam_filter_lo"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('The filter string given to \gosam\ in order to ' // &
+         'filter out tree-level diagrams. (cf. also \ttt{\$gosam\_filter\_nlo}, ' // &
+         '\ttt{\$gosam\_symmetries})'))
+    call var_list%append_string (var_str ("$gosam_filter_nlo"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('The same as \ttt{\$gosam\_filter\_lo}, but for ' // &
+         'loop matrix elements. (cf. also \ttt{\$gosam\_filter\_nlo}, ' // &
+         '\ttt{\$gosam\_symmetries})'))
+    call var_list%append_string (var_str ("$gosam_symmetries"), &
+         var_str ("family,generation"), intrinsic = .true., &
+         description=var_str ('String variable that is transferred to \gosam\ ' // &
+         'configuration file to determine whether certain helicity configurations ' // &
+         'are considered to be equal. Possible values are \ttt{flavour}, ' // &
+         '\ttt{family} etc. For more info see the \gosam\ manual.'))
+    call var_list%append_int (var_str ("form_threads"), &
+         2, intrinsic = .true., &
+         description=var_str ('The number of threads used by \gosam\ when ' // &
+         'matrix elements are evaluated using \ttt{FORM}'))
+    call var_list%append_int (var_str ("form_workspace"), &
+         1000, intrinsic = .true., &
+         description=var_str ('The size of the workspace \gosam\ requires ' // &
+         'from \ttt{FORM}. Inside \ttt{FORM}, it corresponds to the heap ' // &
+         'size used by the algebra processor.'))
+    call var_list%append_string (var_str ("$gosam_fc"), &
+         var_str (""), intrinsic = .true., &
+         description=var_str ('The Fortran compiler used by \gosam.'))
+    call var_list%append_real (&
+         var_str ("mult_call_real"), 1._default, &
+         intrinsic = .true., &
+         description=var_str ('(Real-valued) multiplier for the number ' // &
+         'of calls used in the integration of the real subtraction ' // &
+         'NLO component. This way, a higher accuracy can be achieved for ' // &
+         'the real component, while simultaneously avoiding redundant ' // &
+         'integration calls for the other components. (cf. also ' // &
+         '\ttt{mult\_call\_dglap}, \ttt{mult\_call\_virt})'))
+    call var_list%append_real (&
+         var_str ("mult_call_virt"), 1._default, &
+         intrinsic = .true., &
+         description=var_str ('(Real-valued) multiplier for the number ' // &
+         'of calls used in the integration of the virtual NLO ' // &
+         'component. This way, a higher accuracy can be achieved for ' // &
+         'this component, while simultaneously avoiding redundant ' // &
+         'integration calls for the other components. (cf. also ' // &
+         '\ttt{mult\_call\_dglap}, \ttt{mult\_call\_real})'))
+    call var_list%append_real (&
+         var_str ("mult_call_dglap"), 1._default, &
+         intrinsic = .true., &
+         description=var_str ('(Real-valued) multiplier for the number ' // &
+         'of calls used in the integration of the DGLAP remnant NLO ' // &
+         'component. This way, a higher accuracy can be achieved for ' // &
+         'this component, while simultaneously avoiding redundant ' // &
+         'integration calls for the other components. (cf. also ' // &
+         '\ttt{mult\_call\_real}, \ttt{mult\_call\_virt})'))
+    call var_list%append_string (var_str ("$dalitz_plot"), &
+         var_str (''), intrinsic = .true., &
+         description=var_str ('This string variable has two purposes: ' // &
+         'when different from the empty string, it switches on generation ' // &
+         'of the Dalitz plot file (ASCII tables) for the real emitters. ' // &
+         'The string variable itself provides the file name.'))
+    call var_list%append_string (var_str ("$nlo_correction_type"), &
+         var_str ("QCD"), intrinsic = .true., &
+         description=var_str ('String variable which sets the NLO correction ' // &
+         'type via \ttt{nlo\_correction\_type = "{\em <type>}"} to either ' // &
+         '\ttt{"QCD"}, \ttt{"EW"}, or to all with \ttt{\em{<type>}} ' // &
+         'set to \ttt{"Full"}. Must be set before the \texttt{process} statement.'))
+    call var_list%append_string (var_str ("$exclude_gauge_splittings"), &
+         var_str ("c:b:t:e2:e3"), intrinsic = .true., &
+         description=var_str ('String variable that allows via ' // &
+         '\ttt{\$exclude\_gauge\_splittings = "{\em <prt1>:<prt2>:\dots}"} ' // &
+         'to exclude fermion flavors from gluon/photon splitting into ' // &
+         'fermion pairs beyond LO. For example \ttt{\$exclude\_gauge\_splittings ' // &
+         '= "c:s:b:t"} would lead to \ttt{gl => u U} and \ttt{gl => d ' // &
+         'D} as possible splittings in QCD. It is important to keep in ' // &
+         'mind that only the particles listed in the string are excluded! ' // &
+         'In QED this string would additionally allow for all splittings into ' // &
+         'lepton pairs \ttt{A => l L}. Therefore, once set the variable ' // &
+         'acts as a replacement of the default value, not as an addition!  ' // &
+         'Note: \ttt{"\em <prt>"} can be both particle or antiparticle. It ' // &
+         'will always exclude the corresponding fermion pair. An empty ' // &
+         'string allows for all fermion flavors to take part in the splitting! ' // &
+         'Also, particles included in an \ttt{alias} are not excluded by ' // &
+         '\ttt{\$exclude\_gauge\_splittings}!'))
+    call var_list%append_log (var_str ("?nlo_use_born_scale"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Flag that decides whether a scale expression ' // &
+         'defined for the Born component of an NLO process shall be applied ' // &
+         'to all other components as well or not. ' // &
+         '(cf. also \ttt{?nlo\_cut\_all\_real\_sqmes})'))
+    call var_list%append_log (var_str ("?nlo_cut_all_real_sqmes"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Flag that decides whether in the case that ' // &
+         'the real component does not pass a cut, its subtraction term ' // &
+         'shall be discarded for that phase space point as well or not. ' // &
+         '(cf. also \ttt{?nlo\_use\_born\_scale})'))
+    call var_list%append_string (var_str ("$real_partition_mode"), var_str ("default"), &
+         intrinsic=.true., &
+         description=var_str ('String variable to choose which parts of the real cross ' // &
+         'section are to be integrated. With the default value (\ttt{"default"}) ' // &
+         'or \ttt{"off"} the real cross section is integrated as usual without partition. ' // &
+         'If set to \ttt{"on"} or \ttt{"all"}, the real cross section is split into singular ' // &
+         'and finite part using a partition function $F$, such that $\mathcal{R} ' // &
+         '= [1-F(p_T^2)]\mathcal{R} + F(p_T^2)\mathcal{R} = \mathcal{R}_{\text{fin}} ' // &
+         '+ \mathcal{R}_{\text{sing}}$. The emission generation is then performed ' // &
+         'using $\mathcal{R}_{\text{sing}}$, whereas $\mathcal{R}_{\text{fin}}$ ' // &
+         'is treated separately. If set to \ttt{"singular"} (\ttt{"finite"}), ' // &
+         'only the singular (finite) real component is integrated.' // &
+         '(cf. also \ttt{real\_partition\_scale})'))
+    call var_list%append_real (var_str ("real_partition_scale"), &
+         10._default, intrinsic = .true., &
+         description=var_str ('This real variable sets the invariant mass ' // &
+         'of the FKS pair used as a separator between the singular and the ' // &
+         'finite part of the real subtraction terms in an NLO calculation, ' // &
+         'e.g. in $e^+e^- \to t\bar tj$. (cf. also \ttt{\$real\_partition\_mode})'))
+    call var_list%append_log (var_str ("?nlo_reuse_amplitudes_fks"), &
+         .false., intrinsic = .true., &
+         description=var_str ('Only compute real and virtual amplitudes for ' // &
+         'subprocesses that give a different amplitude and reuse the result ' // &
+         'for equivalent subprocesses. ' // &
+         'Might give a speed-up for some processes. Might ' // &
+         'break others, especially in cases where resonance histories are needed. ' // &
+         'Experimental feature, use at your own risk!'))
+  end subroutine var_list_set_nlo_defaults
+
+
+end submodule variables_s
+

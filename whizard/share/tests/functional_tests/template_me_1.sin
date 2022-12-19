@@ -1,0 +1,31 @@
+# SINDARIN input for WHIZARD self-test
+# Testing the template ME method
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+$method = "template"
+
+process template_me_1_p1 = e1, E1 => e2, E2
+process template_me_1_p2 = e1, E1 => e2, E2, e2, E2
+process template_me_1_p3 = u, U => d, D
+
+me = 0
+mmu = 0
+
+sqrts = 500 GeV
+
+iterations = 1:1000
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (template_me_1_p1)
+integrate (template_me_1_p2)
+integrate (template_me_1_p3)

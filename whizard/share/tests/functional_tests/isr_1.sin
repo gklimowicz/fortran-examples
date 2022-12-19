@@ -1,0 +1,29 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process isr_1_1 = e1, N1 => e2, N2
+process isr_1_2 = e1, N1 => "W-"
+
+compile
+
+seed = 1
+
+sqrts = 500 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 1:1000
+
+beams = e1, N1
+integrate (isr_1_1)
+
+beams = e1, N1 => isr, none
+integrate (isr_1_1) { cuts = all 70 GeV < M < 90 GeV [e2, N2] }
+
+integrate (isr_1_2)

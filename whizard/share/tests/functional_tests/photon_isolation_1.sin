@@ -1,0 +1,27 @@
+# SINDARIN input for WHIZARD self-test
+# Test photon isolation from hadronic activity
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+mc = 5 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+process photon_isolation_1_p1 = t, tbar => A, A, s, sbar
+
+sqrts = 400 GeV
+
+cuts = all E > 4 GeV [A] and all Pt > 5 GeV [A] and
+       all Dist > 1 [s:S:A, s:S:A] and photon_isolation [A, s:S]
+
+integrate (photon_isolation_1_p1) { iterations = 1:940:"gw" }

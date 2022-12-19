@@ -1,0 +1,406 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP utils code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Miscellaneous Utilities}
+<<[[utils.f90]]>>=
+! utils.f90 --
+<<Copyleft notice>>
+module utils
+  use kinds
+  implicit none
+  private
+  <<Declaration of [[utils]] procedures>>
+  <<Parameters in [[utils]]>>
+  <<Variables in [[utils]]>>
+  <<Interfaces of [[utils]] procedures>>
+contains
+  <<Implementation of [[utils]] procedures>>
+end module utils
+@ %def utils
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Memory Management}
+<<Declaration of [[utils]] procedures>>=
+public :: create_array_pointer
+private :: create_integer_array_pointer
+private :: create_real_array_pointer
+private :: create_integer_array2_pointer
+private :: create_real_array2_pointer
+@ 
+<<Interfaces of [[utils]] procedures>>=
+interface create_array_pointer
+   module procedure &
+        create_integer_array_pointer, &
+        create_real_array_pointer, &
+        create_integer_array2_pointer, &
+        create_real_array2_pointer
+end interface
+@ %def create_array_pointer
+@ 
+<<Body of [[create_*_array_pointer]]>>=
+if (associated (lhs)) then
+   if (size (lhs) /= n) then
+      deallocate (lhs)
+      if (present (lb)) then
+         allocate (lhs(lb:n+lb-1))
+      else
+         allocate (lhs(n))
+      end if
+   end if
+else
+   if (present (lb)) then
+      allocate (lhs(lb:n+lb-1))
+   else
+      allocate (lhs(n))
+   end if
+end if
+lhs = 0
+@ 
+<<Body of [[create_*_array2_pointer]]>>=
+if (associated (lhs)) then
+   if (any (ubound (lhs) /= n)) then
+      deallocate (lhs)
+      if (present (lb)) then
+         allocate (lhs(lb(1):n(1)+lb(1)-1,lb(2):n(2)+lb(2)-1))
+      else
+         allocate (lhs(n(1),n(2)))
+      end if
+   end if
+else
+   if (present (lb)) then
+      allocate (lhs(lb(1):n(1)+lb(1)-1,lb(2):n(2)+lb(2)-1))
+   else
+      allocate (lhs(n(1),n(2)))
+   end if
+end if
+lhs = 0
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine create_integer_array_pointer (lhs, n, lb)
+  integer, dimension(:), pointer :: lhs
+  integer, intent(in) :: n
+  integer, intent(in), optional :: lb
+  <<Body of [[create_*_array_pointer]]>>
+end subroutine create_integer_array_pointer
+@ %def create_integer_array_pointer
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine create_real_array_pointer (lhs, n, lb)
+  real(kind=default), dimension(:), pointer :: lhs
+  integer, intent(in) :: n
+  integer, intent(in), optional :: lb
+  <<Body of [[create_*_array_pointer]]>>
+end subroutine create_real_array_pointer
+@ %def create_real_array_pointer
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine create_integer_array2_pointer (lhs, n, lb)
+  integer, dimension(:,:), pointer :: lhs
+  integer, dimension(:), intent(in) :: n
+  integer, dimension(:), intent(in), optional :: lb
+  <<Body of [[create_*_array2_pointer]]>>
+end subroutine create_integer_array2_pointer
+@ %def create_integer_array2_pointer
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine create_real_array2_pointer (lhs, n, lb)
+  real(kind=default), dimension(:,:), pointer :: lhs
+  integer, dimension(:), intent(in) :: n
+  integer, dimension(:), intent(in), optional :: lb
+  <<Body of [[create_*_array2_pointer]]>>
+end subroutine create_real_array2_pointer
+@ %def create_real_array2_pointer
+
+@ Copy an allocatable array component of a derived type, reshaping the
+target if necessary.  The target can be [[disassociated]], but its
+association \emph{must not} be undefined.
+<<Declaration of [[utils]] procedures>>=
+public :: copy_array_pointer
+private :: copy_integer_array_pointer
+private :: copy_real_array_pointer
+private :: copy_integer_array2_pointer
+private :: copy_real_array2_pointer
+@ 
+<<Interfaces of [[utils]] procedures>>=
+interface copy_array_pointer
+   module procedure &
+        copy_integer_array_pointer, &
+        copy_real_array_pointer, &
+        copy_integer_array2_pointer, &
+        copy_real_array2_pointer
+end interface
+@ %def copy_array_pointer
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine copy_integer_array_pointer (lhs, rhs, lb)
+  integer, dimension(:), pointer :: lhs
+  integer, dimension(:), intent(in) :: rhs
+  integer, intent(in), optional :: lb
+  call create_integer_array_pointer (lhs, size (rhs), lb)
+  lhs = rhs
+end subroutine copy_integer_array_pointer
+@ %def copy_integer_array_pointer
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine copy_real_array_pointer (lhs, rhs, lb)
+  real(kind=default), dimension(:), pointer :: lhs
+  real(kind=default), dimension(:), intent(in) :: rhs
+  integer, intent(in), optional :: lb
+  call create_real_array_pointer (lhs, size (rhs), lb)
+  lhs = rhs
+end subroutine copy_real_array_pointer
+@ %def copy_real_array_pointer
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine copy_integer_array2_pointer (lhs, rhs, lb)
+  integer, dimension(:,:), pointer :: lhs
+  integer, dimension(:,:), intent(in) :: rhs
+  integer, dimension(:), intent(in), optional :: lb
+  call create_integer_array2_pointer &
+       (lhs, (/ size (rhs, dim=1), size (rhs, dim=2) /), lb)
+  lhs = rhs
+end subroutine copy_integer_array2_pointer
+@ %def copy_integer_array2_pointer
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine copy_real_array2_pointer (lhs, rhs, lb)
+  real(kind=default), dimension(:,:), pointer :: lhs
+  real(kind=default), dimension(:,:), intent(in) :: rhs
+  integer, dimension(:), intent(in), optional :: lb
+  call create_real_array2_pointer &
+       (lhs, (/ size (rhs, dim=1), size (rhs, dim=2) /), lb)
+  lhs = rhs
+end subroutine copy_real_array2_pointer
+@ %def copy_real_array2_pointer
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Sorting}
+<<Declaration of [[utils]] procedures>>=
+public :: swap
+private :: swap_integer, swap_real
+@ 
+<<Interfaces of [[utils]] procedures>>=
+interface swap
+   module procedure swap_integer, swap_real
+end interface
+@ %def swap
+@
+<<Implementation of [[utils]] procedures>>=
+elemental subroutine swap_integer (a, b)
+  integer, intent(inout) :: a, b
+  integer :: tmp
+  tmp = a
+  a = b
+  b = tmp
+end subroutine swap_integer
+@ %def swap_integer
+@
+<<Implementation of [[utils]] procedures>>=
+elemental subroutine swap_real (a, b)
+  real(kind=default), intent(inout) :: a, b
+  real(kind=default) :: tmp
+  tmp = a
+  a = b
+  b = tmp
+end subroutine swap_real
+@ %def swap_real
+@ Straight insertion:
+<<Implementation of [[utils]] procedures>>=
+pure subroutine sort_real (key, reverse)
+  real(kind=default), dimension(:), intent(inout) :: key
+  logical, intent(in), optional :: reverse
+  logical :: rev
+  integer :: i, j
+  <<Set [[rev]] to [[reverse]] or [[.false.]]>>
+  do i = 1, size (key) - 1
+     <<Set [[j]] to [[minloc(key)]]>>
+     if (j /= i) then
+        call swap (key(i), key(j))
+     end if
+  end do
+end subroutine sort_real
+@ %def sort_real
+@ 
+<<Set [[rev]] to [[reverse]] or [[.false.]]>>=
+if (present (reverse)) then
+   rev = reverse
+else
+   rev = .false.
+end if
+@
+<<Set [[j]] to [[minloc(key)]]>>=
+if (rev) then
+   j = sum (maxloc (key(i:))) + i - 1
+else
+   j = sum (minloc (key(i:))) + i - 1
+end if
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine sort_real_and_real_array (key, table, reverse)
+  real(kind=default), dimension(:), intent(inout) :: key
+  real(kind=default), dimension(:,:), intent(inout) :: table
+  logical, intent(in), optional :: reverse
+  logical :: rev
+  integer :: i, j
+  <<Set [[rev]] to [[reverse]] or [[.false.]]>>
+  do i = 1, size (key) - 1
+     <<Set [[j]] to [[minloc(key)]]>>
+     if (j /= i) then
+        call swap (key(i), key(j))
+        call swap (table(:,i), table(:,j))
+     end if
+  end do
+end subroutine sort_real_and_real_array
+@ %def sort_real_and_real_array
+@
+<<Implementation of [[utils]] procedures>>=
+pure subroutine sort_real_and_integer (key, table, reverse)
+  real(kind=default), dimension(:), intent(inout) :: key
+  integer, dimension(:), intent(inout) :: table
+  logical, intent(in), optional :: reverse
+  logical :: rev
+  integer :: i, j
+  <<Set [[rev]] to [[reverse]] or [[.false.]]>>
+  do i = 1, size (key) - 1
+     <<Set [[j]] to [[minloc(key)]]>>
+     if (j /= i) then
+        call swap (key(i), key(j))
+        call swap (table(i), table(j))
+     end if
+  end do
+end subroutine sort_real_and_integer
+@ %def sort_real_and_integer
+@
+<<Declaration of [[utils]] procedures>>=
+public :: sort
+private :: sort_real, sort_real_and_real_array, sort_real_and_integer
+@ 
+<<Interfaces of [[utils]] procedures>>=
+interface sort
+   module procedure &
+        sort_real, sort_real_and_real_array, &
+        sort_real_and_integer
+end interface
+@ %def sort
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mathematics}
+<<Declaration of [[utils]] procedures>>=
+public :: outer_product
+@ Admittedly, one has to get used to this notation for the tensor
+product:
+<<Implementation of [[utils]] procedures>>=
+pure function outer_product (x, y) result (xy)
+  real(kind=default), dimension(:), intent(in) :: x, y
+  real(kind=default), dimension(size(x),size(y)) :: xy
+  xy = spread (x, dim=2, ncopies=size(y)) &
+         * spread (y, dim=1, ncopies=size(x))
+end function outer_product
+@ %def outer_product
+@ Greatest common divisor and least common multiple
+<<Declaration of [[utils]] procedures>>=
+public :: factorize, gcd, lcm
+private :: gcd_internal
+@ For our purposes, a straightforward implementation of Euclid's
+algorithm suffices:
+<<Implementation of [[utils]] procedures>>=
+pure recursive function gcd_internal (m, n) result (gcd_m_n)
+  integer, intent(in) :: m, n
+  integer :: gcd_m_n
+  if (n <= 0) then
+     gcd_m_n = m
+  else
+     gcd_m_n = gcd_internal (n, modulo (m, n))
+  end if
+end function gcd_internal
+@  %def gcd_internal
+@ Wrap an elemental procedure around the recursive procedure:
+<<Implementation of [[utils]] procedures>>=
+elemental function gcd (m, n) result (gcd_m_n)
+  integer, intent(in) :: m, n
+  integer :: gcd_m_n
+  gcd_m_n = gcd_internal (m, n)
+end function gcd
+@ %def gcd
+@ As long as [[m*n]] does not overflow, we can
+use~$\mathop{\textrm{gcd}}(m,n) \mathop{\textrm{lcm}}(m,n) = mn$:
+<<Implementation of [[utils]] procedures>>=
+elemental function lcm (m, n) result (lcm_m_n)
+  integer, intent(in) :: m, n
+  integer :: lcm_m_n
+  lcm_m_n = (m * n) / gcd (m, n)
+end function lcm
+@ %def lcm
+@ A very simple minded factorization procedure, that is not fool proof
+at all.  It maintains [[n == product (factors(1:i))]], however, and
+will work in all cases of practical relevance.
+<<Implementation of [[utils]] procedures>>=
+pure subroutine factorize (n, factors, i)
+  integer, intent(in) :: n
+  integer, dimension(:), intent(out) :: factors
+  integer, intent(out) :: i
+  integer :: nn, p
+  nn = n
+  i = 0
+  do p = 1, size (PRIMES)
+     try: do
+        if (modulo (nn, PRIMES(p)) == 0) then
+           i = i + 1
+           factors(i) = PRIMES(p)
+           nn = nn / PRIMES(p)
+           if (i >= size (factors)) then
+              factors(i) = nn
+              return
+           end if
+        else
+           exit try
+        end if
+     end do try
+     if (nn == 1) then
+        return
+     end if
+  end do
+end subroutine factorize
+@ %def factorize
+@
+<<Parameters in [[utils]]>>=
+integer, dimension(13), parameter, private :: &
+     PRIMES = (/ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41 /)
+@ %def PRIMES
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{I/O}
+<<Declaration of [[utils]] procedures>>=
+public :: find_free_unit
+@ 
+<<Variables in [[utils]]>>=
+integer, parameter, private :: MIN_UNIT = 11, MAX_UNIT = 99
+@ %def MIN_UNIT MAX_UNIT
+@
+<<Implementation of [[utils]] procedures>>=
+subroutine find_free_unit (u, iostat)
+  integer, intent(out) :: u
+  integer, intent(out), optional :: iostat
+  logical :: exists, is_open
+  integer :: i, status
+  do i = MIN_UNIT, MAX_UNIT
+     inquire (unit = i, exist = exists, opened = is_open, &
+	      iostat = status)
+     if (status == 0) then
+        if (exists .and. .not. is_open) then
+           u = i
+           if (present (iostat)) then
+              iostat = 0
+           end if
+           return
+        end if
+     end if
+  end do
+  if (present (iostat)) then
+     iostat = -1
+  end if
+  u = -1
+end subroutine find_free_unit
+@ %def find_free_unit
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

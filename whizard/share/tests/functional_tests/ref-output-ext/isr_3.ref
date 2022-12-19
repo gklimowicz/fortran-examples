@@ -1,0 +1,149 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Process library 'isr_3_lib': recorded process 'isr_3a'
+| Process library 'isr_3_lib': recorded process 'isr_3b'
+| Process library 'isr_3_lib': compiling ...
+| Process library 'isr_3_lib': writing makefile
+| Process library 'isr_3_lib': removing old files
+| Process library 'isr_3_lib': writing driver
+| Process library 'isr_3_lib': creating source code
+| Process library 'isr_3_lib': compiling sources
+| Process library 'isr_3_lib': linking
+| Process library 'isr_3_lib': loading
+| Process library 'isr_3_lib': ... success.
+sqrts =  5.00000E+02
+openmp_num_threads = 1
+SM.me =>  0.00000E+00
+isr_mass =  5.11000E-04
+?isr_recoil = false
+$circe2_file = "ilc500.circe"
+$circe2_design = "ILC"
+?circe2_polarized = false
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process isr_3a:
+| Beam structure: e-, e+ => circe2 => isr
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'isr_3a.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'isr_3a'
+|   Library name  = 'isr_3_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'isr_3a_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: circe2 => isr, none => none, isr
+| Beam structure: 2 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'isr_3a'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.636E+03   4.06E+02   24.84    7.85     0.6
+|-----------------------------------------------------------------------------|
+   1       1000     1.636E+03   4.06E+02   24.84    7.85     0.6
+|=============================================================================|
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process isr_3b:
+| Beam structure: e-, e+ => circe2 => isr
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'isr_3b.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'isr_3b'
+|   Library name  = 'isr_3_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'isr_3b_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: circe2 => isr, none => none, isr
+| Beam structure: 2 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'isr_3b'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.636E+03   4.06E+02   24.84    7.85     0.6
+|-----------------------------------------------------------------------------|
+   1       1000     1.636E+03   4.06E+02   24.84    7.85     0.6
+|=============================================================================|
+?keep_beams = true
+?keep_remnants = true
+?isr_handler = false
+$sample = "isr_3a"
+n_events = 1
+| Starting simulation for process 'isr_3a'
+| Simulate: using integration grids from file 'isr_3a.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   6.1117E-04
+| Events: writing to LHEF file 'isr_3a.lhe'
+| Events: writing to raw file 'isr_3a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.73 %
+| Events: closing LHEF file 'isr_3a.lhe'
+| Events: closing raw file 'isr_3a.evx'
+?isr_handler = true
+$isr_handler_mode = "recoil"
+$sample = "isr_3b"
+n_events = 1
+| Starting simulation for process 'isr_3b'
+| Simulate: using integration grids from file 'isr_3b.m1.vg'
+| Simulate: activating ISR handler
+| Simulate: ISR/EPA handler mode: pair recoil
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   6.1117E-04
+| Events: writing to LHEF file 'isr_3b.lhe'
+| Events: writing to raw file 'isr_3b.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.73 %
+| Events: closing LHEF file 'isr_3b.lhe'
+| Events: closing raw file 'isr_3b.evx'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

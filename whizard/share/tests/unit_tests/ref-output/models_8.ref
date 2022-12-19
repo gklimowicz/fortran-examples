@@ -1,0 +1,71 @@
+* Test output: models_8
+*   Purpose: distinguish models marked as UFO-derived
+
+* Model list status
+
+WHIZARD model exists = F
+UFO model exists = F
+
+* Write WHIZARD model
+
+model "models_8_M"
+  parameter a = 1
+
+* Write UFO model
+
+model "models_8_M"
+  parameter a = 2
+
+* Read WHIZARD model
+
+model "models_8_M"
+
+   parameter a =  1.000000000000E+00
+
+
+* Model list status
+
+WHIZARD model exists = T
+UFO model exists = F
+
+* Read UFO model
+
+model "models_8_M"
+ ! model derived from UFO source
+
+   parameter a =  2.000000000000E+00
+
+
+* Model list status
+
+WHIZARD model exists = T
+UFO model exists = T
+
+* Reload WHIZARD model
+
+model "models_8_M"
+
+   parameter a =  1.000000000000E+00
+
+
+* Model list status
+
+WHIZARD model exists = T
+UFO model exists = T
+
+* Reload UFO model
+
+model "models_8_M"
+ ! model derived from UFO source
+
+   parameter a =  2.000000000000E+00
+
+
+* Model list status
+
+WHIZARD model exists = T
+UFO model exists = T
+
+* Cleanup
+
+* Test output end: models_8

@@ -1,0 +1,41 @@
+* Test output: sf_beam_events_2
+*   Purpose: check file handle registry
+
+* Create some empty files
+
+* Empty registry
+
+ File registry: [empty]
+
+* Insert three entries
+
+ File registry:
+   sf_beam_events_f1.tmp (1)
+   sf_beam_events_f2.tmp (1)
+   sf_beam_events_f3.tmp (1)
+
+* Open a second channel
+
+ File registry:
+   sf_beam_events_f1.tmp (1)
+   sf_beam_events_f2.tmp (2)
+   sf_beam_events_f3.tmp (1)
+
+* Close second entry twice
+
+ File registry:
+   sf_beam_events_f1.tmp (1)
+   sf_beam_events_f3.tmp (1)
+
+* Close last entry
+
+ File registry:
+   sf_beam_events_f1.tmp (1)
+
+* Close remaining entry
+
+ File registry: [empty]
+
+* Cleanup
+
+* Test output end: sf_beam_events_3

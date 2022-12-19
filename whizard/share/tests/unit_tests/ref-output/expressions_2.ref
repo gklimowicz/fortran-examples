@@ -1,0 +1,231 @@
+* Test output: Expressions
+*   Purpose: test parse routines
+
+Syntax table:
+ SEQUENCE    <expr> = <subexpr> <addition>*
+ ALTERNATIVE <subexpr> = <addition> | <term>
+ SEQUENCE    <addition> = <plus_or_minus> <term>
+ SEQUENCE    <term> = <factor> <multiplication>*
+ SEQUENCE    <multiplication> = <times_or_over> <factor>
+ SEQUENCE    <factor> = <value> <exponentiation>?
+ SEQUENCE    <exponentiation> = <to_the> <value>
+ ALTERNATIVE <plus_or_minus> = '+' | '-'
+ ALTERNATIVE <times_or_over> = '*' | '/'
+ ALTERNATIVE <to_the> = '^' | '**'
+ KEYWORD     '+'
+ KEYWORD     '-'
+ KEYWORD     '*'
+ KEYWORD     '/'
+ KEYWORD     '^'
+ KEYWORD     '**'
+ ALTERNATIVE <value> = <signed_value> | <unsigned_value>
+ SEQUENCE    <signed_value> = '-' <unsigned_value>
+ ALTERNATIVE <unsigned_value> = <numeric_value> | <constant> | <variable> | <result> | <grouped_expr> | <block_expr> | <conditional_expr> | <unary_function> | <binary_function>
+ ALTERNATIVE <numeric_value> = <integer_value> | <real_value> | <complex_value>
+ SEQUENCE    <integer_value> = <integer_literal> <unit_expr>?
+ SEQUENCE    <real_value> = <real_literal> <unit_expr>?
+ SEQUENCE    <complex_value> = <complex_literal> <unit_expr>?
+ INTEGER     <integer_literal>
+ REAL        <real_literal>
+ COMPLEX     <complex_literal>
+ SEQUENCE    <unit_expr> = <unit> <unit_power>?
+ ALTERNATIVE <unit> = TeV | GeV | MeV | keV | eV | meV | nbarn | pbarn | fbarn | abarn | rad | mrad | degree | '%'
+ KEYWORD     TeV
+ KEYWORD     GeV
+ KEYWORD     MeV
+ KEYWORD     keV
+ KEYWORD     eV
+ KEYWORD     meV
+ KEYWORD     nbarn
+ KEYWORD     pbarn
+ KEYWORD     fbarn
+ KEYWORD     abarn
+ KEYWORD     rad
+ KEYWORD     mrad
+ KEYWORD     degree
+ KEYWORD     '%'
+ SEQUENCE    <unit_power> = '^' <frac_expr>
+ ALTERNATIVE <frac_expr> = <frac> | <grouped_frac>
+ GROUP       <grouped_frac> = ( <frac_expr> )
+ SEQUENCE    <frac> = <signed_int> <div>?
+ ALTERNATIVE <signed_int> = <neg_int> | <pos_int> | <integer_literal>
+ SEQUENCE    <neg_int> = '-' <integer_literal>
+ SEQUENCE    <pos_int> = '+' <integer_literal>
+ SEQUENCE    <div> = '/' <integer_literal>
+ ALTERNATIVE <constant> = pi | I
+ KEYWORD     pi
+ KEYWORD     I
+ IDENTIFIER  <variable>
+ SEQUENCE    <result> = <result_key> <result_arg>
+ ALTERNATIVE <result_key> = num_id | integral | error
+ KEYWORD     num_id
+ KEYWORD     integral
+ KEYWORD     error
+ GROUP       <result_arg> = ( <process_id> )
+ IDENTIFIER  <process_id>
+ SEQUENCE    <unary_function> = <fun_unary> <function_arg1>
+ SEQUENCE    <binary_function> = <fun_binary> <function_arg2>
+ ALTERNATIVE <fun_unary> = complex | real | int | nint | floor | ceiling | abs | conjg | sgn | sqrt | exp | log | log10 | sin | cos | tan | asin | acos | atan | sinh | cosh | tanh | asinh | acosh | atanh
+ KEYWORD     complex
+ KEYWORD     real
+ KEYWORD     int
+ KEYWORD     nint
+ KEYWORD     floor
+ KEYWORD     ceiling
+ KEYWORD     abs
+ KEYWORD     conjg
+ KEYWORD     sgn
+ KEYWORD     sqrt
+ KEYWORD     exp
+ KEYWORD     log
+ KEYWORD     log10
+ KEYWORD     sin
+ KEYWORD     cos
+ KEYWORD     tan
+ KEYWORD     asin
+ KEYWORD     acos
+ KEYWORD     atan
+ KEYWORD     sinh
+ KEYWORD     cosh
+ KEYWORD     tanh
+ KEYWORD     asinh
+ KEYWORD     acosh
+ KEYWORD     atanh
+ ALTERNATIVE <fun_binary> = max | min | mod | modulo
+ KEYWORD     max
+ KEYWORD     min
+ KEYWORD     mod
+ KEYWORD     modulo
+ ARGUMENTS   <function_arg1> = ( <expr> )
+ ARGUMENTS   <function_arg2> = ( <expr> , <expr> )
+ GROUP       <grouped_expr> = ( <expr> )
+ SEQUENCE    <block_expr> = let <var_spec> in <expr>
+ KEYWORD     let
+ ALTERNATIVE <var_spec> = <var_num> | <var_int> | <var_real> | <var_complex> | <var_logical> | <var_string>
+ SEQUENCE    <var_num> = <var_name> '=' <expr>
+ SEQUENCE    <var_int> = int <var_name> '=' <expr>
+ SEQUENCE    <var_real> = real <var_name> '=' <expr>
+ SEQUENCE    <var_complex> = complex <var_name> '=' <complex_expr>
+ ALTERNATIVE <complex_expr> = <cexpr_real> | <cexpr_complex>
+ ARGUMENTS   <cexpr_complex> = ( <expr> , <expr> )
+ SEQUENCE    <cexpr_real> = <expr>
+ IDENTIFIER  <var_name>
+ KEYWORD     '='
+ KEYWORD     in
+ SEQUENCE    <conditional_expr> = if <lexpr> then <expr> <maybe_elsif_expr> <maybe_else_expr> endif
+ SEQUENCE    <maybe_elsif_expr> = <elsif_expr>*
+ SEQUENCE    <maybe_else_expr> = <else_expr>?
+ SEQUENCE    <elsif_expr> = elsif <lexpr> then <expr>
+ SEQUENCE    <else_expr> = else <expr>
+ KEYWORD     if
+ KEYWORD     then
+ KEYWORD     elsif
+ KEYWORD     else
+ KEYWORD     endif
+ SEQUENCE    <lexpr> = <lsinglet> <lsequel>*
+ SEQUENCE    <lsequel> = ';' <lsinglet>
+ SEQUENCE    <lsinglet> = <lterm> <alternative>*
+ SEQUENCE    <alternative> = or <lterm>
+ SEQUENCE    <lterm> = <lvalue> <coincidence>*
+ SEQUENCE    <coincidence> = and <lvalue>
+ KEYWORD     ';'
+ KEYWORD     or
+ KEYWORD     and
+ ALTERNATIVE <lvalue> = true | false | <lvariable> | <negation> | <grouped_lexpr> | <block_lexpr> | <conditional_lexpr> | <compared_expr> | <compared_sexpr>
+ KEYWORD     true
+ KEYWORD     false
+ SEQUENCE    <lvariable> = '?' <alt_lvariable>
+ KEYWORD     '?'
+ ALTERNATIVE <alt_lvariable> = <variable> | <grouped_lexpr>
+ SEQUENCE    <negation> = not <lvalue>
+ KEYWORD     not
+ GROUP       <grouped_lexpr> = ( <lexpr> )
+ SEQUENCE    <block_lexpr> = let <var_spec> in <lexpr>
+ ALTERNATIVE <var_logical> = <var_logical_new> | <var_logical_spec>
+ SEQUENCE    <var_logical_new> = logical <var_logical_spec>
+ KEYWORD     logical
+ SEQUENCE    <var_logical_spec> = '?' <var_name> '=' <lexpr>
+ SEQUENCE    <conditional_lexpr> = if <lexpr> then <lexpr> <maybe_elsif_lexpr> <maybe_else_lexpr> endif
+ SEQUENCE    <maybe_elsif_lexpr> = <elsif_lexpr>*
+ SEQUENCE    <maybe_else_lexpr> = <else_lexpr>?
+ SEQUENCE    <elsif_lexpr> = elsif <lexpr> then <lexpr>
+ SEQUENCE    <else_lexpr> = else <lexpr>
+ SEQUENCE    <compared_expr> = <expr> <comparison>+
+ SEQUENCE    <comparison> = <compare> <expr>
+ ALTERNATIVE <compare> = '<' | '>' | '<=' | '>=' | '==' | '<>'
+ KEYWORD     '<'
+ KEYWORD     '>'
+ KEYWORD     '<='
+ KEYWORD     '>='
+ KEYWORD     '=='
+ KEYWORD     '<>'
+ SEQUENCE    <compared_sexpr> = <sexpr> <str_comparison>+
+ SEQUENCE    <str_comparison> = <str_compare> <sexpr>
+ ALTERNATIVE <str_compare> = '==' | '<>'
+ SEQUENCE    <sexpr> = <svalue> <str_concatenation>*
+ SEQUENCE    <str_concatenation> = '&' <svalue>
+ KEYWORD     '&'
+ ALTERNATIVE <svalue> = <grouped_sexpr> | <block_sexpr> | <conditional_sexpr> | <svariable> | <string_function> | <string_literal>
+ GROUP       <grouped_sexpr> = ( <sexpr> )
+ SEQUENCE    <block_sexpr> = let <var_spec> in <sexpr>
+ SEQUENCE    <conditional_sexpr> = if <lexpr> then <sexpr> <maybe_elsif_sexpr> <maybe_else_sexpr> endif
+ SEQUENCE    <maybe_elsif_sexpr> = <elsif_sexpr>*
+ SEQUENCE    <maybe_else_sexpr> = <else_sexpr>?
+ SEQUENCE    <elsif_sexpr> = elsif <lexpr> then <sexpr>
+ SEQUENCE    <else_sexpr> = else <sexpr>
+ SEQUENCE    <svariable> = '$' <alt_svariable>
+ KEYWORD     '$'
+ ALTERNATIVE <alt_svariable> = <variable> | <grouped_sexpr>
+ ALTERNATIVE <var_string> = <var_string_new> | <var_string_spec>
+ SEQUENCE    <var_string_new> = string <var_string_spec>
+ KEYWORD     string
+ SEQUENCE    <var_string_spec> = '$' <var_name> '=' <sexpr>
+ ALTERNATIVE <string_function> = <sprintf_fun>
+ SEQUENCE    <sprintf_fun> = <sprintf_clause> <sprintf_args>?
+ SEQUENCE    <sprintf_clause> = sprintf <sexpr>
+ KEYWORD     sprintf
+ ARGUMENTS   <sprintf_args> = ( <sprintf_arg>* )
+ ALTERNATIVE <sprintf_arg> = <lvariable> | <svariable> | <expr>
+ QUOTED      <string_literal> = '"' ... '"'
+Keyword list:
+ + - TeV GeV MeV keV eV meV nbarn pbarn fbarn abarn rad mrad degree % ^ / ( ) pi I num_id integral error let = int real complex , logical ? true false not in if then elsif else endif < > <= >= == <> $ sprintf & and or ; string nint floor ceiling abs conjg
+[user variable] tolerance =  0.000000000000E+00
+[user variable] x = -5.000000000000E+00
+[user variable] foo = -27
+[user variable] mb =  4.000000000000E+00
+ Evaluation tree:
+o [var_def]twopi [expr] =   3.141592653590E+00
+|  o [const] =  6.283185307180E+00
+|  o [/] =  3.141592653590E+00
+|  |  o [*] =  1.884955592154E+01
+|  |  |  o twopi =>  6.283185307180E+00
+|  |  |  o [sqrt] =  3.000000000000E+00
+|  |  |  |  o [-] =  9.000000000000E+00
+|  |  |  |  |  o [const] =  2.500000000000E+01
+|  |  |  |  |  o [^] =  1.600000000000E+01
+|  |  |  |  |  |  o mb =>  4.000000000000E+00
+|  |  |  |  |  |  o [const] = 2
+|  |  o [var_def]mb_or_0 [expr] =   6.000000000000E+00
+|  |  |  o [int] = 4
+|  |  |  |  o [max] =  4.000000000000E+00
+|  |  |  |  |  o mb =>  4.000000000000E+00
+|  |  |  |  |  o [const] = 0
+|  |  |  o [+] =  6.000000000000E+00
+|  |  |  |  o [const] = 1
+|  |  |  |  o [cond] =  5.000000000000E+00
+|  |  |  |  |  o [and] = true
+|  |  |  |  |  |  o [<=] = true
+|  |  |  |  |  |  |  o [const] = -1.000000000000E+03
+|  |  |  |  |  |  |  o x => -5.000000000000E+00
+|  |  |  |  |  |  o [<] = true
+|  |  |  |  |  |  |  o (previous) => -5.000000000000E+00
+|  |  |  |  |  |  |  o mb_or_0 => 4
+|  |  |  |  |  o [abs] =  5.000000000000E+00
+|  |  |  |  |  |  o x => -5.000000000000E+00
+|  |  |  |  |  o x => -5.000000000000E+00
+* Input string:
+     let real twopi = 2 * pi in  twopi * sqrt (25.d0 - mb^2)  / (let int mb_or_0 = max (mb, 0) in       1 + (if -1 TeV <= x < mb_or_0 then abs(x) else x endif))
+
+* Cleanup
+
+* Test output end: expressions_2

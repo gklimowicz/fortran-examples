@@ -1,0 +1,113 @@
+* Test output: resonance_insertion_1
+*   Purpose: apply simple resonance insertion
+
+* Initialize environment
+
+* Initialize particle set
+
+* Fill trivial event transform
+
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(1)c(1 )
+ E =   2.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  2.000000000000E+02
+ T =   0.000000000000E+00
+ Children: 3 4 5
+ Particle 2 [i] f(-1)c(-1 )
+ E =   2.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -2.000000000000E+02
+ T =   0.000000000000E+00
+ Children: 3 4 5
+ Particle 3 [o] f(1)c(2 )
+ E =   1.000000000000E+02
+ P =   9.156001484819E+01  4.020900000000E+01  0.000000000000E+00
+ T =   0.000000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(-2)c(-2 )
+ E =   1.000000000000E+02
+ P =   9.156001484819E+01 -4.020900000000E+01  0.000000000000E+00
+ T =   0.000000000000E+00
+ Parents:  1 2
+ Particle 5 [o] f(24)
+ E =   2.000000000000E+02
+ P =  -1.831200296964E+02  0.000000000000E+00  0.000000000000E+00
+ T =   6.467054724000E+03
+ Parents:  1 2
+========================================================================
+
+* Prepare resonance history set
+
+* Initialize resonance insertion transform
+
+========================================================================
+ Event transform: resonance insertion
+========================================================================
+ Process library = ''
+ Component #1: *
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+------------------------------------------------------------------------
+ Subprocess instances: not allocated
+ Selected: [none]
+ On-shell limit    =  0.00000E+00
+ On-shell turnoff  =  0.00000E+00
+ Background factor =  1.00000E+00
+------------------------------------------------------------------------
+   Random-number generator: test (state = 1)
+   Number of tries = 0
+------------------------------------------------------------------------
+
+* Fill resonance insertion transform
+
+========================================================================
+ Event transform: resonance insertion
+========================================================================
+ Process library = ''
+ Component #1: *
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+------------------------------------------------------------------------
+ Subprocess instances: not allocated
+ Selected: resonance history #1
+ On-shell limit    =  0.00000E+00
+ On-shell turnoff  =  0.00000E+00
+ Background factor =  1.00000E+00
+------------------------------------------------------------------------
+   Selector: i, weight, acc. weight
+   1  1.000000000000E+00  1.000000000000E+00
+------------------------------------------------------------------------
+   Random-number generator: test (state = 1)
+   Number of tries = 0
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [i]       d    1    0               [none]                  3,6      200.000        0.000        0.000      200.000        0.000
+   2    [i]    dbar    0    1               [none]                  3,6      200.000        0.000        0.000     -200.000        0.000
+   3    [r]      W-    0    0                  1-2                  4-5      200.000      183.120        0.000        0.000     6467.055
+   4    [o]       d    2    0                    3               [none]      100.000       91.560       40.209        0.000        0.000
+   5    [o]    ubar    0    2                    3               [none]      100.000       91.560      -40.209        0.000        0.000
+   6    [o]      W+    0    0                  1-2               [none]      200.000     -183.120        0.000        0.000     6467.055
+------------------------------------------------------------------------
+Sum of incoming momenta: p(0:3) =          400.000        0.000        0.000        0.000
+Sum of beam remnant momenta: p(0:3) =        0.000        0.000        0.000        0.000
+Sum of outgoing momenta: p(0:3) =          400.000        0.000        0.000        0.000
+------------------------------------------------------------------------
+
+Event probability =  1.00000
+
+Particles with invalid color:
+  [none]
+
+* Cleanup
+
+* Test output end: resonance_insertion_1

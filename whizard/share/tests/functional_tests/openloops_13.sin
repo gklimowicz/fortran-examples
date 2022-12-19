@@ -1,0 +1,82 @@
+# SINDARIN input for WHIZARD self-test
+# Testing the integration of virtual NLO QCD corrections
+# to e+e- -> jjj including the simulation of events
+# with strong cuts applied to provoke events
+# failing the cuts in different combinations.
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_qed"
+
+mZ = 91.188
+mW = 80.419002
+mH = 125.0
+GF = 1.16639E-5
+wZ = 0.0
+wtop = 0.0
+wW = 0.0
+wH = 0.0
+
+ms = 0
+mc = 0
+mb = 0
+mtop = 173.2
+
+me = 0
+mmu = 0
+mtau = 1.777
+
+alphas = 0.118
+
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alphas_nf = 5
+
+alias jet = u:U:d:D:s:S:gl
+$exclude_gauge_splittings = "c:b:t"
+
+$method = "openloops"
+alpha_power = 2
+alphas_power = 1
+
+?use_vamp_equivalences = false
+$integration_method = "vamp2"
+$rng_method = "rng_stream"
+openmp_num_threads = 1
+
+jet_algorithm = antikt_algorithm
+jet_r = 0.5
+
+seed = 1555
+sqrts = 500 GeV
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 45 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4 [@pt_selected] in
+       count [@eta_selected] >= 3
+
+scale = eval Ht/2 [jet]
+
+process openloops_13_p1 = e1, E1 => jet, jet, jet { nlo_calculation = virtual }
+integrate (openloops_13_p1) { iterations = 1:100:"gw" }
+
+n_events = 10
+$sample_normalization = "sigma"
+?unweighted = false
+?negative_weights = true
+?keep_failed_events = true
+?fixed_order_nlo_events = true
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+simulate(openloops_13_p1)

@@ -1,0 +1,50 @@
+include("ilc_settings.sin")
+
+!! Table 3. The cross sections for different e+ e- -> 6f final states corresponding to the Higgs-strahlung signal.
+!! Expected runtime: ~1 d
+
+!! 4. Higgs-strahlung
+process higgs_strahlung_500_1       = e1, E1 => e2, E2, e2, N2, E1, n1
+process higgs_strahlung_500_2       = e1, E1 => e2, E2, u, D, e1, N1
+process higgs_strahlung_500_3       = e1, E1 => e2, E2, e2, E2, e1, E1
+process higgs_strahlung_500_4_noqcd = e1, E1 => e2, E2, u, U, d, D { $restrictions     = "^gs && ^ghgg:ghgaga:ghgaz" }
+process higgs_strahlung_500_4_qcd   = e1, E1 => e2, E2, u, U, d, D
+process higgs_strahlung_500_5_noqcd = e1, E1 => e2, E2, u, U, u, U { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process higgs_strahlung_500_5_qcd   = e1, E1 => e2, E2, u, U, u, U
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 500 GeV
+alphas = 0.0891
+
+sqrts = 500 GeV
+beams = e1, E1
+
+$run_id = "500"
+
+integrate(higgs_strahlung_500_1,
+          higgs_strahlung_500_2,
+          higgs_strahlung_500_3,
+          higgs_strahlung_500_4_noqcd,
+          higgs_strahlung_500_4_qcd,
+          higgs_strahlung_500_5_noqcd,
+          higgs_strahlung_500_5_qcd)
+
+tolerance = 2 * sqrt( error(higgs_strahlung_500_1)**2 + 8e-05**2 )
+expect(integral(higgs_strahlung_500_1) == 0.03759)
+tolerance = 2 * sqrt( error(higgs_strahlung_500_2)**2 + 0.0002**2 )
+expect(integral(higgs_strahlung_500_2) == 0.10829)
+tolerance = 2 * sqrt( error(higgs_strahlung_500_3)**2 + 8e-06**2 )
+expect(integral(higgs_strahlung_500_3) == 0.002722)
+tolerance = 2 * sqrt( error(higgs_strahlung_500_4_noqcd)**2 + 0.0005**2 )
+expect(integral(higgs_strahlung_500_4_noqcd) == 0.2579)
+tolerance = 2 * sqrt( error(higgs_strahlung_500_4_qcd)**2 + 0.0005**2 )
+expect(integral(higgs_strahlung_500_4_qcd) == 0.2645)
+tolerance = 2 * sqrt( error(higgs_strahlung_500_5_noqcd)**2 + 1.2e-05**2 )
+expect(integral(higgs_strahlung_500_5_noqcd) == 0.00609)
+tolerance = 2 * sqrt( error(higgs_strahlung_500_5_qcd)**2 + 1.8e-05**2 )
+expect(integral(higgs_strahlung_500_5_qcd) == 0.008876)
+
+show(results)

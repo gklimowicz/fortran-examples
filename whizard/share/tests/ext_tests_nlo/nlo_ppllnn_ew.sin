@@ -1,0 +1,27 @@
+include("nlo_settings_ew.sin")
+
+wtop = 1.36918
+
+mZ=91.15347
+mW=80.35785
+wZ=2.494566
+wW=2.088994
+
+alpha_power = 4
+alphas_power = 0
+
+cuts = 
+        let subevt @recleptons = photon_recombination [A:leptons] in
+        let subevt @dressedleptons = select if 11. <= abs(real(PDG)) <= 15. [@recleptons] in
+               all Pt > 10. [@dressedleptons]
+               and all abs(Eta)<2.5 [@dressedleptons]
+
+scale = sum (Pt/2) [jet]
+
+$nlo_correction_type = "EW"
+
+seed=1
+process drellyNLO = pr, pr => E1, n1, e2, N2 {nlo_calculation = full}
+
+
+integrate (drellyNLO) { iterations = 1:1000:"gw"}

@@ -1,0 +1,54 @@
+# SINDARIN input for WHIZARD self-test
+# Testing the integration of the pure virtual-subtracted matrix element
+# using beam polarization.
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+beams = e1, E1
+beams_pol_density = @(-1), @(+1)
+beams_pol_fraction = 0.8, 0.3
+
+$loop_me_method = "openloops"
+
+### Tests should be run single-threaded
+openmp_num_threads = 1
+
+mtop = 173.2
+wtop = 0.0
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+process openloops_2_p1 = e1, E1 => t, T { nlo_calculation = virtual }
+
+sqrts = 500 GeV
+iterations = 1:100
+
+### Only OLP component
+$virtual_selection = "OLP"
+seed = 0
+integrate (openloops_2_p1)
+real res_1 = integral(openloops_2_p1)
+
+### Only subtraction component
+$virtual_selection = "Subtraction"
+seed = 0
+integrate (openloops_2_p1)
+real res_2 = integral(openloops_2_p1)
+
+### Both components
+$virtual_selection = "Full"
+seed = 0
+integrate (openloops_2_p1)
+real res_3 = integral(openloops_2_p1)
+
+printf "RES: %f %f %f" (res_1, res_2, res_3)
+expect (res_1 + res_2 == res_3) { tolerance = 0.01 }

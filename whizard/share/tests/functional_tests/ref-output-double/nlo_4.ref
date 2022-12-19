@@ -1,0 +1,688 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$loop_me_method = "dummy"
+?combined_nlo_integration = true
+openmp_num_threads = 1
+SM.wtop =>  0.00000E+00
+SM.mtop =>  1.75000E+02
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+| Process library 'nlo_4_lib': recorded process 'nlo_4_p1'
+seed = 2222
+sqrts =  5.00000E+02
+| Integrate: current process library needs compilation
+| Process library 'nlo_4_lib': compiling ...
+| Process library 'nlo_4_lib': writing makefile
+| Process library 'nlo_4_lib': removing old files
+| Process library 'nlo_4_lib': writing driver
+| Process library 'nlo_4_lib': creating source code
+| Process library 'nlo_4_lib': compiling sources
+| Process library 'nlo_4_lib': linking
+| Process library 'nlo_4_lib': loading
+| Process library 'nlo_4_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2222
+| Initializing integration for process nlo_4_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e+  (mass = 5.1099700E-04 GeV)
+|   e-  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'nlo_4_p1.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'nlo_4_p1.i3.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'nlo_4_p1'
+|   Library name  = 'nlo_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'nlo_4_p1_i1':   e+, e- => t, tbar [omega]
+|     2: 'nlo_4_p1_i2':   e+, e- => t, tbar, gl [omega], [real]
+|     3: 'nlo_4_p1_i3':   e+, e- => t, tbar [dummy], [virtual]
+|     4: 'nlo_4_p1_i4':   e+, e- => t, tbar [inactive], [subtraction]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 5 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 1 channels, 5 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 1 channels, 5 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'nlo_4_p1'
+| Integrate: iterations = 1:100:"gw"
+| Integrator: 1 chains, 1 channels, 5 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     5.409E+02   2.40E+01    4.44    0.44    50.6
+|-----------------------------------------------------------------------------|
+   1        100     5.409E+02   2.40E+01    4.44    0.44    50.6
+|=============================================================================|
+n_events = 1
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+?fixed_order_nlo_events = true
+?unweighted = false
+| Starting simulation for process 'nlo_4_p1'
+| Simulate: using integration grids from file 'nlo_4_p1.m1.vg'
+| Simulate: activating fixed-order NLO events
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2223
+| Events: writing to ASCII file 'nlo_4_p1.debug'
+| Events: generating 3 weighted, unpolarized NLO events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing ASCII file 'nlo_4_p1.debug'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of nlo_4_p1.debug:
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = F
+   Normalization      = 'sigma'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  2.68767E-02
+   Squared matrix el. (prc) =  2.62028E-02
+   Event weight (ref)       =  5.94737E+02
+   Event weight (prc)       =  5.79824E+02
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 1
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'nlo_4_p1'
+   TAO random-number generator:
+     seed  = 145620994
+     calls = 9
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(6)c(1 )
+ E =   2.500000E+02
+ P =   2.880001E+01 -1.621148E+02 -6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-1 )
+ E =   2.500000E+02
+ P =  -2.880001E+01  1.621148E+02  6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+========================================================================
+========================================================================
+ Event transform: NLO
+------------------------------------------------------------------------
+   Associated process: 'nlo_4_p1'
+   TAO random-number generator:
+     seed  = 145620995
+     calls = 9
+   Number of tries = 0
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   2.146401E+02
+ P =   2.004781E+01 -1.128488E+02 -4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   1.842330E+02
+ P =  -5.058778E+01  2.728487E+01  3.632262E+00
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =   3.053997E+01  8.556393E+01  4.441592E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+sqme_rad =  3.137284674E-04
+   i_evaluation = 0
+------------------------------------------------------------------------
+ Radiated particle sets:
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(6)c(1 )
+ E =   2.500000E+02
+ P =   2.880001E+01 -1.621148E+02 -6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-1 )
+ E =   2.500000E+02
+ P =  -2.880001E+01  1.621148E+02  6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   1.842330E+02
+ P =   4.917346E+01 -1.932372E+01 -2.292041E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   2.146401E+02
+ P =  -2.004781E+01  1.128488E+02  4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =  -2.912565E+01 -9.352508E+01 -2.512777E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   2.146401E+02
+ P =   2.004781E+01 -1.128488E+02 -4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   1.842330E+02
+ P =  -5.058778E+01  2.728487E+01  3.632262E+00
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =   3.053997E+01  8.556393E+01  4.441592E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+------------------------------------------------------------------------
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  5.00000E+02
+sqrts_hat* =>  5.00000E+02
+n_in* => 2
+n_out* => 2
+n_tot* => 4
+$process_id* => "nlo_4_p1"
+process_num_id* => [unknown integer]
+sqme* =>  2.62028E-02
+sqme_ref* =>  2.68767E-02
+event_index* => 1
+event_weight* =>  5.79824E+02
+event_weight_ref* =>  5.94737E+02
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:-11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00,-2.5000000E+02| 2.6111793E-07| 1)
+ 2 prt(i:11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00, 2.5000000E+02| 2.6111793E-07| 2)
+ 3 prt(o:6| 2.5000000E+02; 2.8800007E+01,-1.6211475E+02,-6.9024390E+01| 3.0625000E+04| 3)
+ 4 prt(o:-6| 2.5000000E+02;-2.8800007E+01, 1.6211475E+02, 6.9024390E+01| 3.0625000E+04| 4)
+========================================================================
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = F
+   Normalization      = 'sigma'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  2.68767E-02
+   Squared matrix el. (prc) =  3.60205E-04
+   Event weight (ref)       =  5.94737E+02
+   Event weight (prc)       =  7.97074E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 1
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'nlo_4_p1'
+   TAO random-number generator:
+     seed  = 145620994
+     calls = 9
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(6)c(1 )
+ E =   2.500000E+02
+ P =   2.880001E+01 -1.621148E+02 -6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-1 )
+ E =   2.500000E+02
+ P =  -2.880001E+01  1.621148E+02  6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+========================================================================
+========================================================================
+ Event transform: NLO
+------------------------------------------------------------------------
+   Associated process: 'nlo_4_p1'
+   TAO random-number generator:
+     seed  = 145620995
+     calls = 9
+   Number of tries = 0
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   2.146401E+02
+ P =   2.004781E+01 -1.128488E+02 -4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   1.842330E+02
+ P =  -5.058778E+01  2.728487E+01  3.632262E+00
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =   3.053997E+01  8.556393E+01  4.441592E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+sqme_rad =  3.137284674E-04
+   i_evaluation = 0
+------------------------------------------------------------------------
+ Radiated particle sets:
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(6)c(1 )
+ E =   2.500000E+02
+ P =   2.880001E+01 -1.621148E+02 -6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-1 )
+ E =   2.500000E+02
+ P =  -2.880001E+01  1.621148E+02  6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   1.842330E+02
+ P =   4.917346E+01 -1.932372E+01 -2.292041E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   2.146401E+02
+ P =  -2.004781E+01  1.128488E+02  4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =  -2.912565E+01 -9.352508E+01 -2.512777E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   2.146401E+02
+ P =   2.004781E+01 -1.128488E+02 -4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   1.842330E+02
+ P =  -5.058778E+01  2.728487E+01  3.632262E+00
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =   3.053997E+01  8.556393E+01  4.441592E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+------------------------------------------------------------------------
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  5.00000E+02
+sqrts_hat* =>  5.00000E+02
+n_in* => 2
+n_out* => 3
+n_tot* => 5
+$process_id* => "nlo_4_p1"
+process_num_id* => [unknown integer]
+sqme* =>  3.60205E-04
+sqme_ref* =>  2.68767E-02
+event_index* => 1
+event_weight* =>  7.97074E+00
+event_weight_ref* =>  5.94737E+02
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:-11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00,-2.5000000E+02| 2.6111793E-07| 1)
+ 2 prt(i:11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00, 2.5000000E+02| 2.6111793E-07| 2)
+ 3 prt(o:6| 1.8423295E+02; 4.9173464E+01,-1.9323717E+01,-2.2920411E+01| 3.0625000E+04| 3)
+ 4 prt(o:-6| 2.1464015E+02;-2.0047812E+01, 1.1284880E+02, 4.8048184E+01| 3.0625000E+04| 4)
+ 5 prt(o:21| 1.0112690E+02;-2.9125651E+01,-9.3525082E+01,-2.5127773E+01| 0.0000000E+00| 5)
+========================================================================
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = F
+   Normalization      = 'sigma'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  2.68767E-02
+   Squared matrix el. (prc) =  3.13728E-04
+   Event weight (ref)       =  5.94737E+02
+   Event weight (prc)       =  6.94228E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 1
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'nlo_4_p1'
+   TAO random-number generator:
+     seed  = 145620994
+     calls = 9
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(6)c(1 )
+ E =   2.500000E+02
+ P =   2.880001E+01 -1.621148E+02 -6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-1 )
+ E =   2.500000E+02
+ P =  -2.880001E+01  1.621148E+02  6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+========================================================================
+========================================================================
+ Event transform: NLO
+------------------------------------------------------------------------
+   Associated process: 'nlo_4_p1'
+   TAO random-number generator:
+     seed  = 145620995
+     calls = 9
+   Number of tries = 0
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   2.146401E+02
+ P =   2.004781E+01 -1.128488E+02 -4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   1.842330E+02
+ P =  -5.058778E+01  2.728487E+01  3.632262E+00
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =   3.053997E+01  8.556393E+01  4.441592E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+sqme_rad =  3.137284674E-04
+   i_evaluation = 0
+------------------------------------------------------------------------
+ Radiated particle sets:
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(6)c(1 )
+ E =   2.500000E+02
+ P =   2.880001E+01 -1.621148E+02 -6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-1 )
+ E =   2.500000E+02
+ P =  -2.880001E+01  1.621148E+02  6.902439E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   1.842330E+02
+ P =   4.917346E+01 -1.932372E+01 -2.292041E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   2.146401E+02
+ P =  -2.004781E+01  1.128488E+02  4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =  -2.912565E+01 -9.352508E+01 -2.512777E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00  2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   2.500000E+02
+ P =   0.000000E+00  0.000000E+00 -2.500000E+02
+ T =   2.611179340E-07
+ Children: 3 4 5
+ Particle 3 [o] f(6)c(1 )
+ E =   2.146401E+02
+ P =   2.004781E+01 -1.128488E+02 -4.804818E+01
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 4 [o] f(-6)c(-2 )
+ E =   1.842330E+02
+ P =  -5.058778E+01  2.728487E+01  3.632262E+00
+ T =   3.062500000E+04
+ Parents:  1 2
+ Particle 5 [o] f(21)c(2 -1)
+ E =   1.011269E+02
+ P =   3.053997E+01  8.556393E+01  4.441592E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+------------------------------------------------------------------------
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  5.00000E+02
+sqrts_hat* =>  5.00000E+02
+n_in* => 2
+n_out* => 3
+n_tot* => 5
+$process_id* => "nlo_4_p1"
+process_num_id* => [unknown integer]
+sqme* =>  3.13728E-04
+sqme_ref* =>  2.68767E-02
+event_index* => 1
+event_weight* =>  6.94228E+00
+event_weight_ref* =>  5.94737E+02
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:-11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00,-2.5000000E+02| 2.6111793E-07| 1)
+ 2 prt(i:11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00, 2.5000000E+02| 2.6111793E-07| 2)
+ 3 prt(o:6| 2.1464015E+02; 2.0047812E+01,-1.1284880E+02,-4.8048184E+01| 3.0625000E+04| 3)
+ 4 prt(o:-6| 1.8423295E+02;-5.0587778E+01, 2.7284870E+01, 3.6322620E+00| 3.0625000E+04| 4)
+ 5 prt(o:21| 1.0112690E+02; 3.0539966E+01, 8.5563928E+01, 4.4415922E+01| 0.0000000E+00| 5)
+========================================================================
+Total number of regions:     2
+ alr ||             flst_real || i_real ||  em || mul || nreg ||       ftuples ||         flst_born ||  i_born || corr
+   1 || [-11, 11,  6, -6, 21] ||      1 ||   3 ||   1 ||    2 || {(3,5),(4,5)} || [-11, 11,  6, -6] ||       1 ||  qcd
+   2 || [-11, 11,  6, -6, 21] ||      1 ||   4 ||   1 ||    2 || {(3,5),(4,5)} || [-11, 11,  6, -6] ||       1 ||  qcd
+------------------------------------------------------------------------

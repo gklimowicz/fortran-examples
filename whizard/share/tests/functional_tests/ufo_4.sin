@@ -1,0 +1,32 @@
+# SINDARIN input for WHIZARD self-test
+# Test UFO models with resonance histories
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+model = ufo_4_SM (ufo ("./ufo_4_models"))
+
+seed = 0
+
+?resonance_history = true
+resonance_on_shell_limit = 4
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+MH = 125 GeV
+
+process ufo_4_zh = "e-", "e+" => "b", "b~", "mu-", "mu+"
+	{ $restrictions = "3+4~H && 5+6~Z" }
+
+sqrts = 500 GeV
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (ufo_4_zh) { iterations = 1:1000 }
+
+n_events = 10
+sample_format = lhef
+simulate (ufo_4_zh)

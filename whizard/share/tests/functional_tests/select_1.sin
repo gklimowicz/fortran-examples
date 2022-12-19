@@ -1,0 +1,64 @@
+# Sindarin input for WHIZARD self-test
+
+model = "SM"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process select_1_p = e1, E1 => Wp, Wm
+
+sqrts = 1000
+integrate (select_1_p) { iterations=1:1000 }
+
+?polarized_events = true
+polarized Wp
+polarized Wm
+
+n_events = 100
+?unweighted = false
+
+observable count_a
+
+simulate (select_1_p) { 
+  $sample = "select_1a"
+  selection = all Hel==0 [Wp:Wm]
+  analysis = record count_a (1)
+  ?sample_select = false
+  sample_format = lhef
+}
+
+# should contain 11 selected events
+write_analysis (count_a) { $out_file = "select_1a.dat" }
+
+observable count_b
+
+simulate (select_1_p) { 
+  $sample = "select_1b"
+  selection = all Hel==0 [Wp:Wm]
+  analysis = record count_b (1)
+  ?sample_select = true
+  sample_format = lhef
+}
+
+# should contain 6 selected events
+write_analysis (count_b) { $out_file = "select_1b.dat" }
+
+?write_raw = false
+# Raw event files should contain all 100 events
+rescan "select_1a" (select_1_p)
+rescan "select_1b" (select_1_p)
+
+?read_raw = false
+# should contain all 100 events
+rescan "select_1a" (select_1_p) { $rescan_input_format = "lhef" }
+# should contain 6 selected events
+rescan "select_1b" (select_1_p) { $rescan_input_format = "lhef" }
+
+

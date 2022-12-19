@@ -1,0 +1,256 @@
+* Test output: models_9
+*   Purpose: enable the UFO Standard Model (test version)
+
+* Generate and read UFO model
+
+model "SM"
+ ! model derived from UFO source
+
+   parameter aEWM1 =  1.279000000000E+02 slha_entry SMINPUTS 1
+   parameter Gf =  1.166370000000E-05 slha_entry SMINPUTS 2
+   parameter aS =  1.184000000000E-01 slha_entry SMINPUTS 3
+   parameter ymdo =  5.040000000000E-03 slha_entry YUKAWA 1
+   parameter ymup =  2.550000000000E-03 slha_entry YUKAWA 2
+   parameter yms =  1.010000000000E-01 slha_entry YUKAWA 3
+   parameter ymc =  1.270000000000E+00 slha_entry YUKAWA 4
+   parameter ymb =  4.700000000000E+00 slha_entry YUKAWA 5
+   parameter ymt =  1.720000000000E+02 slha_entry YUKAWA 6
+   parameter yme =  5.110000000000E-04 slha_entry YUKAWA 11
+   parameter ymm =  1.056600000000E-01 slha_entry YUKAWA 13
+   parameter ymtau =  1.777000000000E+00 slha_entry YUKAWA 15
+   parameter MZ =  9.118760000000E+01 slha_entry MASS 23
+   parameter Me =  5.110000000000E-04 slha_entry MASS 11
+   parameter MMU =  1.056600000000E-01 slha_entry MASS 13
+   parameter MTA =  1.777000000000E+00 slha_entry MASS 15
+   parameter MU =  2.550000000000E-03 slha_entry MASS 2
+   parameter MC =  1.270000000000E+00 slha_entry MASS 4
+   parameter MT =  1.720000000000E+02 slha_entry MASS 6
+   parameter MD =  5.040000000000E-03 slha_entry MASS 1
+   parameter MS =  1.010000000000E-01 slha_entry MASS 3
+   parameter MB =  4.700000000000E+00 slha_entry MASS 5
+   parameter MH =  1.250000000000E+02 slha_entry MASS 25
+   parameter WZ =  2.495200000000E+00 slha_entry DECAY 23
+   parameter WW =  2.085000000000E+00 slha_entry DECAY 24
+   parameter WT =  1.508340000000E+00 slha_entry DECAY 6
+   parameter WH =  4.070000000000E-03 slha_entry DECAY 25
+   derived aEW =  7.818608287725E-03
+   derived G =  8.625132696777E-01
+   derived MW =  7.982435974620E+01
+   derived ee =  3.134510000495E-01
+   derived sw2 =  2.336991334218E-01
+   derived cw =  8.753861242778E-01
+   derived sw =  4.834243823204E-01
+   derived g1 =  3.580717027107E-01
+   derived gw =  6.483971671950E-01
+   derived vev =  2.462205690735E+02
+   derived lam =  1.288668963082E-01
+   derived yb =  2.699532280412E-02
+   derived yc =  7.294480842816E-03
+   derived ydo =  2.894817594314E-05
+   derived ye =  2.935023394235E-06
+   derived ym =  6.068778313795E-04
+   derived ys =  5.801122560035E-04
+   derived yt =  9.879139409168E-01
+   derived ytau =  1.020652949424E-02
+   derived yup =  1.464639854266E-05
+   derived muH =  8.838834764832E+01
+   derived I1a11 =  2.894817594314E-05
+   derived I1a22 =  5.801122560035E-04
+   derived I1a33 =  2.699532280412E-02
+   derived I2a11 =  1.464639854266E-05
+   derived I2a22 =  7.294480842816E-03
+   derived I2a33 =  9.879139409168E-01
+   derived I3a11 =  1.464639854266E-05
+   derived I3a22 =  7.294480842816E-03
+   derived I3a33 =  9.879139409168E-01
+   derived I4a11 =  2.894817594314E-05
+   derived I4a22 =  5.801122560035E-04
+   derived I4a33 =  2.699532280412E-02
+
+   particle vt 16
+     name "vt"
+     anti "vt~"
+     tex_name "vt"
+     tex_anti "vt~"
+     spin 1/2
+   particle vm 14
+     name "vm"
+     anti "vm~"
+     tex_name "vm"
+     tex_anti "vm~"
+     spin 1/2
+   particle ve 12
+     name "ve"
+     anti "ve~"
+     tex_name "ve"
+     tex_anti "ve~"
+     spin 1/2
+   particle u 2
+     name "u"
+     anti "u~"
+     tex_name "u"
+     tex_anti "u~"
+     spin 1/2  charge 2/3  color 3
+     mass MU
+   particle ta- 15
+     name "ta-"
+     anti "ta+"
+     tex_name "ta-"
+     tex_anti "ta+"
+     spin 1/2  charge -1
+     mass MTA
+   particle t 6
+     name "t"
+     anti "t~"
+     tex_name "t"
+     tex_anti "t~"
+     spin 1/2  charge 2/3  color 3
+     mass MT  width WT
+   particle s 3
+     name "s"
+     anti "s~"
+     tex_name "s"
+     tex_anti "s~"
+     spin 1/2  charge -1/3  color 3
+     mass MS
+   particle mu- 13
+     name "mu-"
+     anti "mu+"
+     tex_name "mu-"
+     tex_anti "mu+"
+     spin 1/2  charge -1
+     mass MMU
+   particle g 21
+     name "g"
+     tex_name "g"
+     spin 1  color 8
+   particle e- 11
+     name "e-"
+     anti "e+"
+     tex_name "e-"
+     tex_anti "e+"
+     spin 1/2  charge -1
+     mass Me
+   particle d 1
+     name "d"
+     anti "d~"
+     tex_name "d"
+     tex_anti "d~"
+     spin 1/2  charge -1/3  color 3
+     mass MD
+   particle c 4
+     name "c"
+     anti "c~"
+     tex_name "c"
+     tex_anti "c~"
+     spin 1/2  charge 2/3  color 3
+     mass MC
+   particle b 5
+     name "b"
+     anti "b~"
+     tex_name "b"
+     tex_anti "b~"
+     spin 1/2  charge -1/3  color 3
+     mass MB
+   particle a 22
+     name "a"
+     tex_name "a"
+     spin 1
+   particle Z 23
+     name "Z"
+     tex_name "Z"
+     spin 1
+     mass MZ  width WZ
+   particle W+ 24
+     name "W+"
+     anti "W-"
+     tex_name "W+"
+     tex_anti "W-"
+     spin 1  charge 1
+     mass MW  width WW
+   particle H 25
+     name "H"
+     tex_name "H"
+     spin 0
+     mass MH  width WH
+   particle PROTON 2212
+     name "p" "p+"
+     anti "pbar" "p-"
+     spin 1/2  charge 1
+   particle HADRON_REMNANT 90
+     name "hr"
+     tex_name "had_r"
+     spin -1/2
+   particle HADRON_REMNANT_SINGLET 91
+     name "hr1"
+     tex_name "had_r^{(1)}"
+     spin -1/2
+   particle HADRON_REMNANT_TRIPLET 92
+     name "hr3"
+     anti "hr3bar"
+     tex_name "had_r^{(3)}"
+     tex_anti "had_r^{(\bar 3)}"
+     spin -1/2  color 3
+   particle HADRON_REMNANT_OCTET 93
+     name "hr8"
+     tex_name "had_r^{(8)}"
+     spin -1/2  color 8
+
+   vertex "Z" "Z" "H"
+   vertex "H" "H" "H"
+   vertex "W-" "W+" "Z"
+   vertex "W-" "W+" "H"
+   vertex "a" "W-" "W+"
+   vertex "t~" "t" "H"
+   vertex "c~" "c" "H"
+   vertex "u~" "u" "H"
+   vertex "ta+" "ta-" "H"
+   vertex "mu+" "mu-" "H"
+   vertex "e+" "e-" "H"
+   vertex "b~" "b" "H"
+   vertex "s~" "s" "H"
+   vertex "d~" "d" "H"
+   vertex "g" "g" "g"
+   vertex "ta+" "ta-" "Z"
+   vertex "mu+" "mu-" "Z"
+   vertex "e+" "e-" "Z"
+   vertex "vt~" "vt" "Z"
+   vertex "vm~" "vm" "Z"
+   vertex "ve~" "ve" "Z"
+   vertex "b~" "b" "Z"
+   vertex "s~" "s" "Z"
+   vertex "d~" "d" "Z"
+   vertex "t~" "t" "Z"
+   vertex "c~" "c" "Z"
+   vertex "u~" "u" "Z"
+   vertex "vt~" "ta-" "W+"
+   vertex "vm~" "mu-" "W+"
+   vertex "ve~" "e-" "W+"
+   vertex "ta+" "vt" "W-"
+   vertex "mu+" "vm" "W-"
+   vertex "e+" "ve" "W-"
+   vertex "t~" "b" "W+"
+   vertex "c~" "s" "W+"
+   vertex "u~" "d" "W+"
+   vertex "b~" "t" "W-"
+   vertex "s~" "c" "W-"
+   vertex "d~" "u" "W-"
+   vertex "b~" "b" "g"
+   vertex "s~" "s" "g"
+   vertex "d~" "d" "g"
+   vertex "t~" "t" "g"
+   vertex "c~" "c" "g"
+   vertex "u~" "u" "g"
+   vertex "b~" "b" "a"
+   vertex "s~" "s" "a"
+   vertex "d~" "d" "a"
+   vertex "t~" "t" "a"
+   vertex "c~" "c" "a"
+   vertex "u~" "u" "a"
+   vertex "ta+" "ta-" "a"
+   vertex "mu+" "mu-" "a"
+   vertex "e+" "e-" "a"
+
+* Cleanup
+
+* Test output end: models_9

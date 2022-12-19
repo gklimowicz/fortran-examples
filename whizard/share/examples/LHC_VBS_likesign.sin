@@ -1,0 +1,84 @@
+# LHC_VBS_likesign.sin
+# Simple complete physics example: like sign vector boson scattering
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+# Calculates LO cross section of pp -> mu+ v_mu e^+ v_e jj @ LO
+
+model = SM (Complex_Mass_Scheme)
+
+GF = 1.16637E-005
+mW = 80.3579736098775	  							
+wW =  2.084298998278219
+mZ = 91.1534806191827
+wZ =  2.494266378772824
+mH = 125.0
+wH = 4.07E-003
+mtop = 173.21 GeV
+wtop = 0
+
+mc = 0
+ms = 0
+mb = 0										
+me = 0
+mmu = 0
+
+scale = mW
+
+sqrts = 13000 GeV
+
+beams = p, p => lhapdf
+$lhapdf_file = "NNPDF30_nlo_as_0118"
+
+alias jet = u:U:d:D:s:S:c:C:b:B:g
+alias lepton = E1:E2	
+alias quark = u:d:s:c:b
+alias antiq = U:D:S:C:B
+alias pr = quark:antiq:g
+
+process lo_ppmunuenujj = pr, pr => E2, n2, E1, n1, jet, jet   { $restrictions = "!gl" }
+process lo_ppmunuenujj_full = pr, pr => E2, n2, E1, n1, jet, jet
+
+compile ()
+
+jet_algorithm = antikt_algorithm
+jet_r = 0.4
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @selected_jets = select if ((Pt > 30 GeV) and (abs (Rap) < 4.5)) [@clustered_jets] in
+       let subevt @sorted_jets = sort by Pt [@selected_jets] in
+       let subevt @hardest_jet = extract index -1 [@sorted_jets] in
+       let subevt @second_hardest_jet = extract index -2 [@sorted_jets] in
+       all Pt > 20 GeV [lepton]
+       and all abs (Rap) < 2.5 [lepton]
+       and all sqrt (Rap*Rap + Phi*Phi) > 0.3 [lepton, lepton]
+       and all Pt > 40 GeV [collect [n1:n2]]                                   
+       and count [@selected_jets] >= 2
+       and all M > 500 GeV [@hardest_jet, @second_hardest_jet]
+       and all abs (Rap) > 2.5 [@hardest_jet, @second_hardest_jet]
+       and all sqrt (Rap*Rap + Phi*Phi) > 0.3 [lepton, @selected_jets]
+
+iterations = 12:800000:"gw", 3:2000000
+
+integrate (lo_ppmunuenujj) 

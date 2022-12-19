@@ -1,0 +1,137 @@
+
+
+! Whizard test suite.  Do not edit.  Generated automatically from
+! $Id: mssm_ext-uu2.m4 -1   $
+! by the macros in
+! $Id: testsuite.m4 5205 2014-01-30 14:17:39Z jr_reuter $
+! ----------------------------------------------------------------------
+! -----------------------------------------------------------------------
+! ----- Passed 5 checks with different random seeds                 -----
+! -----------------------------------------------------------------------
+model = MSSM
+read_slha ("sps1a.slha")
+?vis_history = false
+! -----------------------------------------------------------------------
+me = 0
+mW = 80.419 
+wW = 2.048
+mZ = 91.1880
+wZ = 2.446
+mtop = 178.0
+mb = 4.6
+GF = 1.16639e-5
+alphas = 0.118
+!
+seed = 0
+!
+show (al_h,mu_h,tanb_h)
+! -----------------------------------------------------------------------
+iterations = 3:200000
+! -----------------------------------------------------------------------
+
+
+
+! -----------------------------------------------------------------------
+! ----------------------------------------------------------------------
+! Define the process
+! ----------------------------------------------------------------------
+process mssm_ext_uu2_1 = u,u => su1,su1      
+process mssm_ext_uu2_2 = u,u => su2,su2      
+process mssm_ext_uu2_3 = u,u => su1,su2      
+! ----------------------------------------------------------------------
+! Compile the processes
+! ----------------------------------------------------------------------
+compile
+! ----------------------------------------------------------------------
+! Integrate the processes
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Integrating u,u => su1,su1       @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = u,u
+seed = 0
+integrate (mssm_ext_uu2_1)
+printf "************************************************************************"
+printf "* Integrating u,u => su2,su2       @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = u,u
+seed = 0
+integrate (mssm_ext_uu2_2)
+printf "************************************************************************"
+printf "* Integrating u,u => su1,su2       @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = u,u
+seed = 0
+integrate (mssm_ext_uu2_3)
+! ----------------------------------------------------------------------
+! Check the processes
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Checking u,u => su1,su1       @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.004      ) ** 2 + error(mssm_ext_uu2_1) ** 2)
+printf "Expecting 716.973     "
+show(integral(mssm_ext_uu2_1))
+real pull = abs (integral (mssm_ext_uu2_1) - 716.973     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,u => su1,su1       @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,u => su1,su1       @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,u => su1,su1       @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,u => su1,su1       @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,u => su1,su1       @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_uu2_1) == 716.973     )
+printf "************************************************************************"
+printf "* Checking u,u => su2,su2       @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.004      ) ** 2 + error(mssm_ext_uu2_2) ** 2)
+printf "Expecting 679.627     "
+show(integral(mssm_ext_uu2_2))
+real pull = abs (integral (mssm_ext_uu2_2) - 679.627     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,u => su2,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,u => su2,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,u => su2,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,u => su2,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,u => su2,su2       @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 4 * error_sum
+expect (integral (mssm_ext_uu2_2) == 679.627     )
+printf "************************************************************************"
+printf "* Checking u,u => su1,su2       @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.05       ) ** 2 + error(mssm_ext_uu2_3) ** 2)
+printf "Expecting 1212.52      "
+show(integral(mssm_ext_uu2_3))
+real pull = abs (integral (mssm_ext_uu2_3) - 1212.52      ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,u => su1,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,u => su1,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,u => su1,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,u => su1,su2       @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,u => su1,su2       @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_uu2_3) == 1212.52      )
+! ----------------------------------------------------------------------
+! Done
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Done."
+printf "************************************************************************" 

@@ -1,0 +1,50 @@
+# Sindarin input for WHIZARD self-test
+# Processes g g -> u ubar and d dbar
+
+model = "QCD"
+alphas = 0.1178 
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process qcdtest_5_p1 = "g", "g" => "u", "ubar"
+process qcdtest_5_p2 = "g", "g" => "d", "dbar"
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+iterations = 1:100
+sqrts = 1000
+beams = p, p => pdf_builtin
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+seed = 0
+integrate (qcdtest_5_p1)
+
+seed = 0
+integrate (qcdtest_5_p2)
+
+n_events = 1
+?unweighted = true
+?read_raw = false
+$sample = "qcdtest_5a"
+
+seed = 0
+simulate (qcdtest_5_p1)
+
+?write_raw = false
+
+# This rescan is ok (same process)
+seed = 0
+rescan "qcdtest_5a" (qcdtest_5_p1)
+
+# This rescan should fail (different process)
+seed = 0
+rescan "qcdtest_5a" (qcdtest_5_p2)

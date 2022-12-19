@@ -1,0 +1,16 @@
+#!/bin/sh
+### Check an LO process to verify the RECOLA interface
+echo "Running script $0"
+if test -f OCAML_FLAG -a -f RECOLA_FLAG; then
+    name=`basename @script@`
+    ./run_whizard.sh @script@ --no-logging $*
+    mv $name.log $name.log.tmp
+    cat $name.log.tmp | sed -e 's/Loading library:.*/Loading library: [...]/' > $name.log
+    echo "Contents of ${name}.debug:" >> $name.log
+    cat ${name}_p1.debug >> $name.log
+    diff ref-output/$name.ref $name.log
+else
+    echo "|=============================================================================|"
+    echo "No O'Mega or RECOLA matrix elements available, test skipped"
+    exit 77
+fi

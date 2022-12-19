@@ -1,0 +1,21 @@
+% Draw a function using the gamelan macros
+% This file has been generated automatically from gamelan.nw
+\documentclass[12pt]{article}
+\usepackage{gamelan}
+\begin{document}
+\begin{gmlfile}
+\begin{figure}\unitlength1cm
+\begin{gmlgraph}(10,10)
+  plot(a) (#0,#6), (#1,#5), (#2,#8), (#3,#7), (#4,#6.5), (#5,#5.5), (#6,#3);
+  calculate b(a) (x,#0);
+  draw pointwise from(a, b{0|//[-1]}) 
+    shifted (2mm,-1mm)
+    linked (straight,none)
+    withcolor gray80
+    withpen penrazor scaled 3mm;
+  transpose(a,b) c;
+  draw from(c) linked (straight,none) withlinecap butt withpenscale 3mm;
+\end{gmlgraph}
+\end{figure}
+\end{gmlfile}
+\end{document}

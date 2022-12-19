@@ -1,0 +1,29 @@
+include("nlo_settings_ew.sin")
+
+wtop = 1.36918
+
+mZ=91.15347
+mW=80.35785
+wZ=2.494566
+wW=2.088994
+
+alpha_power = 2
+alphas_power = 0
+
+cuts =
+        let subevt @recleptons = photon_recombination [A:leptons] in 
+        let subevt @dressedleptons = select if abs(real(PDG)) == 11. [@recleptons] in
+        let subevt @dressedleptonsp = select if real(PDG) == 11. [@recleptons] in
+        let subevt @dressedleptonsm = select if real(PDG) == -11. [@recleptons] in
+           all M >= 30 [collect[@dressedleptons]]
+           and all Dist > 0.4 [@dressedleptonsp, @dressedleptonsm]
+           and all Pt > 10. [@dressedleptons]
+           and all abs(Eta) < 2.5 [@dressedleptons]
+
+scale = sum (Pt/2) [jet] 
+
+$nlo_correction_type = "EW"
+seed=1 
+process ppee_ew = pr, pr => e1, E1 {nlo_calculation = full}
+
+integrate (ppee_ew) { iterations = 1:500:"gw"}

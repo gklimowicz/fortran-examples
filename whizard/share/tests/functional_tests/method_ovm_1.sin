@@ -1,0 +1,36 @@
+# SINDARIN input for WHIZARD self-test
+# Test comparison between O'Mega compiled and OVM matrix elements
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+me = 0
+mmu = 0
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+process method_ovm_1_1 = e1, E1 => e2, E2 { $method = "omega" }
+process method_ovm_1_2 = e1, E1 => e2, E2 { $method = "ovm" }
+
+sqrts = 250 GeV
+
+integrate (method_ovm_1_1)
+integrate (method_ovm_1_2)
+
+real errorsum = sqrt (error(method_ovm_1_1)**2 + error(method_ovm_1_2)**2)
+
+tolerance = 5 * errorsum
+
+real sigma_j1 = integral (method_ovm_1_1)
+real sigma_j2 = integral (method_ovm_1_2)
+
+expect (sigma_j1 == sigma_j2)

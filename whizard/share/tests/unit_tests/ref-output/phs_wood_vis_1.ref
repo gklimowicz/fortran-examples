@@ -1,0 +1,334 @@
+* Test output: phs_wood_vis_1
+*   Purpose: visualizing the phase-space configuration
+
+* Initialize a process
+
+* Create a scratch phase-space file
+
+process phs_wood_vis_1
+   md5sum_process    = ""
+   md5sum_model_par  = ""
+   md5sum_phs_config = ""
+   sqrts         = 1000
+   m_threshold_s =   50
+   m_threshold_t =  100
+   off_shell = 2
+   t_channel = 6
+   keep_nonresonant = T
+  grove #1
+    tree 3
+
+* Setup phase-space configuration object
+
+ Partonic phase-space configuration (phase-space forest):
+   ID        = 'phs_wood_vis_1'
+   n_in      = 2
+   n_out     = 2
+   n_tot     = 4
+   n_state   = 1
+   n_par     = 2
+   n_channel = 5
+   sqrts     =  1.000000000000E+03
+   s_fixed   = T
+   lab_is_cm = T
+   azim.dep. = F
+ Flavor combinations:
+   1: s s s s
+ Phase-space / structure-function channels:
+   1: 1
+   2: 1
+   3: 1
+   4: 1
+   5: 1
+   MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+   MD5 sum (phs config) = 'A67482026D0AEC48A9362CB710A0D2E6'
+ Phase-space configuration parameters:
+   sqrts         =  1.000000000000E+03
+   m_threshold_s =  5.000000000000E+01
+   m_threshold_t =  1.000000000000E+02
+   off_shell = 1
+   t_channel = 2
+   keep_nonresonant = T
+   energy scale  =  1.000000000000E+01
+   mass scale    =  1.000000000000E+01
+   q scale       =  1.000000000000E+01
+   step mapping     = F
+   step exp. mode   = T
+   allow s mapping  = F
+   Run ID: ''
+
+ Phase space forest:
+   n_in  = 2
+   n_out = 2
+   n_tot = 4
+   n_masses = 0
+   n_angles = 2
+   n_dim    = 2
+   n_trees  = 5
+   n_equiv  = 0
+   flavors  = 25 25 25 25
+ Particle combinations:
+   3 <= 1 + 2
+ Groves and trees:
+   Grove     1
+   Tree      1
+   External: 4     Mask: 15
+   Incoming: 2     Mask: 12
+   Branches: 5
+     8
+     4
+    *3          Daughters: 1  2  + (axis +)
+     2
+     1
+   Arrays: mass_sum, effective_mass, effective_width
+     1   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     2   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     3   2.500000000000E+02   2.500000000000E+02   0.000000000000E+00
+ Equivalence list:
+  [empty]
+   Grove     2
+   Tree      1
+   External: 4     Mask: 15
+   Incoming: 2     Mask: 12
+   Branches: 5
+     8
+     4
+    *3   (   5) Daughters: 1  2* + (axis -)
+     2
+     1
+   Arrays: mass_sum, effective_mass, effective_width
+     1   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     2   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     3   2.500000000000E+02   2.500000000000E+02   0.000000000000E+00
+   Tree      2
+   External: 4     Mask: 15
+   Incoming: 2     Mask: 12
+   Branches: 5
+     8
+     4
+    *3   (   6) Daughters: 1* 2  - (axis -)
+     2
+     1
+   Arrays: mass_sum, effective_mass, effective_width
+     1   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     2   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     3   2.500000000000E+02   2.500000000000E+02   0.000000000000E+00
+   Tree      3
+   External: 4     Mask: 15
+   Incoming: 2     Mask: 12
+   Branches: 5
+     8
+     4
+    *3   (   9) Daughters: 1  2* + (axis +)
+     2
+     1
+   Arrays: mass_sum, effective_mass, effective_width
+     1   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     2   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     3   2.500000000000E+02   2.500000000000E+02   0.000000000000E+00
+   Tree      4
+   External: 4     Mask: 15
+   Incoming: 2     Mask: 12
+   Branches: 5
+     8
+     4
+    *3   (  10) Daughters: 1* 2  - (axis +)
+     2
+     1
+   Arrays: mass_sum, effective_mass, effective_width
+     1   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     2   1.250000000000E+02   1.250000000000E+02   0.000000000000E+00
+     3   2.500000000000E+02   2.500000000000E+02   0.000000000000E+00
+ Equivalence list:
+  [empty]
+ Total number of equivalences: 0
+
+ Global s-channel mappings:
+
+ Incoming particles:
+   [all undefined]
+
+ Outgoing particles:
+   [all undefined]
+
+ Tree particles:
+   [all undefined]
+\documentclass[10pt]{article}
+\usepackage{amsmath}
+\usepackage{feynmp}
+\usepackage{url}
+\usepackage{color}
+
+\textwidth 18.5cm
+\evensidemargin -1.5cm
+\oddsidemargin -1.5cm
+
+\newcommand{\blue}{\color{blue}}
+\newcommand{\green}{\color{green}}
+\newcommand{\red}{\color{red}}
+\newcommand{\magenta}{\color{magenta}}
+\newcommand{\cyan}{\color{cyan}}
+\newcommand{\sm}{\footnotesize}
+\setlength{\parindent}{0pt}
+\setlength{\parsep}{20pt}
+
+\begin{document}
+\begin{fmffile}{phs_wood_vis_1.phs-vis-graphs}
+\fmfcmd{color magenta; magenta = red + blue;}
+\fmfcmd{color cyan; cyan = green + blue;}
+\begin{fmfshrink}{0.5}
+\begin{flushleft}
+
+\noindent\textbf{\large\texttt{WHIZARD} phase space channels}\hfill\today
+
+\vspace{10pt}
+\noindent\textbf{Process:} \url{phs_wood_vis_1}
+\begin{align*}
+s\quad s\quad &\to\quad s\quad s
+\end{align*}
+
+\noindent\textbf{Note:} These are pseudo Feynman graphs that
+visualize phase-space parameterizations (``integration channels'').
+They do \emph{not} indicate Feynman graphs used for the matrix element.
+
+\textbf{Color code:} {\blue resonance,} {\cyan t-channel,} {\green radiation,}
+{\red infrared,} {\magenta collinear,} external/off-shell
+
+\noindent\textbf{Black square:} Keystone, indicates ordering of phase space parameters.
+
+\vspace{-20pt}
+
+\vspace{20pt}
+\begin{tabular}{l}
+\fbox{\bf Grove \boldmath$    1$} \\[10pt]
+Multiplicity: 2\\
+Resonances:   0\\
+Log-enhanced: 0\\
+Off-shell:    1\\
+t-channel:    0
+\end{tabular}
+\begin{minipage}{105pt}
+\vspace{30pt}
+\begin{center}
+\begin{fmfgraph*}(55,55)
+\fmflabel{\sm$s\,(4)$}{v4}
+\fmf{plain}{v0,v4}
+\fmflabel{\sm$s\,(2)$}{v2}
+\fmf{plain}{v3,v2}
+\fmflabel{\sm$s\,(1)$}{v1}
+\fmf{plain}{v3,v1}
+\fmf{plain,f=black}{v0,v3}
+\fmflabel{\sm$s\,(8)$}{v8}
+\fmf{plain}{v0,v8}
+\fmfv{d.shape=square}{v0}
+\fmfleft{v4,v8}
+\fmfright{v2,v1}
+\end{fmfgraph*}\\
+\fbox{$    1$}
+\end{center}
+\end{minipage}
+%
+
+\vspace{20pt}
+\begin{tabular}{l}
+\fbox{\bf Grove \boldmath$    2$} \\[10pt]
+Multiplicity: 2\\
+Resonances:   0\\
+Log-enhanced: 0\\
+Off-shell:    1\\
+t-channel:    1
+\end{tabular}
+\begin{minipage}{105pt}
+\vspace{30pt}
+\begin{center}
+\begin{fmfgraph*}(55,55)
+\fmflabel{\sm$s\,(4)$}{v4}
+\fmf{plain}{v5,v4}
+\fmflabel{\sm$s\,(1)$}{v1}
+\fmf{plain}{v5,v1}
+\fmf{plain,f=black}{v0,v5}
+\fmflabel{\sm$s\,(2)$}{v2}
+\fmf{plain}{v0,v2}
+\fmflabel{\sm$s\,(8)$}{v8}
+\fmf{plain}{v0,v8}
+\fmfv{d.shape=square}{v0}
+\fmfleft{v4,v8}
+\fmfright{v1,v2}
+\end{fmfgraph*}\\
+\fbox{$    2$}
+\end{center}
+\end{minipage}
+%
+\begin{minipage}{105pt}
+\vspace{30pt}
+\begin{center}
+\begin{fmfgraph*}(55,55)
+\fmflabel{\sm$s\,(4)$}{v4}
+\fmf{plain}{v6,v4}
+\fmflabel{\sm$s\,(2)$}{v2}
+\fmf{plain}{v6,v2}
+\fmf{plain,f=black}{v0,v6}
+\fmflabel{\sm$s\,(1)$}{v1}
+\fmf{plain}{v0,v1}
+\fmflabel{\sm$s\,(8)$}{v8}
+\fmf{plain}{v0,v8}
+\fmfv{d.shape=square}{v0}
+\fmfleft{v4,v8}
+\fmfright{v2,v1}
+\end{fmfgraph*}\\
+\fbox{$    3$}
+\end{center}
+\end{minipage}
+%
+\begin{minipage}{105pt}
+\vspace{30pt}
+\begin{center}
+\begin{fmfgraph*}(55,55)
+\fmflabel{\sm$s\,(8)$}{v8}
+\fmf{plain}{v9,v8}
+\fmflabel{\sm$s\,(1)$}{v1}
+\fmf{plain}{v9,v1}
+\fmf{plain,f=black}{v0,v9}
+\fmflabel{\sm$s\,(2)$}{v2}
+\fmf{plain}{v0,v2}
+\fmflabel{\sm$s\,(4)$}{v4}
+\fmf{plain}{v0,v4}
+\fmfv{d.shape=square}{v0}
+\fmfleft{v8,v4}
+\fmfright{v1,v2}
+\end{fmfgraph*}\\
+\fbox{$    4$}
+\end{center}
+\end{minipage}
+%
+\begin{minipage}{105pt}
+\vspace{30pt}
+\begin{center}
+\begin{fmfgraph*}(55,55)
+\fmflabel{\sm$s\,(8)$}{v8}
+\fmf{plain}{v10,v8}
+\fmflabel{\sm$s\,(2)$}{v2}
+\fmf{plain}{v10,v2}
+\fmf{plain,f=black}{v0,v10}
+\fmflabel{\sm$s\,(1)$}{v1}
+\fmf{plain}{v0,v1}
+\fmflabel{\sm$s\,(4)$}{v4}
+\fmf{plain}{v0,v4}
+\fmfv{d.shape=square}{v0}
+\fmfleft{v8,v4}
+\fmfright{v2,v1}
+\end{fmfgraph*}\\
+\fbox{$    5$}
+\end{center}
+\end{minipage}
+%
+\end{flushleft}
+\end{fmfshrink}
+\end{fmffile}
+\end{document}
+[Visualize Postscript file exists and is nonempty]
+[Visualize PDF file exists and is nonempty]
+
+* Cleanup
+
+* Test output end: phs_wood_vis_1

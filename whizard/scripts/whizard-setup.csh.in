@@ -1,0 +1,44 @@
+# source this file to set up environment variables for an
+# installed WHIZARD in csh(-compatible) shells
+#
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+set prefix = @prefix@
+set exec_prefix = @exec_prefix@
+set bindir = @bindir@
+set PKGLIBDIR = @PKGLIBDIR@
+
+if !($?PATH) then
+    setenv PATH ${bindir}
+else
+    setenv PATH ${bindir}:${PATH}
+endif
+
+if !($?LD_LIBRARY_PATH) then
+    setenv LD_LIBRARY_PATH ${PKGLIBDIR}
+else
+    setenv LD_LIBRARY_PATH ${PKGLIBDIR}:${LD_LIBRARY_PATH}
+endif

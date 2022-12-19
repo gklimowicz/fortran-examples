@@ -1,0 +1,58 @@
+# Sindarin input for WHIZARD self-test
+# Process e- e+ -> mu- numubar tau+ nutau
+
+model = "SM"
+me = 0
+mmu = 0
+mtau = 0
+
+alias lepton = e1:e2:e3:E1:E2:E3
+alias neutrino = n1:n2:n3:N1:N2:N3
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+phs_off_shell = 1
+phs_t_channel = 2
+
+seed = 0
+
+sqrts = 500
+beams = e1, E1
+
+$method = "omega"
+process cuts_cc = e1, E1 => e2, N2, E3, n3
+compile
+
+int ncalls = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+# Check observables
+cuts = all Pt > 100 GeV [lepton]
+integrate (cuts_cc) { iterations = 1: ncalls }
+
+seed = 2
+cuts = any M > 100 GeV [combine if cos (Theta) > 0.5
+                          [lepton, neutrino]]
+integrate (cuts_cc) { iterations = 1: ncalls }
+
+cuts = all M2 < -(50 GeV)^2 [combine [incoming lepton, lepton]]
+integrate (cuts_cc) { iterations = 1: ncalls }
+
+cuts = all E <= 200 [collect [neutrino]]
+integrate (cuts_cc) { iterations = 1: ncalls }
+
+real eta_cut = 5
+cuts = any 5 degree < Theta < 175 degree 
+        [select if abs (Eta) < eta_cut [lepton]]
+integrate (cuts_cc) { iterations = 1: ncalls }
+
+cuts = all Dist > 2 [e1:E1, e2:E2]
+integrate (cuts_cc) { iterations = 1: ncalls }
+
+cuts = any E > 2 * mW [extract index 2 
+                         [sort by Pt [lepton]]]
+integrate (cuts_cc) { iterations = 1: ncalls }

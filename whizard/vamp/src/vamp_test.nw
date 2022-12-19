@@ -1,0 +1,555 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP vamp_test code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Self Test}
+\section{No Mapping Mode}
+\label{sec:test}
+In this chapter we perfom a test of the major features of Vamp.  A
+function with many peaks is integrated with the traditional Vegas
+algorithm, using a multi-channel approach and in parallel.  The
+function is constructed to have a known analytical integral (which is
+chosen to be one) in order to be able to gauge the accuracy of the
+reselt and error estimate.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Serial Test}
+<<[[vamp_test.f90]]>>=
+! vamp_test.f90 --
+<<Copyleft notice>>
+<<Module [[vamp_test_functions]]>>
+<<Module [[vamp_tests]]>>
+@ 
+<<Module [[vamp_test_functions]]>>=
+module vamp_test_functions
+  use kinds
+  use constants, only: PI
+  use coordinates
+  use vamp, only: vamp_grid, vamp_multi_channel
+  use vamp, only: vamp_data_t
+  implicit none
+  private
+  public :: f, j, phi, ihp, w
+  public :: lorentzian
+  private :: lorentzian_normalized
+  real(kind=default), public :: width
+contains
+  <<Implementation of [[vamp_test_functions]] procedures>>
+end module vamp_test_functions
+@
+\begin{equation}
+  \int_{x_1}^{x_2}\!\mathrm{d}x\, \frac{1}{(x-x_0)^2+a^2}
+     = \frac{1}{a} \left(
+              \atan\left(\frac{x_2-x_0}{a}\right)
+            - \atan\left(\frac{x_1-x_0}{a}\right) \right)
+     = N(x_0,x_1,x_2,a)
+\end{equation}
+<<Implementation of [[vamp_test_functions]] procedures>>=
+pure function lorentzian_normalized (x, x0, x1, x2, a) result (f)
+  real(kind=default), intent(in) :: x, x0, x1, x2, a
+  real(kind=default) :: f
+  if (x1 <= x .and. x <= x2) then
+     f = 1 / ((x - x0)**2 + a**2) &
+          * a / (atan2 (x2 - x0, a) - atan2 (x1 - x0, a))
+  else
+     f = 0
+  end if
+end function lorentzian_normalized
+@ %def lorentzian_normalized
+@
+\begin{equation}
+  \int\!\mathrm{d}^nx\,f(x) =
+    \int\!\mathrm{d}\Omega_n\,r^{n-1}\mathrm{d}r f(x) = 1
+\end{equation}
+<<Implementation of [[vamp_test_functions]] procedures>>=
+pure function lorentzian (x, x0, x1, x2, r0, a) result (f)
+  real(kind=default), dimension(:), intent(in) :: x, x0, x1, x2
+  real(kind=default), intent(in) :: r0, a
+  real(kind=default) :: f
+  real(kind=default) :: r, r1, r2
+  integer :: n
+  n = size (x)
+  if (n > 1) then
+     r = sqrt (dot_product (x-x0, x-x0))
+     r1 = 0.4_default
+     r2 = min (minval (x2-x0), minval (x0-x1))
+     if (r1 <= r .and. r <= r2) then
+        f = lorentzian_normalized (r, r0, r1, r2, a) * r**(1-n) / surface (n)
+     else
+        f = 0
+     end if
+  else
+     f = lorentzian_normalized (x(1), x0(1), x1(1), x2(1), a)
+  endif
+end function lorentzian
+@ %def lorentzian
+@ 
+<<Implementation of [[vamp_test_functions]] procedures>>=
+pure function f (x, data, weights, channel, grids) result (f_x)
+  real(kind=default), dimension(:), intent(in) :: x
+  class(vamp_data_t), intent(in) :: data
+  real(kind=default), dimension(:), intent(in), optional :: weights
+  integer, intent(in), optional :: channel
+  type(vamp_grid), dimension(:), intent(in), optional :: grids
+  real(kind=default) :: f_x
+  real(kind=default), dimension(size(x)) :: minus_one, plus_one, zero, w_i, f_i
+  integer :: n, i
+  n = size(x)
+  minus_one = -1
+  zero = 0
+  plus_one = 1
+  w_i = 1
+  do i = 1, n
+     if (all (abs (x(i+1:)) <= 1)) then
+        f_i = lorentzian (x(1:i), zero(1:i), minus_one(1:i), plus_one(1:i), &
+                          0.7_default, width) &
+             / 2.0_default**(n-i)
+     else
+        f_i = 0
+     end if
+  end do
+  f_x = dot_product (w_i, f_i) / sum (w_i)
+end function f
+@ 
+<<Implementation of [[vamp_test_functions]] procedures>>=
+pure function phi (xi, channel) result (x)
+  real(kind=default), dimension(:), intent(in) :: xi
+  integer, intent(in) :: channel
+  real(kind=default), dimension(size(xi)) :: x
+  real(kind=default) :: r
+  real(kind=default), dimension(0) :: dummy
+  integer :: n
+  n = size(x)
+  if (channel == 1) then
+     x = xi
+  else if (channel == 2) then
+     r = (xi(1) + 1) / 2 * sqrt (2.0_default)
+     x(1:2) = spherical_cos_to_cartesian (r, PI * xi(2), dummy)
+     x(3:) = xi(3:)
+  else if (channel < n) then
+     r = (xi(1) + 1) / 2 * sqrt (real (channel, kind=default))
+     x(1:channel) = spherical_cos_to_cartesian (r, PI * xi(2), xi(3:channel))
+     x(channel+1:) = xi(channel+1:)
+  else if (channel == n) then
+     r = (xi(1) + 1) / 2 * sqrt (real (channel, kind=default))
+     x = spherical_cos_to_cartesian (r, PI * xi(2), xi(3:))
+  else
+     x = 0
+  end if
+end function phi
+@ 
+<<Implementation of [[vamp_test_functions]] procedures>>=
+pure function ihp (x, channel) result (xi)
+  real(kind=default), dimension(:), intent(in) :: x
+  integer, intent(in) :: channel
+  real(kind=default), dimension(size(x)) :: xi
+  real(kind=default) :: r, phi
+  integer :: n
+  n = size(x)
+  if (channel == 1) then
+     xi = x
+  else if (channel == 2) then
+     call cartesian_to_spherical_cos (x(1:2), r, phi)
+     xi(1) = 2 * r / sqrt (2.0_default) - 1
+     xi(2) = phi / PI
+     xi(3:) = x(3:)
+  else if (channel < n) then
+     call cartesian_to_spherical_cos (x(1:channel), r, phi, xi(3:channel))
+     xi(1) = 2 * r / sqrt (real (channel, kind=default)) - 1
+     xi(2) = phi / PI
+     xi(channel+1:) = x(channel+1:)
+  else if (channel == n) then
+     call cartesian_to_spherical_cos (x, r, phi, xi(3:))
+     xi(1) = 2 * r / sqrt (real (channel, kind=default)) - 1
+     xi(2) = phi / PI
+  else
+     xi = 0
+  end if
+end function ihp
+@ 
+<<Implementation of [[vamp_test_functions]] procedures>>=
+pure function j (x, data, channel) result (j_x)
+  real(kind=default), dimension(:), intent(in) :: x
+  class(vamp_data_t), intent(in) :: data
+  integer, intent(in) :: channel
+  real(kind=default) :: j_x
+  if (channel == 1) then
+     j_x = 1
+  else if (channel > 1) then
+     j_x = 2 / sqrt (real (channel, kind=default)) !: $1/|\mathrm{d}r/\mathrm{d}\xi_1|$
+     j_x = j_x / PI                                !: $1/|\mathrm{d}\phi/\mathrm{d}\xi_2|$
+     j_x = j_x * cartesian_to_spherical_cos_j (x(1:channel))
+  else
+     j_x = 0
+  end if
+end function j
+@ 
+<<Implementation of [[vamp_test_functions]] procedures>>=
+function w (x, data, weights, channel, grids) result (w_x)
+  real(kind=default), dimension(:), intent(in) :: x
+  class(vamp_data_t), intent(in) :: data
+  real(kind=default), dimension(:), intent(in), optional :: weights
+  integer, intent(in), optional :: channel
+  type(vamp_grid), dimension(:), intent(in), optional :: grids
+  real(kind=default) :: w_x
+  w_x = vamp_multi_channel (f, data, phi, ihp, j, x, weights, channel, grids)
+end function w
+@ 
+<<Module [[vamp_tests]]>>=
+module vamp_tests
+  use kinds
+  use exceptions
+  use histograms
+  use tao_random_numbers
+  use coordinates
+  use vamp
+  use vamp_test_functions !NODEP!
+  implicit none
+  private
+  <<Declaration of procedures in [[vamp_tests]]>>
+contains
+  <<Implementation of procedures in [[vamp_tests]]>>
+end module vamp_tests
+@ %def vamp_tests
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Verification}
+<<Declaration of procedures in [[vamp_tests]]>>=
+! public :: check_jacobians, check_inverses, check_inverses3
+public :: check_inverses, check_inverses3
+@
+<<Implementation of procedures in [[vamp_tests]] (broken?)>>=
+subroutine check_jacobians (rng, region, weights, samples)
+  type(tao_random_state), intent(inout) :: rng
+  real(kind=default), dimension(:,:), intent(in) :: region
+  real(kind=default), dimension(:), intent(in) :: weights
+  integer, intent(in) :: samples
+  real(kind=default), dimension(size(region,dim=2)) :: x
+  real(kind=default) :: d
+  integer :: ch
+  do ch = 1, size(weights)
+     call vamp_check_jacobian (rng, samples, j, NO_DATA, phi, ch, region, d, x)
+     print *, "channel", ch, ": delta(j)/j=", real(d), ", @x=", real (x)
+  end do
+end subroutine check_jacobians
+@ %def check_jacobians
+@
+<<Implementation of procedures in [[vamp_tests]]>>=
+subroutine check_inverses (rng, region, weights, samples)
+  type(tao_random_state), intent(inout) :: rng
+  real(kind=default), dimension(:,:), intent(in) :: region
+  real(kind=default), dimension(:), intent(in) :: weights
+  integer, intent(in) :: samples
+  real(kind=default), dimension(size(region,dim=2)) :: x1, x2, x_dx
+  real(kind=default) :: dx, dx_max
+  integer :: ch, i
+  dx_max = 0
+  x_dx = 0
+  do ch = 1, size(weights)
+     do i = 1, samples
+        call tao_random_number (rng, x1)
+        x2 = ihp (phi (x1, ch), ch)
+        dx = sqrt (dot_product (x1-x2, x1-x2))
+        if (dx > dx_max) then
+           dx_max = dx
+           x_dx = x1
+        end if
+     end do
+     print *, "channel", ch, ": |x-x|=", real(dx), ", @x=", real (x_dx)
+  end do
+end subroutine check_inverses
+@ %def check_inverses
+@
+<<Implementation of procedures in [[vamp_tests]]>>=
+subroutine check_inverses3 (rng, region, samples)
+  type(tao_random_state), intent(inout) :: rng
+  real(kind=default), dimension(:,:), intent(in) :: region
+  integer, intent(in) :: samples
+  real(kind=default), dimension(size(region,dim=2)) :: x1, x2, x_dx, x_dj
+  real(kind=default) :: r, phi, jac, caj, dx, dx_max, dj, dj_max
+  real(kind=default), dimension(size(x1)-2) :: cos_theta
+  integer :: i
+  dx_max = 0
+  x_dx = 0
+  dj_max = 0
+  x_dj = 0
+  do i = 1, samples
+     call tao_random_number (rng, x1)
+     call cartesian_to_spherical_cos_2 (x1, r, phi, cos_theta, jac)
+     call spherical_cos_to_cartesian_2 (r, phi, cos_theta, x2, caj)
+     dx = sqrt (dot_product (x1-x2, x1-x2))
+     dj = jac*caj - 1
+     if (dx > dx_max) then
+        dx_max = dx
+        x_dx = x1
+     end if
+     if (dj > dj_max) then
+        dj_max = dj
+        x_dj = x1
+     end if
+  end do
+  print *, "channel 3 : j*j-1=", real(dj), ", @x=", real (x_dj)
+  print *, "channel 3 : |x-x|=", real(dx), ", @x=", real (x_dx)
+end subroutine check_inverses3
+@ %def check_inverses3
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Integration}
+<<Declaration of procedures in [[vamp_tests]]>>=
+public :: single_channel, multi_channel
+@
+<<Implementation of procedures in [[vamp_tests]]>>=
+subroutine single_channel (rng, region, samples, iterations, &
+     integral, standard_dev, chi_squared)
+  type(tao_random_state), intent(inout) :: rng
+  real(kind=default), dimension(:,:), intent(in) :: region
+  integer, dimension(:), intent(in) :: samples, iterations
+  real(kind=default), intent(out) :: integral, standard_dev, chi_squared
+  type(vamp_grid) :: gr
+  type(vamp_history), dimension(iterations(1)+iterations(2)) :: history
+  call vamp_create_history (history)
+  call vamp_create_grid (gr, region, samples(1))
+  call vamp_sample_grid (rng, gr, f, NO_DATA, iterations(1), history = history)
+  call vamp_discard_integral (gr, samples(2))
+  call vamp_sample_grid &
+       (rng, gr, f, NO_DATA, iterations(2), &
+        integral, standard_dev, chi_squared, &
+        history = history(iterations(1)+1:))
+  call vamp_write_grid (gr, "vamp_test.grid")
+  call vamp_delete_grid (gr)
+  call vamp_print_history (history, "single")
+  call vamp_delete_history (history)
+end subroutine single_channel
+@ %def single_channel
+@
+<<Implementation of procedures in [[vamp_tests]]>>=
+subroutine multi_channel (rng, region, weights, samples, iterations, powers, &
+     integral, standard_dev, chi_squared)
+  type(tao_random_state), intent(inout) :: rng
+  real(kind=default), dimension(:,:), intent(in) :: region
+  real(kind=default), dimension(:), intent(inout) :: weights
+  integer, dimension(:), intent(in) :: samples, iterations
+  real(kind=default), dimension(:), intent(in) :: powers
+  real(kind=default), intent(out) :: integral, standard_dev, chi_squared
+  type(vamp_grids) :: grs
+  <<Body of [[multi_channel]]>>
+end subroutine multi_channel
+@ %def multi_channel
+@ 
+<<Body of [[multi_channel]]>>=
+type(vamp_history), dimension(iterations(1)+iterations(2)+size(powers)-1) :: &
+     history
+type(vamp_history), dimension(size(history),size(weights)) :: histories
+integer :: it, nit
+nit = size (powers)
+call vamp_create_history (history)
+call vamp_create_history (histories)
+call vamp_create_grids (grs, region, samples(1), weights)
+call vamp_sample_grids (rng, grs, w, NO_DATA, iterations(1) - 1, &
+                        history = history, histories = histories)
+call vamp_print_history (history, "multi")
+call vamp_print_history (histories, "multi")
+do it = 1, nit
+   call vamp_sample_grids (rng, grs, w, NO_DATA, 1, &
+                           history = history(iterations(1)+it-1:), &
+                           histories = histories(iterations(1)+it-1:,:))
+   call vamp_print_history (history(iterations(1)+it-1:), "multi")
+   call vamp_print_history (histories(iterations(1)+it-1:,:), "multi")
+   call vamp_refine_weights (grs, powers(it))
+end do
+call vamp_discard_integrals (grs, samples(2))
+call vamp_sample_grids &
+     (rng, grs, w, NO_DATA, iterations(2), &
+      integral, standard_dev, chi_squared, &
+      history = history(iterations(1)+nit:), &
+      histories = histories(iterations(1)+nit:,:))
+call vamp_print_history (history(iterations(1)+nit:), "multi")
+call vamp_print_history (histories(iterations(1)+nit:,:), "multi")
+call vamp_write_grids (grs, "vamp_test.grids")
+call vamp_delete_grids (grs)
+call vamp_print_history (history, "multi")
+call vamp_print_history (histories, "multi")
+call vamp_delete_history (history)
+call vamp_delete_history (histories)
+@
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Input/Output}
+<<Declaration of procedures in [[vamp_tests]]>>=
+public :: print_results
+@
+<<Implementation of procedures in [[vamp_tests]]>>=
+subroutine print_results (prefix, prev_ticks, &
+     integral, std_dev, chi2, acceptable, failures)
+  character(len=*), intent(in) :: prefix
+  integer, intent(in) :: prev_ticks
+  real(kind=default), intent(in) :: integral, std_dev, chi2, acceptable
+  integer, intent(inout) :: failures
+  integer :: ticks, ticks_per_second
+  real(kind=default) :: pull
+  call system_clock (ticks, ticks_per_second)
+  pull = (integral - 1) / std_dev
+  print "(1X,A,A,F6.2,A)", prefix, &
+       ": time = ", real (ticks - prev_ticks) / ticks_per_second, " secs"
+  print *, prefix, ":    int, err, chi2: ", &
+       real (integral), real (std_dev), real (chi2)
+  if (abs (pull) > acceptable) then
+     failures = failures + 1
+     print *, prefix, ": inacceptable pull:", real (pull)
+  else
+     print *, prefix, ":   acceptable pull:", real (pull)
+  end if
+end subroutine print_results
+@ %def print_results
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Main Program}
+<<[[vamp_test.f90]]>>=
+program vamp_test
+  use kinds
+  use tao_random_numbers
+  use coordinates
+  use vamp
+  use vamp_test_functions !NODEP!
+  use vamp_tests !NODEP!
+  implicit none
+  integer :: start_ticks, status
+  integer, dimension(2) :: iterations, samples
+  real(kind=default), dimension(2,5) :: region
+  real(kind=default), dimension(5) :: weight_vector
+  real(kind=default), dimension(10) :: powers
+  real(kind=default) :: single_integral, single_standard_dev, single_chi_squared
+  real(kind=default) :: multi_integral, multi_standard_dev, multi_chi_squared
+  type(tao_random_state) :: rng
+  real(kind=default), parameter :: ACCEPTABLE = 4
+  integer :: failures
+  failures = 0
+  call tao_random_create (rng, 0)
+  call get_environment_variable (name="VAMP_RANDOM_TESTS", status=status)
+  if (status == 0) then
+     call system_clock (start_ticks)
+  else
+     start_ticks = 42
+  end if
+  call tao_random_seed (rng, start_ticks)
+  iterations = (/ 4, 3 /)
+  samples = (/ 20000, 200000 /)
+  region(1,:)  = -1.0
+  region(2,:)  =  1.0
+  width = 0.0001
+  print *, "Starting VAMP 1.0 self test..."
+  print *, "serial code"
+  call system_clock (start_ticks)
+  call single_channel (rng, region, samples, iterations, &
+          single_integral, single_standard_dev, single_chi_squared)
+  call print_results ("SINGLE", start_ticks, &
+          single_integral, single_standard_dev, single_chi_squared, &
+          10*ACCEPTABLE, failures)
+  weight_vector = 1
+  powers = 0.25_default
+  call system_clock (start_ticks)
+  call multi_channel (rng, region, weight_vector, samples, iterations, &
+          powers, multi_integral, multi_standard_dev, multi_chi_squared)
+  call print_results ("MULTI", start_ticks, &
+           multi_integral, multi_standard_dev, multi_chi_squared, &
+          ACCEPTABLE, failures)
+  call system_clock (start_ticks)
+! call check_jacobians (rng, region, weight_vector, samples(1))
+  call check_inverses (rng, region, weight_vector, samples(1))
+  call check_inverses3 (rng, region, samples(1))
+  if (failures == 0) then
+     stop 0
+  else if (failures == 1) then
+     stop 1
+  else
+     stop 2
+  end if
+end program vamp_test
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parallel Test}
+<<[[vampi_test.f90]]>>=
+! vampi_test.f90 --
+<<Copyleft notice>>
+<<Module [[vamp_test_functions]]>>
+@ The following is identical to [[vamp_tests]], except
+for~[[use vampi]]:
+<<[[vampi_test.f90]]>>=
+module vampi_tests
+  use kinds
+  use exceptions
+  use histograms
+  use tao_random_numbers
+  use coordinates
+  use vampi
+  use vamp_test_functions !NODEP!
+  implicit none
+  private
+  <<Declaration of procedures in [[vamp_tests]]>>
+contains
+  <<Implementation of procedures in [[vamp_tests]]>>
+end module vampi_tests
+@ %def vampi_tests
+@ 
+<<[[vampi_test.f90]]>>=
+program vampi_test
+  use kinds
+  use tao_random_numbers
+  use coordinates
+  use vampi
+  use mpi90
+  use vamp_test_functions !NODEP!
+  use vampi_tests !NODEP!
+  implicit none
+  integer :: num_proc, proc_id, start_ticks
+  logical :: perform_io
+  integer, dimension(2) :: iterations, samples
+  real(kind=default), dimension(2,5) :: region
+  real(kind=default), dimension(5) :: weight_vector
+  real(kind=default), dimension(10) :: powers
+  real(kind=default) :: single_integral, single_standard_dev, single_chi_squared
+  real(kind=default) :: multi_integral, multi_standard_dev, multi_chi_squared
+  type(tao_random_state) :: rng
+  integer :: iostat, command
+  character(len=72) :: command_line
+  integer, parameter :: &
+       CMD_ERROR = -1, CMD_END = 0, &
+       CMD_NOP = 1, CMD_SINGLE = 2, CMD_MULTI = 3, CMD_CHECK = 4
+  call tao_random_create (rng, 0)
+  call mpi90_init ()
+  call mpi90_size (num_proc)
+  call mpi90_rank (proc_id)
+  perform_io = (proc_id == 0)
+  call system_clock (start_ticks)
+  call tao_random_seed (rng, start_ticks + proc_id)
+  iterations = (/ 4, 3 /)
+  samples = (/ 20000, 200000 /)
+  samples = (/ 200000, 2000000 /)
+  region(1,:)  = -1.0
+  region(2,:)  =  1.0
+  width = 0.0001
+  if (perform_io) then
+     print *, "Starting VAMP 1.0 self test..."
+     if (num_proc > 1) then
+        print *, "parallel code running on ", num_proc, " processors"
+     else
+        print *, "parallel code running serially"
+     end if
+  end if
+  command_loop: do
+     <<Parse the commandline in [[vamp_test]] and set [[command]]>>
+     call mpi90_broadcast (command, 0)
+     call system_clock (start_ticks)
+     select case (command)
+     <<Execute [[command]] in [[vamp_test]]>>
+     case (CMD_END)
+        exit command_loop
+     case (CMD_NOP)
+        ! do nothing
+     case (CMD_ERROR)
+        ! do nothing
+     end select
+  end do command_loop
+  call mpi90_finalize ()
+end program vampi_test
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Output}
+<<[[vamp_test.out]]>>=
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

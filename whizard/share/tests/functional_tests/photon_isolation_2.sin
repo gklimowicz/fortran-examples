@@ -1,0 +1,30 @@
+# SINDARIN input for WHIZARD self-test
+# Test photon isolation from EM activity
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+mmu = 5 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+process photon_isolation_2_p1 = t, tbar => A, A, e2, E2
+
+sqrts = 400 GeV
+
+photon_iso_r0 = 2.5
+
+cuts = all E > 4 GeV [A] and all Pt > 5 GeV [A] and
+       all Dist > 1 [e2:E2:A, e2:E2:A] and
+       photon_isolation if Pt > 5 GeV [A, e2:E2:A]
+
+integrate (photon_isolation_2_p1) { iterations = 1:640:"gw" }

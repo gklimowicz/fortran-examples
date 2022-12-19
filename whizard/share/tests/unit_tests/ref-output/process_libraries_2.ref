@@ -1,0 +1,108 @@
+* Test output: process_libraries_2
+* Purpose: Construct a process definition list,
+*          write it to file and reread it
+
+* Construct a process definition list
+*   First process definition: empty
+*   Second process definition: two components
+*     First component: empty
+*     Second component: test data
+*   Third process definition:
+*     Embedded decays and polarization
+
+ Process #1:
+ ID = 'first'
+ [Undefined process]
+
+ Process #2:
+ ID = 'second'
+ Decay
+ Model = Test
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = '81CECFDA0F7BBF495AA52440F920716A'
+ Component #1
+   Component ID        = second_i1
+   Initial component   = T
+   N (in, out, tot)    = 0 0 0
+   Particle content    = [undefined] => [undefined]
+   Method              = [undefined]
+   Process variant     = [undefined]
+   MD5 sum (def)       = 'E7D1A6F33CE743AEED578598AB9AA5D7'
+ Component #2
+   Component ID        = second_i2
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test
+   Test data         = 42
+   MD5 sum (def)       = '027BC6E5294B4B99CC4E409E018277B1'
+
+ Process #3:
+ ID = 'third'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '1FDAAC065656F51FE243AB43BE310A09'
+ Component #1
+   Component ID        = third_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 3 5
+   Particle content    = a, b => c, d(*), e(e_decay)
+   Method              = test
+   Process variant     = test
+   Test data         = 0
+   MD5 sum (def)       = '635C46E4362976C374A62BE888281E1C'
+
+* Write the process definition list to (scratch) file
+* Reread it
+
+ Process #1:
+ ID = 'first'
+ [Undefined process]
+
+ Process #2:
+ ID = 'second'
+ Decay
+ Model = Test
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = '81CECFDA0F7BBF495AA52440F920716A'
+ Component #1
+   Component ID        = second_i1
+   Initial component   = T
+   N (in, out, tot)    = 0 0 0
+   Particle content    = [undefined] => [undefined]
+   Method              = [undefined]
+   Process variant     = [undefined]
+   MD5 sum (def)       = 'E7D1A6F33CE743AEED578598AB9AA5D7'
+ Component #2
+   Component ID        = second_i2
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test
+   Test data         = 42
+   MD5 sum (def)       = '027BC6E5294B4B99CC4E409E018277B1'
+
+ Process #3:
+ ID = 'third'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '1FDAAC065656F51FE243AB43BE310A09'
+ Component #1
+   Component ID        = third_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 3 5
+   Particle content    = a, b => c, d(*), e(e_decay)
+   Method              = test
+   Process variant     = test
+   Test data         = 0
+   MD5 sum (def)       = '635C46E4362976C374A62BE888281E1C'
+
+* Test output end: process_libraries_2

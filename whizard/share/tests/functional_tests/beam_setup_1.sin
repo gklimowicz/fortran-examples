@@ -1,0 +1,75 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process beam_setup_1p = "e-", "mu+" => nue, numubar
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+iterations = 1:400
+sqrts = 1000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+! 00
+seed = 0
+integrate (beam_setup_1p)
+
+! LR
+beams_pol_density = @(-1), @(1)
+seed = 0
+integrate (beam_setup_1p)
+
+beams = "e-", "mu+"
+
+! L0
+seed = 0
+integrate (beam_setup_1p) { beams_pol_fraction = 1, 0 }
+ 
+! L0
+seed = 0
+integrate (beam_setup_1p) { beams_pol_density = @(-1), @() }
+ 
+! LL
+seed = 0
+integrate (beam_setup_1p) { beams_pol_density = @(-1), @(-1) }
+ 
+! LTx
+seed = 0
+integrate (beam_setup_1p) { beams_pol_density = @(-1), @(1, -1, 1:-1) }
+
+! LTy
+seed = 0
+integrate (beam_setup_1p) { beams_pol_density = @(-1), @(1, -1, 1:-1:-I) }
+
+! LT partial
+seed = 0
+real frac = 0.5
+integrate (beam_setup_1p) { 
+  real theta = pi/2
+  real phi = pi/4
+  beams_pol_density = 
+    @(-1), 
+    @( 1: 1: (1+cos(theta)), 
+       1:-1: sin(theta) * exp(-I*phi), 
+      -1:-1: (1-cos(theta)))
+  beams_pol_fraction = frac, 1
+}
+
+! ILC like
+beams_pol_density = @(-1), @(+1)
+beams_pol_fraction = 80%, 40%
+seed = 0
+integrate (beam_setup_1p)

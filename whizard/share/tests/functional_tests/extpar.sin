@@ -1,0 +1,13 @@
+# SINDARIN input for WHIZARD self-test
+
+model = Test
+
+?logging = true
+
+tolerance = 1e-10
+printf ("Default parameters:")  show (gy, ms, mf)
+expect (mf == ms * 1.5)
+printf ("Resetting ms:")
+ms = 120 GeV
+printf ("New parameters:")  show (gy, ms, mf)
+expect (mf == ms * 1.5)

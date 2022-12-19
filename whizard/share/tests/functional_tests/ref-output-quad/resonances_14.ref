@@ -1,0 +1,285 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+seed = 814995
+| Switching to model 'SM', scheme 'default'
+sqrts =  2.50000E+02
+?resonance_history = true
+resonance_on_shell_limit =  1.60000E+01
+resonance_on_shell_turnoff =  2.00000E+00
+| Process library 'resonances_14_lib': recorded process 'resonances_14_p'
+[user variable] any_final = PDG(2, -1, 13, -14)
+[user variable] M_min =  5.00000E+00
+[user variable] E_min =  1.00000E+00
+| Process library 'resonances_14_lib': compiling ...
+| Process library 'resonances_14_lib': writing makefile
+| Process library 'resonances_14_lib': removing old files
+| Process library 'resonances_14_lib': writing driver
+| Process library 'resonances_14_lib': creating source code
+| Process library 'resonances_14_lib': compiling sources
+| Process library 'resonances_14_lib': linking
+| Process library 'resonances_14_lib': loading
+| Process library 'resonances_14_lib': ... success.
+| Creating resonant-subprocess libraries for library 'resonances_14_lib'
+| Process 'resonances_14_p': constructing phase space for resonance structure
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28563
+| Initializing integration for process resonances_14_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| Phase space: generating configuration ...
+Warning:  Intermediate decay of zero-width particle mu- may be possible.
+| Phase space: ... success.
+| Phase space: writing configuration file 'resonances_14_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p'
+|   Library name  = 'resonances_14_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'resonances_14_p_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 25 channels, 8 dimensions
+| Phase space: found 25 channels, collected in 10 groves.
+| Phase space: Using 25 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Integrate: phase space only, skipping integration
+| Creating library for resonant subprocesses 'resonances_14_p_R'
+| Process library 'resonances_14_p_R': initialized
+| Resonant subprocess #1: 3+4~W+ && 5+6~W-
+| Process library 'resonances_14_p_R': recorded process 'resonances_14_p_R1'
+| Resonant subprocess #2: 5+6~W-
+| Process library 'resonances_14_p_R': recorded process 'resonances_14_p_R2'
+| Resonant subprocess #3: 5+6~W- && 3+4+5+6~Z
+| Process library 'resonances_14_p_R': recorded process 'resonances_14_p_R3'
+| Resonant subprocess #4: 3+4~W+
+| Process library 'resonances_14_p_R': recorded process 'resonances_14_p_R4'
+| Resonant subprocess #5: 3+4~W+ && 3+4+5+6~Z
+| Process library 'resonances_14_p_R': recorded process 'resonances_14_p_R5'
+| Resonant subprocess #6: 3+4+5+6~Z
+| Process library 'resonances_14_p_R': recorded process 'resonances_14_p_R6'
+| Process library 'resonances_14_p_R': created
+| Process library 'resonances_14_p_R': compiling ...
+| Process library 'resonances_14_p_R': writing makefile
+| Process library 'resonances_14_p_R': removing old files
+| Process library 'resonances_14_p_R': writing driver
+| Process library 'resonances_14_p_R': creating source code
+| Process library 'resonances_14_p_R': compiling sources
+| Process library 'resonances_14_p_R': linking
+| Process library 'resonances_14_p_R': loading
+| Process library 'resonances_14_p_R': ... success.
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28564
+| Initializing integration for process resonances_14_p:
+| Beam structure: e-, e+ => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'resonances_14_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p'
+|   Library name  = 'resonances_14_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'resonances_14_p_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 25 channels, 8 dimensions
+| Phase space: found 25 channels, collected in 10 groves.
+| Phase space: Using 25 equivalences between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 2 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'resonances_14_p'
+| Integrate: iterations = 3:10000
+| Integrator: 10 chains, 25 channels, 10 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 10000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       9975     5.400E+02   3.26E+01    6.03    6.02     2.5
+   2       9975     5.339E+02   3.00E+01    5.62    5.62     2.1
+   3       9975     5.678E+02   3.25E+01    5.72    5.71     1.9
+|-----------------------------------------------------------------------------|
+   3      29925     5.465E+02   1.83E+01    3.34    5.78     1.9    0.32   3
+|=============================================================================|
+?update_sqme = true
+?update_weight = false
+?write_raw = false
+$phs_method = "default"
+n_events = 32
+$sample = "resonances_14_a"
+| Starting simulation for process 'resonances_14_p'
+| Simulate: using integration grids from file 'resonances_14_p.m1.vg'
+| Using library for resonant subprocesses 'resonances_14_p_R'
+| Simulate: initializing resonant subprocess 'resonances_14_p_R1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28565
+| Initializing integration for process resonances_14_p_R1:
+| Beam structure: e-, e+ => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p_R1'
+|   Library name  = 'resonances_14_p_R'
+|   Process index = 1
+|   Process components:
+|     1: 'resonances_14_p_R1_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Simulate: initializing resonant subprocess 'resonances_14_p_R2'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28566
+| Initializing integration for process resonances_14_p_R2:
+| Beam structure: e-, e+ => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p_R2'
+|   Library name  = 'resonances_14_p_R'
+|   Process index = 2
+|   Process components:
+|     1: 'resonances_14_p_R2_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Simulate: initializing resonant subprocess 'resonances_14_p_R3'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28567
+| Initializing integration for process resonances_14_p_R3:
+| Beam structure: e-, e+ => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p_R3'
+|   Library name  = 'resonances_14_p_R'
+|   Process index = 3
+|   Process components:
+|     1: 'resonances_14_p_R3_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Simulate: initializing resonant subprocess 'resonances_14_p_R4'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28568
+| Initializing integration for process resonances_14_p_R4:
+| Beam structure: e-, e+ => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p_R4'
+|   Library name  = 'resonances_14_p_R'
+|   Process index = 4
+|   Process components:
+|     1: 'resonances_14_p_R4_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Simulate: initializing resonant subprocess 'resonances_14_p_R5'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28569
+| Initializing integration for process resonances_14_p_R5:
+| Beam structure: e-, e+ => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p_R5'
+|   Library name  = 'resonances_14_p_R'
+|   Process index = 5
+|   Process components:
+|     1: 'resonances_14_p_R5_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Simulate: initializing resonant subprocess 'resonances_14_p_R6'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28570
+| Initializing integration for process resonances_14_p_R6:
+| Beam structure: e-, e+ => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_14_p_R6'
+|   Library name  = 'resonances_14_p_R'
+|   Process index = 6
+|   Process components:
+|     1: 'resonances_14_p_R6_i1':   e-, e+ => u, dbar, mu-, numubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Simulate: activating resonance insertion
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28571
+| Simulation: requested number of events = 32
+|             corr. to luminosity [fb-1] =   5.8550E-02
+| Events: writing to LCIO file 'resonances_14_a.slcio'
+| Events: writing to weight stream file 'resonances_14_a.weights.dat'
+| Events: generating 32 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   1.71 %
+Warning: Encountered events with excess weight: 2 events (  6.250 %)
+| Maximum excess weight = 7.389E-01
+| Average excess weight = 2.629E-02
+| Events: closing LCIO file 'resonances_14_a.slcio'
+| Events: closing weight stream file 'resonances_14_a.weights.dat'
+?resonance_history = false
+$rescan_input_format = "lcio"
+$sample = "resonances_14_b"
+?recover_beams = false
+| Starting simulation for process 'resonances_14_p'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28572
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'resonances_14_p.i1.phs'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28573
+| Simulation: requested number of events = 0
+|             corr. to luminosity [fb-1] =   0.0000E+00
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from LCIO file 'resonances_14_a.slcio'
+| Events: writing to weight stream file 'resonances_14_b.weights.dat'
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 32 events.
+| Events: closing weight stream file 'resonances_14_b.weights.dat'
+| Events: closing LCIO file 'resonances_14_a.slcio'
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Checking consistency of event weights:
+ weight ratio deviation < tolerance: T

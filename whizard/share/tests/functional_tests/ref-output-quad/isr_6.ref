@@ -1,0 +1,143 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Process library 'isr_6_lib': recorded process 'isr_6_a'
+| Process library 'isr_6_lib': recorded process 'isr_6_b'
+| Process library 'isr_6_lib': compiling ...
+| Process library 'isr_6_lib': writing makefile
+| Process library 'isr_6_lib': removing old files
+| Process library 'isr_6_lib': writing driver
+| Process library 'isr_6_lib': creating source code
+| Process library 'isr_6_lib': compiling sources
+| Process library 'isr_6_lib': linking
+| Process library 'isr_6_lib': loading
+| Process library 'isr_6_lib': ... success.
+sqrts =  1.00000E+01
+openmp_num_threads = 1
+SM.me =>  5.11111E-04
+seed = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process isr_6_a:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1111111E-04 GeV)
+|   e+  (mass = 5.1111111E-04 GeV)
+|   sqrts = 1.000000000000E+01 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'isr_6_a.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'isr_6_a'
+|   Library name  = 'isr_6_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'isr_6_a_i1':   e-, e+ => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'isr_6_a'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.676E+06   1.33E+05    7.92    2.50     1.4
+|-----------------------------------------------------------------------------|
+   1       1000     1.676E+06   1.33E+05    7.92    2.50     1.4
+|=============================================================================|
+seed = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process isr_6_b:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1111111E-04 GeV)
+|   e+  (mass = 5.1111111E-04 GeV)
+|   sqrts = 1.000000000000E+01 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'isr_6_b.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'isr_6_b'
+|   Library name  = 'isr_6_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'isr_6_b_i1':   e-, e+ => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'isr_6_b'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.676E+06   1.33E+05    7.92    2.50     1.4
+|-----------------------------------------------------------------------------|
+   1       1000     1.676E+06   1.33E+05    7.92    2.50     1.4
+|=============================================================================|
+isr_mass =  5.11111E-04
+?isr_handler = true
+$isr_handler_mode = "recoil"
+$sample = "isr_6_a"
+?isr_handler_keep_mass = false
+n_events = 1
+| Starting simulation for process 'isr_6_a'
+| Simulate: using integration grids from file 'isr_6_a.m1.vg'
+| Simulate: activating ISR handler
+| Simulate: ISR/EPA handler mode: pair recoil
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.9656E-07
+| Events: writing to raw file 'isr_6_a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   1.10 %
+| Events: closing raw file 'isr_6_a.evx'
+$sample = "isr_6_b"
+?isr_handler_keep_mass = true
+n_events = 1
+| Starting simulation for process 'isr_6_b'
+| Simulate: using integration grids from file 'isr_6_b.m1.vg'
+| Simulate: activating ISR handler
+| Simulate: ISR/EPA handler mode: pair recoil
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.9656E-07
+| Events: writing to raw file 'isr_6_b.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   1.10 %
+| Events: closing raw file 'isr_6_b.evx'
+$out_file = "isr_6.dat"
+| Opening file 'isr_6.dat' for output
+| Writing analysis data to file 'isr_6.dat'
+| Closing file 'isr_6.dat' for output
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of file isr_6_digest.out:
+ 0.0000000
+ 0.0005111

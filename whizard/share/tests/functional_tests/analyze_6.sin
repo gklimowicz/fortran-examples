@@ -1,0 +1,50 @@
+model = QED
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+mmu = 0
+
+seed = 0
+process analyze_6_a = e1, E1 => e2, E2
+process analyze_6_b = e1, E1 => e2, E2
+
+sqrts = 1 TeV
+iterations = 1:5000:"gw",1:10000
+$sample_normalization = "1"
+?unweighted = false
+n_events = 1000
+
+integrate (analyze_6_a)
+
+histogram one_a (0, 2) { n_bins = 1 }
+analysis = record one_a (1)
+simulate (analyze_6_a) { $sample = "analyze_6_a" }
+
+cuts = all abs(Eta) < 0.5 [e2:E2]
+integrate (analyze_6_b)
+
+?keep_failed_events = false
+
+histogram one_b (0, 2) { n_bins = 1 }
+analysis = record one_b (1)
+simulate (analyze_6_b) { $sample = "analyze_6_b" }
+
+histogram one_c (0, 2) { n_bins = 1 }
+analysis = record one_c (1)
+rescan "analyze_6_b" (analyze_6_b) { $sample = "analyze_6_c" }
+
+?keep_failed_events = true
+
+histogram one_d (0, 2) { n_bins = 1 }
+analysis = record one_d (1)
+simulate (analyze_6_b) { $sample = "analyze_6_d" }
+
+histogram one_e (0, 2) { n_bins = 1 }
+analysis = record one_e (1)
+rescan "analyze_6_d" (analyze_6_b) { $sample = "analyze_6_e" }
+
+write_analysis { $out_file = "analyze_6.dat" }

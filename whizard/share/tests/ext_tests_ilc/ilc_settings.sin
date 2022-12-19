@@ -1,0 +1,81 @@
+!! We base this Sindarin file and every Sindarin file including this file on following article:
+!! @article{Gleisberg:2003bi,
+!!     author = "Gleisberg, T. and Krauss, F. and Papadopoulos, C.G. and Schaelicke, A. and Schumann, S.",
+!!     title = "{Cross-sections for multiparticle final states at a linear collider}",
+!!     eprint = "hep-ph/0311273",
+!!     archivePrefix = "arXiv",
+!!     reportNumber = "CERN-TH-2003-282",
+!!     doi = "10.1140/epjc/s2004-01672-1",
+!!     journal = "Eur. Phys. J. C",
+!!     volume = "34",
+!!     pages = "173--180",
+!!     year = "2004"
+!! }
+
+!! No CKM mixing
+
+model = SM_Higgs("GF_MW_MZ")
+!! Note:
+!!
+!! The SM model does not include couplings of Higgs to strange, charm and electron and muon.
+!! The SM_Higgs model does include Higgs, electron/muon interaction, but also anomalous Hgg, HAA, HZA.
+
+beams = e1, E1
+
+!! Define masses and widths
+
+mW = 80.419
+wW = 2.12
+mZ = 91.1882
+wZ = 2.4952
+GF = 1.16639E-5
+me = 0
+mmu = 0.1056583
+mtau = 1.777
+ms = 0.2
+mc = 1.3
+mb = 4.8
+mtop = 174.3
+wtop = 1.6
+mH = 130 GeV
+wH = 0.00429
+
+!! Exclude anomalous couplings
+$restrictions = "^ghgg:ghgaga:ghgaz"
+!! O'mega options
+$omega_flags = "-model:constant_width"
+
+!! Define RNG, integration and phase-space method
+
+$rng_method = "rng_stream"
+seed = 1961991
+
+?omega_write_phs_output = true
+$phs_method = "fast_wood"
+
+$integration_method = "vamp2"
+$vamp_grid_format = "binary"
+iterations = 10:100000:"gw",4:100000
+accuracy_goal = 2
+relative_error_goal = 0.001
+
+!! Define cuts
+
+alias lepton = e1:e2:e3:E1:E2:E3
+alias neutrino = n1:n2:n3:N1:N2:N3
+alias jet = u:d:s:c:b:U:D:S:C:B:g
+
+cuts = all E > 10 GeV [jet] and
+       all E > 10 GeV [lepton] and
+       all M > 10 GeV [jet, jet] and
+       all 5 degree < Theta < 175 degree [jet] and
+       all 5 degree < Theta < 175 degree [lepton] and
+       all 5 degree < Theta [lepton, lepton] and
+       all 5 degree < Theta [jet, lepton]
+
+!!! 360 GeV
+!! alphas = 0.0925
+!! sqrts = 360 GeV
+!!! 500 GeV
+!! alphas = 0.0891
+!! sqrts = 500 GeV

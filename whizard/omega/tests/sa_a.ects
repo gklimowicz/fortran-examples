@@ -1,0 +1,16 @@
+! sa_a.ects --
+!ects:model SYM
+!ects:scatter
+!ects:process phi g1 -> g1
+integer, parameter :: NP = 3, NCF = 2
+real(kind=default), parameter :: NC = 3
+integer, dimension(2,NP,NCF), parameter :: cflows = reshape ( &
+  (/  0,  0 ,  1, -2 ,  1, -2 , &
+      0,  0 ,  0,  0 ,  0,  0   /), (/ 2, NP, NCF /) )
+logical, dimension(NP,NCF), parameter :: gflags = reshape ( &
+  (/ .false., .false., .false., &
+     .false.,  .true.,  .true.  /), (/ NP, NCF /))
+type(OCF), dimension(2), parameter :: cfactors = &
+  (/ OCF (1, 1, NC**2 - 2.0_double), &
+     OCF (2, 2, 1/NC**2)             /)
+

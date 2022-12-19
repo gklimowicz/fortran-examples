@@ -1,0 +1,1787 @@
+%% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD code as NOWEB source: LHA user process interface and Pythia8 interface
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{LHA User Process and Pythia8}
+\label{cha:lha-pythia8}
+
+We implement the Les Houches Accord interface for C++ specified in Pythia8 and
+interface the Pythia with the given LHA User Process object of WHIZARD.
+
+\section{LHA User Process WHIZARD}
+\label{sec:lha-whizard}
+
+<<[[whizard_lha.f90]]>>=
+<<File header>>
+
+module whizard_lha
+<<Use kinds>>
+
+<<whizard lha: modules>>
+
+<<Standard module head>>
+
+<<whizard lha: public>>
+
+<<whizard lha: parameters>>
+
+<<whizard lha: types>>
+
+<<whizard lha: interfaces>>
+
+contains
+
+<<whizard lha: procedures>>
+
+end module whizard_lha
+@ %def whizard_lha
+@
+<<whizard lha: modules>>=
+  use, intrinsic :: iso_c_binding
+  use diagnostics
+  use format_utils, only: write_separator
+  use lorentz
+  use io_units, only: given_output_unit
+  use polarizations
+  use particles
+  use subevents, only: PRT_BEAM, PRT_INCOMING, PRT_OUTGOING, &
+       PRT_UNDEFINED, PRT_VIRTUAL, PRT_RESONANT, PRT_BEAM_REMNANT
+
+@ %def whizard_lha_modules
+@ We define a transport type for a particle corresponding to C-struct.
+<<whizard lha: public>>=
+  public :: lha_particle_t
+<<whizard lha: types>>=
+  type, bind(C) :: lha_particle_t
+     integer(c_int) :: id, status
+     integer(c_int), dimension(2) :: mother
+     integer(c_int), dimension(2) :: color
+     real(c_double), dimension(4) :: momentum
+     real(c_double) :: mass, tau, spin
+  end type lha_particle_t
+
+@ %def lha_particle_t
+@ Private print routine for [[lha_particle_t]].
+<<whizard lha: interfaces>>=
+  interface lha_particle_write
+     module procedure lha_particle_write_single, lha_particle_write_array
+  end interface lha_particle_write
+<<whizard lha: procedures>>=
+  subroutine lha_particle_write_single (particle, unit)
+    type(lha_particle_t) :: particle
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit)
+    write (u, "(I9,1X)", advance="no") particle%id
+    write (u, "(I4,1X)", advance="no") particle%status
+    write (u, "(2(I5,1X))", advance="no") particle%mother(1), particle%mother(2)
+    write (u, "(2(I5,1X))", advance="no") particle%color(1), particle%color(2)
+    write (u, "(5(F11.3,1X))", advance="no") particle%momentum(2), particle%momentum(3), &
+         particle%momentum(4), particle%momentum(1), particle%mass
+    write (u, "(F8.3,1X)", advance="no") particle%tau
+    write (u, "(F8.3,1X)", advance="no") particle%tau
+    write (u, "(A)")
+  end subroutine lha_particle_write_single
+
+  subroutine lha_particle_write_array (particle_set, unit)
+    type(lha_particle_t), dimension(:), intent(in) :: particle_set
+    integer, intent(in), optional :: unit
+    integer :: u, i
+    u = given_output_unit (unit)
+    write (u, "(1X,A)") "LHA Particle set:"
+    call write_separator (u)
+    write (u, "((A4,1X),(A9,1X),(A4,1X),(1X,A10,1X),(1X,A10,1X),5(A11,1X),2(A8,1X))") &
+         "No", "ID", "Stat", "Mothers", "Colours", &
+         "P(1)", "P(2)", "P(3)", "E", "M", "Tau", "Spin"
+    if (size (particle_set) == 0) then
+       write (u, "(3X,A)") "[empty]"
+    else
+       do i = 1, size(particle_set)
+          write (u, "(I4,1X)", advance="no") i
+          call lha_particle_write_single (particle_set(i), unit)
+       end do
+    end if
+    call write_separator (u)
+  end subroutine lha_particle_write_array
+
+@ %def lha_particle_write_single, lha_particle_write_array
+@ We define the [[whizard_lha_t]] type which handles the C++ implementation of
+the LHA User Procces class [[LHAupWhizard]].
+<<whizard lha: public>>=
+  public :: whizard_lha_t
+<<whizard lha: types>>=
+  type :: whizard_lha_t
+     private
+     type(c_ptr) :: cptr
+     logical :: new_event = .false.
+   contains
+   <<whizard lha: whizard lha: TBP>>
+  end type whizard_lha_t
+
+@ %def whizard_lha_t
+@ Initialize. Construct a new C++ object of type [[LHAupWhizard]].
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: init => whizard_lha_init
+<<whizard lha: interfaces>>=
+  interface
+     function new_whizard_lha () bind(C) result (cptr)
+       import
+       type(c_ptr) :: cptr
+     end function new_whizard_lha
+  end interface
+
+<<whizard lha: procedures>>=
+  subroutine whizard_lha_init (whizard_lha)
+    class(whizard_lha_t), intent(out) :: whizard_lha
+    whizard_lha%cptr = new_whizard_lha ()
+  end subroutine whizard_lha_init
+
+@ %def whizard_lha_init
+@ Finalize. Call the Destructor of the [[LHAupWhizard]] object.
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: final => whizard_lha_final
+<<whizard lha: interfaces>>=
+    interface
+     subroutine lhaup_whizard_delete (cptr) bind(C)
+       import
+       ! Attribute value cannot have intent(inout).
+       type(c_ptr), value :: cptr
+     end subroutine lhaup_whizard_delete
+  end interface
+
+<<whizard lha: procedures>>=
+  subroutine whizard_lha_final (whizard_lha)
+    class(whizard_lha_t), intent(inout)  :: whizard_lha
+    call lhaup_whizard_delete (whizard_lha%cptr)
+  end subroutine whizard_lha_final
+
+@ %def whizard_lha_final
+@ Get [[c_ptr]].
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: get_ptr => whizard_lha_get_ptr
+<<whizard lha: procedures>>=
+  function whizard_lha_get_ptr (whizard_lha) result (cptr)
+    class(whizard_lha_t), intent(in) :: whizard_lha
+    type(c_ptr) :: cptr
+    cptr = whizard_lha%cptr
+  end function whizard_lha_get_ptr
+
+@ %def whizard_lha_get_ptr
+@ Set initialisation parameter.
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: set_init => whizard_lha_set_init
+<<whizard lha: interfaces>>=
+  interface
+     function lhaup_whizard_set_init (cptr, beam_pdg, beam_energy, n_processes, unweighted, negative_weights) bind(C) result (flag)
+       import
+       type(c_ptr), value :: cptr
+       integer(c_int), dimension(2), intent(in) :: beam_pdg
+       real(c_double), dimension(2), intent(in) :: beam_energy
+       integer(c_int), intent(in), value :: n_processes
+       logical(c_bool), intent(in), value :: unweighted, negative_weights
+       logical(c_bool) :: flag
+     end function lhaup_whizard_set_init
+  end interface
+
+<<whizard lha: procedures>>=
+  subroutine whizard_lha_set_init (whizard_lha, beam_pdg, beam_energy, n_processes, unweighted, negative_weights)
+    class(whizard_lha_t), intent(inout) :: whizard_lha
+    integer, dimension(2), intent(in) :: beam_pdg
+    real(default), dimension(2), intent(in) :: beam_energy
+    integer, intent(in) :: n_processes
+    logical, intent(in) :: unweighted
+    logical, intent(in) :: negative_weights
+    logical(c_bool) :: flag
+    integer(c_int) :: c_n_processes
+    integer(c_int), dimension(2) :: c_beam_pdg
+    real(c_double), dimension(2) :: c_beam_energy
+    logical(c_bool) :: c_unweighted, c_negative_weights
+    c_beam_pdg = int (beam_pdg, c_int)
+    c_beam_energy = real (beam_energy, c_double)
+    c_n_processes = int (n_processes, c_int)
+    c_unweighted = unweighted 
+    c_negative_weights = negative_weights
+    flag = lhaup_whizard_set_init (whizard_lha%cptr, c_beam_pdg, &
+         c_beam_energy, c_n_processes, c_unweighted, c_negative_weights)
+    if (.not. flag)  then
+       call msg_fatal ("[whizard_lha_set_init] could not " // & 
+            "initialize the LHAUpWhizard interface.")
+    end if
+  end subroutine whizard_lha_set_init
+
+@ %def whizard_lha_set_init
+@ Set process parameters.
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: set_process_parameters => whizard_lha_set_process_parameters
+<<whizard lha: interfaces>>=
+  interface
+     function lhaup_whizard_set_process_parameters &
+          (cptr, process_id, cross_section, error, max_weight) &
+          bind(C) result (flag)
+       import
+       type(c_ptr), value :: cptr
+       integer(c_int), intent(in), value :: process_id
+       real(c_double), intent(in), value :: cross_section, error, max_weight
+       logical(c_bool) :: flag
+     end function lhaup_whizard_set_process_parameters
+  end interface
+
+<<whizard lha: procedures>>=
+  ! get this directly from event_sample_data_t
+  subroutine whizard_lha_set_process_parameters (whizard_lha, process_id, cross_section, error, max_weight)
+    class(whizard_lha_t), intent(inout) :: whizard_lha
+    integer, intent(in) :: process_id
+    real(default), intent(in), optional :: cross_section, error, max_weight
+    real(default), parameter :: pb_per_fb = 1.e-3_default
+    integer(c_int) :: c_process_id
+    real(c_double) :: c_cross_section, c_error, c_max_weight
+    logical(c_bool) :: flag
+    c_process_id = int (process_id, c_int)
+    if (present (cross_section)) then
+       c_cross_section = real (cross_section * pb_per_fb, c_double)
+    else
+       c_cross_section = 0._c_double
+    end if
+    if (present (error)) then
+       c_error = real (error * pb_per_fb, c_double)
+    else
+       c_error = 0._c_double
+    end if
+    if (present (max_weight)) then
+       c_max_weight = real (max_weight, c_double)
+    else
+       c_max_weight = 0._c_double
+    end if
+    flag = lhaup_whizard_set_process_parameters (whizard_lha%cptr, &
+         c_process_id, c_cross_section, c_error, c_max_weight)
+    if (.not. flag) then
+       call msg_fatal ("[whizard_lha_add_process] could not add a process.")
+    end if
+  end subroutine whizard_lha_set_process_parameters
+
+@ %def whizard_lha_set_process_parameters
+@ Print LHA User Process initialisation.
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: list_init => whizard_lha_list_init
+  procedure :: list_event => whizard_lha_list_event
+<<whizard lha: interfaces>>=
+  interface
+     subroutine lhaup_whizard_list_init (cptr) bind(C)
+       import
+       type(c_ptr), value :: cptr
+     end subroutine lhaup_whizard_list_init
+  end interface
+
+  interface
+     subroutine lhaup_whizard_list_event (cptr) bind(C)
+       import
+       type(c_ptr), value :: cptr
+     end subroutine lhaup_whizard_list_event
+  end interface
+
+<<whizard lha: procedures>>=
+  subroutine whizard_lha_list_init (whizard_lha)
+    class(whizard_lha_t), intent(in) :: whizard_lha
+    call lhaup_whizard_list_init (whizard_lha%cptr)
+  end subroutine whizard_lha_list_init
+
+  subroutine whizard_lha_list_event (whizard_lha)
+    class(whizard_lha_t), intent(in) :: whizard_lha
+    call lhaup_whizard_list_event (whizard_lha%cptr)
+  end subroutine whizard_lha_list_event
+
+@ %def whizard_lha_list_init, whizard_lha_list_event
+@ Set the event process information.
+We set the process’ scale, the coupling and the weight, iff we handle weighted events.
+Also, we clean up and prepare the particle list.
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: set_event_process => whizard_lha_set_event_process
+<<whizard lha: interfaces>>=
+  interface
+     subroutine lhaup_whizard_set_event_process &
+          (cptr, process_id, scale, alpha_qcd, alpha_qed, weight) bind(C)
+       import
+       type(c_ptr), value :: cptr
+       integer(c_int), intent(in), value :: process_id
+       real(c_double), intent(in), value :: scale, alpha_qcd, alpha_qed, weight
+     end subroutine lhaup_whizard_set_event_process
+  end interface
+
+<<whizard lha: procedures>>=
+  subroutine whizard_lha_set_event_process &
+       (whizard_lha, process_id, scale, alpha_qcd, alpha_qed, weight)
+    class(whizard_lha_t), intent(inout) :: whizard_lha
+    integer, intent(in) :: process_id
+    real(default), intent(in) :: scale, alpha_qcd, alpha_qed, weight
+    integer(c_int) :: c_process_id
+    real(c_double) :: c_scale, c_alpha_qcd, c_alpha_qed, c_weight
+    c_scale = real (scale, c_double)
+    c_alpha_qcd = real (alpha_qcd, c_double)
+    c_alpha_qed = real (alpha_qed, c_double)
+    c_weight = real (weight, c_double)
+    c_process_id = int (process_id, c_int)
+    call lhaup_whizard_set_event_process (whizard_lha%cptr, &
+         c_process_id, c_scale, c_alpha_qcd, c_alpha_qed, c_weight)
+    whizard_lha%new_event = .true.
+  end subroutine whizard_lha_set_event_process
+
+@ %def whizard_lha_set_event_process
+@ Set particles in to LHA event record. Must be called after [[whizard_lha_set_event_process]].
+
+We first create a new particle set that contains only the particles that are
+supported by the Les Houches Accord. These are: beam, incoming, resonant or outgoing.
+We drop particles with unknown, virtual or beam-remnant status.
+
+From this we fill the LHA particle type.
+<<whizard lha: whizard lha: TBP>>=
+  procedure :: set_event => whizard_lha_set_event
+<<whizard lha: interfaces>>=
+  interface
+     function lhaup_whizard_set_event (cptr, process_id, n_particles, &
+          particle_set) bind(C) result (flag)
+       import
+       type(c_ptr), value :: cptr
+       integer(c_int), intent(in), value :: process_id
+       integer(c_int), intent(in), value :: n_particles
+       ! IMPORTANT NOTE: Assumed-size array has to be defined by *.
+       type(lha_particle_t), dimension(*), intent(in) :: particle_set
+       logical(c_bool) :: flag
+     end function lhaup_whizard_set_event
+  end interface
+
+<<whizard lha: procedures>>=
+  subroutine whizard_lha_set_event (whizard_lha, process_id, particle_set,&
+       keep_beams, keep_remnants, polarization)
+    class(whizard_lha_t), intent(inout) :: whizard_lha
+    integer, intent(in) :: process_id
+    type(particle_set_t), intent(in) :: particle_set
+    logical, intent(in), optional :: keep_beams, keep_remnants, polarization
+    type(particle_set_t) :: pset
+    logical :: kr, pol
+    type(lha_particle_t), dimension(:), allocatable :: c_particle_set
+    integer(c_int) :: c_process_id, c_n_particles
+    logical(c_bool) :: flag
+    kr = .true.; if (present (keep_remnants))  kr = keep_remnants
+    pol = .true.; if (present (polarization))  pol = polarization
+    if (.not. whizard_lha%new_event) then
+       call msg_bug ("[whizard_lha_set_event] new event was not prepared.")
+    end if
+    call particle_set%filter_particles (pset, real_parents = .true., &
+         keep_beams = keep_beams, keep_virtuals = .false.)
+    if  (debug_active (D_SHOWER) .or. debug_active(D_TRANSFORMS)) then
+       print *, "After particle_set%filter: pset"
+       call pset%write (summary = .true., compressed = .true.)
+    end if
+    allocate (c_particle_set (pset%get_n_tot ()))
+    call fill_c_particle_set (pset, c_particle_set, kr, pol)
+    if (debug_active (D_SHOWER) .or. debug_active (D_TRANSFORMS)) &
+         call lha_particle_write (c_particle_set)
+    c_n_particles = pset%get_n_tot (); c_process_id = process_id
+    flag = lhaup_whizard_set_event (whizard_lha%cptr, c_process_id, c_n_particles, c_particle_set)
+    whizard_lha%new_event = .false.
+  contains
+    subroutine fill_c_particle_set (particle_set, c_particle_set, keep_remnants, polarization)
+      type(particle_set_t), intent(in) :: particle_set
+      type(lha_particle_t), dimension(:), intent(out) :: c_particle_set
+      logical, intent(in) :: keep_remnants, polarization
+      integer :: i, status
+      integer, dimension(:), allocatable :: parent
+      integer, dimension(2) :: color
+      type(vector4_t) :: p
+      do i = 1, particle_set%get_n_tot  ()
+         associate (c_prt => c_particle_set, prt => particle_set%prt(i))
+           c_prt(i)%id = prt%get_pdg ()
+           status = prt%get_status ()
+           if (keep_remnants .and. status == PRT_BEAM_REMNANT &
+                .and. prt%get_n_children () == 0) then
+              status = PRT_OUTGOING
+           end if
+           select case (status)
+           case (PRT_BEAM);         c_prt(i)%status = -9
+           case (PRT_INCOMING);     c_prt(i)%status = -1
+           case (PRT_OUTGOING);     c_prt(i)%status =  1
+           case (PRT_RESONANT);     c_prt(i)%status =  2
+           case (PRT_VIRTUAL);      c_prt(i)%status =  3
+           case default;            c_prt(i)%status =  0
+           end select
+           parent = prt%get_parents ()
+           select case (size (parent))
+           case (0)
+              c_prt(i)%mother(1) = 0; c_prt(i)%mother(2) = 0
+           case (1)
+              c_prt(i)%mother(1) = parent(1); c_prt(i)%mother(2) = 0
+           case (2)
+              c_prt(i)%mother(1) = parent(1); c_prt(i)%mother(2) = parent(2)
+           case default
+              call msg_bug("[fill_c_particle_set] Too many parents. &
+                   &Please contact the WHIZARD developers.")
+           end select
+           color = prt%get_color ()
+           where (color > 0)
+              c_prt(i)%color = 500 + color
+           elsewhere
+              c_prt(i)%color = 0
+           end where
+           p = prt%get_momentum ()
+           c_prt(i)%momentum = p%p
+           c_prt(i)%mass = invariant_mass(p)
+           c_prt(i)%tau = prt%get_lifetime ()
+           c_prt(i)%spin = 9
+           if (polarization) then
+              select case (prt%get_polarization_status ())
+              case (PRT_GENERIC_POLARIZATION)
+                 if (prt%get_n_parents () == 1) then
+                    parent = prt%get_parents ()
+                    c_prt(i)%spin = polarization_to_spin &
+                         (prt%get_momentum (), prt%get_polarization (), &
+                         particle_set%prt(parent(1))%get_momentum ())
+                 end if
+              end select
+           end if
+         end associate
+      end do
+    end subroutine fill_c_particle_set
+
+    real(default) function polarization_to_spin (p, pol, p_mother) result (spin)
+      type(vector4_t), intent(in) :: p
+      type(polarization_t), intent(in) :: pol
+      type(vector4_t), intent(in) :: p_mother
+      type(vector3_t) :: s3, p3
+      type(vector4_t) :: s4
+      ! TODO sbrass move the conversion of polarization to spin to a better place (with documentation)
+      s3 = vector3_moving (pol%get_axis ())
+      p3 = space_part (p)
+      s4 = rotation_to_2nd (3, p3) * vector4_moving (0._default, s3)
+      spin = enclosed_angle_ct (s4, p_mother)
+    end function polarization_to_spin
+
+  end subroutine whizard_lha_set_event
+
+@ %def whizard_lha_set_event
+@
+\subsection{Unit tests}
+\label{sec:whizard-lha-ut}
+
+Test module, followed by the corresponding implementation module.
+
+<<[[whizard_lha_ut.f90]]>>=
+<<File header>>
+
+module whizard_lha_ut
+  use unit_tests
+  use whizard_lha_uti
+
+<<Standard module head>>
+
+<<whizard lha: public test>>
+
+contains
+<<whizard lha: test driver>>
+end module whizard_lha_ut
+@ %def whizard_lha_ut
+@
+<<[[whizard_lha_uti.f90]]>>=
+<<File header>>
+
+module whizard_lha_uti
+<<Use kinds>>
+  use io_units
+  use whizard_lha
+  use flavors, only: flavor_t
+  use lorentz, only: vector4_at_rest
+  use subevents, only: PRT_BEAM, PRT_INCOMING, PRT_OUTGOING, &
+       PRT_UNDEFINED, PRT_VIRTUAL, PRT_RESONANT, PRT_BEAM_REMNANT
+  use particles, only: particle_set_t
+
+<<Standard module head>>
+
+<<whizard lha: test declaration>>
+
+contains
+<<whizard lha: tests>>
+end module whizard_lha_uti
+@ %def whizard_lha_uti
+@ API: driver for the unit tests below.
+<<whizard lha: public test>>=
+  public :: whizard_lha_test
+<<whizard lha: test driver>>=
+  subroutine whizard_lha_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+    <<whizard lha: execute tests>>
+  end subroutine whizard_lha_test
+
+@ %def whizard_lha_test
+@
+\subsubsection{Setup LHA User Process}
+<<whizard lha: execute tests>>=
+  call test (whizard_lha_1, "whizard_lha_1", "Setup LHAupWhizard and&
+       &initialize Beams.", u, results)
+<<whizard lha: test declaration>>=
+  public :: whizard_lha_1
+<<whizard lha: tests>>=
+  subroutine whizard_lha_1 (u)
+    integer, intent(in) :: u
+    type(whizard_lha_t) :: lha
+    integer :: i
+    integer, parameter :: N_PROC = 5
+    real(default), dimension(N_PROC) :: xsec, xerror, max_weight
+    write (u, "(A)") "* Test output: whizard_lha_1"
+    write (u, "(A)") "*   Purpose: Construct LHAupWhizard object and initialize the beams."
+    write (u, *)
+
+    xsec = [1.0, 1.2, 1.4, 1.6, 1.8] * 1e3 ! fb
+    xerror = 0.05 * xsec
+    max_weight = 1e-3 * xsec
+
+    call lha%init ()
+
+    write (u, "(A)")
+    write (u, "(A)") "* Set initialisation (Beams) and weighting strategy."
+    write (u, "(A)")
+
+    call lha%set_init &
+         ([2212, 2212], [6500._default, 6500._default], 1, .true., .true.)
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Set process parameters for 5 different processes."
+    write (u, "(A)")
+    do i = 1, N_PROC
+       call lha%set_process_parameters (process_id = i, &
+            cross_section = xsec(i), error = xerror(i), &
+            max_weight = max_weight(i))
+    end do
+
+    call lha%list_init ()
+
+    write (u, "(A)")
+    write (u, "(A)") "* Cleanup"
+
+    call lha%final ()
+  end subroutine whizard_lha_1
+
+@ %def whizard_lha_1
+@
+<<whizard lha: execute tests>>=
+  call test (whizard_lha_2, "whizard_lha_2", "Setup LHAupWhizard&
+       & and set event record.", u, results)
+<<whizard lha: test declaration>>=
+  public :: whizard_lha_2
+<<whizard lha: tests>>=
+  subroutine whizard_lha_2 (u)
+    integer, intent(in) :: u
+    type(whizard_lha_t) :: lha
+    integer :: i
+    integer, parameter :: N_PROC = 1
+    real(default), dimension(N_PROC) :: xsec, xerror, max_weight
+    type(particle_set_t) :: pset
+    type(flavor_t), dimension(:), allocatable :: flv
+    pset%n_beam = 2
+    pset%n_in   = 2
+    pset%n_vir  = 2
+    pset%n_out  = 3
+    pset%n_tot  = 9
+
+    write (u, "(A)") "* Test output: whizard_lha_2"
+    write (u, "(A)") "*   Purpose: Setup LHAupWhizard and set event record."
+    write (u, "(A)")
+
+    xsec = [1.0] * 1e3
+    xerror = 0.05 * xsec
+    max_weight = 1e-3 * xsec
+
+    call lha%init ()
+
+    write (u, "(A)")
+    write (u, "(A)") "* Set initialisation (Beams) and weighting strategy."
+    write (u, "(A)")
+
+    call lha%set_init &
+         ([2212, 2212], [6500._default, 6500._default], 1, .true., .true.)
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Set process parameters for 5 different processes."
+    write (u, "(A)")
+    do i = 1, N_PROC
+       call lha%set_process_parameters (process_id = i, &
+            cross_section = xsec(i), error = xerror(i), &
+            max_weight = max_weight(i))
+    end do
+
+    write (u, "(A)")
+    write (u, "(A)") "* Set event record."
+    write (u, "(A)")
+
+    allocate (pset%prt (pset%n_tot))
+    call pset%prt(1)%reset_status (PRT_BEAM)
+    call pset%prt(2)%reset_status (PRT_BEAM)
+    call pset%prt(3)%reset_status (PRT_INCOMING)
+    call pset%prt(4)%reset_status (PRT_INCOMING)
+    call pset%prt(5)%reset_status (PRT_BEAM_REMNANT)
+    call pset%prt(6)%reset_status (PRT_BEAM_REMNANT)
+    call pset%prt(7)%reset_status (PRT_OUTGOING)
+    call pset%prt(8)%reset_status (PRT_OUTGOING)
+    call pset%prt(9)%reset_status (PRT_OUTGOING)
+
+    call pset%prt(1)%set_children ([3,5])
+    call pset%prt(2)%set_children ([4,6])
+    call pset%prt(3)%set_children ([7,8,9])
+    call pset%prt(4)%set_children ([7,8,9])
+
+    call pset%prt(3)%set_parents ([1])
+    call pset%prt(4)%set_parents ([2])
+    call pset%prt(5)%set_parents ([1])
+    call pset%prt(6)%set_parents ([2])
+    call pset%prt(7)%set_parents ([3,4])
+    call pset%prt(8)%set_parents ([3,4])
+    call pset%prt(9)%set_parents ([3,4])
+
+    call pset%prt(1)%set_momentum (vector4_at_rest (1._default))
+    call pset%prt(2)%set_momentum (vector4_at_rest (2._default))
+    call pset%prt(3)%set_momentum (vector4_at_rest (4._default))
+    call pset%prt(4)%set_momentum (vector4_at_rest (6._default))
+    call pset%prt(5)%set_momentum (vector4_at_rest (3._default))
+    call pset%prt(6)%set_momentum (vector4_at_rest (5._default))
+    call pset%prt(7)%set_momentum (vector4_at_rest (7._default))
+    call pset%prt(8)%set_momentum (vector4_at_rest (8._default))
+    call pset%prt(9)%set_momentum (vector4_at_rest (9._default))
+
+    allocate (flv (9))
+    call flv%init ([2011, 2012, 11, 12, 91, 92, 3, 4, 5])
+    do i = 1, 9
+       call pset%prt(i)%set_flavor (flv(i))
+    end do
+
+    call lha%set_event_process (1, 1000._default, 0.1_default, 1._default / 127., 1._default)
+    call lha%set_event (1, pset)
+    call lha%list_init ()
+
+    write (u, "(A)")
+    write (u, "(A)") "* Cleanup"
+
+    call lha%final ()
+  end subroutine whizard_lha_2
+
+@ %def whizard_lha_2
+
+\section{Pythia8}
+\label{sec:pythia8}
+
+<<[[pythia8.f90]]>>=
+<<File header>>
+
+module pythia8
+
+<<Use kinds>>
+<<Use debug>>
+
+<<pythia8: modules>>
+
+<<Standard module head>>
+
+<<pythia8: public>>
+
+<<pythia8: parameters>>
+
+<<pythia8: variables>>
+
+<<pythia8: types>>
+
+<<pythia8: interfaces>>
+
+contains
+
+<<pythia8: procedures>>
+
+end module pythia8
+@ %def pythia8
+@
+<<pythia8: modules>>=
+  use, intrinsic :: iso_c_binding
+  use constants, only: tiny_10, tiny_07
+  use diagnostics
+  use iso_varying_string, string_t => varying_string
+  use lorentz, only: assignment(=), operator(/=), &
+       vector3_moving, vector4_t, vector4_moving, vector4_null, &
+       vector4_write
+  use numeric_utils, only: vanishes, nearly_equal
+  use model_data, only: model_data_t, find_model
+  use pdg_arrays, only: is_elementary, is_colored, is_gluon
+  use colors, only: color_t
+  use flavors, only: flavor_t
+  use helicities, only: helicity_t
+  use particles, only: particle_set_t, particle_t, &
+       PRT_DEFINITE_HELICITY, PRT_GENERIC_POLARIZATION, PRT_UNPOLARIZED
+  use event_base, only: generic_event_t
+  use subevents, only: PRT_BEAM, PRT_INCOMING, PRT_OUTGOING, &
+       PRT_UNDEFINED, PRT_VIRTUAL, PRT_RESONANT, PRT_BEAM_REMNANT
+  use rng_base, only: rng_t
+  use whizard_lha
+@ %def pythia8_modules
+@ Random generator wrapper.
+<<pythia8: types>>=
+  type :: whizard_rndm_t
+     class(rng_t), pointer :: rng
+  end type whizard_rndm_t
+
+@ %def whizard_rndm_t
+@
+<<pythia8: public>>=
+  public :: pythia8_t
+<<pythia8: types>>=
+  type :: pythia8_t
+     private
+     type(c_ptr) :: cptr
+     type(whizard_rndm_t) :: rndm
+   contains
+   <<pythia8: pythia8: TBP>>
+  end type pythia8_t
+
+@ %def pythia8_t
+@ Init. Construct a C++-Pythia8 object and store it in an opaque type.
+<<pythia8: pythia8: TBP>>=
+  procedure :: init => whizard_pythia8_init
+<<pythia8: interfaces>>=
+  interface
+     function new_pythia8 (print_banner) bind(C) result (cptr)
+       import
+       type(c_ptr) :: cptr
+       logical(c_bool), value, intent(in) :: print_banner
+     end function new_pythia8
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_init (pythia, verbose)
+    class(pythia8_t), intent(out) :: pythia
+    logical, intent(in), optional :: verbose
+    logical(c_bool) :: verbose_opt
+    verbose_opt = .false.
+    if (present (verbose)) verbose_opt = verbose
+    pythia%cptr = new_pythia8 (verbose_opt)
+    if (.not. verbose_opt) &
+         call pythia%read_string (var_str ("Print:quiet = on"))
+  end subroutine whizard_pythia8_init
+
+@ %def whizard_pythia8_init
+@ Finalize. Destruct the C++-Ptyhia object.
+<<pythia8: pythia8: TBP>>=
+  procedure :: final => whizard_pythia8_final
+<<pythia8: interfaces>>=
+  interface
+     subroutine pythia8_delete (pythia) bind(C)
+       import
+       type(c_ptr), value :: pythia
+     end subroutine pythia8_delete
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_final (pythia)
+    class(pythia8_t), intent(inout) :: pythia
+    call pythia8_delete (pythia%cptr)
+  end subroutine whizard_pythia8_final
+
+@  %def whizard_pythia8_final
+@ Set pointer to a LHA User Process object.
+<<pythia8: pythia8: TBP>>=
+  procedure :: set_lhaup_ptr => whizard_pythia8_set_lhaup_ptr
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_set_lhaup_ptr (cptr, whizard_lha) bind(C) result (flag)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       type(c_ptr), intent(in), value :: whizard_lha
+       logical(c_bool) :: flag
+     end function pythia8_set_lhaup_ptr
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_set_lhaup_ptr (pythia, whizard_lha)
+    class(pythia8_t), intent(inout) :: pythia
+    type(whizard_lha_t), intent(in) :: whizard_lha
+    logical(c_bool) :: flag
+    flag = pythia8_set_lhaup_ptr (pythia%cptr, whizard_lha%get_ptr ())
+  end subroutine whizard_pythia8_set_lhaup_ptr
+
+@ %def whizard_pythia8_set_lhaup_ptr
+@ Import random number generator.
+
+We store a pointer to a target [[rng]] provided by the calling function in the
+container [[whizard_rndm_t]].
+The C-interface expects a C-pointer which we retrieve with [[c_loc]] from the container.
+The container is an opaque objects for C and is a place-holder for the
+polymorphic object [[rng]].
+
+When [[Pythia8]] requests a random-number, then we have to reverse the
+containment of [[rng]] inside a container.
+The container is mapped back to a Fortran pointer where we can access the target
+[[rng]] and generate a random number.
+<<pythia8: pythia8: TBP>>=
+  procedure :: import_rng => whizard_pythia8_import_rng
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_set_rndm_engine_ptr (pythia, whizard_rndm) bind(C) result (flag)
+       import
+       type(c_ptr), intent(in), value :: pythia
+       type(c_ptr), intent(in), value :: whizard_rndm
+       logical(c_bool) :: flag
+     end function pythia8_set_rndm_engine_ptr
+  end interface
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_import_rng (pythia, rng)
+    class(pythia8_t), intent(inout), target :: pythia
+    class(rng_t), allocatable, intent(in), target :: rng
+    logical :: flag
+    pythia%rndm%rng => rng
+    flag = pythia8_set_rndm_engine_ptr (pythia%cptr, c_loc (pythia%rndm))
+    if (.not. flag) then
+       call msg_bug ("[whizard_pythia8_import_rng] Cannot export RNG to Pythia8.")
+    end if
+  end subroutine whizard_pythia8_import_rng
+
+  function whizard_rndm_generate (whizard_rndm) bind(C) result (c_x)
+    type(c_ptr), intent(in), value :: whizard_rndm
+    real(c_double) :: c_x
+    real(default) :: x
+    type(whizard_rndm_t), pointer :: f_whizard_rndm
+    call c_f_pointer (whizard_rndm, f_whizard_rndm)
+    if (.not. associated (f_whizard_rndm)) then
+       call msg_bug ("[whizard_rndm_generate] Cannot import pointer to RNG object from Pythia8.")
+    end if
+    call f_whizard_rndm%rng%generate (x)
+    c_x = real (x, c_double)
+  end function whizard_rndm_generate
+
+@ %def pythia8_import_rng
+@ Seed [[PYTHIA8]] random generator.
+
+Unfortunately, it is impossible to export the random number generator to C and
+back to Fortran again in such a way that multiple instances of [[PYTHIA8]] could
+exist coherently.
+<<pythia8: pythia8: TBP>>=
+  procedure :: set_rng_seed => pythia8_set_rng_seed
+<<pythia8: procedures>>=
+  subroutine pythia8_set_rng_seed (pythia, r)
+    class(pythia8_t), intent(inout) :: pythia
+    real(default), intent(in) :: r
+    real(default), parameter :: MAX_SEED = 900000000._default
+    character(len=10) :: buffer; type(string_t) :: string
+    write (buffer, "(I10)") floor (r * MAX_SEED)
+    string = var_str ("Random:seed = " // buffer)
+    call pythia%read_string (string)
+  end subroutine pythia8_set_rng_seed
+
+@ %def pythia8_set_rng_seed
+@ Read Pythia8 settings from file with path [[filename]].
+<<pythia8: pythia8: TBP>>=
+  procedure :: read_file => whizard_pythia8_read_file
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_read_file (cptr, filename, subrun) bind(C) result (flag)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       character(kind=c_char), dimension(*), intent(in) :: filename
+       integer(c_int), intent(in), value :: subrun
+       logical(c_bool) :: flag
+     end function pythia8_read_file
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_read_file (pythia, filename, subrun)
+    class(pythia8_t), intent(inout) :: pythia
+    type(string_t), intent(in) :: filename
+    integer, intent(in), optional :: subrun
+    character(len(filename) + 1, kind=c_char) :: c_filename
+    integer(c_int) :: c_subrun
+    logical(c_bool) :: flag
+    c_filename = filename // c_null_char
+    if (present (subrun)) then
+       c_subrun = subrun
+    else
+       c_subrun = -1
+    end if
+    flag = pythia8_read_file (pythia%cptr, c_filename, c_subrun)
+  end subroutine whizard_pythia8_read_file
+
+@ %def whizard_pythia8_read_file
+@ Read a single Pythia8 string.
+<<pythia8: parameters>>=
+  integer, parameter :: C_MAX_STR_LEN = 100
+<<pythia8: pythia8: TBP>>=
+  procedure :: read_string => whizard_pythia8_read_string
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_read_string (cptr, str) bind(C) result (flag)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       character(kind=c_char), dimension(*), intent(in) :: str
+       logical(c_bool) :: flag
+     end function pythia8_read_string
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_read_string (pythia, str)
+    class(pythia8_t), intent(in) :: pythia
+    type(string_t), intent(in) :: str
+    character(len(str) + 1, kind=c_char) :: c_str
+    logical(c_bool) :: flag
+    c_str = char (str) // c_null_char
+    flag = pythia8_read_string (pythia%cptr, c_str)
+  end subroutine whizard_pythia8_read_string
+
+@ %def whizardd_pythia8_read_string
+@ Parse and set the configuration string.
+Different options are separeted either by a newline or by [[;]].
+First, we separate lines, then we check on [[;]]. If none found, we take the
+line as valid [[PYTHIA8]] string, else we the separate string into tokens which
+we expect to be valid [[PYTHIA8]] tokens. We have to take care of the case that
+the remaining string is empty after splitting with respect to [[;]].
+<<pythia8: pythia8: TBP>>=
+  procedure :: parse_and_set_config => whizard_pythia8_parse_and_set_config
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_parse_and_set_config (pythia, config)
+    class(pythia8_t), intent(in) :: pythia
+    type(string_t), intent(in) :: config
+    type(string_t) :: stream, line, token
+    if (debug_on) call msg_debug (D_SHOWER, "whizard_pythia8_parse_and_set_config")
+    if (len (config) == 0) return
+    stream = config
+    do while (len (stream) > 0)
+       call split (stream, line, new_line("A"))
+       if (debug_active (D_SHOWER)) &
+            print *, "LINE: ", char(line), " | ", char(stream)
+       if (index (line, ";") == 0) then
+          call pythia%read_string (trim(line))
+       else
+          token = line
+            do while (len (line) > 0)
+               call split (line, token, ";")
+               if (debug_active (D_SHOWER)) &
+                    print *, "-> ", char(token), " | ", char(line)
+               call pythia%read_string (trim(token))
+            end do
+         end if
+      end do
+
+  end subroutine whizard_pythia8_parse_and_set_config
+
+@ %def whizard_pythia8_parse_and_set_config
+@
+@ Initialize the Pythia8 object itself after the complete setup has been done.
+<<pythia8: pythia8: TBP>>=
+  procedure :: init_pythia => whizard_pythia8_init_pythia
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_init (cptr) bind(C) result (flag)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       logical(c_bool) :: flag
+     end function pythia8_init
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_init_pythia (pythia)
+    class(pythia8_t), intent(in) :: pythia
+    logical(c_bool) :: flag
+    flag = pythia8_init (pythia%cptr)
+    if (.not. flag)  then
+       call msg_fatal ("[whizard_pythia8_init_pythia] Pythia8 initialisation failed.")
+    end if
+  end subroutine whizard_pythia8_init_pythia
+
+@ %def whizard_pythia8_init_pythia
+@ Generate the next event in Pythia. Before the a new event has to be set with
+the LHA User Process interface of WHIZARD.
+<<pythia8: pythia8: TBP>>=
+  procedure :: next => whizard_pythia8_next
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_next (cptr) bind(C) result (flag)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       logical(c_bool) :: flag
+     end function pythia8_next
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_next (pythia, flag)
+    class(pythia8_t), intent(inout) :: pythia
+    logical, intent(out), optional :: flag
+    logical(c_bool) :: c_flag
+    c_flag = pythia8_next (pythia%cptr)
+    if (present (flag)) flag = c_flag
+  end subroutine whizard_pythia8_next
+
+@ %def whizard_pythia8_next
+@ List the current Les Houches event taken from the LHA Whizard interface or the last event generated by [[PYTHIA8]].
+The procedure is for debug purpose only as the information are written to
+[[cout]] (hard-wired).
+<<pythia8: pythia8: TBP>>=
+  procedure :: list_lha_event => whizard_pythia8_list_lha_event
+  procedure :: list_event => whizard_pythia8_list_event
+<<pythia8: interfaces>>=
+  interface
+     subroutine pythia8_list_lha_event (cptr) bind(C)
+       import
+       type(c_ptr), intent(in), value :: cptr
+     end subroutine pythia8_list_lha_event
+  end interface
+
+  interface
+     subroutine pythia8_list_event (cptr) bind(C)
+       import
+       type(c_ptr), intent(in), value :: cptr
+     end subroutine pythia8_list_event
+  end interface
+
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_list_lha_event (pythia)
+    class(pythia8_t), intent(in) :: pythia
+    call pythia8_list_lha_event (pythia%cptr)
+  end subroutine whizard_pythia8_list_lha_event
+
+  subroutine whizard_pythia8_list_event (pythia)
+    class(pythia8_t), intent(in) :: pythia
+    call pythia8_list_event (pythia%cptr)
+  end subroutine whizard_pythia8_list_event
+
+@ %def whizard_pythia8_list_event
+@ Get event size. We retrieve the number of particles associated with the last
+event record in Pythia8. The first event entry is the overall system which we neglect.
+<<pythia8: pythia8: TBP>>=
+  procedure :: get_event_size => whizard_pythia8_get_event_size
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_get_event_size (cptr) bind(C) result(n)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int) :: n
+     end function pythia8_get_event_size
+  end interface
+
+<<pythia8: procedures>>=
+  function whizard_pythia8_get_event_size (pythia) result(n)
+    class(pythia8_t), intent(in) :: pythia
+    integer :: n
+    integer(c_int) :: c_n
+    c_n = pythia8_get_event_size (pythia%cptr)
+    n = c_n - 1
+  end function whizard_pythia8_get_event_size
+
+@ %def whizard_pythia8_get_event_size
+@ Get the ith particle from the current event record in Pythia8.
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: get_single_event => whizard_pythia8_get_single_event
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_get_single_event (cptr, index) bind(C) result (particle)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), intent(in), value :: index
+       type(lha_particle_t) :: particle
+     end function pythia8_get_single_event
+  end interface
+
+<<pythia8: procedures>>=
+  function whizard_pythia8_get_single_event (pythia, index) result (particle)
+    class(pythia8_t), intent(in) :: pythia
+    integer, intent(in) :: index
+    type(lha_particle_t) :: particle
+    integer(c_int) :: c_index
+    c_index = index
+    particle = pythia8_get_single_event (pythia%cptr, c_index)
+  end function whizard_pythia8_get_single_event
+
+@ %def whizard_get_single_event
+@ Convenient getter methods.
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_get_particle_status (cptr, index) bind(C) result (status)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), intent(in), value :: index
+       integer(c_int) :: status
+     end function pythia8_get_particle_status
+  end interface
+
+  interface
+     function pythia8_get_particle_id (cptr, index) bind(C) result (status)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), intent(in), value :: index
+       integer(c_int) :: status
+     end function pythia8_get_particle_id
+  end interface
+
+  interface
+     subroutine pythia8_get_particle_momentum (cptr, index, momentum) bind(C)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), intent(in), value :: index
+       real(c_double), dimension(*), intent(out) :: momentum
+     end subroutine pythia8_get_particle_momentum
+  end interface
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: get_particle_status => &
+       whizard_pythia8_get_particle_status
+  procedure, private :: get_particle_id => whizard_pythia8_get_particle_id
+  procedure, private :: get_particle_momentum => &
+       whizard_pythia8_get_particle_momentum
+  procedure :: get_final_colored_ME_momenta => &
+       whizard_pythia8_get_final_colored_ME_momenta
+<<pythia8: procedures>>=
+  function whizard_pythia8_get_particle_status (pythia, index) result (status)
+    class(pythia8_t), intent(in) :: pythia
+    integer, intent(in) :: index
+    integer :: status
+    status = pythia8_get_particle_status (pythia%cptr, int(index, c_int))
+  end function whizard_pythia8_get_particle_status
+
+  function whizard_pythia8_get_particle_id (pythia, index) result (id)
+    class(pythia8_t), intent(in) :: pythia
+    integer, intent(in) :: index
+    integer :: id
+    id = pythia8_get_particle_id (pythia%cptr, int(index, c_int))
+  end function whizard_pythia8_get_particle_id
+
+  function whizard_pythia8_get_particle_momentum &
+       (pythia, index) result (momentum)
+    class(pythia8_t), intent(in) :: pythia
+    integer, intent(in) :: index
+    real(default), dimension(4) :: momentum
+    real(c_double), dimension(4) :: c_momentum
+    call pythia8_get_particle_momentum (pythia%cptr, index, c_momentum)
+    momentum = real (c_momentum, kind=default)
+  end function whizard_pythia8_get_particle_momentum
+
+  subroutine whizard_pythia8_get_final_colored_ME_momenta &
+         (pythia, momenta)
+    class(pythia8_t), intent(in) :: pythia
+    type(vector4_t), dimension(:), allocatable, intent(out) :: momenta
+    logical, dimension(:), allocatable :: mask
+    integer, parameter :: PYTHIA8_HARD_PROCESS_OUTGOING = 23
+    integer :: i, j, n_particles, id, status
+    if (debug_on) call msg_debug (D_TRANSFORMS, "whizard_pythia8_get_final_colored_ME_momenta")
+    n_particles = pythia%get_event_size ()
+    allocate (mask(n_particles), source=.false.)
+    do i = 1, n_particles
+       status = pythia%get_particle_status (i)
+       id = pythia%get_particle_id (i)
+       if (abs (status) == PYTHIA8_HARD_PROCESS_OUTGOING &
+            .and. (id == 21 .or. abs(id) <= 6)) mask(i) = .true.
+       ! Particle record is ordered. First beam, beam remnants, then hard process, second hard process and so on...
+       ! if (abs(status) > 30) exit
+    end do
+    if (all (.not. mask)) return
+    allocate (momenta(count(mask)))
+    j = 1
+    do i = 1, n_particles
+       if (.not. mask(i)) cycle
+       momenta(j) = pythia%get_particle_momentum(i)
+       j = j + 1
+    end do
+  end subroutine whizard_pythia8_get_final_colored_ME_momenta
+
+@ %def whizard_pythia8_get_particle_status
+@ %def whizard_pythia8_get_particle_momentum
+@ Get a logical mask on the shower entries in the current Pythia event
+record.
+
+We skip the zeroth entry whichs holds overall system information.
+We retrieve beam entries only when [[?ps_isr_active]] else we skip the
+two beam entries. Furthermore, we check that all [[PYTHIA8]] have a
+valid status code. We expect that the event record has been generated
+with [[HadronLevel:all = Off]]. Furthermore, we skip entries which are
+found in a reference particle set, or are too soft. 
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: get_shower_mask => pythia8_get_shower_mask
+<<pythia8: procedures>>=
+  subroutine pythia8_get_shower_mask (pythia, pset, mask, recover_beams)
+    class(pythia8_t), intent(in) :: pythia
+    type(particle_set_t), intent(in) :: pset
+    logical, dimension(:), allocatable, intent(out) :: mask
+    logical, intent(in) :: recover_beams
+    integer :: skip_beams, i
+    type(lha_particle_t) :: c_prt
+    if (allocated (mask)) deallocate (mask)
+    allocate (mask(pythia%get_event_size ()), source=.true.)
+    if (.not. recover_beams) then
+       skip_beams = 2
+       mask(1:2) = .false.
+    else
+       skip_beams = 0
+    end if
+    do i = 1 + skip_beams, size(mask)
+       c_prt = pythia%get_single_event (i)
+       ! Search for unchanged entries
+       mask(i) = (reverse_find_particle (c_prt, pset) == 0)
+    end do
+  end subroutine pythia8_get_shower_mask
+
+@ %def pythia8_get_shower_mask
+@ Reverse find an existing entry in [[particle_set]].
+Returns zero if none is found.
+<<pythia8: procedures>>=
+  pure function reverse_find_particle (c_prt, particle_set) result (idx)
+    type(lha_particle_t), intent(in) :: c_prt
+    type(particle_set_t), intent(in) :: particle_set
+    integer :: idx
+    type(vector4_t) :: momentum
+    momentum = real (c_prt%momentum, default)
+    idx = particle_set%reverse_find_particle &
+         (c_prt%id, momentum, tiny_10, tiny_07)
+  end function reverse_find_particle
+
+@ %def reverse_find_particle
+# Get a logical mask on the full hadronic entries in the current [[PYTHIA8]]
+event record.
+
+The hadronic event record does not hold information about beams as
+those are only relevant in context of a partonic event. We expect that
+the event record has been generated with [[ProcessLevel:all = Off]].
+Furthermore, we skip entries which are found in a reference particle set.
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: get_hadron_mask => pythia8_get_hadron_mask
+<<pythia8: procedures>>=
+  subroutine pythia8_get_hadron_mask (pythia, pset, mask)
+    class(pythia8_t), intent(in) :: pythia
+    type(particle_set_t), intent(in) :: pset
+    logical, dimension(:), allocatable, intent(out) :: mask
+    integer :: i
+    integer(c_int) :: c_i_prt
+    type(lha_particle_t) :: c_prt
+    type(vector4_t) :: momentum
+    if (allocated (mask)) deallocate (mask)
+    allocate (mask(pythia%get_event_size ()), source=.true.)
+    do i = 1, size(mask)
+       c_prt = pythia%get_single_event (i)
+       ! Search for unchanged entries
+       mask(i) = (reverse_find_particle (c_prt, pset) == 0)
+    end do
+  end subroutine pythia8_get_hadron_mask
+
+@ %def pythia8_get_shower_mask
+
+@ Get [[particle_set]] from [[PYTHIA8]].
+
+A model and a fallback model have to be provided to declare the correct particle
+content with a PDG code. We take a particle set and add the new particles by
+parton shower. The polarization is explicity set (unpolarized or density matrix)
+which is common to all particles. Correlated polarization information
+is not available. 
+We recover beam particles only if explicitly stated.
+
+Pythia8 stores [[n_tot + 1]] particles where the zeroth particle represents the overall system.
+We simply discard the zeroth event.
+<<pythia8: pythia8: TBP>>=
+  procedure :: get_shower_particles => whizard_pythia8_get_shower_particles
+<<pythia8: interfaces>>=
+  interface
+     function pythia8_get_n_mothers (cptr, i_prt) bind(C) result (n_mothers)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), value, intent(in) :: i_prt
+       integer(c_int) :: n_mothers
+     end function pythia8_get_n_mothers
+
+     subroutine pythia8_get_mother_array (cptr, i_prt, n_mothers, mother) bind (C)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), value :: i_prt
+       integer(c_int), value :: n_mothers
+       integer(c_int), dimension(*), intent(out) :: mother
+     end subroutine pythia8_get_mother_array
+
+     function pythia8_get_n_daughters (cptr, i_prt) bind(C) result (n_daughters)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), value, intent(in) :: i_prt
+       integer(c_int) :: n_daughters
+     end function pythia8_get_n_daughters
+
+     subroutine pythia8_get_daughter_array (cptr, i_prt, n_daughters, daughter) bind (C)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), value :: i_prt
+       integer(c_int), value :: n_daughters
+       integer(c_int), dimension(*), intent(out) :: daughter
+     end subroutine pythia8_get_daughter_array
+
+     function pythia8_get_status_hepmc (cptr, i_prt) bind(C) result (status)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), value, intent(in) :: i_prt
+       integer(c_int) :: status
+     end function pythia8_get_status_hepmc
+
+     subroutine pythia8_get_decay_vertex (cptr, i_prt, time, vertex) bind(C)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), value, intent(in) :: i_prt
+       real(c_double), intent(out) :: time
+       real(c_double), dimension(3), intent(out) :: vertex
+     end subroutine pythia8_get_decay_vertex
+
+     subroutine pythia8_get_production_vertex (cptr, i_prt, time, vertex) bind(C)
+       import
+       type(c_ptr), intent(in), value :: cptr
+       integer(c_int), value, intent(in) :: i_prt
+       real(c_double), intent(out) :: time
+       real(c_double), dimension(3), intent(out) :: vertex
+     end subroutine pythia8_get_production_vertex
+  end interface
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_get_shower_particles &
+       (pythia, model, model_fallback, particle_set, helicity, recover_beams)
+    class(pythia8_t), intent(in) :: pythia
+    class(model_data_t), intent(in), target :: model, model_fallback
+    type(particle_set_t), intent(inout) :: particle_set
+    integer, intent(in), optional :: helicity
+    logical, intent(in), optional :: recover_beams
+    integer :: n_particles, n_old
+    logical, dimension(:), allocatable :: mask
+    type(particle_t), dimension(:), allocatable :: particle
+    integer :: helicity_opt
+    logical :: recover_beams_opt
+    if (debug_on) call msg_debug (D_SHOWER, "whizard_pythia8_get_particle_set")
+    recover_beams_opt = .false.; if (present (recover_beams)) &
+         recover_beams_opt = recover_beams
+    helicity_opt = PRT_UNPOLARIZED; if (present (helicity)) &
+         helicity_opt = helicity
+    call pythia%get_shower_mask (particle_set, mask, recover_beams)
+    n_particles = pythia%get_event_size ()
+    if (.not. recover_beams_opt) n_particles = n_particles - 2
+    allocate (particle(n_particles))
+    call pythia%get_particles (model, model_fallback, mask, particle, particle_set, &
+        helicity_opt, recover_beams_opt)
+  end subroutine whizard_pythia8_get_shower_particles
+
+@ %def whizard_pythia8_get_shower_particles
+@ Get hadron particles. Retrieve the full particle, respective the beam entries.
+<<pythia8: pythia8: TBP>>=
+  procedure :: get_hadron_particles => whizard_pythia8_get_hadron_particles
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_get_hadron_particles &
+       (pythia, model, model_fallback, particle_set, helicity)
+    class(pythia8_t), intent(in) :: pythia
+    class(model_data_t), intent(in), target :: model, model_fallback
+    type(particle_set_t), intent(inout) :: particle_set
+    integer, intent(in), optional :: helicity
+    integer :: n_particles
+    logical, dimension(:), allocatable :: mask
+    type(particle_t), dimension(:), allocatable :: particle
+    integer, dimension(:), allocatable :: pythia_idx, whizard_idx
+    integer :: helicity_opt
+    if (debug_on) call msg_debug (D_TRANSFORMS, "whizard_pythia8_get_particle_set")
+    helicity_opt = PRT_UNPOLARIZED; if (present (helicity)) &
+         helicity_opt = helicity
+    call pythia%get_hadron_mask (particle_set, mask)
+    n_particles = pythia%get_event_size ()
+    allocate (particle(n_particles))
+    call pythia%get_particles (model, model_fallback, mask, particle, particle_set, &
+        helicity_opt, recover_beams = .true.)
+  end subroutine whizard_pythia8_get_hadron_particles
+
+@ %def whizard_pythia8_get_hadron_particles
+@ Get particles from [[PYTHIA8]].
+
+We take care of the status code of former outgoing particles (i.e. the unchanged particles entries of the outgoing particles of the hard process) and change it to [[PRT_VIRTUAL]].
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: get_particles => whizard_pythia8_get_particles
+<<pythia8: procedures>>=
+  subroutine whizard_pythia8_get_particles (&
+     pythia, model, model_fallback, mask, particle, particle_set, &
+     helicity, recover_beams)
+    class(pythia8_t), intent(in) :: pythia
+    class(model_data_t), intent(in), target :: model, model_fallback
+    logical, dimension(:), intent(in) :: mask
+    type(particle_t), dimension(:), allocatable, intent(inout) :: particle
+    type(particle_set_t), intent(inout) :: particle_set
+    integer, intent(in) :: helicity
+    logical, intent(in) :: recover_beams
+    integer, dimension(:), allocatable :: pythia_idx, whizard_idx
+    if (debug_on) call msg_debug (D_SHOWER, "whizard_pythia8_get_particles")
+    call pythia%import_pythia_particles (&
+         model, model_fallback, mask, particle, particle_set, &
+         pythia_idx, whizard_idx, helicity, recover_beams)
+    call particle_set%replace (particle)
+    call pythia%get_parent_child_relation (&
+         pythia_idx, whizard_idx, particle_set, recover_beams)
+    where ((particle_set%prt%status == PRT_OUTGOING .or. &
+            particle_set%prt%status == PRT_VIRTUAL .or. &
+            particle_set%prt%status == PRT_BEAM_REMNANT) .and. &
+            particle_set%prt%has_children ()) &
+            particle_set%prt%status = PRT_RESONANT
+  end subroutine whizard_pythia8_get_particles
+
+@ %def whizard_pythia8_get_particles
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: import_pythia_particles => pythia8_import_pythia_particles
+<<pythia8: procedures>>=
+subroutine pythia8_import_pythia_particles (&
+     pythia, model, model_fallback, mask, particle, particle_set, &
+     pythia_idx, whizard_idx, helicity, recover_beams)
+    class(pythia8_t), intent(in) :: pythia
+    class(model_data_t), intent(in), target :: model, model_fallback
+    logical, dimension(:), intent(in) :: mask
+    type(particle_t), dimension(:), intent(inout) :: particle
+    type(particle_set_t), intent(in) :: particle_set
+    integer, dimension(:), allocatable, intent(out) :: pythia_idx, whizard_idx
+    integer, intent(in) :: helicity
+    logical, intent(in) :: recover_beams
+    integer :: i_whizard, i_pythia, idx, skip_beams
+    real(default) :: time
+    real(default), dimension(3) :: vertex
+    type(vector4_t) :: momentum
+    type(lha_particle_t) :: c_prt
+    allocate (whizard_idx(size (mask)), source = 0)
+    allocate (pythia_idx(size (particle)), source = 0)
+    i_whizard = 0;
+    if (recover_beams) then
+       skip_beams = 0
+    else
+       skip_beams = 2
+    end if
+    ADD_PARTICLE: do i_pythia = 1 + skip_beams, size(mask)
+       idx = -1
+       c_prt = pythia%get_single_event (i_pythia)
+       ! Check on exisiting particle entry
+       if (.not. mask(i_pythia)) then
+          ! Retrieve particle from original particle_set
+          whizard_idx(i_pythia) = reverse_find_particle (c_prt, particle_set)
+          idx = reverse_find_particle (c_prt, particle_set)
+          ! Skip entry completely
+          if (idx > 0) then
+             i_whizard = i_whizard + 1
+             particle(i_whizard) = particle_set%get_particle (idx)
+             whizard_idx(i_pythia) = i_whizard
+             pythia_idx(i_whizard) = i_pythia
+             if (debug2_active (D_SHOWER)) then
+                print *, "Reverse search for particle ", i_pythia, " with PDG: ", c_prt%id
+                print *, "Momentum: ", c_prt%momentum
+                print *, "Found: ", whizard_idx(i_pythia)
+             end if
+             cycle ADD_PARTICLE
+          end if
+          ! Fallthrough: We could not retrieve the particle from our set, retrieve it from PYTHIA8.
+       end if
+       ! idx is exactly zero iff the reverse particle search failed.
+       if (mask(i_pythia) .or. idx == 0) then
+          i_whizard = i_whizard + 1
+          call get_particle_status (i_pythia, c_prt, particle(i_whizard))
+          call fill_particle (model, model_fallback, helicity, c_prt, particle(i_whizard))
+          ! call get_particle_color (i_color, dangling_color, c_prt%status, particle(i_whizard))
+          call get_particle_vertex (i_pythia, particle(i_whizard))
+          whizard_idx(i_pythia) = i_whizard
+          pythia_idx(i_whizard) = i_pythia
+       end if
+       if (debug2_active (D_SHOWER)) then
+          print *, "Shower: ", mask(i_pythia)
+          print *, "i_pythia: ", i_pythia, " -> i_whizard: ", whizard_idx(i_pythia)
+       end if
+    end do ADD_PARTICLE
+  contains
+    subroutine get_particle_status (i_pythia, c_particle, particle)
+      integer, intent(in) :: i_pythia
+      type(lha_particle_t), intent(in) :: c_particle
+      type(particle_t), intent(inout) :: particle
+      integer :: whizard_status
+      select case (pythia8_get_status_hepmc &
+           (pythia%cptr, int(i_pythia, c_int)))
+      case(1); whizard_status = (PRT_OUTGOING)
+      case(2); whizard_status = (PRT_RESONANT)
+      case(4); whizard_status = (PRT_BEAM)
+      case default;
+         if (c_particle%status < 0) &
+              whizard_status = PRT_VIRTUAL
+      end select
+      if (debug2_active (D_SHOWER) .or. debug2_active (D_TRANSFORMS)) then
+         write (*, "(1X,A,1X,I0)") "Particle's status code:", i_pythia
+         write (*, "(1X,3(A,1X,I0,1X))") "HEPMC:", pythia8_get_status_hepmc (pythia%cptr, int(i_pythia, c_int)), &
+              "PYTHIA:", c_particle%status, &
+              "WHIZARD:", whizard_status
+      end if
+      call particle%set_status (whizard_status)
+    end subroutine get_particle_status
+
+    subroutine fill_particle &
+         (model_in, model_fallback, polarization, c_prt, prt)
+      type(lha_particle_t), intent(in) :: c_prt
+      class(model_data_t), intent(in), target :: model_in, model_fallback
+      type(particle_t), intent(inout) :: prt
+      integer, intent(in) :: polarization
+      integer :: whizard_status, hmax
+      class(model_data_t), pointer :: model
+      type(flavor_t) :: flv
+      type(color_t) :: color
+      type(helicity_t) :: hel
+      type(vector4_t) :: p
+      integer :: col, acol
+      call find_model (model, c_prt%id, model_in, model_fallback)
+      call flv%init (c_prt%id, model)
+      col = max (c_prt%color(1), 0)
+      acol = max (c_prt%color(2), 0)
+      call color%init_col_acl (col, acol)
+      if (flv%is_beam_remnant ()) &
+           call prt%set_status (PRT_BEAM_REMNANT)
+      call prt%set_flavor (flv); call prt%set_color (color)
+      p = real (c_prt%momentum, kind=default)
+      call prt%set_momentum (p, real (c_prt%mass**2, default))
+      select case (polarization)
+      case (PRT_DEFINITE_HELICITY)
+         if (abs (c_prt%spin) <= 1.) then
+            hmax = flv%get_spin_type () / 2.
+            call hel%init (sign (hmax, nint (c_prt%spin)))
+            call prt%set_helicity (hel)
+         end if
+      case (PRT_GENERIC_POLARIZATION)
+         call msg_fatal ("[whizard_pythia8_get_particle_set]" // &
+              "generic polarization with Pythia8 not defined.")
+      case (PRT_UNPOLARIZED)
+      case default
+         call msg_bug ("[whizard_pythia8_get_particle]" // &
+              "Helicity handling is undefined.")
+      end select
+      if (.not. vanishes (real (c_prt%tau, kind=default))) &
+           call prt%set_lifetime (real (c_prt%tau, kind=default))
+    end subroutine fill_particle
+
+    subroutine get_particle_vertex (i_pythia, particle)
+      integer, intent(in) :: i_pythia
+      type(particle_t), intent(inout) :: particle
+      real(c_double) :: time
+      real(c_double), dimension(3) :: vertex
+      type(vector4_t) :: vtx4
+      call pythia8_get_production_vertex (pythia%cptr, i_pythia, time, vertex)
+      vtx4 = vector4_moving (real (time, kind=default), &
+           vector3_moving (real (vertex, kind=default)))
+      if (vtx4 /= vector4_null) call particle%set_vertex (vtx4)
+    end subroutine get_particle_vertex
+  end subroutine pythia8_import_pythia_particles
+
+@ %def pythia8_import_pythia_particles
+@ Check on beam particle.
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: is_beam_particle => pythia8_is_beam_particle
+<<pythia8: procedures>>=
+  function pythia8_is_beam_particle (pythia, i_pythia) result (flag)
+    class(pythia8_t), intent(in) :: pythia
+    integer, intent(in) :: i_pythia
+    logical :: flag
+    integer(c_int) :: c_i_pythia
+    integer, parameter :: HEPMC_BEAM_PRT = 4
+    c_i_pythia = int(i_pythia, c_int)
+    flag = HEPMC_BEAM_PRT == pythia8_get_status_hepmc (pythia%cptr, c_i_pythia)
+  end function pythia8_is_beam_particle
+
+@ %pythia8_is_beam_particle
+@ Get parent child relation from [[PYTHIA8]].
+
+Apply the parent child relations from [[PYTHIA8]] to previously filled particle set.
+<<pythia8: pythia8: TBP>>=
+  procedure, private :: get_parent_child_relation => pythia8_get_parent_child_relation
+<<pythia8: procedures>>=
+  subroutine pythia8_get_parent_child_relation (&
+       pythia, pythia_idx, whizard_idx, particle_set, recover_beams)
+    class(pythia8_t), intent(in) :: pythia
+    integer, dimension(:), intent(in) :: pythia_idx, whizard_idx
+    type(particle_set_t), intent(inout) :: particle_set
+    logical, intent(in) :: recover_beams
+    integer(c_int) :: c_n_parents, c_n_children, c_i_pythia
+    integer, dimension(:), allocatable :: parent, child
+    integer :: i_pythia, i, skip_beams
+    if (debug_on) call msg_debug (D_SHOWER, "pythia8_get_parent_child_relation")
+    skip_beams = 0; if (recover_beams) skip_beams = 2
+    do i_pythia = 1 + skip_beams, size(whizard_idx)
+       if (whizard_idx(i_pythia) == 0) cycle
+       c_i_pythia = int(i_pythia, c_int)
+       c_n_parents = pythia8_get_n_mothers (pythia%cptr, c_i_pythia)
+       c_n_children = pythia8_get_n_daughters (pythia%cptr, c_i_pythia)
+       allocate (parent(c_n_parents), child(c_n_children))
+       parent = 0; child = 0
+       if (c_n_parents > 0) then
+          call pythia8_get_mother_array (pythia%cptr, c_i_pythia, c_n_parents, parent)
+          if (count (parent > 0) > 0) then
+             if (debug2_active (D_SHOWER) .or. debug2_active (D_TRANSFORMS)) then
+                write (*, "(1X,A,1X,I0)") "Particle's parents ", whizard_idx(i_pythia)
+                do i = 1, c_n_parents
+                   if (parent(i) > 0) &
+                        write (*, "(1X,I0,1X,'(',I0,')',1X)", advance="no") parent(i), whizard_idx(parent(i))
+                end do
+                write (*, *)
+             end if
+             call particle_set%prt(whizard_idx(i_pythia))%set_parents (&
+                  whizard_idx(pack(parent, parent > 0)))
+          end if
+       end if
+       if (c_n_children > 0) then
+          call pythia8_get_daughter_array (pythia%cptr, c_i_pythia, c_n_children, child)
+          if (count (child > 0) > 0) then
+             if (debug2_active (D_SHOWER) .or. debug2_active (D_TRANSFORMS)) then
+                write (*, "(1X,A,1X,I0)") "Particle's children ", whizard_idx(i_pythia)
+                do i = 1, c_n_children
+                   if (child(i) > 0) &
+                        write (*, "(1X,I0,1X,'(',I0,')',1X)", advance="no") child(i), whizard_idx(child(i))
+                end do
+                write (*, *)
+             end if
+             call particle_set%prt(whizard_idx(i_pythia))%set_children (&
+                  whizard_idx(pack (child, child > 0)))
+          end if
+       end if
+       deallocate (parent, child)
+    end do
+  end subroutine pythia8_get_parent_child_relation
+
+@ %def pythia8_get_parent_child_relation
+@
+\subsection{Unit tests}
+\label{sec:whizard-lha-ut}
+
+Test module, followed by the corresponding implementation module.
+
+<<[[pythia8_ut.f90]]>>=
+<<File header>>
+
+module pythia8_ut
+  use unit_tests
+  use pythia8_uti
+
+<<Standard module head>>
+
+<<pythia8: public test>>
+
+contains
+<<pythia8: test driver>>
+end module pythia8_ut
+@ %def pythia8_ut
+@
+<<[[pythia8_uti.f90]]>>=
+<<File header>>
+
+module pythia8_uti
+<<Use kinds>>
+  use io_units
+  use iso_varying_string, string_t => varying_string
+  use model_data, only: model_data_t
+  use particles, only: particle_t, PRT_DEFINITE_HELICITY, PRT_GENERIC_POLARIZATION
+  use rng_base, only: rng_t
+  use rng_stream, only: rng_stream_t
+  use whizard_lha
+  use pythia8
+
+<<Standard module head>>
+
+<<pythia8: test declaration>>
+
+contains
+<<pythia8: tests>>
+end module pythia8_uti
+@ %def pythia8_uti
+@ API: driver for the unit tests below.
+<<pythia8: public test>>=
+  public :: pythia8_test
+<<pythia8: test driver>>=
+  subroutine pythia8_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<pythia8: execute tests>>
+  end subroutine pythia8_test
+
+@ %def pythia8_test
+@
+\subsubsection{Setup Pythia8}
+<<pythia8: execute tests>>=
+  call test (pythia8_1, "pythia8_1", "Construct and destruct Pythia8 object", u, results)
+<<pythia8: test declaration>>=
+  public :: pythia8_1
+<<pythia8: tests>>=
+  subroutine pythia8_1 (u)
+    integer, intent(in) :: u
+    type(pythia8_t) :: pythia
+    type(whizard_lha_t) :: lha
+
+    write (u, "(A)") "* Test output: pythia8_1"
+    write (u, "(A)") "*   Purpose: Construct and destruct a Pythia8 object."
+    write (u, "(A)")
+
+    write (u, "(A)")
+    write (u, "(A)") "* Construct Pythia8 object."
+    write (u, "(A)")
+
+    call pythia%init ()
+
+    write (u, "(A)")
+    write (u, "(A)") "* Destruct Pythia8 object."
+    write (u, "(A)")
+
+    call pythia%final ()
+  end subroutine pythia8_1
+
+@ %def pythia8_1
+@
+<<pythia8: execute tests>>=
+  call test (pythia8_2, "pythia8_2", "Initialize Pythia8 with a LHA User Process object.", u, results)
+<<pythia8: test declaration>>=
+  public :: pythia8_2
+<<pythia8: tests>>=
+  subroutine pythia8_2 (u)
+    integer, intent(in) :: u
+    type(pythia8_t) :: pythia
+    type(whizard_lha_t) :: lha
+    integer :: i
+    integer, parameter :: N_PROC = 5
+    real(default), dimension(N_PROC) :: xsec, xerror, max_weight
+
+    write (u, "(A)") "* Test output: pythia8_2"
+    write (u, "(A)") &
+         "*   Purpose: Initialize Pythia8 with a LHA User Process object.."
+    write (u, "(A)")
+
+    write (u, "(A)")
+    write (u, "(A)") "* Construct Pythia8 object."
+    write (u, "(A)")
+    call pythia%init ()
+
+    write (u, "(A)")
+    write (u, "(A)") "* Read string 'Beam:frameType = 5' into " // &
+         "Pythia8 allowing for LHA user processes."
+    write (u, "(A)")
+
+    call pythia%read_string (var_str ("Beams:frameType = 5"))
+    call pythia%read_string (var_str ("Random:setSeed = on"))
+    call pythia%read_string (var_str ("Random:seed = 1234"))
+
+    write (u, "(A)")
+    write (u, "(A)") &
+         "* Setup LHA User Process object and let Pythia8 point to it."
+    write (u, "(A)")
+
+    call lha%init ()
+    call lha%set_init &
+         ([2212, 2212], [6500._default, 6500._default], 1, .false., .false.)
+
+    xsec = [1.0, 1.2, 1.4, 1.6, 1.8] * 1e3_default ! fb
+    xerror = 0.05_default * xsec
+    max_weight = 1e-3_default * xsec
+    do i = 1, N_PROC
+       call lha%set_process_parameters (process_id = i, &
+            cross_section = xsec(i), error = xerror(i), &
+            max_weight = max_weight(i))
+    end do
+    call pythia%set_lhaup_ptr (lha)
+
+    write (u, "(A)")
+    write (u, "(A)") "* Initialize Pythia8."
+    write (u, "(A)")
+
+    call pythia%init_pythia ()
+
+    write (u, "(A)")
+    write (u, "(A)") "* Destruct Pythia8 object."
+    write (u, "(A)")
+
+    call pythia%final ()
+  end subroutine pythia8_2
+
+@ %def pythia8_2
+@

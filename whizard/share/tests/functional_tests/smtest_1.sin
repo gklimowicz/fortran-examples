@@ -1,0 +1,25 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> n1, N1, H
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+process smtest_1_nnh = e1, E1 => n1, N1, H
+
+me = 0
+mH = 125 GeV
+
+sqrts = 500 GeV
+n_events = 1000
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+?integration_timer = true
+simulate (smtest_1_nnh) { safety_factor = 1.2 }

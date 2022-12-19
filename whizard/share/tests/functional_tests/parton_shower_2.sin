@@ -1,0 +1,43 @@
+# SINDARIN input for WHIZARD self-test
+# Process g g -> u ubar
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+$method = "omega"
+process parton_shower_2_p1 = "u", "ubar" => "e+", "e-"
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+iterations = 5:1000:"gw", 3:1000
+sqrts = 100
+
+cuts = all Pt > 20 [e1:E1]
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+sqrts = 1000
+beams = p, p => pdf_builtin
+
+integrate (parton_shower_2_p1)
+
+n_events = 1
+?allow_shower = true
+?ps_isr_active = true
+?ps_isr_only_onshell_emitted_partons = true
+$shower_method = "WHIZARD"
+$sample = "parton_shower_2"
+sample_format = ascii
+?sample_pacify = true
+simulate (parton_shower_2_p1)

@@ -1,0 +1,1661 @@
+% tao_random_numbers.nw -- -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP tao_random_numbers code as NOWEB source
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\modpoly}{%
+  \;(\text{modulo } z^K+z^L+1)}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{The Art Of Random Numbers}
+Volume two of Donald E.~Knuth' \textit{The Art of Computer
+Programming}~\cite{Knuth:1997:TAOCP2} has always been celebrated as
+a prime reference for random number generation. Recently, the third
+edition has been published and it contains a gem of a \emph{portable}
+random number generator.  It generates 30-bit integers with the
+following desirable properties
+\begin{itemize}
+  \item they pass all the tests from George Marsaglia's ``diehard''
+    suite of tests for random number
+    generators~\cite{Marsaglia:1996:CD} (but
+    see~\cite{Knuth:1997:TAOCP2} for a caveat regarding the
+    ``birthday-spacing'' test)
+  \item they can be generated with portable signed 32-bit arithmetic
+    (Fortran can't do unsigned arithmetic)
+  \item it is faster than other lagged Fibonacci generators
+  \item it can create at least $2^{30}-2$ independent sequences
+\end{itemize}
+We implement the improved versions available as FORTRAN77 code from
+\begin{verbatim}
+  http://www-cs-faculty.stanford.edu/~uno/programs.html#rng
+\end{verbatim}
+that contain a streamlined seeding alorithm with better independence
+of substreams.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Application Program Interface}
+A function returning single reals and integers.  Note that the
+static version without the [[tao_random_state]] argument does not
+require initialization.  It will behave as if
+[[call tao_random_seed(0)]] had been executed.  On the other hand, the
+parallelizable version with the explicit [[tao_random_state]] will
+fail if none of the [[tao_random_create]] have been called for the
+state.  (This is a deficiency of Fortran90 that can be fixed in Fortran95).
+\index{deficiencies of Fortran90 that have been fixed in Fortran95}
+<<API documentation>>=
+call tao_random_number (r)
+call tao_random_number (s, r)
+@ The state of the random number generator comes in two variaties:
+buffered and raw.  The former is much more efficient, but it can be
+beneficial to flush the buffers and to pass only the raw state in
+order to save of interprocess communication~(IPC) costs.
+<<API documentation>>=
+type(tao_random_state) :: s
+type(tao_random_raw_state) :: rs
+@ Subroutines filling arrays of reals and integers:
+<<API documentation>>=
+call tao_random_number (a, num = n)
+call tao_random_number (s, a, num = n)
+@ Subroutine for changing the seed:
+<<API documentation>>=
+call tao_random_seed (seed = seed)
+call tao_random_seed (s, seed = seed)
+@ Subroutine for changing the luxury.  Per default, use all random
+numbers:
+<<API documentation>>=
+call tao_random_luxury ()
+call tao_random_luxury (s)
+@ With an integer argument, use the first~[[n]] of each fill of the
+buffer:
+<<API documentation>>=
+call tao_random_luxury (n)
+call tao_random_luxury (s, n)
+@ With a floating point argument, use that fraction of each fill of
+the buffer:
+<<API documentation>>=
+call tao_random_luxury (x)
+call tao_random_luxury (s, x)
+@ Create a [[tao_random_state]]
+<<API documentation>>=
+call tao_random_create (s, seed, buffer_size = buffer_size)
+call tao_random_create (s, raw_state, buffer_size = buffer_size)
+call tao_random_create (s, state)
+@ Create a [[tao_random_raw_state]]
+<<API documentation>>=
+call tao_random_create (rs, seed)
+call tao_random_create (rs, raw_state)
+call tao_random_create (rs, state)
+@ Destroy a [[tao_random_state]] or [[tao_random_raw_state]]
+<<API documentation>>=
+call tao_random_destroy (s)
+@ Copy [[tao_random_state]] and [[tao_random_raw_state]] in all four
+combinations
+<<API documentation>>=
+call tao_random_copy (lhs, rhs)
+lhs = rhs
+@
+<<API documentation>>=
+call tao_random_flush (s)
+@
+<<API documentation>>=
+call tao_random_read (s, unit)
+call tao_random_write (s, unit)
+@
+<<API documentation>>=
+call tao_random_test (name = name)
+@ Here is a sample application of random number states:
+<<API documentation>>=
+subroutine threads (args, y, state)
+  real, dimension(:), intent(in) :: args
+  real, dimension(:), intent(out) :: y
+  type(tao_random_state) :: state
+  integer :: seed
+  type(tao_random_raw_state), dimension(size(y)) :: states
+  integer :: s
+  call tao_random_number (state, seed)
+  call tao_random_create (states, (/ (s, s=seed,size(y)-1) /))
+  y = thread (args, states)
+end function thread
+@ In this example, we could equivalently pass an integer seed, instead
+of [[raw_state]].  But in more complicated cases it can be beneficial
+to have the option of reusing [[raw_state]] in the calling routine.
+<<API documentation>>=
+elemental function thread (arg, raw_state) result (y)
+  real, dimension, intent(in) :: arg
+  type(tao_random_raw_state) :: raw_state
+  real :: y
+  type(tao_random_state) :: state
+  real :: r
+  call tao_random_create (state, raw_state)
+  do
+     ...
+     call tao_random_number (state, r)
+     ...
+  end do
+end function thread
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Low Level Routines}
+Here the low level routines are \emph{much} more interesting than the
+high level routines.  The latter contain a lot of duplication (made
+necessary by Fortran's lack of parametric polymorphism) and consist
+mostly of bookkeeping.  We wil therefore start with the former.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Generation of 30-bit Random Numbers}
+The generator is a subtractive lagged Fibonacci
+\begin{equation}
+\label{eq:tao30}
+  X_j = (X_{j-K} - X_{j-L}) \mod 2^{30}
+\end{equation}
+with lags~$K=100$ and~$L=37$.
+<<Parameters in [[tao_random_numbers]]>>=
+integer, parameter, private :: K = 100, L = 37
+@ %def K L
+@ Other good choices for~$K$ and~$L$ are
+(cf.~\cite{Knuth:1997:TAOCP2}, table~1 in section~3.2.2, p.~29)
+<<Parameters in [[tao_random_numbers]] (alternatives)>>=
+integer, parameter, private :: K =  55, L =  24
+integer, parameter, private :: K =  89, L =  38
+integer, parameter, private :: K = 100, L =  37
+integer, parameter, private :: K = 127, L =  30
+integer, parameter, private :: K = 258, L =  83
+integer, parameter, private :: K = 378, L = 107
+integer, parameter, private :: K = 607, L = 273
+@ A modulus of $2^{30}$ is the largest we can handle in \emph{portable}
+(i.e.~\emph{signed}) 32-bit arithmetic
+<<Variables in 30-bit [[tao_random_numbers]]>>=
+integer(kind=tao_i32), parameter, private :: M = 2**30
+@ %def M
+@ [[generate]] fills the array $a_1,\ldots,a_n$ with random integers
+$0 \le a_i < 2^{30}$.  We \emph{must} have at least~$n \ge K$.  Higher
+values don't change the results, but make [[generate]] more efficient
+(about a factor of two, asymptotically).  For~$K=100$, DEK
+recommends~$n \ge 1000$.  Best results are obtained using the
+first~100 random numbers out of~1009.  Let's therefore use~1009 as a
+default buffer size. The user can [[call tao_random_luxury (100)]]
+him/herself:
+<<Parameters in [[tao_random_numbers]]>>=
+integer, parameter, private :: DEFAULT_BUFFER_SIZE = 1009
+@ %def DEFAULT_BUFFER_SIZE
+@ Since users are not expected to call [[generate]] directly, we do
+\emph{not} check for $n \ge K$ and assume that the caller knows what
+(s)he's doing \ldots
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine generate (a, state)
+  integer(kind=tao_i32), dimension(:), intent(inout) :: a, state
+  integer :: j, n
+  n = size (a)
+  <<Load [[a]] and refresh [[state]]>>
+end subroutine generate
+@ %def generate
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: generate
+@ [[state(1:K)]] is already set up properly:
+<<Load [[a]] and refresh [[state]]>>=
+a(1:K) = state(1:K)
+@ The remaining $n-K$ random numbers can be gotten directly from the
+recursion~(\ref{eq:tao30}).  Note that Fortran90's [[modulo]]
+intrinsic does the right thing, since it guarantees (unlike
+Fortran77's [[mod]]) that~$0\le[[modulo]](a,m)<a$ if~$m>0$).
+<<Load [[a]] and refresh [[state]]>>=
+do j = K+1, n
+   a(j) = modulo (a(j-K) - a(j-L), M)
+end do
+@ Do the recursion~(\ref{eq:tao30}) $K$ more times to prepare
+[[state(1:K)]] for the next invokation of [[generate]].
+<<Load [[a]] and refresh [[state]]>>=
+state(1:L) = modulo (a(n+1-K:n+L-K) - a(n+1-L:n), M)
+do j = L+1, K
+   state(j) = modulo (a(n+j-K) - state(j-L), M)
+end do
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Initialization of 30-bit Random Numbers}
+The non-trivial and most beautiful part is the algorithm to initialize
+the random number generator state [[state]] with the first $K$~numbers.
+I haven't studied algebra over finite fields in sufficient depth to
+consider the mathematics behind it straightforward.  The commentary
+below is rather verbose and reflects my understanding of DEK's rather
+terse remarks (solution to exercise~3.6-9~\cite{Knuth:1997:TAOCP2}).
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine seed_static (seed)
+  integer, optional, intent(in) :: seed
+  call seed_stateless (s_state, seed)
+  s_virginal = .false.
+  s_last = size (s_buffer)
+end subroutine seed_static
+@ %def seed_static s_last s_virginal
+@ The static version of [[tao_random_raw_state]]:
+<<Variables in 30-bit [[tao_random_numbers]]>>=
+integer(kind=tao_i32), dimension(K), save, private :: s_state
+logical, save, private :: s_virginal = .true.
+@ %def s_state s_virginal
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine seed_raw_state (s, seed)
+  type(tao_random_raw_state), intent(inout) :: s
+  integer, optional, intent(in) :: seed
+  call seed_stateless (s%x, seed)
+end subroutine seed_raw_state
+@ %def seed_raw_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine seed_state (s, seed)
+  type(tao_random_state), intent(inout) :: s
+  integer, optional, intent(in) :: seed
+  call seed_raw_state (s%state, seed)
+  s%last = size (s%buffer)
+end subroutine seed_state
+@ %def seed_state
+@ This incarnation of the procedure is [[pure]].
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine seed_stateless (state, seed)
+  integer(kind=tao_i32), dimension(:), intent(out) :: state
+  integer, optional, intent(in) :: seed
+  <<Parameters local to [[tao_random_seed]]>>
+  integer :: seed_value, j, s, t
+  integer(kind=tao_i32), dimension(2*K-1) :: x
+  <<Set up [[seed_value]] from [[seed]] or [[DEFAULT_SEED]]>>
+  <<Bootstrap the [[x]] buffer>>
+  <<Set up [[s]] and [[t]]>>
+  do
+     <<$p(z)\to p(z)^2 \modpoly$>>
+     <<$p(z)\to zp(z) \modpoly$>>
+     <<Shift [[s]] or [[t]] and exit if $[[t]]\le0$>>
+  end do
+  <<Fill [[state]] from [[x]]>>
+  <<Warm up [[state]]>>
+end subroutine seed_stateless
+@ %def seed_stateless
+@ Any default will do
+<<Parameters local to [[tao_random_seed]]>>=
+integer, parameter :: DEFAULT_SEED = 0
+@ %def DEFAULT_SEED
+@ These must not be changed:
+<<Parameters local to [[tao_random_seed]]>>=
+integer, parameter :: MAX_SEED = 2**30 - 3
+integer, parameter :: TT = 70
+@ %def MAX_SEED TT
+@
+<<Set up [[seed_value]] from [[seed]] or [[DEFAULT_SEED]]>>=
+if (present (seed)) then
+   seed_value = modulo (seed, MAX_SEED + 1)
+else
+   seed_value = DEFAULT_SEED
+end if
+@ %def seed_value
+@ Fill the array $x_1,\ldots,x_K$ with even integers, shifted
+cyclically by 29 bits.
+<<Bootstrap the [[x]] buffer>>=
+s = seed_value - modulo (seed_value, 2) + 2
+do j = 1, K
+   x(j) = s
+   s = 2*s
+   if (s >= M) then
+      s = s - M + 2
+   end if
+end do
+x(K+1:2*K-1) = 0
+@ Make $x_2$ (and only $x_2$) odd:
+<<Bootstrap the [[x]] buffer>>=
+x(2) = x(2) + 1
+@
+<<Set up [[s]] and [[t]]>>=
+s = seed_value
+t = TT - 1
+@ Consider the polynomial
+\begin{equation}
+  p(z) = \sum_{n=1}^K x_n z^{n-1} = x_Kz^{K-1} + \ldots + x_2 z + x_1
+\end{equation}
+We have $p(z)^2 = p(z^2) \mod 2$ because cross terms have an even
+coefficient and $x_n^2 = x_n \mod 2$.  Therefore we can square the
+polynomial by shifting the coefficients.  The coefficients for $n>K$
+will be reduced.
+<<$p(z)\to p(z)^2 \modpoly$>>=
+x(3:2*K-1:2) = x(2:K)
+x(2:2*K-2:2) = 0
+@
+Let's return to the coefficients for $n>K$ generated by the shifting
+above.  Subtract $z^n(z^K + z^L + 1)=z^nz^K(1 + z^{-(K-L)} + z^{-K})$.
+The coefficient of $z^nz^K$ is left alone, because it
+doesn't belong to $p(z)$ anyway.
+<<$p(z)\to p(z)^2 \modpoly$>>=
+do j = 2*K-1, K+1, -1
+   x(j-(K-L)) = modulo (x(j-(K-L))-x(j), M)
+   x(j-K)=modulo (x(j-K)-x(j), M)
+end do
+@
+<<$p(z)\to zp(z) \modpoly$>>=
+if (modulo (s, 2) == 1) then
+   x(2:K+1) = x(1:K)
+   x(1) = x(K+1)
+   x(L+1) = modulo (x(L+1) - x(K+1), M)
+end if
+@
+<<Shift [[s]] or [[t]] and exit if $[[t]]\le0$>>=
+if (s /= 0) then
+   s = s / 2
+else
+   t = t - 1
+end if
+if (t <= 0) then
+   exit
+end if
+@
+<<Fill [[state]] from [[x]]>>=
+state(1:K-L) = x(L+1:K)
+state(K-L+1:K) = x(1:L)
+@ 
+<<Warm up [[state]]>>=
+do j = 1, 10
+   call generate (x, state)
+end do
+@ 
+<<Interfaces of [[tao_random_numbers]]>>=
+interface tao_random_seed
+   module procedure <<Specific procedures for [[tao_random_seed]]>>
+end interface
+@ %def tao_random_seed
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: <<Specific procedures for [[tao_random_seed]]>>
+@ 
+<<Specific procedures for [[tao_random_seed]]>>=
+seed_static, seed_state, seed_raw_state
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Generation of 52-bit Random Numbers}
+\begin{equation}
+\label{eq:tao52}
+  X_j = (X_{j-K} + X_{j-L}) \mod 1
+\end{equation}
+<<Variables in 52-bit [[tao_random_numbers]]>>=
+real(kind=tao_r64), parameter, private :: M = 1.0_tao_r64
+@ %def M
+@ The state of the internal routines
+<<Variables in 52-bit [[tao_random_numbers]]>>=
+real(kind=tao_r64), dimension(K), save, private :: s_state
+logical, save, private :: s_virginal = .true.
+@ %def s_state s_virginal
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine generate (a, state)
+  real(kind=tao_r64), dimension(:), intent(inout) :: a
+  real(kind=tao_r64), dimension(:), intent(inout) :: state
+  integer :: j, n
+  n = size (a)
+  <<Load 52-bit [[a]] and refresh [[state]]>>
+end subroutine generate
+@ %def generate
+@ That's almost identical to the 30-bit version, except that the
+relative sign is flipped:
+<<Load 52-bit [[a]] and refresh [[state]]>>=
+a(1:K) = state(1:K)
+do j = K+1, n
+   a(j) = modulo (a(j-K) + a(j-L), M)
+end do
+state(1:L) = modulo (a(n+1-K:n+L-K) + a(n+1-L:n), M)
+do j = L+1, K
+   state(j) = modulo (a(n+j-K) + state(j-L), M)
+end do
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Initialization of 52-bit Random Numbers}
+This incarnation of the procedure is [[pure]].
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine seed_stateless (state, seed)
+  real(kind=tao_r64), dimension(:), intent(out) :: state
+  integer, optional, intent(in) :: seed
+  <<Parameters local to [[tao_random_seed]]>>
+  <<Variables local to 52-bit [[tao_random_seed]]>>
+  <<Set up [[seed_value]] from [[seed]] or [[DEFAULT_SEED]]>>
+  <<Bootstrap the 52-bit [[x]] buffer>>
+  <<Set up [[s]] and [[t]]>>
+  do
+     <<52-bit $p(z)\to p(z)^2 \modpoly$>>
+     <<52-bit $p(z)\to zp(z) \modpoly$>>
+     <<Shift [[s]] or [[t]] and exit if $[[t]]\le0$>>
+  end do
+  <<Fill [[state]] from [[x]]>>
+  <<Warm up [[state]]>>
+end subroutine seed_stateless
+@ %def seed_stateless
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: seed_stateless
+@
+<<Variables local to 52-bit [[tao_random_seed]]>>=
+real(kind=tao_r64), parameter :: ULP = 2.0_tao_r64**(-52)
+@ %def ULP
+@
+<<Variables local to 52-bit [[tao_random_seed]]>>=
+real(kind=tao_r64), dimension(2*K-1) :: x
+real(kind=tao_r64) :: ss
+integer :: seed_value, t, s, j
+@  %def x ss seed_value t s j
+@
+<<Bootstrap the 52-bit [[x]] buffer>>=
+ss = 2*ULP * (seed_value + 2)
+do j = 1, K
+   x(j) = ss
+   ss = 2*ss
+   if (ss >= 1) then
+      ss = ss - 1 + 2*ULP
+   end if
+end do
+x(K+1:2*K-1) = 0.0
+@
+<<Bootstrap the 52-bit [[x]] buffer>>=
+x(2) = x(2) + ULP
+@
+<<52-bit $p(z)\to p(z)^2 \modpoly$>>=
+x(3:2*K-1:2) = x(2:K)
+x(2:2*K-2:2) = 0
+@ This works because [[2*K-1]] is odd
+<<52-bit $p(z)\to p(z)^2 \modpoly$>>=
+do j = 2*K-1, K+1, -1
+   x(j-(K-L)) = modulo (x(j-(K-L)) + x(j), M)
+   x(j-K) = modulo (x(j-K) + x(j), M)
+end do
+@
+<<52-bit $p(z)\to zp(z) \modpoly$>>=
+if (modulo (s, 2) == 1) THEN
+   x(2:K+1) = x(1:K)
+   x(1) = x(K+1)
+   x(L+1) = modulo (x(L+1) + x(K+1), M)
+end if
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The State}
+<<Declaration of 30-bit [[tao_random_numbers]] types>>=
+type, public :: tao_random_raw_state
+   private
+   integer(kind=tao_i32), dimension(K) :: x
+end type tao_random_raw_state
+@ %def tao_random_raw_state
+@ 
+<<Declaration of 30-bit [[tao_random_numbers]] types>>=
+type, public :: tao_random_state
+   private
+   type(tao_random_raw_state) :: state
+   integer(kind=tao_i32), dimension(:), pointer :: buffer => null ()
+   integer :: buffer_end, last
+end type tao_random_state
+@ %def tao_random_state
+@ 
+<<Declaration of 52-bit [[tao_random_numbers]] types>>=
+type, public :: tao_random_raw_state
+   private
+   real(kind=tao_r64), dimension(K) :: x
+end type tao_random_raw_state
+@ %def tao_random_raw_state
+@ 
+<<Declaration of 52-bit [[tao_random_numbers]] types>>=
+type, public :: tao_random_state
+   private
+   type(tao_random_raw_state) :: state
+   real(kind=tao_r64), dimension(:), pointer :: buffer => null ()
+   integer :: buffer_end, last
+end type tao_random_state
+@ %def tao_random_state
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Creation}
+<<Interfaces of [[tao_random_numbers]]>>=
+interface tao_random_create
+   module procedure <<Specific procedures for [[tao_random_create]]>>
+end interface
+@ %def tao_random_create
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: <<Specific procedures for [[tao_random_create]]>>
+@ 
+<<Specific procedures for [[tao_random_create]]>>=
+create_state_from_seed, create_raw_state_from_seed, &
+create_state_from_state, create_raw_state_from_state, &
+create_state_from_raw_state, create_raw_state_from_raw_st
+@ There are no procedures for copying the state of the static
+generator to or from an explicit [[tao_random_state]]. Users needing
+this functionality can be expected to handle explicit states anyway.
+Since the direction of the copying can not be obvious from the type of
+the argument, such functions would spoil the simplicity of the generic
+procedure interface. 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine create_state_from_seed (s, seed, buffer_size)
+  type(tao_random_state), intent(out) :: s
+  integer, intent(in) :: seed
+  integer, intent(in), optional :: buffer_size
+  call create_raw_state_from_seed (s%state, seed)
+  if (present (buffer_size)) then
+     s%buffer_end = max (buffer_size, K)
+  else
+     s%buffer_end = DEFAULT_BUFFER_SIZE
+  end if
+  allocate (s%buffer(s%buffer_end))
+  call tao_random_flush (s)
+end subroutine create_state_from_seed
+@ %def create_state_from_seed
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine create_state_from_state (s, state)
+  type(tao_random_state), intent(out) :: s
+  type(tao_random_state), intent(in) :: state
+  call create_raw_state_from_raw_st (s%state, state%state)
+  allocate (s%buffer(size(state%buffer)))
+  call tao_random_copy (s, state)
+end subroutine create_state_from_state
+@ %def create_state_from_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine create_state_from_raw_state &
+     (s, raw_state, buffer_size)
+  type(tao_random_state), intent(out) :: s
+  type(tao_random_raw_state), intent(in) :: raw_state
+  integer, intent(in), optional :: buffer_size
+  call create_raw_state_from_raw_st (s%state, raw_state)
+  if (present (buffer_size)) then
+     s%buffer_end = max (buffer_size, K)
+  else
+     s%buffer_end = DEFAULT_BUFFER_SIZE
+  end if
+  allocate (s%buffer(s%buffer_end))
+  call tao_random_flush (s)
+end subroutine create_state_from_raw_state
+@ %def create_state_from_raw_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine create_raw_state_from_seed (s, seed)
+  type(tao_random_raw_state), intent(out) :: s
+  integer, intent(in) :: seed
+  call seed_raw_state (s, seed)
+end subroutine create_raw_state_from_seed
+@ %def create_raw_state_from_seed
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine create_raw_state_from_state (s, state)
+  type(tao_random_raw_state), intent(out) :: s
+  type(tao_random_state), intent(in) :: state
+  call copy_state_to_raw_state (s, state)
+end subroutine create_raw_state_from_state
+@ %def create_raw_state_from_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine create_raw_state_from_raw_st (s, raw_state)
+  type(tao_random_raw_state), intent(out) :: s
+  type(tao_random_raw_state), intent(in) :: raw_state
+  call copy_raw_state (s, raw_state)
+end subroutine create_raw_state_from_raw_st
+@ %def create_raw_state_from_raw_st
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Destruction}
+@ 
+<<Interfaces of [[tao_random_numbers]]>>=
+interface tao_random_destroy
+   module procedure destroy_state, destroy_raw_state
+end interface
+@ %def tao_random_destroy
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: destroy_state, destroy_raw_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine destroy_state (s)
+  type(tao_random_state), intent(inout) :: s
+  deallocate (s%buffer)
+end subroutine destroy_state
+@ %def destroy_state
+@ Currently, this is a no-op, but we might need a non-trivial
+destruction method in the future
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine destroy_raw_state (s)
+  type(tao_random_raw_state), intent(inout) :: s
+end subroutine destroy_raw_state
+@ %def destroy_raw_state
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Copying}
+<<Interfaces of [[tao_random_numbers]]>>=
+interface tao_random_copy
+   module procedure <<Specific procedures for [[tao_random_copy]]>>
+end interface
+@ %def tao_random_copy
+@
+<<Interfaces of [[tao_random_numbers]]>>=
+interface assignment(=)
+   module procedure <<Specific procedures for [[tao_random_copy]]>>
+end interface
+@
+<<Declaration of [[tao_random_numbers]]>>=
+public :: assignment(=)
+private :: <<Specific procedures for [[tao_random_copy]]>>
+@ 
+<<Specific procedures for [[tao_random_copy]]>>=
+copy_state, copy_raw_state, &
+copy_raw_state_to_state, copy_state_to_raw_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine copy_state (lhs, rhs)
+  type(tao_random_state), intent(inout) :: lhs
+  type(tao_random_state), intent(in) :: rhs
+  call copy_raw_state (lhs%state, rhs%state)
+  if (size (lhs%buffer) /= size (rhs%buffer)) then
+     deallocate (lhs%buffer)
+     allocate (lhs%buffer(size(rhs%buffer)))
+  end if
+  lhs%buffer = rhs%buffer
+  lhs%buffer_end = rhs%buffer_end
+  lhs%last = rhs%last
+end subroutine copy_state
+@ %def copy_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine copy_raw_state (lhs, rhs)
+  type(tao_random_raw_state), intent(out) :: lhs
+  type(tao_random_raw_state), intent(in) :: rhs
+  lhs%x = rhs%x
+end subroutine copy_raw_state
+@ %def copy_raw_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine copy_raw_state_to_state (lhs, rhs)
+  type(tao_random_state), intent(inout) :: lhs
+  type(tao_random_raw_state), intent(in) :: rhs
+  call copy_raw_state (lhs%state, rhs)
+  call tao_random_flush (lhs)
+end subroutine copy_raw_state_to_state
+@ %def copy_raw_state_to_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine copy_state_to_raw_state (lhs, rhs)
+  type(tao_random_raw_state), intent(out) :: lhs
+  type(tao_random_state), intent(in) :: rhs
+  call copy_raw_state (lhs, rhs%state)
+end subroutine copy_state_to_raw_state
+@ %def copy_state_to_raw_state
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Flushing}
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine tao_random_flush (s)
+  type(tao_random_state), intent(inout) :: s
+  s%last = size (s%buffer)
+end subroutine tao_random_flush
+@ %def tao_random_flush
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Input and Output}
+<<Interfaces of [[tao_random_numbers]]>>=
+interface tao_random_write
+   module procedure &
+        write_state_unit, write_state_name, &
+        write_raw_state_unit, write_raw_state_name
+end interface
+@ %def tao_random_write
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: write_state_unit, write_state_name
+private :: write_raw_state_unit, write_raw_state_name
+@
+<<Interfaces of [[tao_random_numbers]]>>=
+interface tao_random_read
+   module procedure &
+        read_state_unit, read_state_name, &
+        read_raw_state_unit, read_raw_state_name
+end interface
+@ %def tao_random_read
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: read_state_unit, read_state_name
+private :: read_raw_state_unit, read_raw_state_name
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine write_state_unit (s, unit)
+  type(tao_random_state), intent(in) :: s
+  integer, intent(in) :: unit
+  write (unit = unit, fmt = *) "BEGIN TAO_RANDOM_STATE"
+  call write_raw_state_unit (s%state, unit)
+  write (unit = unit, fmt = "(2(1x,a16,1x,i10/),1x,a16,1x,i10)") &
+       "BUFFER_SIZE", size (s%buffer), &
+       "BUFFER_END", s%buffer_end, &
+       "LAST", s%last
+  write (unit = unit, fmt = *) "BEGIN BUFFER"
+  call write_state_array (s%buffer, unit)
+  write (unit = unit, fmt = *) "END BUFFER"
+  write (unit = unit, fmt = *) "END TAO_RANDOM_STATE"
+end subroutine write_state_unit
+@ %def write_state_unit
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine read_state_unit (s, unit)
+  type(tao_random_state), intent(inout) :: s
+  integer, intent(in) :: unit
+  integer :: buffer_size
+  read (unit = unit, fmt = *)
+  call read_raw_state_unit (s%state, unit)
+  read (unit = unit, fmt = "(2(1x,16x,1x,i10/),1x,16x,1x,i10)") &
+       buffer_size, s%buffer_end, s%last
+  read (unit = unit, fmt = *)
+  if (buffer_size /= size (s%buffer)) then
+     deallocate (s%buffer)
+     allocate (s%buffer(buffer_size))
+  end if
+  call read_state_array (s%buffer, unit)
+  read (unit = unit, fmt = *)
+  read (unit = unit, fmt = *)
+end subroutine read_state_unit
+@ %def read_state_unit
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine write_raw_state_unit (s, unit)
+  type(tao_random_raw_state), intent(in) :: s
+  integer, intent(in) :: unit
+  write (unit = unit, fmt = *) "BEGIN TAO_RANDOM_RAW_STATE"
+  call write_state_array (s%x, unit)
+  write (unit = unit, fmt = *) "END TAO_RANDOM_RAW_STATE"
+end subroutine write_raw_state_unit
+@ %def write_raw_state_unit
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine read_raw_state_unit (s, unit)
+  type(tao_random_raw_state), intent(inout) :: s
+  integer, intent(in) :: unit
+  read (unit = unit, fmt = *)
+  call read_state_array (s%x, unit)
+  read (unit = unit, fmt = *)
+end subroutine read_raw_state_unit
+@ %def read_raw_state_unit
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+subroutine write_state_array (a, unit)
+  integer(kind=tao_i32), dimension(:), intent(in) :: a
+  integer, intent(in) :: unit
+  integer :: i
+  do i = 1, size (a)
+     write (unit = unit, fmt = "(1x,i10,1x,i10)") i, a(i)
+  end do
+end subroutine write_state_array
+@ %def write_state_array
+@
+<<Declaration of 30-bit [[tao_random_numbers]]>>=
+private :: write_state_array
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+subroutine read_state_array (a, unit)
+  integer(kind=tao_i32), dimension(:), intent(inout) :: a
+  integer, intent(in) :: unit
+  integer :: i, idum
+  do i = 1, size (a)
+     read (unit = unit, fmt = *) idum, a(i)
+  end do
+end subroutine read_state_array
+@ %def read_state_array
+@
+<<Declaration of 30-bit [[tao_random_numbers]]>>=
+private :: read_state_array
+@ Reading and writing 52-bit floating point numbers accurately is
+beyond most Fortran runtime libraries.  Their job is simplified
+considerably if we rescale by~$2^{52}$ before writing.  Then the
+temptation to truncate will not be as overwhelming as before \ldots
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+subroutine write_state_array (a, unit)
+  real(kind=tao_r64), dimension(:), intent(in) :: a
+  integer, intent(in) :: unit
+  integer :: i
+  do i = 1, size (a)
+     write (unit = unit, fmt = "(1x,i10,1x,f30.0)") i, 2.0_tao_r64**52 * a(i)
+  end do
+end subroutine write_state_array
+@ %def write_state_array
+@
+<<Declaration of 52-bit [[tao_random_numbers]]>>=
+private :: write_state_array
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+subroutine read_state_array (a, unit)
+  real(kind=tao_r64), dimension(:), intent(inout) :: a
+  integer, intent(in) :: unit
+  real(kind=tao_r64) :: x
+  integer :: i, idum
+  do i = 1, size (a)
+     read (unit = unit, fmt = *) idum, x
+     a(i) = 2.0_tao_r64**(-52) * x
+  end do
+end subroutine read_state_array
+@ %def read_state_array
+@
+<<Declaration of 52-bit [[tao_random_numbers]]>>=
+private :: read_state_array
+@
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine find_free_unit (u, iostat)
+  integer, intent(out) :: u
+  integer, intent(out), optional :: iostat
+  logical :: exists, is_open
+  integer :: i, status
+  do i = MIN_UNIT, MAX_UNIT
+     inquire (unit = i, exist = exists, opened = is_open, &
+	      iostat = status)
+     if (status == 0) then
+        if (exists .and. .not. is_open) then
+           u = i
+           if (present (iostat)) then
+              iostat = 0
+           end if
+           return
+        end if
+     end if
+  end do
+  if (present (iostat)) then
+     iostat = -1
+  end if
+  u = -1
+end subroutine find_free_unit
+@ 
+\index{system dependencies}
+<<Variables in [[tao_random_numbers]]>>=
+integer, parameter, private :: MIN_UNIT = 11, MAX_UNIT = 99
+@ %def MIN_UNIT MAX_UNIT
+@
+<<Declaration of [[tao_random_numbers]]>>=
+private :: find_free_unit
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine write_state_name (s, name)
+  type(tao_random_state), intent(in) :: s
+  character(len=*), intent(in) :: name
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "write", status = "replace", file = name)
+  call write_state_unit (s, unit)
+  close (unit = unit)
+end subroutine write_state_name
+@ %def write_state_name
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine write_raw_state_name (s, name)
+  type(tao_random_raw_state), intent(in) :: s
+  character(len=*), intent(in) :: name
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "write", status = "replace", file = name)
+  call write_raw_state_unit (s, unit)
+  close (unit = unit)
+end subroutine write_raw_state_name
+@ %def write_raw_state_name
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine read_state_name (s, name)
+  type(tao_random_state), intent(inout) :: s
+  character(len=*), intent(in) :: name
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "read", status = "old", file = name)
+  call read_state_unit (s, unit)
+  close (unit = unit)
+end subroutine read_state_name
+@ %def read_state_name
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine read_raw_state_name (s, name)
+  type(tao_random_raw_state), intent(inout) :: s
+  character(len=*), intent(in) :: name
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "read", status = "old", file = name)
+  call read_raw_state_unit (s, unit)
+  close (unit = unit)
+end subroutine read_raw_state_name
+@ %def read_raw_state_name
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Marshaling and Unmarshaling}
+Note that we can not use the~[[transfer]] intrinsic function for
+marshalling types that contain pointers that substitute for
+allocatable array components.  [[transfer]] will copy the pointers
+in this case and not where they point to!
+<<Interfaces of [[tao_random_numbers]]>>=
+interface tao_random_marshal_size
+   module procedure marshal_state_size, marshal_raw_state_size
+end interface
+interface tao_random_marshal
+   module procedure marshal_state, marshal_raw_state
+end interface
+interface tao_random_unmarshal
+   module procedure unmarshal_state, unmarshal_raw_state
+end interface
+@ %def tao_random_marshal_size
+@ %def tao_random_marshal
+@ %def tao_random_unmarshal
+@
+<<Declaration of [[tao_random_numbers]]>>=
+public :: tao_random_marshal
+private :: marshal_state, marshal_raw_state
+public :: tao_random_marshal_size
+private :: marshal_state_size, marshal_raw_state_size
+public :: tao_random_unmarshal
+private :: unmarshal_state, unmarshal_raw_state
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_state (s, ibuf, dbuf)
+  type(tao_random_state), intent(in) :: s
+  integer, dimension(:), intent(inout) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(inout) :: dbuf
+  integer :: buf_size
+  buf_size = size (s%buffer)
+  ibuf(1) = s%buffer_end
+  ibuf(2) = s%last
+  ibuf(3) = buf_size
+  ibuf(4:3+buf_size) = s%buffer
+  call marshal_raw_state (s%state, ibuf(4+buf_size:), dbuf)
+end subroutine marshal_state
+@ %def marshal_state
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_state_size (s, iwords, dwords)
+  type(tao_random_state), intent(in) :: s
+  integer, intent(out) :: iwords, dwords
+  call marshal_raw_state_size (s%state, iwords, dwords)
+  iwords = iwords + 3 + size (s%buffer)
+end subroutine marshal_state_size
+@ %def marshal_state_size
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine unmarshal_state (s, ibuf, dbuf)
+  type(tao_random_state), intent(inout) :: s
+  integer, dimension(:), intent(in) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(in) :: dbuf
+  integer :: buf_size
+  s%buffer_end = ibuf(1)
+  s%last = ibuf(2)
+  buf_size = ibuf(3)
+  s%buffer = ibuf(4:3+buf_size)
+  call unmarshal_raw_state (s%state, ibuf(4+buf_size:), dbuf)
+end subroutine unmarshal_state
+@ %def marshal_state
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_raw_state (s, ibuf, dbuf)
+  type(tao_random_raw_state), intent(in) :: s
+  integer, dimension(:), intent(inout) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(inout) :: dbuf
+  ibuf(1) = size (s%x)
+  ibuf(2:1+size(s%x)) = s%x
+end subroutine marshal_raw_state
+@ %def marshal_raw_state
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_raw_state_size (s, iwords, dwords)
+  type(tao_random_raw_state), intent(in) :: s
+  integer, intent(out) :: iwords, dwords
+  iwords = 1 + size (s%x)
+  dwords = 0
+end subroutine marshal_raw_state_size
+@ %def marshal_raw_state_size
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine unmarshal_raw_state (s, ibuf, dbuf)
+  type(tao_random_raw_state), intent(inout) :: s
+  integer, dimension(:), intent(in) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(in) :: dbuf
+  integer :: buf_size
+  buf_size = ibuf(1)
+  s%x = ibuf(2:1+buf_size)
+end subroutine unmarshal_raw_state
+@ %def marshal_raw_state
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_state (s, ibuf, dbuf)
+  type(tao_random_state), intent(in) :: s
+  integer, dimension(:), intent(inout) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(inout) :: dbuf
+  integer :: buf_size
+  buf_size = size (s%buffer)
+  ibuf(1) = s%buffer_end
+  ibuf(2) = s%last
+  ibuf(3) = buf_size
+  dbuf(1:buf_size) = s%buffer
+  call marshal_raw_state (s%state, ibuf(4:), dbuf(buf_size+1:))
+end subroutine marshal_state
+@ %def marshal_state
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_state_size (s, iwords, dwords)
+  type(tao_random_state), intent(in) :: s
+  integer, intent(out) :: iwords, dwords
+  call marshal_raw_state_size (s%state, iwords, dwords)
+  iwords = iwords + 3
+  dwords = dwords + size(s%buffer)
+end subroutine marshal_state_size
+@ %def marshal_state_size
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine unmarshal_state (s, ibuf, dbuf)
+  type(tao_random_state), intent(inout) :: s
+  integer, dimension(:), intent(in) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(in) :: dbuf
+  integer :: buf_size
+  s%buffer_end = ibuf(1)
+  s%last = ibuf(2)
+  buf_size = ibuf(3)
+  s%buffer = dbuf(1:buf_size)
+  call unmarshal_raw_state (s%state, ibuf(4:), dbuf(buf_size+1:))
+end subroutine unmarshal_state
+@ %def unmarshal_state
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_raw_state (s, ibuf, dbuf)
+  type(tao_random_raw_state), intent(in) :: s
+  integer, dimension(:), intent(inout) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(inout) :: dbuf
+  ibuf(1) = size (s%x)
+  dbuf(1:size(s%x)) = s%x
+end subroutine marshal_raw_state
+@ %def marshal_raw_state
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine marshal_raw_state_size (s, iwords, dwords)
+  type(tao_random_raw_state), intent(in) :: s
+  integer, intent(out) :: iwords, dwords
+  iwords = 1
+  dwords = size (s%x)
+end subroutine marshal_raw_state_size
+@ %def marshal_raw_state_size
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine unmarshal_raw_state (s, ibuf, dbuf)
+  type(tao_random_raw_state), intent(inout) :: s
+  integer, dimension(:), intent(in) :: ibuf
+  real(kind=tao_r64), dimension(:), intent(in) :: dbuf
+  integer :: buf_size
+  buf_size = ibuf(1)
+  s%x = dbuf(1:buf_size)
+end subroutine unmarshal_raw_state
+@ %def unmarshal_raw_state
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{High Level Routines}
+<<[[tao_random_numbers.f90]]>>=
+! tao_random_numbers.f90 --
+<<Copyleft notice>>
+module tao_random_numbers
+  use kinds
+  implicit none
+  integer, parameter, private :: tao_i32 = selected_int_kind (9)
+  integer, parameter, private :: tao_r64 = selected_real_kind (15)
+  <<Declaration of [[tao_random_numbers]]>>
+  <<Declaration of 30-bit [[tao_random_numbers]]>>
+  <<Interfaces of [[tao_random_numbers]]>>
+  <<Interfaces of 30-bit [[tao_random_numbers]]>>
+  <<Parameters in [[tao_random_numbers]]>>
+  <<Variables in [[tao_random_numbers]]>>
+  <<Variables in 30-bit [[tao_random_numbers]]>>
+  <<Declaration of 30-bit [[tao_random_numbers]] types>>
+contains
+  <<Implementation of [[tao_random_numbers]]>>
+  <<Implementation of 30-bit [[tao_random_numbers]]>>
+end module tao_random_numbers
+@ %def tao_random_numbers
+@ 
+<<[[tao52_random_numbers.f90]]>>=
+! tao52_random_numbers.f90 --
+<<Copyleft notice>>
+module tao52_random_numbers
+  use kinds
+  implicit none
+  integer, parameter, private :: tao_i32 = selected_int_kind (9)
+  integer, parameter, private :: tao_r64 = selected_real_kind (15)
+  <<Declaration of [[tao_random_numbers]]>>
+  <<Declaration of 52-bit [[tao_random_numbers]]>>
+  <<Interfaces of [[tao_random_numbers]]>>
+  <<Interfaces of 52-bit [[tao_random_numbers]]>>
+  <<Parameters in [[tao_random_numbers]]>>
+  <<Variables in [[tao_random_numbers]]>>
+  <<Variables in 52-bit [[tao_random_numbers]]>>
+  <<Declaration of 52-bit [[tao_random_numbers]] types>>
+contains
+  <<Implementation of [[tao_random_numbers]]>>
+  <<Implementation of 52-bit [[tao_random_numbers]]>>
+end module tao52_random_numbers
+@ %def tao52_random_numbers
+@ Ten functions are exported
+<<Declaration of [[tao_random_numbers]]>>=
+public :: tao_random_number
+public :: tao_random_seed
+public :: tao_random_create
+public :: tao_random_destroy
+public :: tao_random_copy
+public :: tao_random_read
+public :: tao_random_write
+public :: tao_random_flush
+! public :: tao_random_luxury
+public :: tao_random_test
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Single Random Numbers}
+A random integer $r$ with $0 \le r < 2^{30} = 1073741824$:
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine integer_stateless &
+     (state, buffer, buffer_end, last, r)
+  integer(kind=tao_i32), dimension(:), intent(inout) :: state, buffer
+  integer, intent(in) :: buffer_end
+  integer, intent(inout) :: last
+  integer, intent(out) :: r
+  integer, parameter :: NORM = 1
+  <<Body of [[tao_random_*]]>>
+end subroutine integer_stateless
+@ %def integer_stateless
+@ 
+<<Body of [[tao_random_*]]>>=
+<<Step [[last]] and reload [[buffer]] iff necessary>>
+r = NORM * buffer(last) 
+@ The low level routine [[generate]] will fill an array
+$a_1,\ldots,a_n$, which will be consumed and refilled like an input
+buffer.  We need at least $n \ge K$ for the call to
+[[generate]].
+<<Variables in 30-bit [[tao_random_numbers]]>>=
+integer(kind=tao_i32), dimension(DEFAULT_BUFFER_SIZE), save, private :: s_buffer
+integer, save, private :: s_buffer_end = size (s_buffer)
+integer, save, private :: s_last = size (s_buffer)
+@ %def s_buffer s_buffer_end s_last
+@ Increment the index [[last]] and reload the array [[buffer]], iff this
+buffer is exhausted.  Throughout these routines, [[last]] will point to
+random number that has just been consumed.  For the array filling
+routines below, this is simpler than pointing to the next waiting
+number. 
+<<Step [[last]] and reload [[buffer]] iff necessary>>=
+last = last + 1
+if (last > buffer_end) then
+   call generate (buffer, state)
+   last = 1
+end if
+@ A random real $r \in [0,1)$.  This is almost identical to
+[[tao_random_integer]], but we duplicate the code to avoid the
+function call overhead for speed. 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine real_stateless (state, buffer, buffer_end, last, r)
+  integer(kind=tao_i32), dimension(:), intent(inout) :: state, buffer
+  integer, intent(in) :: buffer_end
+  integer, intent(inout) :: last
+  real(kind=default), intent(out) :: r
+  real(kind=default), parameter :: NORM = 1.0_default / M
+  <<Body of [[tao_random_*]]>>
+end subroutine real_stateless
+@ %def real_stateless
+@ A random real $r \in [0,1)$.
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine real_stateless (state, buffer, buffer_end, last, r)
+  real(kind=tao_r64), dimension(:), intent(inout) :: state, buffer
+  integer, intent(in) :: buffer_end
+  integer, intent(inout) :: last
+  real(kind=default), intent(out) :: r
+  integer, parameter :: NORM = 1
+  <<Body of [[tao_random_*]]>>
+end subroutine real_stateless
+@ %def real_stateless
+@ The low level routine [[generate]] will fill an array
+$a_1,\ldots,a_N$, which will be consumed and refilled like an input
+buffer.
+<<Variables in 52-bit [[tao_random_numbers]]>>=
+real(kind=tao_r64), dimension(DEFAULT_BUFFER_SIZE), save, private :: s_buffer
+integer, save, private :: s_buffer_end = size (s_buffer)
+integer, save, private :: s_last = size (s_buffer)
+@ %def s_buffer buffer_end last
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Arrays of Random Numbers}
+Fill the array $j_1,\ldots,j_\nu$ with random integers $0 \le j_i <
+2^{30} = 1073741824$. This has to be done such that the underlying
+array length in [[generate]] is transparent to the user.
+At the same time we want to avoid the overhead of calling
+[[tao_random_real]] $\nu$ times.
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine integer_array_stateless &
+     (state, buffer, buffer_end, last, v, num)
+  integer(kind=tao_i32), dimension(:), intent(inout) :: state, buffer
+  integer, intent(in) :: buffer_end
+  integer, intent(inout) :: last
+  integer, dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  integer, parameter :: NORM = 1
+  <<Body of [[tao_random_*_array]]>>
+end subroutine integer_array_stateless
+@ %def integer_array_stateless
+@ 
+<<Body of [[tao_random_*_array]]>>=
+integer :: nu, done, todo, chunk
+<<Set [[nu]] to [[num]] or [[size(v)]]>>
+<<Prepare array [[buffer]] and [[done]], [[todo]], [[chunk]]>>
+v(1:chunk) = NORM * buffer(last+1:last+chunk)
+do
+   <<Update [[last]], [[done]] and [[todo]] and set new [[chunk]]>>
+   <<Reload [[buffer]] or exit>>
+   v(done+1:done+chunk) = NORM * buffer(1:chunk)
+end do
+@ 
+<<Set [[nu]] to [[num]] or [[size(v)]]>>=
+if (present (num)) then
+   nu = num
+else
+   nu = size (v)
+end if
+@ [[last]] is used as an offset into the buffer [[buffer]], as usual.  [[done]]
+is an offset into the target.  We still have to process all [[nu]]
+numbers.  The first chunk can only use what's left in the buffer.
+<<Prepare array [[buffer]] and [[done]], [[todo]], [[chunk]]>>=
+if (last >= buffer_end) then
+   call generate (buffer, state)
+   last = 0
+end if
+done = 0
+todo = nu
+chunk = min (todo, buffer_end - last)
+@ This logic is a bit weird, but after the first chunk, [[todo]] will
+either vanish (in which case we're done) or we have consumed all of
+the buffer and must reload.  In any case we can pretend that the next
+chunk can use the whole buffer.
+<<Update [[last]], [[done]] and [[todo]] and set new [[chunk]]>>=
+last = last + chunk
+done = done + chunk
+todo = todo - chunk
+chunk = min (todo, buffer_end)
+@ 
+<<Reload [[buffer]] or exit>>=
+if (chunk <= 0) then
+   exit
+end if
+call generate (buffer, state)
+last = 0
+@
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine real_array_stateless &
+     (state, buffer, buffer_end, last, v, num)
+  integer(kind=tao_i32), dimension(:), intent(inout) :: state, buffer
+  integer, intent(in) :: buffer_end
+  integer, intent(inout) :: last
+  real(kind=default), dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  real(kind=default), parameter :: NORM = 1.0_default / M
+  <<Body of [[tao_random_*_array]]>>
+end subroutine real_array_stateless
+@ %def real_array_stateless
+@ Fill the array $v_1,\ldots,v_\nu$ with uniform deviates $v_i \in
+[0,1)$.
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine real_array_stateless &
+     (state, buffer, buffer_end, last, v, num)
+  real(kind=tao_r64), dimension(:), intent(inout) :: state, buffer
+  integer, intent(in) :: buffer_end
+  integer, intent(inout) :: last
+  real(kind=default), dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  integer, parameter :: NORM = 1
+  <<Body of [[tao_random_*_array]]>>
+end subroutine real_array_stateless
+@ %def real_array_stateless
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Procedures With Explicit \texttt{tao\_random\_state}}
+Unfortunately, this is very boring, but Fortran's lack of parametric
+polymorphism forces this duplication on us:
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+elemental subroutine integer_state (s, r)
+  type(tao_random_state), intent(inout) :: s
+  integer, intent(out) :: r
+  call integer_stateless (s%state%x, s%buffer, s%buffer_end, s%last, r)
+end subroutine integer_state
+@ %def integer_state
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+elemental subroutine real_state (s, r)
+  type(tao_random_state), intent(inout) :: s
+  real(kind=default), intent(out) :: r
+  call real_stateless (s%state%x, s%buffer, s%buffer_end, s%last, r)
+end subroutine real_state
+@ %def real_state
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+elemental subroutine real_state (s, r)
+  type(tao_random_state), intent(inout) :: s
+  real(kind=default), intent(out) :: r
+  call real_stateless (s%state%x, s%buffer, s%buffer_end, s%last, r)
+end subroutine real_state
+@ %def real_state
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine integer_array_state (s, v, num)
+  type(tao_random_state), intent(inout) :: s
+  integer, dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  call integer_array_stateless &
+       (s%state%x, s%buffer, s%buffer_end, s%last, v, num)
+end subroutine integer_array_state
+@ %def integer_array_state
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+pure subroutine real_array_state (s, v, num)
+  type(tao_random_state), intent(inout) :: s
+  real(kind=default), dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  call real_array_stateless &
+         (s%state%x, s%buffer, s%buffer_end, s%last, v, num)
+end subroutine real_array_state
+@ %def real_array_state
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+pure subroutine real_array_state (s, v, num)
+  type(tao_random_state), intent(inout) :: s
+  real(kind=default), dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  call real_array_stateless &
+       (s%state%x, s%buffer, s%buffer_end, s%last, v, num)
+end subroutine real_array_state
+@ %def real_array_state
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Static Procedures}
+First make sure that [[tao_random_seed]] has been called to
+initialize the generator state:
+<<Initialize a virginal random number generator>>=
+if (s_virginal) then
+   call tao_random_seed ()
+end if
+@
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+subroutine integer_static (r)
+  integer, intent(out) :: r
+  <<Initialize a virginal random number generator>>
+  call integer_stateless (s_state, s_buffer, s_buffer_end, s_last, r)
+end subroutine integer_static
+@ %def integer_static
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+subroutine real_static (r)
+  real(kind=default), intent(out) :: r
+  <<Initialize a virginal random number generator>>
+  call real_stateless (s_state, s_buffer, s_buffer_end, s_last, r)
+end subroutine real_static
+@ %def real_static
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+subroutine real_static (r)
+  real(kind=default), intent(out) :: r
+  <<Initialize a virginal random number generator>>
+  call real_stateless (s_state, s_buffer, s_buffer_end, s_last, r)
+end subroutine real_static
+@ %def real_static
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+subroutine integer_array_static (v, num)
+  integer, dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  <<Initialize a virginal random number generator>>
+  call integer_array_stateless &
+       (s_state, s_buffer, s_buffer_end, s_last, v, num)
+end subroutine integer_array_static
+@ %def integer_array_static
+@ 
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+subroutine real_array_static (v, num)
+  real(kind=default), dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  <<Initialize a virginal random number generator>>
+  call real_array_stateless &
+       (s_state, s_buffer, s_buffer_end, s_last, v, num)
+end subroutine real_array_static
+@ %def real_array_static
+@ 
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+subroutine real_array_static (v, num)
+  real(kind=default), dimension(:), intent(out) :: v
+  integer, optional, intent(in) :: num
+  <<Initialize a virginal random number generator>>
+  call real_array_stateless &
+       (s_state, s_buffer, s_buffer_end, s_last, v, num)
+end subroutine real_array_static
+@ %def real_array_static
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Generic Procedures}
+<<Interfaces of 30-bit [[tao_random_numbers]]>>=
+interface tao_random_number
+   module procedure <<Specific procedures for 30-bit [[tao_random_number]]>>
+end interface
+@ %def tao_random_number
+@ 
+<<Specific procedures for 30-bit [[tao_random_number]]>>=
+integer_static, integer_state, &
+integer_array_static, integer_array_state, &
+real_static, real_state, real_array_static, real_array_state
+@ These are not exported
+<<Declaration of 30-bit [[tao_random_numbers]]>>=
+private :: &
+     integer_stateless, integer_array_stateless, &
+     real_stateless, real_array_stateless
+@
+<<Declaration of 30-bit [[tao_random_numbers]]>>=
+private :: <<Specific procedures for 30-bit [[tao_random_number]]>>
+@
+<<Interfaces of 52-bit [[tao_random_numbers]]>>=
+interface tao_random_number
+   module procedure <<Specific procedures for 52-bit [[tao_random_number]]>>
+end interface
+@ 
+<<Specific procedures for 52-bit [[tao_random_number]]>>=
+real_static, real_state, real_array_static, real_array_state
+@ Thes are not exported
+<<Declaration of 52-bit [[tao_random_numbers]]>>=
+private :: real_stateless, real_array_stateless
+@
+<<Declaration of 52-bit [[tao_random_numbers]]>>=
+private :: <<Specific procedures for 52-bit [[tao_random_number]]>>
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Luxury}
+<<Implementation of [[tao_random_numbers]]>>=
+pure subroutine luxury_stateless &
+     (buffer_size, buffer_end, last, consumption)
+  integer, intent(in) :: buffer_size
+  integer, intent(inout) :: buffer_end
+  integer, intent(inout) :: last
+  integer, intent(in) :: consumption
+  if (consumption >= 1 .and. consumption <= buffer_size) then
+     buffer_end = consumption
+     last = min (last, buffer_end)
+  else
+     !!! print *, "tao_random_luxury: ", "invalid consumption ", &
+     !!!      consumption, ", not in [ 1,", buffer_size, "]."
+     buffer_end = buffer_size
+  end if
+end subroutine luxury_stateless
+@ %def luxury_stateless
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine luxury_state (s)
+  type(tao_random_state), intent(inout) :: s
+  call luxury_state_integer (s, size (s%buffer))
+end subroutine luxury_state
+@ %def luxury_state
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine luxury_state_integer (s, consumption)
+  type(tao_random_state), intent(inout) :: s
+  integer, intent(in) :: consumption
+  call luxury_stateless (size (s%buffer), s%buffer_end, s%last, consumption)
+end subroutine luxury_state_integer
+@ %def luxury_state_integer
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+elemental subroutine luxury_state_real (s, consumption)
+  type(tao_random_state), intent(inout) :: s
+  real(kind=default), intent(in) :: consumption
+  call luxury_state_integer (s, int (consumption * size (s%buffer)))
+end subroutine luxury_state_real
+@ %def luxury_state_real
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine luxury_static ()
+  <<Initialize a virginal random number generator>>
+  call luxury_static_integer (size (s_buffer))
+end subroutine luxury_static
+@ %def luxury_static
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine luxury_static_integer (consumption)
+  integer, intent(in) :: consumption
+  <<Initialize a virginal random number generator>>
+  call luxury_stateless (size (s_buffer), s_buffer_end, s_last, consumption)
+end subroutine luxury_static_integer
+@ %def luxury_static_integer
+@ 
+<<Implementation of [[tao_random_numbers]]>>=
+subroutine luxury_static_real (consumption)
+  real(kind=default), intent(in) :: consumption
+  <<Initialize a virginal random number generator>>
+  call luxury_static_integer (int (consumption * size (s_buffer)))
+end subroutine luxury_static_real
+@ %def luxury_static_real
+@
+<<Interfaces of [[tao_random_numbers]] (unused luxury)>>=
+interface tao_random_luxury
+   module procedure <<Specific procedures for [[tao_random_luxury]]>>
+end interface
+@ %def tao_random_luxury
+@
+<<Declaration of [[tao_random_numbers]] (unused luxury)>>=
+private :: luxury_stateless
+@
+<<Declaration of [[tao_random_numbers]] (unused luxury)>>=
+private :: <<Specific procedures for [[tao_random_luxury]]>>
+@ 
+<<Specific procedures for [[tao_random_luxury]]>>=
+luxury_static, luxury_state, &
+luxury_static_integer, luxury_state_integer, &
+luxury_static_real, luxury_state_real
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Testing}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{30-bit}
+<<Implementation of 30-bit [[tao_random_numbers]]>>=
+subroutine tao_random_test (name)
+  character(len=*), optional, intent(in) :: name
+  character (len = *), parameter :: &
+       OK = "(1x,i10,' is ok.')", &
+       NOT_OK = "(1x,i10,' is not ok, (expected ',i10,')!')"
+  <<Parameters in [[tao_random_test]]>>
+  integer, parameter :: &
+       A_2027082 = 995235265
+  integer, dimension(N) :: a
+  type(tao_random_state) :: s, t
+  integer, dimension(:), allocatable :: ibuf
+  real(kind=tao_r64), dimension(:), allocatable :: dbuf
+  integer :: i, ibuf_size, dbuf_size
+  print *, "testing the 30-bit tao_random_numbers ..."
+  <<Perform simple tests of [[tao_random_numbers]]>>
+  <<Perform more tests of [[tao_random_numbers]]>>
+end subroutine tao_random_test
+@ %def tao_random_test
+@
+<<Parameters in [[tao_random_test]]>>=
+integer, parameter :: &
+     SEED = 310952, &
+     N = 2009, M = 1009, &
+     N_SHORT = 1984
+@ DEK's ``official'' test
+expects~$a_{1009\cdot2009+1}=a_{2027082}=995235265$:
+<<Perform simple tests of [[tao_random_numbers]]>>=
+! call tao_random_luxury ()
+call tao_random_seed (SEED)
+do i = 1, N+1
+   call tao_random_number (a, M)
+end do
+<<Test $[[a(1)]]=[[A_2027082]]$>>
+@ 
+<<Test $[[a(1)]]=[[A_2027082]]$>>=
+if (a(1) == A_2027082) then
+   print OK, a(1)
+else
+   print NOT_OK, a(1), A_2027082
+   stop 1
+end if
+@ Deja vu all over again, but 2027081 is factored the other way around
+this time
+<<Perform simple tests of [[tao_random_numbers]]>>=
+call tao_random_seed (SEED)
+do i = 1, M+1
+   call tao_random_number (a)
+end do
+<<Test $[[a(1)]]=[[A_2027082]]$>>
+@ Now checkpoint the random number generator
+after~$N_{\text{short}}\cdot M$ numbers
+<<Perform more tests of [[tao_random_numbers]]>>=
+print *, "testing the stateless stuff ..."
+call tao_random_create (s, SEED)
+do i = 1, N_SHORT
+   call tao_random_number (s, a, M)
+end do
+call tao_random_create (t, s)
+do i = 1, N+1 - N_SHORT
+   call tao_random_number (s, a, M)
+end do
+<<Test $[[a(1)]]=[[A_2027082]]$>>
+@ and restart the saved generator
+<<Perform more tests of [[tao_random_numbers]]>>=
+do i = 1, N+1 - N_SHORT
+   call tao_random_number (t, a, M)
+end do
+<<Test $[[a(1)]]=[[A_2027082]]$>>
+@ The same story again, but this time saving the copy to a file
+<<Perform more tests of [[tao_random_numbers]]>>=
+if (present (name)) then
+   print *, "testing I/O ..."
+   call tao_random_seed (s, SEED)
+   do i = 1, N_SHORT
+      call tao_random_number (s, a, M)
+   end do
+   call tao_random_write (s, name)
+   do i = 1, N+1 - N_SHORT
+      call tao_random_number (s, a, M)
+   end do
+   <<Test $[[a(1)]]=[[A_2027082]]$>>
+   call tao_random_read (s, name)
+   do i = 1, N+1 - N_SHORT
+      call tao_random_number (s, a, M)
+   end do
+   <<Test $[[a(1)]]=[[A_2027082]]$>>
+end if
+@ And finally using marshaling/unmarshaling:
+<<Perform more tests of [[tao_random_numbers]]>>=
+print *, "testing marshaling/unmarshaling ..."
+call tao_random_seed (s, SEED)
+do i = 1, N_SHORT
+   call tao_random_number (s, a, M)
+end do
+call tao_random_marshal_size (s, ibuf_size, dbuf_size)
+allocate (ibuf(ibuf_size), dbuf(dbuf_size))
+call tao_random_marshal (s, ibuf, dbuf)
+do i = 1, N+1 - N_SHORT
+   call tao_random_number (s, a, M)
+end do
+<<Test $[[a(1)]]=[[A_2027082]]$>>
+call tao_random_unmarshal (s, ibuf, dbuf)
+do i = 1, N+1 - N_SHORT
+   call tao_random_number (s, a, M)
+end do
+<<Test $[[a(1)]]=[[A_2027082]]$>>
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{52-bit}
+DEK's ``official'' test
+expects~$x_{1009\cdot2009+1}=x_{2027082}=0.36410514377569680455$:
+<<Implementation of 52-bit [[tao_random_numbers]]>>=
+subroutine tao_random_test (name)
+  character(len=*), optional, intent(in) :: name
+  character(len=*), parameter :: &
+       OK = "(1x,f22.20,' is ok.')", &
+       NOT_OK = "(1x,f22.20,' is not ok, (A_2027082 ',f22.20,')!')"
+  <<Parameters in [[tao_random_test]]>>
+  real(kind=default), parameter :: &
+       A_2027082 = 0.36410514377569680455_tao_r64
+  real(kind=default), dimension(N) :: a
+  type(tao_random_state) :: s, t
+  integer, dimension(:), allocatable :: ibuf
+  real(kind=tao_r64), dimension(:), allocatable :: dbuf
+  integer :: i, ibuf_size, dbuf_size
+  print *, "testing the 52-bit tao_random_numbers ..."
+  <<Perform simple tests of [[tao_random_numbers]]>>
+  <<Perform more tests of [[tao_random_numbers]]>>
+end subroutine tao_random_test
+@ %def tao_random_test
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Test Program}
+<<[[tao_test.f90]]>>=
+program tao_test
+  use tao_random_numbers, only: test30 => tao_random_test
+  use tao52_random_numbers, only: test52 => tao_random_test
+  implicit none
+  call test30 ("tmp.tao")
+  call test52 ("tmp.tao")
+  stop 0
+end program tao_test
+@ %def tao_test
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

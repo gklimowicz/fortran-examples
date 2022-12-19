@@ -1,0 +1,1043 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+submodule (vamp2) vamp2_s
+
+  use io_units
+  use format_utils, only: pac_fmt
+  use format_utils, only: write_separator, write_indent
+  use format_defs, only: FMT_17
+  use iterator
+  use rng_stream, only: rng_stream_t
+
+  implicit none
+
+contains
+
+  module subroutine vamp2_func_init (self, n_dim, n_channel)
+    class(vamp2_func_t), intent(out) :: self
+    integer, intent(in) :: n_dim
+    integer, intent(in) :: n_channel
+    self%n_dim = n_dim
+    self%n_channel = n_channel
+    allocate (self%xi(n_dim, n_channel), source=0._default)
+    allocate (self%det(n_channel), source=1._default)
+    allocate (self%wi(n_channel), source=0._default)
+    allocate (self%gi(n_channel), source=0._default)
+    allocate (self%grids(n_channel))
+  end subroutine vamp2_func_init
+
+  module subroutine vamp2_func_set_channel (self, channel)
+    class(vamp2_func_t), intent(inout) :: self
+    integer, intent(in) :: channel
+    self%current_channel = channel
+  end subroutine vamp2_func_set_channel
+
+  module function vamp2_func_get_n_calls (self) result (n_calls)
+    class(vamp2_func_t), intent(in) :: self
+    integer :: n_calls
+    n_calls = self%n_calls
+  end function vamp2_func_get_n_calls
+
+  module subroutine vamp2_func_reset_n_calls (self)
+    class(vamp2_func_t), intent(inout) :: self
+    self%n_calls = 0
+  end subroutine vamp2_func_reset_n_calls
+
+  module subroutine vamp2_func_evaluate_weight (self)
+    class(vamp2_func_t), intent(inout) :: self
+    integer :: ch
+    self%g = 0
+    self%gi = 0
+    !$OMP PARALLEL DO PRIVATE(ch) SHARED(self)
+    do ch = 1, self%n_channel
+       if (self%wi(ch) /= 0) then
+          self%gi(ch) = self%grids(ch)%get_probability (self%xi(:, ch))
+       end if
+    end do
+    !$OMP END PARALLEL DO
+    if (self%gi(self%current_channel) /= 0) then
+       do ch = 1, self%n_channel
+          if (self%wi(ch) /= 0 .and. self%det(ch) /= 0) then
+             self%g = self%g + self%wi(ch) * self%gi(ch) / self%det(ch)
+          end if
+       end do
+       self%g = self%g / self%gi(self%current_channel)
+    end if
+  end subroutine vamp2_func_evaluate_weight
+
+  module function vamp2_func_evaluate (self, x) result (f)
+    class(vamp2_func_t), intent(inout) :: self
+    real(default) :: f
+    real(default), dimension(:), intent(in) :: x
+    call self%evaluate_maps (x)
+    f = 0.
+    self%gi = 0.
+    self%g = 1
+    if (self%valid_x) then
+       call self%evaluate_weight ()
+       if (self%g /= 0) then
+          f = self%evaluate_func (x) / self%g
+          self%n_calls = self%n_calls + 1
+       end if
+    end if
+  end function vamp2_func_evaluate
+
+  module subroutine vamp2_config_write (self, unit, indent)
+    class(vamp2_config_t), intent(in) :: self
+    integer, intent(in), optional :: unit
+    integer, intent(in), optional :: indent
+    integer :: u, ind
+    u = given_output_unit (unit)
+    ind = 0; if (present (indent)) ind = indent
+    call self%vegas_config_t%write (unit, indent)
+    call write_indent (u, ind)
+    write (u, "(2x,A,I0)") &
+         & "Number of channels                               = ", self%n_channel
+    call write_indent (u, ind)
+    write (u, "(2x,A,I0)") &
+         & "Min. number of calls per channel (setting calls) = ", &
+         & self%n_calls_min_per_channel
+    call write_indent (u, ind)
+    write (u, "(2x,A,I0)") &
+         & "Threshold number of calls (adapting weights)     = ", &
+         & self%n_calls_threshold
+    call write_indent (u, ind)
+    write (u, "(2x,A,I0)") &
+         & "Number of chains                                 = ", self%n_chains
+    call write_indent (u, ind)
+    write (u, "(2x,A,L1)") &
+         & "Stratified                                       = ", self%stratified
+    call write_indent (u, ind)
+    write (u, "(2x,A,L1)") &
+         & "Equivalences                                     = ", self%equivalences
+    call write_indent (u, ind)
+    write (u, "(2x,A," // FMT_17 // ")") &
+         & "Adaption power (beta)                            = ", self%beta
+    if (self%accuracy_goal > 0) then
+       call write_indent (u, ind)
+       write (u, "(2x,A," // FMT_17 // ")") &
+            & "accuracy_goal                                 = ", self%accuracy_goal
+    end if
+    if (self%error_goal > 0) then
+       call write_indent (u, ind)
+       write (u, "(2x,A," // FMT_17 // ")") &
+            & "error_goal                                    = ", self%error_goal
+    end if
+    if (self%rel_error_goal > 0) then
+       call write_indent (u, ind)
+       write (u, "(2x,A," // FMT_17 // ")") &
+            & "rel_error_goal                                = ", self%rel_error_goal
+    end if
+  end subroutine vamp2_config_write
+
+  module subroutine vamp2_result_write (self, unit, indent)
+    class(vamp2_result_t), intent(in) :: self
+    integer, intent(in), optional :: unit
+    integer, intent(in), optional :: indent
+    integer :: u, ind
+    u = given_output_unit (unit)
+    ind = 0; if (present (indent)) ind = indent
+    call self%vegas_result_t%write (unit, indent)
+  end subroutine vamp2_result_write
+
+  module subroutine vamp2_equi_write (self, unit, indent)
+    class(vamp2_equi_t), intent(in) :: self
+    integer, intent(in), optional :: unit
+    integer, intent(in), optional :: indent
+    integer :: u, ind
+    u = given_output_unit (unit)
+    ind = 0; if (present (indent)) ind = indent
+    call write_indent (u, ind)
+    write (u, "(2(A,1X,I0))") "src:", self%ch_src, "-> dest:", self%ch
+    call write_indent (u, ind)
+    write (u, "(A,99(1X,I0))") "Perm: ", self%perm
+    call write_indent (u, ind)
+    write (u, "(A,99(1X,I0))") "Mode: ", self%mode
+  end subroutine vamp2_equi_write
+
+  module function vamp2_equivalences_init (n_eqv, n_channel, &
+       n_dim) result (eqv)
+    type(vamp2_equivalences_t) :: eqv
+    integer, intent(in) :: n_eqv, n_channel, n_dim
+    eqv%n_eqv = n_eqv
+    eqv%n_channel = n_channel
+    eqv%n_dim = n_dim
+    allocate (eqv%eqv(n_eqv))
+    allocate (eqv%map(n_channel), source = 0)
+    allocate (eqv%multiplicity(n_channel), source = 0)
+    allocate (eqv%symmetry(n_channel), source = 0)
+    allocate (eqv%independent(n_channel), source = .true.)
+    allocate (eqv%equivalent_to_ch(n_channel), source = 0)
+    allocate (eqv%dim_is_invariant(n_dim, n_channel), source = .false.)
+  end function vamp2_equivalences_init
+
+  module subroutine vamp2_equivalences_write (self, unit, indent)
+    class(vamp2_equivalences_t), intent(in) :: self
+    integer, intent(in), optional :: unit
+    integer, intent(in), optional :: indent
+    integer :: u, ind, i_eqv, ch
+    u = given_output_unit (unit)
+    ind = 0; if (present (indent)) ind = indent
+    write (u, "(A)") "Inequivalent channels:"
+    if (allocated (self%independent)) then
+       do ch = 1, self%n_channel
+          if (self%independent(ch)) then
+             write (u, "(2X,A,1x,I0,A,4x,A,I0,4x,A,I0,4x,A,999(L1))") &
+                  "Channel", ch, ":", &
+                  "Mult. = ", self%multiplicity(ch), &
+                  "Symm. = ", self%symmetry(ch), &
+                  "Invar.: ", self%dim_is_invariant(:, ch)
+          end if
+       end do
+    else
+       write (u, "(A)") "[not allocated]"
+    end if
+    write (u, "(A)") "Equivalence list:"
+    if (allocated (self%eqv)) then
+       do i_eqv = 1, self%n_eqv
+          write (u, "(2X,A,1X,I0)") "i_eqv:", i_eqv
+          call self%eqv(i_eqv)%write (unit, indent = ind + 4)
+       end do
+    else
+       write (u, "(A)") "[not allocated]"
+    end if
+  end subroutine vamp2_equivalences_write
+
+  module function vamp2_equivalences_is_allocated (self) result (yorn)
+    class(vamp2_equivalences_t), intent(in) :: self
+    logical :: yorn
+    yorn = allocated (self%eqv)
+  end function vamp2_equivalences_is_allocated
+
+  module subroutine vamp2_equivalences_get_channels (eqv, i_eqv, dest, src)
+    class(vamp2_equivalences_t), intent(in) :: eqv
+    integer, intent(in) :: i_eqv
+    integer, intent(out) :: dest, src
+    dest = eqv%eqv(i_eqv)%ch
+    src = eqv%eqv(i_eqv)%ch_src
+  end subroutine vamp2_equivalences_get_channels
+
+  module function vamp2_equivalences_get_mode (eqv, i_eqv) result (mode)
+    class(vamp2_equivalences_t), intent(in) :: eqv
+    integer, intent(in) :: i_eqv
+    integer, dimension(:), allocatable :: mode
+    mode = eqv%eqv(i_eqv)%mode
+  end function vamp2_equivalences_get_mode
+
+  module function vamp2_equivalences_get_perm (eqv, i_eqv) result (perm)
+    class(vamp2_equivalences_t), intent(in) :: eqv
+    integer, intent(in) :: i_eqv
+    integer, dimension(:), allocatable :: perm
+    perm = eqv%eqv(i_eqv)%perm
+  end function vamp2_equivalences_get_perm
+
+  module subroutine vamp2_equivalences_set_equivalence &
+       (eqv, i_eqv, dest, src, perm, mode)
+    class(vamp2_equivalences_t), intent(inout) :: eqv
+    integer, intent(in) :: i_eqv
+    integer, intent(in) :: dest, src
+    integer, dimension(:), intent(in) :: perm, mode
+    integer :: i
+    if (dest < 1 .or. dest > eqv%n_channel)  call msg_bug &
+       ("VAMP2: set_equivalences: destination channel out of range.")
+    if (src < 1 .or. src > eqv%n_channel)  call msg_bug &
+         ("VAMP2: set_equivalences: source channel out of range.")
+    if (size(perm) /= eqv%n_dim)  call msg_bug &
+         ("VAMP2: set_equivalences: size(perm) does not match n_dim.")
+    if (size(mode) /= eqv%n_dim)  call msg_bug &
+         ("VAMP2: set_equivalences: size(mode) does not match n_dim.")
+    eqv%eqv(i_eqv)%ch = dest
+    eqv%eqv(i_eqv)%ch_src = src
+    allocate (eqv%eqv(i_eqv)%perm (size (perm)))
+    do i = 1, size (perm)
+       eqv%eqv(i_eqv)%perm(i) = perm(i)
+    end do
+    allocate (eqv%eqv(i_eqv)%mode (size (mode)))
+    do i = 1, size (mode)
+       eqv%eqv(i_eqv)%mode(i) = mode(i)
+    end do
+  end subroutine vamp2_equivalences_set_equivalence
+
+  module subroutine vamp2_equivalences_freeze (self)
+    class(vamp2_equivalences_t), intent(inout) :: self
+    integer :: i_eqv, ch, upper, lower
+    ch = 0
+    do i_eqv = 1, self%n_eqv
+       if (ch /= self%eqv(i_eqv)%ch) then
+          ch = self%eqv(i_eqv)%ch
+          self%map(ch) = i_eqv
+       end if
+    end do
+    do ch = 1, self%n_channel
+       lower = self%map(ch)
+       if (ch == self%n_channel) then
+          upper = self%n_eqv
+       else
+          upper = self%map(ch + 1) - 1
+       end if
+       associate (eqv => self%eqv, n_eqv => size (self%eqv(lower:upper)))
+         if (.not. all(eqv(lower:upper)%ch == ch) .or. &
+              eqv(lower)%ch_src > ch) then
+            do i_eqv = lower, upper
+               call self%eqv(i_eqv)%write ()
+            end do
+            call msg_bug ("VAMP2: vamp2_equivalences_freeze: &
+                 &equivalence order is not correct.")
+         end if
+         self%symmetry(ch) = count (eqv(lower:upper)%ch_src == ch)
+         if (mod (n_eqv, self%symmetry(ch)) /= 0) then
+            do i_eqv = lower, upper
+               call self%eqv(i_eqv)%write ()
+            end do
+            call msg_bug ("VAMP2: vamp2_equivalences_freeze: &
+                 &permutation count is not correct.")
+         end if
+         self%multiplicity(ch) = n_eqv / self%symmetry(ch)
+         self%independent(ch) = all (eqv(lower:upper)%ch_src >= ch)
+         self%equivalent_to_ch(ch) = eqv(lower)%ch_src
+         self%dim_is_invariant(:, ch) = eqv(lower)%mode == VEQ_INVARIANT
+       end associate
+    end do
+  end subroutine vamp2_equivalences_freeze
+
+  module function vamp2_init (n_channel, n_dim, alpha, beta, n_bins_max,&
+       & n_calls_min_per_channel, iterations, mode) result (self)
+    type(vamp2_t) :: self
+    integer, intent(in) :: n_channel
+    integer, intent(in) :: n_dim
+    integer, intent(in), optional :: n_bins_max
+    integer, intent(in), optional :: n_calls_min_per_channel
+    real(default), intent(in), optional :: alpha
+    real(default), intent(in), optional :: beta
+    integer, intent(in), optional :: iterations
+    integer, intent(in), optional :: mode
+    integer :: ch
+    self%config%n_dim = n_dim
+    self%config%n_channel = n_channel
+    call set_options ()
+    allocate (self%chain(n_channel), source=0)
+    allocate (self%integrator(n_channel))
+    allocate (self%weight(n_channel), source=0._default)
+    do ch = 1, n_channel
+       self%integrator(ch) = vegas_t (n_dim, alpha, n_bins_max, 1, mode)
+    end do
+    self%weight = 1._default / self%config%n_channel
+    call self%reset_result ()
+    allocate (self%event_weight(self%config%n_channel), source = 0._default)
+    self%event_prepared = .false.
+  contains
+    subroutine set_options ()
+      if (present (n_bins_max)) self%config%n_bins_max = n_bins_max
+      if (present (n_calls_min_per_channel)) &
+           self%config%n_calls_min_per_channel = n_calls_min_per_channel
+      if (present (alpha)) self%config%alpha = alpha
+      if (present (beta)) self%config%beta = beta
+      if (present (iterations)) self%config%iterations = iterations
+      if (present (mode)) self%config%mode = mode
+    end subroutine set_options
+  end function vamp2_init
+
+  module subroutine vamp2_final (self)
+    class(vamp2_t), intent(inout) :: self
+    integer :: ch
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%final ()
+    end do
+  end subroutine vamp2_final
+
+  module subroutine vamp2_write (self, unit, indent)
+    class(vamp2_t), intent(in) :: self
+    integer, intent(in), optional :: unit
+    integer, intent(in), optional :: indent
+    integer :: u, ind, ch
+    u = given_output_unit (unit)
+    ind = 0; if (present (indent)) ind = indent
+    call write_indent (u, ind)
+    write (u, "(A)") "VAMP2: VEGAS AMPlified 2"
+    call write_indent (u, ind)
+    call self%config%write (unit, indent)
+    call self%result%write (unit, indent)
+  end subroutine vamp2_write
+
+  module subroutine vamp2_get_config (self, config)
+    class(vamp2_t), intent(in) :: self
+    type(vamp2_config_t), intent(out) :: config
+    config = self%config
+  end subroutine vamp2_get_config
+
+  module subroutine vamp2_set_config (self, config)
+    class(vamp2_t), intent(inout) :: self
+    class(vamp2_config_t), intent(in) :: config
+    integer :: ch
+    self%config%equivalences = config%equivalences
+    self%config%n_calls_min_per_channel = config%n_calls_min_per_channel
+    self%config%n_calls_threshold = config%n_calls_threshold
+    self%config%n_calls_min = config%n_calls_min
+    self%config%beta = config%beta
+    self%config%accuracy_goal = config%accuracy_goal
+    self%config%error_goal = config%error_goal
+    self%config%rel_error_goal = config%rel_error_goal
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%set_config (config)
+    end do
+  end subroutine vamp2_set_config
+
+  module subroutine vamp2_set_n_calls (self, n_calls)
+    class(vamp2_t), intent(inout) :: self
+    integer, intent(in) :: n_calls
+    integer :: ch
+    self%config%n_calls_min = self%config%n_calls_min_per_channel &
+         & * self%config%n_channel
+    self%config%n_calls = max(n_calls, self%config%n_calls_min)
+    if (self%config%n_calls > n_calls) then
+       write (msg_buffer, "(A,I0)") "VAMP2: [set_calls] number of calls too few,&
+            & reset to = ", self%config%n_calls
+       call msg_message ()
+    end if
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%set_calls (max (nint (self%config%n_calls *&
+            & self%weight(ch)), self%config%n_calls_min_per_channel))
+    end do
+  end subroutine vamp2_set_n_calls
+
+  module subroutine vamp2_set_limits (self, x_upper, x_lower)
+    class(vamp2_t), intent(inout) :: self
+    real(default), dimension(:), intent(in) :: x_upper
+    real(default), dimension(:), intent(in) :: x_lower
+    integer :: ch
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%set_limits (x_upper, x_lower)
+    end do
+  end subroutine vamp2_set_limits
+
+  module subroutine vamp2_set_chain (self, n_chains, chain)
+    class(vamp2_t), intent(inout) :: self
+    integer, intent(in) :: n_chains
+    integer, dimension(:), intent(in) :: chain
+    if (size (chain) /= self%config%n_channel) then
+       call msg_bug ("VAMP2: set chain: size of chain array does not match n_channel.")
+    else
+       call msg_message ("VAMP2: set chain: use chained weights.")
+    end if
+    self%config%n_chains = n_chains
+    self%chain = chain
+  end subroutine vamp2_set_chain
+
+  module subroutine vamp2_set_equivalences (self, equivalences)
+    class(vamp2_t), intent(inout) :: self
+    type(vamp2_equivalences_t), intent(in) :: equivalences
+    self%equivalences = equivalences
+  end subroutine vamp2_set_equivalences
+
+  elemental module function vamp2_get_n_calls (self) result (n_calls)
+    class(vamp2_t), intent(in) :: self
+    real(default) :: n_calls
+    n_calls = sum (self%integrator%get_calls ())
+  end function vamp2_get_n_calls
+
+  elemental module function vamp2_get_integral (self) result (integral)
+    class(vamp2_t), intent(in) :: self
+    real(default) :: integral
+    integral = 0.
+    if (self%result%sum_wgts > 0.) then
+       integral = self%result%sum_int_wgtd / self%result%sum_wgts
+    end if
+  end function vamp2_get_integral
+
+  elemental module function vamp2_get_variance (self) result (variance)
+    class(vamp2_t), intent(in) :: self
+    real(default) :: variance
+    variance = 0
+    if (self%result%sum_wgts > 0.) then
+       variance = 1.0 / self%result%sum_wgts
+    end if
+  end function vamp2_get_variance
+
+  elemental module function vamp2_get_efficiency (self) result (efficiency)
+    class(vamp2_t), intent(in) :: self
+    real(default) :: efficiency
+    efficiency = 0.
+    if (self%result%efficiency > 0.) then
+       efficiency = self%result%efficiency
+    end if
+  end function vamp2_get_efficiency
+
+  module function vamp2_get_evt_weight (self) result (evt_weight)
+    class(vamp2_t), intent(in) :: self
+    real(default) :: evt_weight
+    evt_weight = self%result%evt_weight
+  end function vamp2_get_evt_weight
+
+  module function vamp2_get_evt_weight_excess (self) result (evt_weight_excess)
+    class(vamp2_t), intent(in) :: self
+    real(default) :: evt_weight_excess
+    evt_weight_excess = self%result%evt_weight_excess
+  end function vamp2_get_evt_weight_excess
+
+  module function vamp2_get_grid (self, channel) result (grid)
+    class(vamp2_t), intent(in) :: self
+    type(vegas_grid_t) :: grid
+    integer, intent(in) :: channel
+    if (channel < 1 .or. channel > self%config%n_channel) &
+         call msg_bug ("VAMP2: vamp2_get_grid: channel index < 1 or > n_channel.")
+    grid = self%integrator(channel)%get_grid ()
+  end function vamp2_get_grid
+
+  module subroutine vamp2_adapt_weights (self)
+    class(vamp2_t), intent(inout) :: self
+    integer :: n_weights_underflow
+    real(default) :: weight_min, sum_weights_underflow
+    self%weight = self%weight * self%integrator%get_variance ()**self%config%beta
+    if (sum (self%weight) == 0) self%weight = real(self%config%n_calls, default)
+    if (self%config%n_chains > 0) then
+       call chain_weights ()
+    end if
+    self%weight = self%weight / sum(self%weight)
+    if (self%config%n_calls_threshold /= 0) then
+       weight_min = real(self%config%n_calls_threshold, default) &
+            & / self%config%n_calls
+       sum_weights_underflow = sum (self%weight, self%weight < weight_min)
+       n_weights_underflow = count (self%weight < weight_min)
+       where (self%weight < weight_min)
+          self%weight = weight_min
+       elsewhere
+          self%weight = self%weight * (1. - n_weights_underflow * weight_min) &
+               & / (1. - sum_weights_underflow)
+       end where
+    end if
+    call self%set_calls (self%config%n_calls)
+  contains
+    subroutine chain_weights ()
+      integer :: ch
+      real(default) :: average
+      do ch = 1, self%config%n_chains
+         average = max (sum (self%weight, self%chain == ch), 0._default)
+         if (average /= 0) then
+            average = average / count (self%chain == ch)
+            where (self%chain == ch)
+               self%weight = average
+            end where
+         end if
+      end do
+    end subroutine chain_weights
+
+  end subroutine vamp2_adapt_weights
+
+  module subroutine vamp2_apply_equivalences (self)
+    class(vamp2_t), intent(inout) :: self
+    integer :: ch, ch_src, j, j_src, i_eqv
+    real(default), dimension(:, :, :), allocatable :: d
+    real(default), dimension(:, :), allocatable :: d_src
+    integer, dimension(:), allocatable :: mode, perm
+    if (.not. self%equivalences%is_allocated ()) then
+       call msg_bug ("VAMP2: vamp2_apply_equivalences: &
+            &cannot apply not-allocated equivalences.")
+    end if
+    allocate (d(self%config%n_bins_max, self%config%n_dim, &
+         self%config%n_channel), source=0._default)
+    associate (eqv => self%equivalences, nb => self%config%n_bins_max)
+      do i_eqv = 1, self%equivalences%n_eqv
+         call eqv%get_channels (i_eqv, ch, ch_src)
+         d_src = self%integrator(ch_src)%get_distribution ()
+         mode = eqv%get_mode (i_eqv)
+         perm = eqv%get_perm (i_eqv)
+         do j = 1, self%config%n_dim
+            select case (mode (j))
+            case (VEQ_IDENTITY)
+               d(:, j, ch) = d(:, j, ch) + &
+                    d_src(:, perm(j))
+            case (VEQ_INVERT)
+               d(:, j, ch) = d(:, j, ch) + &
+                    d_src(nb:1:-1, perm(j))
+            case (VEQ_SYMMETRIC)
+               d(:, j, ch) = d(:, j, ch) + &
+                    d_src(:, perm(j)) / 2. + &
+                    d_src(nb:1:-1, perm(j)) / 2.
+            case (VEQ_INVARIANT)
+               d(:, j, ch) = 1._default
+            end select
+         end do
+      end do
+    end associate
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%set_distribution (d(:, :, ch))
+    end do
+  end subroutine vamp2_apply_equivalences
+
+  module subroutine vamp2_reset_result (self)
+    class(vamp2_t), intent(inout) :: self
+    call self%result%reset ()
+  end subroutine vamp2_reset_result
+
+  module subroutine vamp2_integrate (self, func, rng, iterations, &
+       reset_result, refine_grids, adapt_weights, verbose, result, abserr)
+    class(vamp2_t), intent(inout) :: self
+    class(vamp2_func_t), intent(inout) :: func
+    class(rng_t), intent(inout) :: rng
+    integer, intent(in), optional :: iterations
+    logical, intent(in), optional :: reset_result
+    logical, intent(in), optional :: refine_grids
+    logical, intent(in), optional :: adapt_weights
+    logical, intent(in), optional :: verbose
+    real(default), optional, intent(out) :: result, abserr
+    integer :: it, ch
+    type(iterator_t) :: channel_iterator
+    real(default) :: cumulative_int, cumulative_std
+    logical :: opt_reset_result
+    logical :: opt_adapt_weights
+    logical :: opt_refine_grids
+    logical :: opt_verbose
+  
+    call set_options ()
+    if (opt_verbose) then
+       call msg_message ("Results: [it, calls, integral, error, chi^2, eff.]")
+    end if
+    if (opt_reset_result) call self%reset_result ()
+  
+    iteration: do it = 1, self%config%iterations
+       call channel_iterator%init (1, self%config%n_channel)
+       call self%prepare_integrate_iteration (func)
+     
+     channel: do
+          if (.not. channel_iterator%is_iterable ()) exit channel
+          ch = channel_iterator%get_current ()
+          call func%set_channel (ch)
+          call self%integrator(ch)%integrate ( &
+               & func, rng, iterations, refine_grid = .false., verbose = .false.)
+        
+          call channel_iterator%next_step ()
+       end do channel
+     
+       call self%compute_result_and_efficiency ()
+       associate (result => self%result)
+         cumulative_int = result%sum_int_wgtd / result%sum_wgts
+         cumulative_std = sqrt (1 / result%sum_wgts)
+         if (opt_verbose) then
+            write (msg_buffer, "(I0,1x,I0,1x, 4(E24.16E4,1x))") &
+                 & it, self%config%n_calls, cumulative_int, cumulative_std, &
+                 & result%chi2, result%efficiency
+            call msg_message ()
+         end if
+       end associate
+       if (opt_adapt_weights) then
+          call self%adapt_weights ()
+       end if
+       if (opt_refine_grids) then
+          if (self%config%equivalences .and. self%equivalences%is_allocated ()) then
+             call self%apply_equivalences ()
+          end if
+          do ch = 1, self%config%n_channel
+             !! When we apply the grid refinement outside of VEGAS, then we do not average over distribution
+             !! as VEGAS averaged the distribution internally.
+             call self%integrator(ch)%refine (average = .false.)
+          end do
+       end if
+    end do iteration
+    if (present (result)) result = cumulative_int
+    if (present (abserr)) abserr = abs (cumulative_std)
+  contains
+    subroutine set_options ()
+      if (present (iterations)) self%config%iterations = iterations
+      opt_reset_result = .true.
+      if (present (reset_result)) opt_reset_result = reset_result
+      opt_adapt_weights = .true.
+      if (present (adapt_weights)) opt_adapt_weights = adapt_weights
+      opt_refine_grids = .true.
+      if (present (refine_grids)) opt_refine_grids = refine_grids
+      opt_verbose = .false.
+      if (present (verbose)) opt_verbose = verbose
+    end subroutine set_options
+
+  end subroutine vamp2_integrate
+
+  module subroutine vamp2_compute_result_and_efficiency (self)
+    class(vamp2_t), intent(inout) :: self
+    real(default) :: total_integral, total_variance
+    real(default) :: max_abs_f_pos, max_abs_f_neg, &
+         sum_abs_f_pos, sum_abs_f_neg
+    call compute_integral_and_variance (total_integral, total_variance)
+    call self%result%update (total_integral, total_variance)
+    call compute_efficiency (max_pos = max_abs_f_pos, max_neg = max_abs_f_neg, &
+         sum_pos = sum_abs_f_pos, sum_neg = sum_abs_f_neg)
+    !! Do not average of number of calls, we have already averaged the efficiencies of all channels.
+    call self%result%update_efficiency (n_calls  = 1, &
+         max_pos = max_abs_f_pos, max_neg = max_abs_f_neg, &
+         sum_pos = sum_abs_f_pos, sum_neg = sum_abs_f_neg)
+  contains
+    subroutine compute_integral_and_variance (integral, variance)
+      real(default), intent(out) :: integral, variance
+      real(default) :: sq_integral
+      integral = dot_product (self%weight, self%integrator%get_integral ())
+      sq_integral = dot_product (self%weight, self%integrator%get_integral ()**2)
+      variance = self%config%n_calls * dot_product (self%weight**2, self%integrator%get_variance ())
+      variance = sqrt (variance + sq_integral)
+      variance = 1._default / self%config%n_calls * &
+           & (variance + integral) * (variance - integral)
+    end subroutine compute_integral_and_variance
+
+    !> We compute the weight-averaged sum and maximum of the channel (integration) weights \f$w_{i,c}\f$.
+    !!
+    !! The averaged integration weight and maximum are
+    !! \f[
+    !!  \langle w \rangle = \sum_i \alpha_i \frac{\sum_j w_{i, j}}{N_i},
+    !! \f]
+    !! \f[
+    !!  \langle \max w \rangle = \sum_i \alpha_i |\max_j w_{i, j}|.
+    !! \f]
+    subroutine compute_efficiency (max_pos, max_neg, &
+         sum_pos, sum_neg)
+      real(default), intent(out) :: max_pos, max_neg
+      real(default), intent(out) :: sum_pos, sum_neg
+      max_abs_f_pos = dot_product (self%weight, self%integrator%get_max_abs_f_pos ())
+      max_abs_f_neg = dot_product (self%weight, self%integrator%get_max_abs_f_neg ())
+      sum_abs_f_pos = dot_product (self%weight, &
+           self%integrator%get_sum_abs_f_pos () / self%integrator%get_calls ())
+      sum_abs_f_neg = dot_product (self%weight, &
+           self%integrator%get_sum_abs_f_neg () / self%integrator%get_calls ())
+    end subroutine compute_efficiency
+  end subroutine vamp2_compute_result_and_efficiency
+
+  module subroutine vamp2_generate_weighted_event (self, func, rng, x)
+    class(vamp2_t), intent(inout) :: self
+    class(vamp2_func_t), intent(inout) :: func
+    class(rng_t), intent(inout) :: rng
+    real(default), dimension(self%config%n_dim), intent(out)  :: x
+    integer :: ch, i
+    real(default) :: r
+    if (.not. self%event_prepared) then
+       call prepare_event ()
+    else
+       if (.not. allocated (func%grids)) then
+          call prepare_event ()
+       else
+          if (any ([(.not. allocated (func%grids(i)%xi),i=1,size(func%grids))])) then
+             call prepare_event ()
+          end if
+       end if
+    end if
+    call rng%generate (r)
+    nchannel: do ch = 1, self%config%n_channel
+       r = r - self%event_weight(ch)
+       if (r <= 0._default) exit nchannel
+    end do nchannel
+    ch = min (ch, self%config%n_channel)
+    call func%set_channel (ch)
+    call self%integrator(ch)%generate_weighted (func, rng, x)
+    ! Norm weight by f_max, hidden in event_weight(ch), else by 1
+    self%result%evt_weight = self%integrator(ch)%get_evt_weight () &
+         * self%weight(ch) / self%event_weight(ch)
+  contains
+    subroutine prepare_event ()
+      integer :: i
+      self%event_prepared = .false.
+      do i = 1, self%config%n_channel
+         func%wi(i) = self%weight(i)
+         func%grids(i) = self%integrator(i)%get_grid ()
+      end do
+      if (any (self%integrator%get_max_abs_f () > 0)) then
+         self%event_weight = self%weight * self%integrator%get_max_abs_f ()
+      else
+         self%event_weight = self%weight
+      end if
+      self%event_weight = self%event_weight / sum (self%event_weight)
+      self%event_prepared = .true.
+    end subroutine prepare_event
+
+  end subroutine vamp2_generate_weighted_event
+
+  module subroutine vamp2_generate_unweighted_event (self, func, rng, &
+       x, opt_event_rescale)
+    class(vamp2_t), intent(inout) :: self
+    class(vamp2_func_t), intent(inout) :: func
+    class(rng_t), intent(inout) :: rng
+    real(default), dimension(self%config%n_dim), intent(out)  :: x
+    real(default), intent(in), optional :: opt_event_rescale
+    integer :: ch, i
+    real(default) :: r, max_abs_f, event_rescale
+    event_rescale = 1._default
+    if (present (opt_event_rescale)) then
+       event_rescale = opt_event_rescale
+    end if
+    if (.not. self%event_prepared) then
+       call prepare_event ()
+    else
+       if (.not. allocated (func%grids)) then
+          call prepare_event ()
+       else
+          if (any ([(.not. allocated (func%grids(i)%xi),i=1,size(func%grids))])) then
+             call prepare_event ()
+          end if
+       end if
+    end if
+    generate: do
+       call rng%generate (r)
+       nchannel: do ch = 1, self%config%n_channel
+          r = r - self%event_weight(ch)
+          if (r <= 0._default) exit nchannel
+       end do nchannel
+       ch = min (ch, self%config%n_channel)
+       call func%set_channel (ch)
+       call self%integrator(ch)%generate_weighted (func, rng, x)
+       self%result%evt_weight = self%integrator(ch)%get_evt_weight ()
+       max_abs_f = self%integrator(ch)%get_max_abs_f ()
+       self%result%evt_weight_excess = 0._default
+       if (abs(self%result%evt_weight) > max_abs_f) then
+          self%result%evt_weight_excess = abs(self%result%evt_weight) / max_abs_f - 1._default
+          exit generate
+       end if
+       call rng%generate (r)
+       ! Do not use division, because max_abs_f could be zero.
+       if (event_rescale * max_abs_f * r <= abs(self%result%evt_weight)) then
+          exit generate
+       end if
+    end do generate
+  contains
+    subroutine prepare_event ()
+      integer :: i
+      self%event_prepared = .false.
+      do i = 1, self%config%n_channel
+         func%wi(i) = self%weight(i)
+         func%grids(i) = self%integrator(i)%get_grid ()
+      end do
+      if (any (self%integrator%get_max_abs_f () > 0)) then
+         self%event_weight = self%weight * self%integrator%get_max_abs_f ()
+      else
+         self%event_weight = self%weight
+      end if
+      self%event_weight = self%event_weight / sum (self%event_weight)
+      self%event_prepared = .true.
+    end subroutine prepare_event
+
+  end subroutine vamp2_generate_unweighted_event
+
+  module subroutine vamp2_write_grids (self, unit)
+    class(vamp2_t), intent(in) :: self
+    integer, intent(in), optional :: unit
+    integer :: u
+    integer :: ch
+    u = given_output_unit (unit)
+    write (u, descr_fmt) "begin type(vamp2_t)"
+    write (u, integer_fmt) "n_channel =", self%config%n_channel
+    write (u, integer_fmt) "n_dim =", self%config%n_dim
+    write (u, integer_fmt) "n_calls_min_ch =", self%config%n_calls_min_per_channel
+    write (u, integer_fmt) "n_calls_thres =", self%config%n_calls_threshold
+    write (u, integer_fmt) "n_chains =", self%config%n_chains
+    write (u, logical_fmt) "stratified =", self%config%stratified
+    write (u, double_fmt) "alpha =", self%config%alpha
+    write (u, double_fmt) "beta =", self%config%beta
+    write (u, integer_fmt) "n_bins_max =", self%config%n_bins_max
+    write (u, integer_fmt) "iterations =", self%config%iterations
+    write (u, integer_fmt) "n_calls =", self%config%n_calls
+    write (u, integer_fmt) "it_start =", self%result%it_start
+    write (u, integer_fmt) "it_num =", self%result%it_num
+    write (u, integer_fmt) "samples =", self%result%samples
+    write (u, double_fmt) "sum_int_wgtd =", self%result%sum_int_wgtd
+    write (u, double_fmt) "sum_wgts =", self%result%sum_wgts
+    write (u, double_fmt) "sum_chi =", self%result%sum_chi
+    write (u, double_fmt) "chi2 =", self%result%chi2
+    write (u, double_fmt) "efficiency =", self%result%efficiency
+    write (u, double_fmt) "efficiency_pos =", self%result%efficiency_pos
+    write (u, double_fmt) "efficiency_neg =", self%result%efficiency_neg
+    write (u, double_fmt) "max_abs_f =", self%result%max_abs_f
+    write (u, double_fmt) "max_abs_f_pos =", self%result%max_abs_f_pos
+    write (u, double_fmt) "max_abs_f_neg =", self%result%max_abs_f_neg
+    write (u, double_fmt) "result =", self%result%result
+    write (u, double_fmt) "std =", self%result%std
+    write (u, descr_fmt) "begin weight"
+    do ch = 1, self%config%n_channel
+       write (u, double_array_fmt) ch, self%weight(ch)
+    end do
+    write (u, descr_fmt) "end weight"
+    if (self%config%n_chains > 0) then
+       write (u, descr_fmt) "begin chain"
+       do ch = 1, self%config%n_channel
+          write (u, integer_array_fmt) ch, self%chain(ch)
+       end do
+       write (u, descr_fmt) "end chain"
+    end if
+    write (u, descr_fmt) "begin integrator"
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%write_grid (unit)
+    end do
+    write (u, descr_fmt) "end integrator"
+    write (u, descr_fmt) "end type(vamp2_t)"
+  end subroutine vamp2_write_grids
+
+  module subroutine vamp2_read_grids (self, unit)
+    class(vamp2_t), intent(out) :: self
+    integer, intent(in), optional :: unit
+    integer :: u
+    integer :: ibuffer, jbuffer, ch
+    character(len=80) :: buffer
+    read (unit, descr_fmt) buffer
+    read (unit, integer_fmt) buffer, ibuffer
+    read (unit, integer_fmt) buffer, jbuffer
+    select type (self)
+    type is (vamp2_t)
+       self = vamp2_t (n_channel = ibuffer, n_dim = jbuffer)
+    end select
+    read (unit, integer_fmt) buffer, self%config%n_calls_min_per_channel
+    read (unit, integer_fmt) buffer, self%config%n_calls_threshold
+    read (unit, integer_fmt) buffer, self%config%n_chains
+    read (unit, logical_fmt) buffer, self%config%stratified
+    read (unit, double_fmt) buffer, self%config%alpha
+    read (unit, double_fmt) buffer, self%config%beta
+    read (unit, integer_fmt) buffer, self%config%n_bins_max
+    read (unit, integer_fmt) buffer, self%config%iterations
+    read (unit, integer_fmt) buffer, self%config%n_calls
+    read (unit, integer_fmt) buffer, self%result%it_start
+    read (unit, integer_fmt) buffer, self%result%it_num
+    read (unit, integer_fmt) buffer, self%result%samples
+    read (unit, double_fmt) buffer, self%result%sum_int_wgtd
+    read (unit, double_fmt) buffer, self%result%sum_wgts
+    read (unit, double_fmt) buffer, self%result%sum_chi
+    read (unit, double_fmt) buffer, self%result%chi2
+    read (unit, double_fmt) buffer, self%result%efficiency
+    read (unit, double_fmt) buffer, self%result%efficiency_pos
+    read (unit, double_fmt) buffer, self%result%efficiency_neg
+    read (unit, double_fmt) buffer, self%result%max_abs_f
+    read (unit, double_fmt) buffer, self%result%max_abs_f_pos
+    read (unit, double_fmt) buffer, self%result%max_abs_f_neg
+    read (unit, double_fmt) buffer, self%result%result
+    read (unit, double_fmt) buffer, self%result%std
+    read (unit, descr_fmt) buffer
+    do ch = 1, self%config%n_channel
+       read (unit, double_array_fmt) ibuffer, self%weight(ch)
+    end do
+    read (unit, descr_fmt) buffer
+    if (self%config%n_chains > 0) then
+       read (unit, descr_fmt) buffer
+       do ch = 1, self%config%n_channel
+          read (unit, integer_array_fmt) ibuffer, self%chain(ch)
+       end do
+       read (unit, descr_fmt) buffer
+    end if
+    read (unit, descr_fmt) buffer
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%read_grid (unit)
+    end do
+    read (unit, descr_fmt) buffer
+    read (unit, descr_fmt) buffer
+  end subroutine vamp2_read_grids
+
+  module subroutine vamp2_write_binary_grids (self, unit)
+    class(vamp2_t), intent(in) :: self
+    integer, intent(in) :: unit
+    integer :: ch
+    write (unit)
+    write (unit) self%config%n_channel
+    write (unit) self%config%n_dim
+    write (unit) self%config%n_calls_min_per_channel
+    write (unit) self%config%n_calls_threshold
+    write (unit) self%config%n_chains
+    write (unit) self%config%stratified
+    write (unit) self%config%alpha
+    write (unit) self%config%beta
+    write (unit) self%config%n_bins_max
+    write (unit) self%config%iterations
+    write (unit) self%config%n_calls
+    write (unit) self%result%it_start
+    write (unit) self%result%it_num
+    write (unit) self%result%samples
+    write (unit) self%result%sum_int_wgtd
+    write (unit) self%result%sum_wgts
+    write (unit) self%result%sum_chi
+    write (unit) self%result%chi2
+    write (unit) self%result%efficiency
+    write (unit) self%result%efficiency_pos
+    write (unit) self%result%efficiency_neg
+    write (unit) self%result%max_abs_f
+    write (unit) self%result%max_abs_f_pos
+    write (unit) self%result%max_abs_f_neg
+    write (unit) self%result%result
+    write (unit) self%result%std
+    do ch = 1, self%config%n_channel
+       write (unit) ch, self%weight(ch)
+    end do
+    if (self%config%n_chains > 0) then
+       do ch = 1, self%config%n_channel
+          write (unit) ch, self%chain(ch)
+       end do
+    end if
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%write_binary_grid (unit)
+    end do
+  end subroutine vamp2_write_binary_grids
+
+  module subroutine vamp2_read_binary_grids (self, unit)
+    class(vamp2_t), intent(out) :: self
+    integer, intent(in) :: unit
+    integer :: ch, ibuffer, jbuffer
+    read (unit)
+    read (unit) ibuffer
+    read (unit) jbuffer
+    select type (self)
+    type is (vamp2_t)
+       self = vamp2_t (n_channel = ibuffer, n_dim = jbuffer)
+    end select
+    read (unit) self%config%n_calls_min_per_channel
+    read (unit) self%config%n_calls_threshold
+    read (unit) self%config%n_chains
+    read (unit) self%config%stratified
+    read (unit) self%config%alpha
+    read (unit) self%config%beta
+    read (unit) self%config%n_bins_max
+    read (unit) self%config%iterations
+    read (unit) self%config%n_calls
+    read (unit) self%result%it_start
+    read (unit) self%result%it_num
+    read (unit) self%result%samples
+    read (unit) self%result%sum_int_wgtd
+    read (unit) self%result%sum_wgts
+    read (unit) self%result%sum_chi
+    read (unit) self%result%chi2
+    read (unit) self%result%efficiency
+    read (unit) self%result%efficiency_pos
+    read (unit) self%result%efficiency_neg
+    read (unit) self%result%max_abs_f
+    read (unit) self%result%max_abs_f_pos
+    read (unit) self%result%max_abs_f_neg
+    read (unit) self%result%result
+    read (unit) self%result%std
+    do ch = 1, self%config%n_channel
+       read (unit) ibuffer, self%weight(ch)
+    end do
+    if (self%config%n_chains > 0) then
+       do ch = 1, self%config%n_channel
+          read (unit) ibuffer, self%chain(ch)
+       end do
+    end if
+    do ch = 1, self%config%n_channel
+       call self%integrator(ch)%read_binary_grid (unit)
+    end do
+  end subroutine vamp2_read_binary_grids
+
+
+end submodule vamp2_s
+

@@ -1,0 +1,154 @@
+* Test output: decays_3
+*   Purpose: Connect a decay configuration with a process
+
+* Initialize environment and integrate process
+
+========================================================================
+ Process [decay]: 'decays_3_d'
+   Run ID        = ''
+   Library name  = 'decays_3_lib'
+   Process index = 2
+   Process components:
+     1: 'decays_3_d_i1':   s => f, fbar [test_decay]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 1
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (coupling undefined)
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Expressions (cut, scales, weight): [not shown]
+------------------------------------------------------------------------
+ RNG factory: test (1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = decays_3_d_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = s => f, fbar
+   Method              = test_decay
+   Process variant     = test_me
+   MD5 sum (def)       = '                                '
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration (single-particle):
+   ID        = 'decays_3_d_i1'
+   n_in      = 1
+   n_out     = 2
+   n_tot     = 3
+   n_state   = 1
+   n_par     = 2
+   n_channel = 1
+   sqrts     =  1.250000000000E+02
+   s_fixed   = T
+   lab_is_cm = F
+   azim.dep. = F
+   flat dim. = 2
+ Flavor combinations:
+   1: s f fbar
+ Phase-space / structure-function channels:
+   1: 1
+   MD5 sum (model par)  = 'D97BD28DED990FF93E2D56F3C62D67B8'
+   MD5 sum (phs config) = '0642B6FF27B8B5268AA8FB40B92ACF7D'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 1
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ Outgoing:
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(6) c(1 ) h(1)]
+     [f(-6) c(-1 ) h(-1)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+   [f(6) c(1 ) h(-1)]
+     [f(-6) c(-1 ) h(1)] => ME(2) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (decay):
+   s  (mass = 1.2500000E+02 GeV)
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = F
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 2
+   MC parameters (SF)    = 0
+   MC parameters (PHS)   = 2
+   Current pass          = 1
+   Number of iterations  = 1
+   Number of calls       = 100
+ Single-channel midpoint rule integrator:
+   Integral             =  5.7295779513E-04
+   Efficiency           =  6.0000000000E-01
+   Number of channels   = 1
+   Number of dimensions = 2
+   Flat dimensions      = 2
+   Number of binned dim = 1
+   Number of bins       = 100 1
+   Number of calls      = 100
+   Maximum of integrand =  9.5492965855E-04
+   Minimum of integrand =  9.5492965855E-04
+ Random-number generator: test (state = 1)
+ Call statistics (current run):
+   total       = 100
+   failed kin. = 0
+   failed cuts = 0
+   passed cuts = 0
+   evaluated   = 100
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  5.7295780E-04  0.00E+00    0.00    0.00*  60.00
+|-----------------------------------------------------------------------------|
+   1        100  5.7295780E-04  0.00E+00    0.00    0.00   60.00
+|=============================================================================|
+========================================================================
+
+* Set up branching and decay
+
+* Connect decay with process object
+
+  + Unstable: s
+      total width = 5.729577951308E-04
+      error (abs) = 0.000000000000E+00
+      error (rel) = 0.000000000000E+00
+    Decay:
+      process ID      = decays_3_d *
+      branching ratio = 100.000000 %
+      partial width   = 5.729577951308E-04
+      error (abs)     = 0.000000000000E+00
+      error (rel)     = 0.000000000000E+00
+      Final state: f fbar
+      + Stable: f
+      + Stable: fbar
+
+* Cleanup
+
+* Test output end: decays_3

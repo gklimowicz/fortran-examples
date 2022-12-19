@@ -1,0 +1,15 @@
+#! /bin/sh
+
+circe2_tool=${1-$HOME/physics/whizard/_build/circe2/src/circe2_tool.opt}
+guinea_pig_dir=${2-$HOME/physics/guinea-pig/_run/results}
+
+for acc in ilc200 ilc230 ilc250 ilc350 ilc500; do
+  rm -fr $acc
+  ln -s $guinea_pig_dir/$acc .
+  sh ./fill_circe2_template \
+    $acc/output template.circe2_input \
+    prefix=$acc/ roots="`echo $acc | sed 's/^ilc//'`" > $acc.circe2_input
+  $circe2_tool -f $acc.circe2_input
+  cp $acc/beams.circe $acc.circe
+done
+

@@ -1,0 +1,14 @@
+# SINDARIN input for WHIZARD self-test
+# Check library (re)compilation
+model = "QED"
+?logging = true
+
+# Start a new library
+?rebuild_library = true
+library = "libraries_4_lib"
+
+process libraries_4_p1 = e1, E1 => e2, E2
+
+# Attempt to overwrite the process (should fail)
+process libraries_4_p1 = e1, E1 => e3, E3
+

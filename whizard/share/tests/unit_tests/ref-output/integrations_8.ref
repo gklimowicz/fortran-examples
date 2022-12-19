@@ -1,0 +1,367 @@
+* Test output: integrations_8
+*   Purpose: integrate test process using VAMP with structure function
+
+* Initialize process and parameters
+
+* Integrate
+
+========================================================================
+ Runtime data:
+========================================================================
+ Selected variables:
+------------------------------------------------------------------------
+ms =>  0.000000000000E+00
+========================================================================
+ iterations = 1:1000
+========================================================================
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  0.000000000000E+00
+   parameter ff =  1.500000000000E+00
+   external mf =  0.000000000000E+00
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: integrations_8_lib
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = a
+
+ Process library entries: 1
+ Entry #1: [a] integrations_8.1 = int (test_me)
+
+ Process #1:
+ ID = 'integrations_8'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '7F23C3DCA28B00B98504DD67D9945A51'
+ Component #1
+   Component ID        = integrations_8_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = '2FACFAFA5BB32ED8ED9F183223AA7AA1'
+========================================================================
+ Beam structure: s, s => sf_test_1
+========================================================================
+ Cuts: [undefined]
+------------------------------------------------------------------------
+ Scale: [undefined]
+------------------------------------------------------------------------
+ Factorization scale: [undefined]
+------------------------------------------------------------------------
+ Renormalization scale: [undefined]
+------------------------------------------------------------------------
+ Weight: [undefined]
+========================================================================
+ Event selection: [undefined]
+------------------------------------------------------------------------
+ Event reweighting factor: [undefined]
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+------------------------------------------------------------------------
+ Event callback: [undefined]
+========================================================================
+ Process stack:
+========================================================================
+ Process [scattering]: 'integrations_8'
+   Run ID        = 'r1'
+   Library name  = 'integrations_8_lib'
+   Process index = 1
+   Process components:
+     1: 'integrations_8_i1':   s, s => s, s [unit_test]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 2
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (fixed coupling):
+     alpha =  1.17800E-01
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Expressions (cut, scales, weight): [not shown]
+------------------------------------------------------------------------
+   MD5 sum (config)  = 'F2AAE6A8F41BE5CEFA4141B2AF5D562A'
+------------------------------------------------------------------------
+ RNG factory: tao (0,1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = integrations_8_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = '2FACFAFA5BB32ED8ED9F183223AA7AA1'
+   MD5 sum (phs)       = '6D6E77E107A5FC223ECA28FA44FEA705'
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration (phase-space forest):
+   ID        = 'integrations_8_i1'
+   n_in      = 2
+   n_out     = 2
+   n_tot     = 4
+   n_state   = 1
+   n_par     = 2
+   n_channel = 5
+   sqrts     =  1.000000000000E+03
+   s_fixed   = F
+   lab_is_cm = F
+   azim.dep. = F
+ Flavor combinations:
+   1: s s s s
+ Phase-space / structure-function channels:
+   1: 1
+     = 1 (1x 2+)
+     = 1 (1x 2-)
+   2: 1
+     = 2 (1x 2+)
+     = 3 (1x 2-)
+     = 4 (1x 2+)
+     = 5 (1x 2-)
+   3: 1
+     = 2 (1x 2-)
+     = 3 (1x 2+)
+     = 4 (1x 2-)
+     = 5 (1x 2+)
+   4: 1
+     = 2 (1x 2+)
+     = 3 (1x 2-)
+     = 4 (1x 2+)
+     = 5 (1x 2-)
+   5: 1
+     = 2 (1x 2-)
+     = 3 (1x 2+)
+     = 4 (1x 2-)
+     = 5 (1x 2+)
+   MD5 sum (model par)  = '0307AA4334E3F61D4E6D05120575A7AF'
+   MD5 sum (phs config) = 'A48E57914DB3286E6CC7901F5F24B61E'
+ Phase-space configuration parameters:
+   sqrts         =  1.000000000000E+03
+   m_threshold_s =  5.000000000000E+01
+   m_threshold_t =  1.000000000000E+02
+   off_shell = 2
+   t_channel = 6
+   keep_nonresonant = T
+   energy scale  =  1.000000000000E+01
+   mass scale    =  1.000000000000E+01
+   q scale       =  1.000000000000E+01
+   step mapping     = T
+   step exp. mode   = T
+   allow s mapping  = F
+   Run ID: 'r1'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 1
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Outgoing:
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (collision):
+   s  (mass = 0.0000000E+00 GeV)
+   s  (mass = 0.0000000E+00 GeV)
+   sqrts = 1.000000000000E+03 GeV
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = T
+   MD5 sum (beams/strf) = '6BE255DEA282C8DA7625B220411D4B05'
+ Structure-function configuration: beam(s) 1
+ SF test data:
+   model     = Test
+   incoming  = f(25)
+   outgoing  = f(25)
+   radiated  = f(25)
+   mass      =  0.000000000000E+00
+   collinear = T
+ Structure-function configuration: beam(s) 2
+ SF test data:
+   model     = Test
+   incoming  = f(25)
+   outgoing  = f(25)
+   radiated  = f(25)
+   mass      =  0.000000000000E+00
+   collinear = T
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 4
+   MC parameters (SF)    = 2
+   MC parameters (PHS)   = 2
+   Current pass          = 1
+   Number of iterations  = 1
+   Number of calls       = 1000
+   MD5 sum (components)  = 'EFD678B3D5D890D21129E58B702C7DFE'
+ VAMP integrator:
+   Integral             =  8.2007377587E+03
+   Error                =  2.2182719667E+02
+   Efficiency           =  3.1782731339E-01
+   Number of channels   = 5
+   Number of dimensions = 4
+   Number of chains     = 2
+   Chains:
+     1: 1
+     2: 2 3 4 5
+   Flat dimensions    =
+ Grid parameters:
+   threshold_calls       = 10
+   min_calls_per_channel = 10
+   min_calls_per_bin     = 10
+   min_bins              = 3
+   max_bins              = 20
+   stratified            = T
+   use_vamp_equivalences = T
+   channel_weights_power =  0.2500000
+   min_calls             = 0
+   negative weights      = F
+   verbose               = F
+ Inequivalent channels:
+   Channel 1:    Mult. = 1    Symm. = 2    Invar.: FFTF
+   Channel 2:    Mult. = 4    Symm. = 1    Invar.: FFTF
+ Equivalence list:
+   Equivalent channels: 1 1
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 1 1
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 2 2
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 2 3
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 2 4
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 2 5
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 3 2
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 3 3
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 3 4
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 3 5
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 4 2
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 4 3
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 4 4
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 4 5
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 5 2
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 5 3
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+   Equivalent channels: 5 4
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 1
+   Equivalent channels: 5 5
+     Permutation: 1 2 3 4
+     Mode:        0 0 3 0
+ Integration pass:
+   n_it          = 1
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = F
+   adapt weights = F
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  8.2007377587E+03  2.2182719667E+02  3.1782731339E-01
+ MD5 sum (including results) = '6CEDEE781B16D92225A6167995AB5156'
+ Call statistics (current run):
+   total       = 1000
+   failed kin. = 0
+   failed cuts = 0
+   passed cuts = 0
+   evaluated   = 1000
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  8.2007378E+03  2.22E+02    2.70    0.86*  31.78
+|-----------------------------------------------------------------------------|
+   1       1000  8.2007378E+03  2.22E+02    2.70    0.86   31.78
+|=============================================================================|
+| Phase-space chain (grove) weight history: (numbers in %)
+| chain |   1   2
+|=============================================================================|
+      1 |  20  80
+|=============================================================================|
+========================================================================
+ quit     : F
+ quit_code: 0
+========================================================================
+ Logfile  : ''
+========================================================================
+
+* Cleanup
+
+* Test output end: integrations_8

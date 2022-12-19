@@ -1,0 +1,38 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> u, dbar, W-
+# with resonance insertion (two processes), check library resetting
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+?resonance_history = true
+resonance_on_shell_limit = 4
+
+process resonances_5_a = e1, E1 => u, D, Wm
+process resonances_5_b = e1, E1 => c, S, Wm
+
+me = 0
+ms = 0
+mc = 0
+mH = 125 GeV
+
+sqrts = 230 GeV
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+iterations = 1:1000
+
+integrate (resonances_5_a, resonances_5_b)
+
+n_events = 1
+
+simulate (resonances_5_a)
+show (library)
+
+simulate (resonances_5_b)
+show (library)

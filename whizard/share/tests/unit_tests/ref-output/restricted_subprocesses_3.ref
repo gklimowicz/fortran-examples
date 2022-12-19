@@ -1,0 +1,191 @@
+* Test output: restricted_subprocesses_3
+*   Purpose: handle process and resonance kinematics
+
+* Initialize process library and process
+
+ ID = 'restricted_subprocesses_3_p'
+ Scattering
+ Model = SM
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ Resonant subprocesses required
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = restricted_subprocesses_3_p_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 3 5
+   Particle content    = e+, e- => d, ubar, W+
+   Method              = omega
+   Process variant     = omega
+     Model name        = "SM"
+     Mode string       = " -scatter"
+     Process string    = " 'e+ e- -> d ubar W+'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = F
+     Extra options     = ""
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+
+* Extract resonance history set
+
+Resonance history set:
+ 1 Resonance history with 1 resonances:
+   1 2 f(-24)
+   contained in ()
+ 2 Resonance history with 0 resonances:
+   contained in (1,3)
+ 3 Resonance history with 1 resonances:
+   1 2 3 f(23)
+   contained in ()
+
+* Build resonant-subprocess library
+
+ Resonant subprocess set:
+ Component #1
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+ 2    Resonance history with 0 resonances:
+      contained in (1,3)
+ 3    Resonance history with 1 resonances:
+      1 2 3 f(23)
+      contained in ()
+   Process library = 'restricted_subprocesses_3_lib_res'
+   Event transform: not associated
+
+* Build particle set
+
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00  5.000000E+02
+ T =   0.000000000E+00
+ Children: 3 4 5
+ Particle 2 [i] f(11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00 -5.000000E+02
+ T =   0.000000000E+00
+ Children: 3 4 5
+ Particle 3 [o] f(1)
+ E =   2.500000E+02
+ P =   2.467793E+02  4.000000E+01  0.000000E+00
+ T =   0.000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(-2)
+ E =   2.500000E+02
+ P =   2.467793E+02 -4.000000E+01  0.000000E+00
+ T =   0.000000000E+00
+ Parents:  1 2
+ Particle 5 [o] f(24)
+ E =   5.000000E+02
+ P =  -4.935585E+02  0.000000E+00  0.000000E+00
+ T =   6.400000000E+03
+ Parents:  1 2
+
+* Fill process instance
+
+* Prepare resonant subprocesses
+
+* Show squared matrix element of master process,
+  should coincide with 2nd subprocess sqme
+
+ 0  2.35622E-03
+
+* Compute squared matrix elements of selected resonant subprocesses [1,2]
+
+ 1  2.33383E-03
+ 2  2.35622E-03
+ 3  0.00000E+00
+
+* Compute squared matrix elements of all resonant subprocesses
+
+ 1  2.33383E-03
+ 2  2.35622E-03
+ 3  4.68930E+00
+
+* Write process instances to file restricted_subprocesses_3_lib_res.dat
+
+* Determine on-shell resonant subprocesses
+
+ on_shell_limit =  0.000E+00
+ resonant = 2
+ on_shell_limit =  1.000E-01
+ resonant = 2
+ on_shell_limit =  1.000E+01
+ resonant = 1
+ on_shell_limit =  1.000E+04
+ resonant = 1 3
+
+* Compute probabilities for applicable resonances
+  and initialize the process selector
+  (The first number is the probability for background)
+
+ on_shell_limit =  0.000E+00
+ resonant =  0.00000E+00  0.00000E+00  1.00000E+00  0.00000E+00
+ Resonant subprocess set:
+ Component #1
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+ 2    Resonance history with 0 resonances:
+      contained in (1,3)
+ 3    Resonance history with 1 resonances:
+      1 2 3 f(23)
+      contained in ()
+   Process library = 'restricted_subprocesses_3_lib_res'
+   Process sqme =  2.3562205E-03
+   Event transform: associated
+   Selector: i, weight, acc. weight
+   2  1.0000000E+00  1.0000000E+00
+
+ on_shell_limit =  1.000E+01
+ resonant =  9.50337E-03  9.90497E-01  0.00000E+00  0.00000E+00
+ Resonant subprocess set:
+ Component #1
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+ 2    Resonance history with 0 resonances:
+      contained in (1,3)
+ 3    Resonance history with 1 resonances:
+      1 2 3 f(23)
+      contained in ()
+   Process library = 'restricted_subprocesses_3_lib_res'
+   Process sqme =  2.3562205E-03
+   Event transform: associated
+   Selector: i, weight, acc. weight
+   0  9.5033686E-03  9.5033686E-03
+   1  9.9049663E-01  1.0000000E+00
+
+ on_shell_limit =  1.000E+04
+ resonant =  4.99874E-01  2.48785E-04  0.00000E+00  4.99877E-01
+
+ Resonant subprocess set:
+ Component #1
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+ 2    Resonance history with 0 resonances:
+      contained in (1,3)
+ 3    Resonance history with 1 resonances:
+      1 2 3 f(23)
+      contained in ()
+   Process library = 'restricted_subprocesses_3_lib_res'
+   Process sqme =  2.3562205E-03
+   Event transform: associated
+   Selector: i, weight, acc. weight
+   0  4.9987441E-01  4.9987441E-01
+   1  2.4878484E-04  5.0012320E-01
+   3  4.9987680E-01  1.0000000E+00
+
+* Cleanup
+
+* Test output end: restricted_subprocesses_3

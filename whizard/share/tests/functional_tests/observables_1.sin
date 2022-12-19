@@ -1,0 +1,28 @@
+# SINDARIN input for WHIZARD self test
+
+model = QED
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+me = 0
+
+process observables_1_p = e1, e1 => e1, e1
+observable rap1
+observable rap2
+
+sqrts = 1 TeV
+cuts = all Pt > 20 [e1]
+analysis = record rap1 (eval Rap [e1])
+       and record rap2 (eval Rap [e1, e1])
+iterations = 1:1000
+
+sample_format = debug
+?debug_process = false
+?debug_verbose = false
+simulate (observables_1_p) { n_events = 1 }
+$out_file = "observables_1.dat"
+write_analysis

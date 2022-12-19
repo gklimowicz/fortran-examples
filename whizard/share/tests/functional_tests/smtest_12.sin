@@ -1,0 +1,32 @@
+# SINDARIN input for WHIZARD self-test
+# Process e-, e+ -> t, tbar with decay t -> b, W+
+
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+
+seed = 0
+
+process smtest_12p = e1, E1 => t, T
+process smtest_12d = t => b, Wp
+
+compile
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (smtest_12d) { iterations = 1:10  $integration_method = "midpoint" }
+
+sqrts = 500 GeV
+integrate (smtest_12p) { iterations = 1:1000 }
+
+unstable t (smtest_12d)
+
+?unweighted = false
+sample_format = ascii, debug
+simulate (smtest_12p) { n_events = 1 }

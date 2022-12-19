@@ -1,0 +1,94 @@
+* Test output: commands_23
+*   Purpose: write and compile analysis data
+
+* Initialization: create and fill histogram
+
+* Input file
+
+$out_file = "commands_23.dat"
+compile_analysis
+
+* Parse file
+
+* Compile command list
+
+ var: $out_file (string, intrinsic)
+ compile_analysis
+
+* Delete Postscript output
+
+ Postcript output exists = F
+
+* Execute command list
+
+* TeX file
+
+\documentclass[12pt]{article}
+
+\usepackage{gamelan}
+\usepackage{amsmath}
+\usepackage{ifpdf}
+\ifpdf
+   \DeclareGraphicsRule{*}{mps}{*}{}
+\else
+   \DeclareGraphicsRule{*}{eps}{*}{}
+\fi
+
+\begin{document}
+\begin{gmlfile}
+
+\begin{gmlcode}
+  color col.default, col.excess;
+  col.default = 0.9white;
+  col.excess  = red;
+  boolean show_excess;
+  show_excess = false;
+\end{gmlcode}
+
+
+\section{Histogram for test: commands 23}
+This is a test.
+
+\vspace*{\baselineskip}
+\vspace*{\baselineskip}
+\unitlength 1mm
+\begin{gmlgraph*}(125,85)[dat]
+  setup (linear, linear);
+  graphrange (#0.00000000E+00, ??), (#1.00000000E+01, ??);
+  fromfile "commands_23.dat":
+    key "# Histogram:";
+    dx := #1.00000000E+00;
+    for i withinblock:
+      get x, y, y.d, y.n, y.e;
+      plot (dat) (x,y) hbar dx;
+    endfor
+  endfrom
+  calculate dat.base (dat) (x, #0);
+  fill piecewise cyclic from (dat, dat.base/\) withcolor col.default outlined ;
+  label.bot (<<>>, out);
+  label.ulft (<<>>, out);
+  begingmleps "Whizard-Logo.eps";
+    base := (115*unitlength,75*unitlength);
+    height := 9.6*unitlength;
+    width := 11.2*unitlength;
+  endgmleps;
+\end{gmlgraph*}
+\vspace*{2\baselineskip}
+\begin{flushleft}
+\textbf{Data within bounds:} \\
+  $\langle{\textrm{Observable}}\rangle =  5.74\pm 0.75\;{}
+     \quad[n_{\text{entries}} = 19]$
+\\[0.5\baselineskip]
+\textbf{All data:} \\
+  $\langle{\textrm{Observable}}\rangle =  5.74\pm 0.75\;{}
+     \quad[n_{\text{entries}} = 19]$
+\end{flushleft}
+
+\end{gmlfile}
+\end{document}
+
+ Postcript output exists = T
+
+* Cleanup
+
+* Test output end: commands_23

@@ -1,0 +1,66 @@
+* Test output: commands_11
+*   Purpose: define beams with structure functions
+
+*  Initialization
+
+*  Input file
+
+model = QCD
+sqrts = 1100
+beams = p, p => lhapdf => pdf_builtin, isr
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_model> <cmd_num> <cmd_beams>
+|  +  <cmd_model>  =  model '=' <model_id>
+|  |  +  model  = [keyword] model
+|  |  +  '='  = [keyword] =
+|  |  +  <model_id>  = QCD
+|  +  <cmd_num>  =  <var_name> '=' <expr>
+|  |  +  <var_name>  = sqrts
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  +  <integer_literal>  = 1100
+|  +  <cmd_beams>  =  beams '=' <beam_def>
+|  |  +  beams  = [keyword] beams
+|  |  +  '='  = [keyword] =
+|  |  +  <beam_def>  =  <beam_spec> <strfun_seq> <strfun_seq>
+|  |  |  +  <beam_spec>  =  <beam_list>
+|  |  |  |  +  <beam_list>  =  <cexpr> <cexpr>
+|  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  +  <variable>  = p
+|  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  +  <variable>  = p
+|  |  |  +  <strfun_seq>  =  '=>' <strfun_pair>
+|  |  |  |  +  '=>'  = [keyword] =>
+|  |  |  |  +  <strfun_pair>  =  <strfun_def>
+|  |  |  |  |  +  <strfun_def>  =  lhapdf
+|  |  |  |  |  |  +  lhapdf  = [keyword] lhapdf
+|  |  |  +  <strfun_seq>  =  '=>' <strfun_pair>
+|  |  |  |  +  '=>'  = [keyword] =>
+|  |  |  |  +  <strfun_pair>  =  <strfun_def> <strfun_def>
+|  |  |  |  |  +  <strfun_def>  =  pdf_builtin
+|  |  |  |  |  |  +  pdf_builtin  = [keyword] pdf_builtin
+|  |  |  |  |  +  <strfun_def>  =  isr
+|  |  |  |  |  |  +  isr  = [keyword] isr
+
+* Compile command list
+
+ model = "QCD"
+ var: sqrts (real, intrinsic)
+ beams: 2 [scattering]
+ structure function entries: 1 2
+
+* Execute command list
+
+========================================================================
+ Beam structure: p, p => lhapdf => pdf_builtin, isr
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_11

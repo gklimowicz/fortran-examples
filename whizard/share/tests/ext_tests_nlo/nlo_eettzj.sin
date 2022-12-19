@@ -1,0 +1,16 @@
+include("nlo_settings.sin")
+
+alpha_power = 3
+alphas_power = 1
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 30 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4 [@pt_selected] in
+       count [@eta_selected] >= 1
+
+scale = let subevt @clustered_jets = cluster [jet] in
+        sum sqrt(Pt^2 + M^2)/2 [t:T:Z] + sum Pt/2 [@clustered_jets]
+
+#?combined_nlo_integration = true
+process nlo_eettzj_p1 = e1, E1 => t, T, Z, jet {nlo_calculation = full }
+integrate (nlo_eettzj_p1) { iterations = 1:140:"gw" }

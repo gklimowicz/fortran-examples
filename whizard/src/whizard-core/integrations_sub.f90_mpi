@@ -1,0 +1,677 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+submodule (integrations) integrations_s
+
+  use mpi_f08 !NODEP!
+  use io_units
+  use cputime
+  use os_interface
+  use physics_defs
+  use model_data
+  use pdg_arrays
+  use variables, only: var_list_t
+  use eval_trees
+  use sf_mappings
+  use sf_base
+  use phs_base
+  use models
+  use dispatch_me_methods, only: dispatch_core
+  use dispatch_beams, only: dispatch_qcd, sf_prop_t, dispatch_sf_config
+  use dispatch_phase_space, only: dispatch_sf_channels
+  use dispatch_phase_space, only: dispatch_phs
+  use dispatch_mci, only: dispatch_mci_setup, setup_grid_path
+  use dispatch_transforms, only: dispatch_evt_shower_hook
+  use compilations, only: compile_library
+
+  implicit none
+
+contains
+
+  module subroutine integration_init_process (intg, local)
+    class(integration_t), intent(inout) :: intg
+    type(rt_data_t), intent(inout), target :: local
+    type(string_t) :: model_name
+    type(model_t), pointer :: model
+    class(model_data_t), pointer :: model_instance
+    type(var_list_t), pointer :: var_list
+    if (debug_on) call msg_debug (D_CORE, "integration_init_process")
+    if (.not. local%prclib%contains (intg%process_id)) then
+       call msg_fatal ("Process '" // char (intg%process_id) // "' not found" &
+            // " in library '" // char (local%prclib%get_name ()) // "'")
+       return
+    end if
+    model_name = local%prclib%get_model_name (intg%process_id)
+    if (local%get_sval (var_str ("$model_name")) == model_name) then
+       model => local%model
+    else
+       model => local%model_list%get_model_ptr (model_name)
+    end if
+    var_list => local%get_var_list_ptr ()
+    call intg%process%init (intg%process_id, &
+         local%prclib, &
+         local%os_data, &
+         model, &
+         var_list, &
+         local%beam_structure)
+    intg%run_id = intg%process%get_run_id ()
+  end subroutine integration_init_process
+
+  module subroutine integration_setup_process (intg, local, verbose, init_only)
+    class(integration_t), intent(inout) :: intg
+    type(rt_data_t), intent(inout), target :: local
+    logical, intent(in), optional :: verbose
+    logical, intent(in), optional :: init_only
+
+    type(var_list_t), pointer :: var_list
+    type(sf_config_t), dimension(:), allocatable :: sf_config
+    type(sf_prop_t) :: sf_prop
+    type(sf_channel_t), dimension(:), allocatable :: sf_channel
+    type(phs_channel_collection_t) :: phs_channel_collection
+    logical :: sf_trace
+    logical :: verb, initialize_only
+    type(string_t) :: sf_string
+    type(string_t) :: workspace
+    real(default) :: sqrts
+
+    verb = .true.;  if (present (verbose))  verb = verbose
+
+    initialize_only = .false.
+    if (present (init_only))  initialize_only = init_only
+
+    call display_init_message (verb)
+
+    var_list => local%get_var_list_ptr ()
+    call setup_log_and_history ()
+
+    associate (process => intg%process)
+      call set_intg_parameters (process)
+
+      call process%setup_cores (dispatch_core, &
+           intg%helicity_selection, intg%use_color_factors, intg%has_beam_pol)
+
+      call process%init_phs_config ()
+      call process%init_components ()
+
+      call process%record_inactive_components ()
+      intg%process_has_me = process%has_matrix_element ()
+      if (.not. intg%process_has_me) then
+         call msg_warning ("Process '" &
+              // char (intg%process_id) // "': matrix element vanishes")
+      end if
+
+      call setup_beams ()
+      call setup_structure_functions ()
+
+      workspace = var_list%get_sval (var_str ("$integrate_workspace"))
+      if (workspace == "") then
+         call process%configure_phs &
+              (intg%rebuild_phs, &
+              intg%ignore_phs_mismatch, &
+              intg%combined_integration)
+      else
+         call setup_grid_path (workspace)
+         call process%configure_phs &
+              (intg%rebuild_phs, &
+              intg%ignore_phs_mismatch, &
+              intg%combined_integration, &
+              workspace)
+      end if
+
+      call process%complete_pcm_setup ()
+
+      call process%prepare_blha_cores ()
+      call process%create_blha_interface ()
+      call process%prepare_any_external_code ()
+
+      call process%setup_terms (with_beams = intg%has_beam_pol)
+      call process%check_masses ()
+      call process%optimize_nlo_singular_regions ()
+
+      if (verb) then
+         call process%write (screen = .true.)
+         call process%print_phs_startup_message ()
+      end if
+
+      if (intg%process_has_me) then
+         if (size (sf_config) > 0) then
+            call process%collect_channels (phs_channel_collection)
+         else if (.not. initialize_only &
+              .and. process%contains_trivial_component ()) then
+            call msg_fatal ("Integrate: 2 -> 1 process can't be handled &
+                 &with fixed-energy beams")
+         end if
+         if (local%beam_structure%asymmetric ()) then
+            sqrts = process%get_sqrts ()
+         else
+            sqrts = local%get_sqrts ()
+         end if
+         call dispatch_sf_channels &
+              (sf_channel, sf_string, sf_prop, phs_channel_collection, &
+              local%var_list, sqrts, local%beam_structure)
+         if (allocated (sf_channel)) then
+            if (size (sf_channel) > 0) then
+               call process%set_sf_channel (sf_channel)
+            end if
+         end if
+         call phs_channel_collection%final ()
+         if (verb)  call process%sf_startup_message (sf_string)
+      end if
+
+      call process%setup_mci (dispatch_mci_setup)
+
+      call setup_expressions ()
+
+      call process%compute_md5sum ()
+    end associate
+
+  contains
+
+    subroutine setup_log_and_history ()
+       if (intg%run_id /= "") then
+          intg%history_filename = intg%process_id // "." // intg%run_id &
+               // ".history"
+          intg%log_filename = intg%process_id // "." // intg%run_id // ".log"
+       else
+          intg%history_filename = intg%process_id // ".history"
+          intg%log_filename = intg%process_id // ".log"
+       end if
+       intg%vis_history = &
+          var_list%get_lval (var_str ("?vis_history"))
+    end subroutine setup_log_and_history
+
+    subroutine set_intg_parameters (process)
+      type(process_t), intent(in) :: process
+      intg%n_calls_test = &
+           var_list%get_ival (var_str ("n_calls_test"))
+      intg%combined_integration = &
+           var_list%get_lval (var_str ('?combined_nlo_integration')) &
+           .and. process%is_nlo_calculation ()
+      intg%use_color_factors = &
+           var_list%get_lval (var_str ("?read_color_factors"))
+      intg%has_beam_pol = &
+           local%beam_structure%has_polarized_beams ()
+      intg%helicity_selection = &
+           local%get_helicity_selection ()
+      intg%rebuild_phs = &
+           var_list%get_lval (var_str ("?rebuild_phase_space"))
+      intg%ignore_phs_mismatch = &
+         .not. var_list%get_lval (var_str ("?check_phs_file"))
+      intg%phs_only = &
+           var_list%get_lval (var_str ("?phs_only"))
+    end subroutine set_intg_parameters
+
+    subroutine display_init_message (verb)
+      logical, intent(in) :: verb
+      if (verb) then
+         call msg_message ("Initializing integration for process " &
+              // char (intg%process_id) // ":")
+         if (intg%run_id /= "") &
+              call msg_message ("Run ID = " // '"' // char (intg%run_id) // '"')
+      end if
+    end subroutine display_init_message
+
+    subroutine setup_beams ()
+      real(default) :: sqrts
+      logical :: decay_rest_frame
+      sqrts = local%get_sqrts ()
+      decay_rest_frame = &
+           var_list%get_lval (var_str ("?decay_rest_frame"))
+      if (intg%process_has_me) then
+         call intg%process%setup_beams_beam_structure &
+              (local%beam_structure, sqrts, decay_rest_frame)
+      end if
+      if (verb .and. intg%process_has_me) then
+         call intg%process%beams_startup_message &
+              (beam_structure = local%beam_structure)
+      end if
+    end subroutine setup_beams
+
+    subroutine setup_structure_functions ()
+      integer :: n_in
+      type(pdg_array_t), dimension(:,:), allocatable :: pdg_prc
+      type(string_t) :: sf_trace_file
+      if (intg%process_has_me) then
+         call intg%process%get_pdg_in (pdg_prc)
+      else
+         n_in = intg%process%get_n_in ()
+         allocate (pdg_prc (n_in, intg%process%get_n_components ()))
+         pdg_prc = 0
+      end if
+      call dispatch_sf_config (sf_config, sf_prop, local%beam_structure, &
+           local%get_var_list_ptr (), local%var_list, &
+           local%model, local%os_data, local%get_sqrts (), pdg_prc)
+
+      sf_trace = &
+           var_list%get_lval (var_str ("?sf_trace"))
+      sf_trace_file = &
+           var_list%get_sval (var_str ("$sf_trace_file"))
+      if (sf_trace) then
+         call intg%process%init_sf_chain (sf_config, sf_trace_file)
+      else
+         call intg%process%init_sf_chain (sf_config)
+      end if
+    end subroutine setup_structure_functions
+
+    subroutine setup_expressions ()
+      type(eval_tree_factory_t) :: expr_factory
+      if (associated (local%pn%cuts_lexpr)) then
+         if (verb)  call msg_message ("Applying user-defined cuts.")
+         call expr_factory%init (local%pn%cuts_lexpr)
+         call intg%process%set_cuts (expr_factory)
+      else
+         if (verb)  call msg_warning ("No cuts have been defined.")
+      end if
+      if (associated (local%pn%scale_expr)) then
+         if (verb) call msg_message ("Using user-defined general scale.")
+         call expr_factory%init (local%pn%scale_expr)
+         call intg%process%set_scale (expr_factory)
+      end if
+      if (associated (local%pn%fac_scale_expr)) then
+         if (verb) call msg_message ("Using user-defined factorization scale.")
+         call expr_factory%init (local%pn%fac_scale_expr)
+         call intg%process%set_fac_scale (expr_factory)
+      end if
+      if (associated (local%pn%ren_scale_expr)) then
+         if (verb) call msg_message ("Using user-defined renormalization scale.")
+         call expr_factory%init (local%pn%ren_scale_expr)
+         call intg%process%set_ren_scale (expr_factory)
+      end if
+      if (associated (local%pn%weight_expr)) then
+         if (verb) call msg_message ("Using user-defined reweighting factor.")
+         call expr_factory%init (local%pn%weight_expr)
+         call intg%process%set_weight (expr_factory)
+      end if
+    end subroutine setup_expressions
+  end subroutine integration_setup_process
+
+  module subroutine integration_evaluate &
+       (intg, process_instance, i_mci, pass, it_list, pacify)
+    class(integration_t), intent(inout) :: intg
+    type(process_instance_t), intent(inout), target :: process_instance
+    integer, intent(in) :: i_mci
+    integer, intent(in) :: pass
+    type(iterations_list_t), intent(in) :: it_list
+    logical, intent(in), optional :: pacify
+    integer :: n_calls, n_it
+    logical :: adapt_grids, adapt_weights, final
+    n_it = it_list%get_n_it (pass)
+    n_calls = it_list%get_n_calls (pass)
+    adapt_grids = it_list%adapt_grids (pass)
+    adapt_weights = it_list%adapt_weights (pass)
+    final = pass == it_list%get_n_pass ()
+    call process_instance%integrate ( &
+         i_mci, n_it, n_calls, adapt_grids, adapt_weights, &
+         final, pacify)
+  end subroutine integration_evaluate
+
+  module subroutine integration_make_iterations_list (intg, it_list)
+    class(integration_t), intent(in) :: intg
+    type(iterations_list_t), intent(out) :: it_list
+    integer :: pass, n_pass
+    integer, dimension(:), allocatable :: n_it, n_calls
+    logical, dimension(:), allocatable :: adapt_grids, adapt_weights
+    n_pass = intg%process%get_n_pass_default ()
+    allocate (n_it (n_pass), n_calls (n_pass))
+    allocate (adapt_grids (n_pass), adapt_weights (n_pass))
+    do pass = 1, n_pass
+       n_it(pass)          = intg%process%get_n_it_default (pass)
+       n_calls(pass)       = intg%process%get_n_calls_default (pass)
+       adapt_grids(pass)   = intg%process%adapt_grids_default (pass)
+       adapt_weights(pass) = intg%process%adapt_weights_default (pass)
+    end do
+    call it_list%init (n_it, n_calls, &
+         adapt_grids = adapt_grids, adapt_weights = adapt_weights)
+  end subroutine integration_make_iterations_list
+
+  module subroutine integration_init_iteration_multipliers (intg, local)
+    class(integration_t), intent(inout) :: intg
+    type(rt_data_t), intent(in) :: local
+    integer :: n_pass, pass
+    type(iterations_list_t) :: it_list
+    n_pass = local%it_list%get_n_pass ()
+    if (n_pass == 0) then
+       call intg%make_iterations_list (it_list)
+       n_pass = it_list%get_n_pass ()
+    end if
+    associate (it_multipliers => intg%iteration_multipliers)
+       allocate (it_multipliers%n_calls0 (n_pass))
+       do pass = 1, n_pass
+          it_multipliers%n_calls0(pass) = local%it_list%get_n_calls (pass)
+       end do
+       it_multipliers%mult_real = local%var_list%get_rval &
+           (var_str ("mult_call_real"))
+       it_multipliers%mult_virt = local%var_list%get_rval &
+           (var_str ("mult_call_virt"))
+       it_multipliers%mult_dglap = local%var_list%get_rval &
+           (var_str ("mult_call_dglap"))
+    end associate
+  end subroutine integration_init_iteration_multipliers
+
+  module subroutine integration_apply_call_multipliers &
+       (intg, n_pass, i_component, it_list)
+    class(integration_t), intent(in) :: intg
+    integer, intent(in) :: n_pass, i_component
+    type(iterations_list_t), intent(inout) :: it_list
+    integer :: nlo_type
+    integer :: n_calls0, n_calls
+    integer :: pass
+    real(default) :: multiplier
+    nlo_type = intg%process%get_component_nlo_type (i_component)
+    do pass = 1, n_pass
+       associate (multipliers => intg%iteration_multipliers)
+         select case (nlo_type)
+         case (NLO_REAL)
+            multiplier = multipliers%mult_real
+         case (NLO_VIRTUAL)
+            multiplier = multipliers%mult_virt
+         case (NLO_DGLAP)
+            multiplier = multipliers%mult_dglap
+         case default
+            return
+         end select
+       end associate
+       if (n_pass <= size (intg%iteration_multipliers%n_calls0)) then
+          n_calls0 = intg%iteration_multipliers%n_calls0 (pass)
+          n_calls = floor (multiplier * n_calls0)
+          call it_list%set_n_calls (pass, n_calls)
+       end if
+    end do
+  end subroutine integration_apply_call_multipliers
+
+  module subroutine integration_init &
+       (intg, process_id, local, global, local_stack, init_only)
+    class(integration_t), intent(out) :: intg
+    type(string_t), intent(in) :: process_id
+    type(rt_data_t), intent(inout), target :: local
+    type(rt_data_t), intent(inout), optional, target :: global
+    logical, intent(in), optional :: init_only
+    logical, intent(in), optional :: local_stack
+    logical :: use_local
+    use_local = .false.;  if (present (local_stack))  use_local = local_stack
+    if (present (global)) then
+       call intg%create_process (process_id, global)
+    else if (use_local) then
+       call intg%create_process (process_id, local)
+    else
+       call intg%create_process (process_id)
+    end if
+    call intg%init_process (local)
+    call intg%setup_process (local, init_only = init_only)
+    call intg%init_iteration_multipliers (local)
+  end subroutine integration_init
+
+  module subroutine integration_integrate (intg, local, eff_reset)
+    class(integration_t), intent(inout) :: intg
+    type(rt_data_t), intent(in), target :: local
+    logical, intent(in), optional :: eff_reset
+    type(string_t) :: log_filename
+    type(var_list_t), pointer :: var_list
+    type(process_instance_t), allocatable, target :: process_instance
+    type(iterations_list_t) :: it_list
+    logical :: pacify
+    integer :: pass, i_mci, n_mci, n_pass
+    integer :: i_component
+    integer :: nlo_type
+    logical :: display_summed
+    logical :: nlo_active
+    type(string_t) :: component_output
+
+    allocate (process_instance)
+    call process_instance%init (intg%process)
+
+    var_list => intg%process%get_var_list_ptr ()
+    call openmp_set_num_threads_verbose &
+         (var_list%get_ival (var_str ("openmp_num_threads")), &
+          var_list%get_lval (var_str ("?openmp_logging")))
+    pacify = var_list%get_lval (var_str ("?pacify"))
+
+    display_summed = .true.
+    n_mci = intg%process%get_n_mci ()
+    if (n_mci == 1) then
+       write (msg_buffer, "(A,A,A)") &
+            "Starting integration for process '", &
+            char (intg%process%get_id ()), "'"
+       call msg_message ()
+    end if
+
+    call setup_hooks ()
+
+    nlo_active = any (intg%process%get_component_nlo_type &
+         ([(i_mci, i_mci = 1, n_mci)]) /= BORN)
+    do i_mci = 1, n_mci
+       i_component = intg%process%get_master_component (i_mci)
+       nlo_type = intg%process%get_component_nlo_type (i_component)
+       if (intg%process%component_can_be_integrated (i_component)) then
+          if (n_mci > 1) then
+             if (nlo_active) then
+                if (intg%combined_integration .and. nlo_type == BORN) then
+                   component_output = var_str ("Combined")
+                else
+                   component_output = component_status (nlo_type)
+                end if
+                write (msg_buffer, "(A,A,A,A,A)") &
+                     "Starting integration for process '", &
+                     char (intg%process%get_id ()), "' part '", &
+                     char (component_output), "'"
+             else
+                write (msg_buffer, "(A,A,A,I0)") &
+                     "Starting integration for process '", &
+                     char (intg%process%get_id ()), "' part ", i_mci
+             end if
+             call msg_message ()
+          end if
+          n_pass = local%it_list%get_n_pass ()
+          if (n_pass == 0) then
+             call msg_message ("Integrate: iterations not specified, &
+                  &using default")
+             call intg%make_iterations_list (it_list)
+             n_pass = it_list%get_n_pass ()
+          else
+             it_list = local%it_list
+          end if
+          call intg%apply_call_multipliers (n_pass, i_mci, it_list)
+          call msg_message ("Integrate: " // char (it_list%to_string ()))
+          do pass = 1, n_pass
+             call intg%evaluate (process_instance, i_mci, pass, it_list, pacify)
+             if (signal_is_pending ())  return
+          end do
+          call intg%process%final_integration (i_mci)
+          if (intg%vis_history) then
+             call intg%process%display_integration_history &
+                  (i_mci, intg%history_filename, local%os_data, eff_reset)
+          end if
+          if (local%logfile == intg%log_filename) then
+             if (intg%run_id /= "") then
+                log_filename = intg%process_id // "." // intg%run_id // &
+                     ".var.log"
+             else
+                log_filename = intg%process_id // ".var.log"
+             end if
+             call msg_message ("Name clash for global logfile and process log: ", &
+                  arr =[var_str ("| Renaming log file from ") // local%logfile, &
+                        var_str ("|   to ") // log_filename // var_str (" .")])
+          else
+             log_filename = intg%log_filename
+          end if
+          call intg%process%write_logfile (i_mci, log_filename)
+       end if
+    end do
+
+    if (n_mci > 1 .and. display_summed) then
+       call msg_message ("Integrate: sum of all components")
+       call intg%process%display_summed_results (pacify)
+    end if
+
+    call process_instance%final ()
+    deallocate (process_instance)
+  contains
+    subroutine setup_hooks ()
+      class(process_instance_hook_t), pointer :: hook
+      call dispatch_evt_shower_hook (hook, var_list, process_instance, &
+           local%beam_structure, intg%process%get_pdf_set())
+      if (associated (hook)) then
+         call process_instance%append_after_hook (hook)
+      end if
+    end subroutine setup_hooks
+  end subroutine integration_integrate
+
+  module subroutine integration_integrate_dummy (intg)
+    class(integration_t), intent(inout) :: intg
+    call intg%process%integrate_dummy ()
+  end subroutine integration_integrate_dummy
+
+  module subroutine integration_sampler_test (intg)
+    class(integration_t), intent(inout) :: intg
+    type(process_instance_t), allocatable, target :: process_instance
+    integer :: n_mci, i_mci
+    type(timer_t) :: timer_mci, timer_tot
+    real(default) :: t_mci, t_tot
+    allocate (process_instance)
+    call process_instance%init (intg%process)
+    n_mci = intg%process%get_n_mci ()
+    if (n_mci == 1) then
+       write (msg_buffer, "(A,A,A)") &
+            "Test: probing process '", &
+            char (intg%process%get_id ()), "'"
+       call msg_message ()
+    end if
+    call timer_tot%start ()
+    do i_mci = 1, n_mci
+       if (n_mci > 1) then
+          write (msg_buffer, "(A,A,A,I0)") &
+               "Test: probing process '", &
+               char (intg%process%get_id ()), "' part ", i_mci
+          call msg_message ()
+       end if
+       call timer_mci%start ()
+       call process_instance%sampler_test (i_mci, intg%n_calls_test)
+       call timer_mci%stop ()
+       t_mci = timer_mci
+       write (msg_buffer, "(A,ES12.5)")  "Test: " &
+            // "time in seconds (wallclock): ", t_mci
+       call msg_message ()
+    end do
+    call timer_tot%stop ()
+    t_tot = timer_tot
+    if (n_mci > 1) then
+       write (msg_buffer, "(A,ES12.5)")  "Test: " &
+            // "total time      (wallclock): ", t_tot
+       call msg_message ()
+    end if
+    call process_instance%final ()
+  end subroutine integration_sampler_test
+
+  module function integration_get_process_ptr (intg) result (ptr)
+    class(integration_t), intent(in) :: intg
+    type(process_t), pointer :: ptr
+    ptr => intg%process
+  end function integration_get_process_ptr
+
+  module subroutine integrate_process &
+       (process_id, local, global, local_stack, init_only, eff_reset)
+    type(string_t), intent(in) :: process_id
+    type(rt_data_t), intent(inout), target :: local
+    type(rt_data_t), intent(inout), optional, target :: global
+    logical, intent(in), optional :: local_stack, init_only, eff_reset
+    type(string_t) :: prclib_name
+    type(integration_t) :: intg
+    character(32) :: buffer
+    type(var_list_t), pointer :: var_list
+    logical :: mpi_logging, process_init
+    integer :: rank, n_size
+    if (debug_on) call msg_debug (D_MPI, "integrate_process")
+    var_list => local%get_var_list_ptr ()
+    process_init = .false.
+    call mpi_get_comm_id (n_size, rank)
+    mpi_logging = (("vamp2" == char (var_list%get_sval (var_str ("$integration_method"))) .and. &
+         & (n_size > 1)) .or. var_list%get_lval (var_str ("?mpi_logging")))
+    if (debug_on) call msg_debug (D_MPI, "n_size", rank)
+    if (debug_on) call msg_debug (D_MPI, "rank", rank)
+    if (debug_on) call msg_debug (D_MPI, "mpi_logging", mpi_logging)
+    if (rank /= 0) then
+       if (mpi_logging) then
+          call msg_message ("MPI: wait for master to finish process initialization ...")
+       end if
+       call MPI_bcast (process_init, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD)
+    else
+       process_init = .true.
+    end if
+
+    if (process_init) then
+    if (.not. associated (local%prclib)) then
+       call msg_fatal ("Integrate: current process library is undefined")
+       return
+    end if
+
+    if (.not. local%prclib%is_active ()) then
+       call msg_message ("Integrate: current process library needs compilation")
+       prclib_name = local%prclib%get_name ()
+       call compile_library (prclib_name, local)
+       if (signal_is_pending ())  return
+       call msg_message ("Integrate: compilation done")
+    end if
+
+    call intg%init (process_id, local, global, local_stack, init_only)
+    if (signal_is_pending ())  return
+
+    if (present (init_only)) then
+       if (init_only) return
+    end if
+
+    if (intg%n_calls_test > 0) then
+       write (buffer, "(I0)")  intg%n_calls_test
+       call msg_message ("Integrate: test (" // trim (buffer) // " calls) ...")
+       call intg%sampler_test ()
+       call msg_message ("Integrate: ... test complete.")
+       if (signal_is_pending ())  return
+    end if
+    if (rank == 0) then
+       if (mpi_logging) then
+          call msg_message ("MPI: finish process initialization, load slaves ...")
+       end if
+       call MPI_bcast (process_init, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD)
+    end if
+  end if
+  call MPI_barrier (MPI_COMM_WORLD)
+  call mpi_set_logging (mpi_logging)
+
+    if (intg%phs_only) then
+       call msg_message ("Integrate: phase space only, skipping integration")
+    else
+       if (intg%process_has_me) then
+          call intg%integrate (local, eff_reset)
+       else
+          call intg%integrate_dummy ()
+       end if
+    end if
+  end subroutine integrate_process
+
+
+end submodule integrations_s
+

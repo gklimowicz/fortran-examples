@@ -1,0 +1,40 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "unit_test"
+process testproc_8_p = s, s => s, s
+process testproc_8_d = s => f, fbar
+
+seed = 0
+
+ff = 0.4
+
+compile ()
+
+$phs_method = "single"
+$integration_method = "midpoint"
+iterations = 1:1000
+sqrts = 1000
+
+integrate (testproc_8_p)
+
+unstable s (testproc_8_d)
+#integrate (testproc_8_d)
+
+# Generate event with decays
+?read_raw = false
+?write_raw = false
+n_events = 1
+sample_format = lha
+simulate (testproc_8_p)
+
+
+
+
+

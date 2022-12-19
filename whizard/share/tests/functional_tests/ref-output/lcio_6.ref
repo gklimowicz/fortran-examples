@@ -1,0 +1,124 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+| Process library 'lcio_6_lib': recorded process 'lcio_6_p'
+sqrts =  8.000000000000E+03
+openmp_num_threads = 1
+n_events = 1
+safety_factor =  2.000000000000E+00
+?read_raw = false
+?write_raw = false
+?keep_beams = true
+$sample = "lcio_6a"
+| Starting simulation for process 'lcio_6_p'
+| Simulate: process 'lcio_6_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'lcio_6_lib': compiling ...
+| Process library 'lcio_6_lib': writing makefile
+| Process library 'lcio_6_lib': removing old files
+| Process library 'lcio_6_lib': writing driver
+| Process library 'lcio_6_lib': creating source code
+| Process library 'lcio_6_lib': compiling sources
+| Process library 'lcio_6_lib': linking
+| Process library 'lcio_6_lib': loading
+| Process library 'lcio_6_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process lcio_6_p:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 8.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lcio_6_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lcio_6_p'
+|   Library name  = 'lcio_6_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lcio_6_p_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'lcio_6_p'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  3.6977136E+07  2.01E+07   54.45   17.22*   0.62
+|-----------------------------------------------------------------------------|
+   1       1000  3.6977136E+07  2.01E+07   54.45   17.22    0.62
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'lcio_6_p.m1.vg'
+| Simulate: applying safety factor 2.000E+00 to event rejection
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7044E-08
+| Events: writing to LCIO file 'lcio_6a.slcio'
+| Events: writing to weight stream file 'lcio_6a.weights.dat'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.05 %
+| Events: closing LCIO file 'lcio_6a.slcio'
+| Events: closing weight stream file 'lcio_6a.weights.dat'
+$rescan_input_format = "lcio"
+$sample = "lcio_6b"
+?update_sqme = true
+?recover_beams = false
+QCD.alphas =>  2.356000000000E-01
+QCD.alphas =>  3.534000000000E-01
+| Starting simulation for process 'lcio_6_p'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'lcio_6_p.i1.phs'
+| Simulate: initializing alternate process setup ...
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'lcio_6_p.i1.phs'
+| ...  alternate process setup complete.
+| Simulate: initializing alternate process setup ...
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'lcio_6_p.i1.phs'
+| ...  alternate process setup complete.
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7044E-08
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from LCIO file 'lcio_6a.slcio'
+| Events: writing to weight stream file 'lcio_6b.weights.dat'
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'lcio_6b.weights.dat'
+| Events: closing LCIO file 'lcio_6a.slcio'
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of lcio_6a.weights.dat
+0  1.0000000000E+00  5.6208024481E+04  5.6208024481E+04 1
+Contents of lcio_6b.weights.dat
+0  1.0000000000E+00  5.6208019749E+04  0.0000000000E+00 1
+1  4.0000000000E+00  2.2483207900E+05
+2  9.0000000000E+00  5.0587217774E+05

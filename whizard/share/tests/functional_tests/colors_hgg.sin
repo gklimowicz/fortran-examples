@@ -1,0 +1,33 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM_Higgs
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+error_threshold = 1E-13
+
+alias parton = u:b:B:g
+
+process colors_hgg =	H => g, g
+compile
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+?read_color_factors = true  # compute color factors in OMega (default)
+seed = 0
+
+integrate (colors_hgg) { iterations = 2:1000 }
+real integral_hgg_omega = integral (colors_hgg)
+
+?read_color_factors = false  # compute color factors in WHIZARD
+seed = 0
+
+integrate (colors_hgg) { iterations = 2:1000 }
+real integral_hgg_whizard = integral (colors_hgg)
+
+tolerance = 1e-10
+expect (integral_hgg_omega == integral_hgg_whizard)
+

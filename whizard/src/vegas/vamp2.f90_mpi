@@ -1,0 +1,546 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+module vamp2
+
+  use kinds, only: default
+  use diagnostics
+  use rng_base
+
+  use vegas
+
+  use request_base
+  use request_simple
+  use request_caller
+  use balancer_base
+  use request_callback
+  use mpi_f08 !NODEP!
+
+  implicit none
+  private
+
+  public :: vamp2_func_t
+  public :: vamp2_config_t
+  public :: vamp2_result_t
+  public :: vamp2_equivalences_t
+  public :: vamp2_t
+
+integer, parameter, public :: &
+     VEQ_IDENTITY = 0, VEQ_INVERT = 1, VEQ_SYMMETRIC = 2, VEQ_INVARIANT = 3
+  character(len=*), parameter, private :: &
+     descr_fmt =         "(1X,A)", &
+     integer_fmt =       "(1X,A18,1X,I15)", &
+     integer_array_fmt = "(1X,I18,1X,I15)", &
+     logical_fmt =       "(1X,A18,1X,L1)", &
+     double_fmt =        "(1X,A18,1X,E24.16E4)", &
+     double_array_fmt =  "(1X,I18,1X,E24.16E4)", &
+     double_array_pac_fmt = "(1X,I18,1X,E16.8E4)", &
+     double_array2_fmt = "(1X,2(1X,I8),1X,E24.16E4)", &
+     double_array2_pac_fmt = "(1X,2(1X,I8),1X,E16.8E4)"
+
+  type, abstract, extends(vegas_func_t) :: vamp2_func_t
+     integer :: current_channel = 0
+     integer :: n_dim = 0
+     integer :: n_channel = 0
+     integer :: n_calls = 0
+     logical :: valid_x = .false.
+     real(default), dimension(:, :), allocatable :: xi
+     real(default), dimension(:), allocatable :: det
+     real(default), dimension(:), allocatable :: wi
+     real(default), dimension(:), allocatable :: gi
+     type(vegas_grid_t), dimension(:), allocatable :: grids
+     real(default) :: g = 0._default
+   contains
+     procedure, public :: init => vamp2_func_init
+     procedure, public :: set_channel => vamp2_func_set_channel
+     procedure, public :: get_n_calls => vamp2_func_get_n_calls
+     procedure, public :: reset_n_calls => vamp2_func_reset_n_calls
+     procedure(vamp2_func_evaluate_maps), deferred :: evaluate_maps
+     procedure, private :: evaluate_weight => vamp2_func_evaluate_weight
+     procedure(vamp2_func_evaluate_func), deferred :: evaluate_func
+     procedure, public :: evaluate => vamp2_func_evaluate
+  end type vamp2_func_t
+
+  type, extends(vegas_config_t) :: vamp2_config_t
+     integer :: n_channel = 0
+     integer :: n_calls_min_per_channel = 20
+     integer :: n_calls_threshold = 10
+     integer :: n_chains = 0
+     logical :: stratified = .true.
+     logical :: equivalences = .false.
+     real(default) :: beta = 0.5_default
+     real(default) :: accuracy_goal = 0._default
+     real(default) :: error_goal = 0._default
+     real(default) :: rel_error_goal = 0._default
+   contains
+     procedure, public :: write => vamp2_config_write
+  end type vamp2_config_t
+
+  type, extends(vegas_result_t) :: vamp2_result_t
+   contains
+     procedure, public :: write => vamp2_result_write
+  end type vamp2_result_t
+
+  type :: vamp2_equi_t
+     integer :: ch
+     integer :: ch_src
+     integer, dimension(:), allocatable :: perm
+     integer, dimension(:), allocatable :: mode
+   contains
+     procedure :: write => vamp2_equi_write
+  end type vamp2_equi_t
+
+  type :: vamp2_equivalences_t
+      private
+      integer :: n_eqv = 0
+      integer :: n_channel = 0
+      integer :: n_dim = 0
+      type(vamp2_equi_t), dimension(:), allocatable :: eqv
+      integer, dimension(:), allocatable :: map
+      integer, dimension(:), allocatable :: multiplicity
+      integer, dimension(:), allocatable :: symmetry
+      logical, dimension(:), allocatable :: independent
+      integer, dimension(:), allocatable :: equivalent_to_ch
+      logical, dimension(:,:), allocatable :: dim_is_invariant
+   contains
+     procedure :: write => vamp2_equivalences_write
+     procedure, public :: is_allocated => vamp2_equivalences_is_allocated
+     procedure, public :: get_channels => vamp2_equivalences_get_channels
+     procedure, public :: get_mode => vamp2_equivalences_get_mode
+     procedure, public :: get_perm => vamp2_equivalences_get_perm
+     procedure, public :: set_equivalence => &
+          vamp2_equivalences_set_equivalence
+     procedure, public :: freeze => vamp2_equivalences_freeze
+  end type vamp2_equivalences_t
+
+  type :: vamp2_t
+     private
+     type(vamp2_config_t) :: config
+     type(vegas_t), dimension(:), allocatable :: integrator
+     integer, dimension(:), allocatable :: chain
+     real(default), dimension(:), allocatable :: weight
+     real(default), dimension(:), allocatable :: integral
+     real(default), dimension(:), allocatable :: variance
+     real(default), dimension(:), allocatable :: efficiency
+     type(vamp2_result_t) :: result
+     type(vamp2_equivalences_t) :: equivalences
+     logical :: event_prepared
+     real(default), dimension(:), allocatable :: event_weight
+     class(request_base_t), allocatable :: request
+   contains
+     procedure, public :: final => vamp2_final
+     procedure, public :: write => vamp2_write
+     procedure, public :: get_config => vamp2_get_config
+     procedure, public :: set_config => vamp2_set_config
+     procedure, public :: set_calls => vamp2_set_n_calls
+     procedure, public :: set_limits => vamp2_set_limits
+     procedure, public :: set_chain => vamp2_set_chain
+     procedure, public :: set_equivalences => vamp2_set_equivalences
+     generic, public :: allocate_request => allocate_request_by_method, &
+        allocate_request_by_object
+     procedure, private :: allocate_request_by_method => vamp2_allocate_request_by_method
+     procedure, private :: allocate_request_by_object => vamp2_allocate_request_by_object
+     procedure, public :: get_n_calls => vamp2_get_n_calls
+     procedure, public :: get_integral => vamp2_get_integral
+     procedure, public :: get_variance => vamp2_get_variance
+     procedure, public :: get_efficiency => vamp2_get_efficiency
+     procedure :: get_evt_weight => vamp2_get_evt_weight
+     procedure :: get_evt_weight_excess => vamp2_get_evt_weight_excess
+     procedure :: get_grid => vamp2_get_grid
+     procedure, private :: adapt_weights => vamp2_adapt_weights
+     procedure, private :: apply_equivalences => vamp2_apply_equivalences
+     procedure, public :: reset_result => vamp2_reset_result
+     procedure, public :: integrate => vamp2_integrate
+     procedure, private :: prepare_integrate_iteration => &
+          vamp2_prepare_integrate_iteration
+     procedure, private :: compute_result_and_efficiency => &
+          vamp2_compute_result_and_efficiency
+     procedure, public :: generate_weighted => vamp2_generate_weighted_event
+     procedure, public :: generate_unweighted => &
+          vamp2_generate_unweighted_event
+     procedure, public :: write_grids => vamp2_write_grids
+     procedure, public :: read_grids => vamp2_read_grids
+   procedure :: write_binary_grids => vamp2_write_binary_grids
+   procedure :: read_binary_grids => vamp2_read_binary_grids
+  end type vamp2_t
+
+ abstract interface
+    subroutine vamp2_func_evaluate_maps (self, x)
+      import :: vamp2_func_t, default
+      class(vamp2_func_t), intent(inout) :: self
+      real(default), dimension(:), intent(in) :: x
+    end subroutine vamp2_func_evaluate_maps
+ end interface
+
+  abstract interface
+     real(default) function vamp2_func_evaluate_func (self, x) result (f)
+       import :: vamp2_func_t, default
+       class(vamp2_func_t), intent(in) :: self
+       real(default), dimension(:), intent(in) :: x
+     end function vamp2_func_evaluate_func
+  end interface
+
+  interface vamp2_equivalences_t
+     module procedure vamp2_equivalences_init
+  end interface vamp2_equivalences_t
+
+  interface vamp2_t
+     module procedure vamp2_init
+  end interface vamp2_t
+
+
+  interface
+    module subroutine vamp2_func_init (self, n_dim, n_channel)
+      class(vamp2_func_t), intent(out) :: self
+      integer, intent(in) :: n_dim
+      integer, intent(in) :: n_channel
+    end subroutine vamp2_func_init
+    module subroutine vamp2_func_set_channel (self, channel)
+      class(vamp2_func_t), intent(inout) :: self
+      integer, intent(in) :: channel
+    end subroutine vamp2_func_set_channel
+    module function vamp2_func_get_n_calls (self) result (n_calls)
+      class(vamp2_func_t), intent(in) :: self
+      integer :: n_calls
+    end function vamp2_func_get_n_calls
+    module subroutine vamp2_func_reset_n_calls (self)
+      class(vamp2_func_t), intent(inout) :: self
+    end subroutine vamp2_func_reset_n_calls
+    module subroutine vamp2_func_evaluate_weight (self)
+      class(vamp2_func_t), intent(inout) :: self
+    end subroutine vamp2_func_evaluate_weight
+    module function vamp2_func_evaluate (self, x) result (f)
+      class(vamp2_func_t), intent(inout) :: self
+      real(default) :: f
+      real(default), dimension(:), intent(in) :: x
+    end function vamp2_func_evaluate
+    module subroutine vamp2_config_write (self, unit, indent)
+      class(vamp2_config_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: indent
+    end subroutine vamp2_config_write
+    module subroutine vamp2_result_write (self, unit, indent)
+      class(vamp2_result_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: indent
+    end subroutine vamp2_result_write
+    module subroutine vamp2_equi_write (self, unit, indent)
+      class(vamp2_equi_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: indent
+    end subroutine vamp2_equi_write
+    module function vamp2_equivalences_init (n_eqv, n_channel, &
+         n_dim) result (eqv)
+      type(vamp2_equivalences_t) :: eqv
+      integer, intent(in) :: n_eqv, n_channel, n_dim
+    end function vamp2_equivalences_init
+    module subroutine vamp2_equivalences_write (self, unit, indent)
+      class(vamp2_equivalences_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: indent
+    end subroutine vamp2_equivalences_write
+    module function vamp2_equivalences_is_allocated (self) result (yorn)
+      class(vamp2_equivalences_t), intent(in) :: self
+      logical :: yorn
+    end function vamp2_equivalences_is_allocated
+    module subroutine vamp2_equivalences_get_channels (eqv, i_eqv, dest, src)
+      class(vamp2_equivalences_t), intent(in) :: eqv
+      integer, intent(in) :: i_eqv
+      integer, intent(out) :: dest, src
+    end subroutine vamp2_equivalences_get_channels
+    module function vamp2_equivalences_get_mode (eqv, i_eqv) result (mode)
+      class(vamp2_equivalences_t), intent(in) :: eqv
+      integer, intent(in) :: i_eqv
+      integer, dimension(:), allocatable :: mode
+    end function vamp2_equivalences_get_mode
+    module function vamp2_equivalences_get_perm (eqv, i_eqv) result (perm)
+      class(vamp2_equivalences_t), intent(in) :: eqv
+      integer, intent(in) :: i_eqv
+      integer, dimension(:), allocatable :: perm
+    end function vamp2_equivalences_get_perm
+    module subroutine vamp2_equivalences_set_equivalence &
+         (eqv, i_eqv, dest, src, perm, mode)
+      class(vamp2_equivalences_t), intent(inout) :: eqv
+      integer, intent(in) :: i_eqv
+      integer, intent(in) :: dest, src
+      integer, dimension(:), intent(in) :: perm, mode
+    end subroutine vamp2_equivalences_set_equivalence
+    module subroutine vamp2_equivalences_freeze (self)
+      class(vamp2_equivalences_t), intent(inout) :: self
+    end subroutine vamp2_equivalences_freeze
+    module function vamp2_init (n_channel, n_dim, alpha, beta, n_bins_max,&
+         & n_calls_min_per_channel, iterations, mode) result (self)
+      type(vamp2_t) :: self
+      integer, intent(in) :: n_channel
+      integer, intent(in) :: n_dim
+      integer, intent(in), optional :: n_bins_max
+      integer, intent(in), optional :: n_calls_min_per_channel
+      real(default), intent(in), optional :: alpha
+      real(default), intent(in), optional :: beta
+      integer, intent(in), optional :: iterations
+      integer, intent(in), optional :: mode
+    end function vamp2_init
+    module subroutine vamp2_final (self)
+      class(vamp2_t), intent(inout) :: self
+    end subroutine vamp2_final
+    module subroutine vamp2_write (self, unit, indent)
+      class(vamp2_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: indent
+    end subroutine vamp2_write
+    module subroutine vamp2_get_config (self, config)
+      class(vamp2_t), intent(in) :: self
+      type(vamp2_config_t), intent(out) :: config
+    end subroutine vamp2_get_config
+    module subroutine vamp2_set_config (self, config)
+      class(vamp2_t), intent(inout) :: self
+      class(vamp2_config_t), intent(in) :: config
+    end subroutine vamp2_set_config
+    module subroutine vamp2_set_n_calls (self, n_calls)
+      class(vamp2_t), intent(inout) :: self
+      integer, intent(in) :: n_calls
+    end subroutine vamp2_set_n_calls
+    module subroutine vamp2_set_limits (self, x_upper, x_lower)
+      class(vamp2_t), intent(inout) :: self
+      real(default), dimension(:), intent(in) :: x_upper
+      real(default), dimension(:), intent(in) :: x_lower
+    end subroutine vamp2_set_limits
+    module subroutine vamp2_set_chain (self, n_chains, chain)
+      class(vamp2_t), intent(inout) :: self
+      integer, intent(in) :: n_chains
+      integer, dimension(:), intent(in) :: chain
+    end subroutine vamp2_set_chain
+    module subroutine vamp2_set_equivalences (self, equivalences)
+      class(vamp2_t), intent(inout) :: self
+      type(vamp2_equivalences_t), intent(in) :: equivalences
+    end subroutine vamp2_set_equivalences
+    elemental module function vamp2_get_n_calls (self) result (n_calls)
+      class(vamp2_t), intent(in) :: self
+      real(default) :: n_calls
+    end function vamp2_get_n_calls
+    elemental module function vamp2_get_integral (self) result (integral)
+      class(vamp2_t), intent(in) :: self
+      real(default) :: integral
+    end function vamp2_get_integral
+    elemental module function vamp2_get_variance (self) result (variance)
+      class(vamp2_t), intent(in) :: self
+      real(default) :: variance
+    end function vamp2_get_variance
+    elemental module function vamp2_get_efficiency (self) result (efficiency)
+      class(vamp2_t), intent(in) :: self
+      real(default) :: efficiency
+    end function vamp2_get_efficiency
+    module function vamp2_get_evt_weight (self) result (evt_weight)
+      class(vamp2_t), intent(in) :: self
+      real(default) :: evt_weight
+    end function vamp2_get_evt_weight
+    module function vamp2_get_evt_weight_excess (self) result (evt_weight_excess)
+      class(vamp2_t), intent(in) :: self
+      real(default) :: evt_weight_excess
+    end function vamp2_get_evt_weight_excess
+    module function vamp2_get_grid (self, channel) result (grid)
+      class(vamp2_t), intent(in) :: self
+      type(vegas_grid_t) :: grid
+      integer, intent(in) :: channel
+    end function vamp2_get_grid
+    module subroutine vamp2_adapt_weights (self)
+      class(vamp2_t), intent(inout) :: self
+    end subroutine vamp2_adapt_weights
+    module subroutine vamp2_apply_equivalences (self)
+      class(vamp2_t), intent(inout) :: self
+    end subroutine vamp2_apply_equivalences
+    module subroutine vamp2_reset_result (self)
+      class(vamp2_t), intent(inout) :: self
+    end subroutine vamp2_reset_result
+    module subroutine vamp2_integrate (self, func, rng, iterations, &
+         reset_result, refine_grids, adapt_weights, verbose, result, abserr)
+      class(vamp2_t), intent(inout) :: self
+      class(vamp2_func_t), intent(inout) :: func
+      class(rng_t), intent(inout) :: rng
+      integer, intent(in), optional :: iterations
+      logical, intent(in), optional :: reset_result
+      logical, intent(in), optional :: refine_grids
+      logical, intent(in), optional :: adapt_weights
+      logical, intent(in), optional :: verbose
+      real(default), optional, intent(out) :: result, abserr
+    end subroutine vamp2_integrate
+    module subroutine vamp2_compute_result_and_efficiency (self)
+      class(vamp2_t), intent(inout) :: self
+    end subroutine vamp2_compute_result_and_efficiency
+    module subroutine vamp2_generate_weighted_event (self, func, rng, x)
+      class(vamp2_t), intent(inout) :: self
+      class(vamp2_func_t), intent(inout) :: func
+      class(rng_t), intent(inout) :: rng
+      real(default), dimension(self%config%n_dim), intent(out)  :: x
+    end subroutine vamp2_generate_weighted_event
+    module subroutine vamp2_generate_unweighted_event (self, func, rng, &
+         x, opt_event_rescale)
+      class(vamp2_t), intent(inout) :: self
+      class(vamp2_func_t), intent(inout) :: func
+      class(rng_t), intent(inout) :: rng
+      real(default), dimension(self%config%n_dim), intent(out)  :: x
+      real(default), intent(in), optional :: opt_event_rescale
+    end subroutine vamp2_generate_unweighted_event
+    module subroutine vamp2_write_grids (self, unit)
+      class(vamp2_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+    end subroutine vamp2_write_grids
+    module subroutine vamp2_read_grids (self, unit)
+      class(vamp2_t), intent(out) :: self
+      integer, intent(in), optional :: unit
+    end subroutine vamp2_read_grids
+    module subroutine vamp2_write_binary_grids (self, unit)
+      class(vamp2_t), intent(in) :: self
+      integer, intent(in) :: unit
+    end subroutine vamp2_write_binary_grids
+    module subroutine vamp2_read_binary_grids (self, unit)
+      class(vamp2_t), intent(out) :: self
+      integer, intent(in) :: unit
+    end subroutine vamp2_read_binary_grids
+  end interface
+
+contains
+
+  subroutine vamp2_allocate_request_by_method (self, method)
+    class(vamp2_t), intent(inout) :: self
+    character(len=*), intent(in) :: method
+    class(request_base_t), allocatable :: request
+    select case (trim(method))
+    case("simple", "Simple", "SIMPLE")
+       allocate (request_simple_t :: request)
+    case("load", "Load", "LOAD")
+       allocate (request_caller_t :: request)
+    case default
+       call msg_bug ("VAMP2: Unknown method for MPI request module.")
+    end select
+    select type (request)
+    type is (request_simple_t)
+       call request%init (MPI_COMM_WORLD, n_channels = self%config%n_channel)
+    type is (request_caller_t)
+       call request%init (MPI_COMM_WORLD, n_channels = self%config%n_channel)
+    end select
+    call self%allocate_request_by_object (request)
+  end subroutine vamp2_allocate_request_by_method
+
+  subroutine vamp2_allocate_request_by_object (self, request)
+    class(vamp2_t), intent(inout) :: self
+    class(request_base_t), allocatable, intent(inout) :: request
+    !! Only output in case of "parallel" integration.
+    if (request%has_workers ()) then
+       select type (request)
+       type is (request_simple_t)
+          call msg_message ("VAMP2: Simple Request Balancing.")
+       type is (request_caller_t)
+          call msg_message ("VAMP2: Request with load balancing.")
+       class default
+          call msg_bug ("VAMP2: Unknown extension of request_base.")
+       end select
+    end if
+    call move_alloc (request, self%request)
+  end subroutine vamp2_allocate_request_by_object
+
+  subroutine vamp2_prepare_integrate_iteration (self, func)
+    class(vamp2_t), intent(inout) :: self
+    class(vamp2_func_t), intent(inout) :: func
+    if (.not. allocated (self%request)) then
+       call msg_bug ("VAMP2: prepare integration iteration failed: unallocated request.")
+    end if
+    call broadcast_weights_and_grids ()
+    select type (req => self%request)
+    type is (request_simple_t)
+       call req%update (self%integrator%is_parallelizable ())
+       call init_all_handler (req)
+       call call_all_handler (req)
+       !! Add all handlers, call all handlers.
+    type is (request_caller_t)
+       if (req%is_master ()) then
+          call req%update_balancer (self%weight, self%integrator%is_parallelizable ())
+          call init_all_handler (req)
+       else
+          call self%request%reset ()
+       end if
+    class default
+       call msg_bug ("VAMP2: prepare integration iteration failed: unknown request type.")
+    end select
+    call fill_func_with_weights_and_grids (func)
+  contains
+    subroutine fill_func_with_weights_and_grids (func)
+      class(vamp2_func_t), intent(inout) :: func
+      integer :: ch
+      do ch = 1, self%config%n_channel
+         func%wi(ch) = self%weight(ch)
+         !! \todo Use pointers instead of a deep copy.
+         func%grids(ch) = self%integrator(ch)%get_grid ()
+      end do
+    end subroutine fill_func_with_weights_and_grids
+    subroutine broadcast_weights_and_grids ()
+      type(vegas_grid_t) :: grid
+      type(MPI_COMM) :: comm
+      integer :: ch
+      call self%request%get_external_comm (comm)
+      call MPI_BCAST (self%weight, self%config%n_channel, &
+           MPI_DOUBLE_PRECISION, 0, comm)
+      do ch = 1, self%config%n_channel
+         grid = self%integrator(ch)%get_grid ()
+         call grid%broadcast (comm)
+         call self%integrator(ch)%set_grid (grid)
+      end do
+      call self%set_calls (self%config%n_calls)
+    end subroutine broadcast_weights_and_grids
+
+    subroutine init_all_handler (req)
+      class(request_base_t), intent(inout) :: req
+      class(request_handler_t), pointer :: vegas_result_handler
+      integer :: ch
+      !! The master worker needs always all handler (callback objects)
+      !! in order to perform the communication to the client handler (callbacks).
+      if (.not. req%is_master ()) return
+      do ch = 1, self%config%n_channel
+         call self%integrator(ch)%allocate_handler (&
+              handler_id = ch,&
+              handler = vegas_result_handler)
+         call req%add_handler (ch, vegas_result_handler)
+      end do
+    end subroutine init_all_handler
+
+    subroutine call_all_handler (req)
+      class(request_base_t), intent(inout) :: req
+      integer :: ch
+      if (.not. req%is_master ()) return
+      do ch = 1, self%config%n_channel
+         select type (req)
+         type is (request_simple_t)
+            call req%call_handler (handler_id = ch, &
+                 source_rank = req%get_request_master (ch))
+         end select
+      end do
+    end subroutine call_all_handler
+  end subroutine vamp2_prepare_integrate_iteration
+
+
+end module vamp2

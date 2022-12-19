@@ -1,0 +1,78 @@
+!!! Test the functionality of Powheg with ttbar-production at a linear collider
+model = SM
+?logging = true
+?openmp_logging = false
+openloops_phs_tolerance = 1
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+!seed = 0
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.16637E-005
+wZ = 2.4952
+wW = 2.124
+
+# => alpha = 132.16066
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+mb = 0
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+$loop_me_method = "openloops"
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+?combined_nlo_integration = true
+
+?powheg_matching = true
+powheg_grid_size_xi = 2
+powheg_grid_size_y = 2
+powheg_pt_min = 1.0
+?powheg_use_singular_jacobian = false
+
+# hardest jet pT
+#scale = eval Pt [sort by -Pt [colored]]
+scale = sqrts
+
+# Needs OpenLoops library ee??
+process extra_nlo_uu_powheg = e1, E1 => u, U { nlo_calculation = full }
+process extra_nlo_dd_powheg = e1, E1 => d, D { nlo_calculation = full }
+process extra_nlo_cc_powheg = e1, E1 => c, C { nlo_calculation = full }
+process extra_nlo_ss_powheg = e1, E1 => s, S { nlo_calculation = full }
+process extra_nlo_bb_powheg = e1, E1 => b, B { nlo_calculation = full }
+# Default parameters for FKS mapping
+fks_dij_exp1 = 1.0
+$fks_mapping_type = "default"
+
+sqrts = 250 GeV
+beams = e1, E1 => isr, isr
+$circe2_file = "cepc250.circe"
+$circe2_design = "CEPC"
+isr_mass = 0.000511
+
+iterations = 5:50000:"gw"
+integrate (extra_nlo_uu_powheg, extra_nlo_dd_powheg, extra_nlo_cc_powheg, extra_nlo_ss_powheg, extra_nlo_bb_powheg)
+
+?rebuild_library = true
+n_events = 200
+#sample_format = hepmc
+sample_format = lhef
+#?hepmc_output_cross_section = true
+
+simulate (extra_nlo_uu_powheg)
+simulate (extra_nlo_dd_powheg)
+simulate (extra_nlo_cc_powheg)
+simulate (extra_nlo_ss_powheg)
+simulate (extra_nlo_bb_powheg)

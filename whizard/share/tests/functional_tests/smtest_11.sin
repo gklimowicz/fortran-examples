@@ -1,0 +1,41 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+mmu = 0
+mtau = 0
+
+seed = 0
+
+process smtest_11_tt = e1, E1 => t, tbar
+process smtest_11_tpd = t => Wp, b
+process smtest_11_tmd = tbar => Wm, bbar
+process smtest_11_wpd = Wp => E2, n2
+process smtest_11_wmd = Wm => e2, N2
+
+error_threshold = 1E-8
+
+unstable t (smtest_11_tpd)
+unstable tbar (smtest_11_tmd)
+unstable Wp (smtest_11_wpd)
+unstable Wm (smtest_11_wmd)
+
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (smtest_11_tt) { iterations = 1:1000 }
+
+n_events = 1
+sample_format = mokka
+?hepevt_ensure_order = false
+$sample = "smtest_11a"
+simulate (smtest_11_tt)
+?hepevt_ensure_order = true
+$sample = "smtest_11b"
+simulate (smtest_11_tt)

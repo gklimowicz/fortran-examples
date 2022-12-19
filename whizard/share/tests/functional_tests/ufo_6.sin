@@ -1,0 +1,29 @@
+# SINDARIN input for WHIZARD self-test
+# Test UFO models with Majorana fermions
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+model = ufo_6_MSSM (ufo)
+
+seed = 0
+
+?resonance_history = true
+resonance_on_shell_limit = 4
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+process ufo_6_nn = "e-", "e+" => "n1", "n1"
+
+sqrts = 500 GeV
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (ufo_6_nn) { iterations = 1:1000 }
+
+n_events = 1
+sample_format = lhef
+simulate (ufo_6_nn)

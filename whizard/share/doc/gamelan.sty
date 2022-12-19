@@ -1,0 +1,131 @@
+% Copyright (C) 1997,1998 by Wolfgang Kilian <kilian@x4u2.desy.de>
+%   v0.40 1998/11/02
+% This file lacks all documentation.  See the source gamelan.nw
+% Note: This is a test version and not released code.  
+\RequirePackage{verbatim}
+\RequirePackage{graphics}
+\def\gmlfileversion{0.40}
+\def\gmlfiledate{1998/11/02}
+\ProvidesPackage{gamelan}
+\typeout{Package: `gamelan' \gmlfileversion \space <\gmlfiledate>}
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{graphics}}
+\ProcessOptions
+{\catcode`\%=11\gdef\p@rcent{%}}%
+{\catcode`\#=11\gdef\sh@rp{#}}%
+{\catcode`\"=11\gdef\dqu@te{"}}%
+{\catcode`\ =11\gdef\sp@ce{ }}%
+\newwrite\@gmlpre
+\def\thegml@ltp{\jobname.ltp}
+\immediate\openout\@gmlpre=\thegml@ltp\relax
+\immediate\write\@gmlpre{%
+    \p@rcent\sp@ce\thegml@ltp\sp@ce -- Do not edit, %
+    generated automatically from \jobname.tex}
+\immediate\write\@gmlpre{\relax}
+\AtBeginDocument{%
+  \immediate\closeout\@gmlpre%
+  \input\thegml@ltp}
+\def\gmlpreamble{%
+  \def\verbatim@processline{%
+    \immediate\write\@gmlpre{\the\verbatim@line}}
+  \begingroup
+  \let\do\@makeother\dospecials\catcode`\^^M\active
+  \verbatim@start}
+\def\endgmlpreamble{\endgroup}
+\newwrite\@outgml
+\def\gmlfile{\@ifnextchar[{\gml@file}{\gml@file[\jobname]}}
+\def\gml@file[#1]{%
+  \def\thegmlfile{#1}%
+  \typeout{gamelan: Writing MetaPost commands to \thegmlfile.mp}
+  \immediate\openout\@outgml=\thegmlfile.mp\relax
+  \gml{\p@rcent\space \thegmlfile.mp -- do not edit, %
+       generated automatically from \jobname.tex^^J}%
+  \gml{compare_filedate("\gmlfiledate","1998/11/02","0.40");}
+  \gml{defaultfont:="cmr1\@ptsize";}
+  \gml{verbatimtex \noexpand\documentclass[1\@ptsize pt]{article}}
+  \ifx\thegml@ltp\relax\else{\gml{\noexpand\input\thegml@ltp}}\fi
+  \gml{\noexpand\begin{document} etex}
+  \gmlnumbers{}
+  \setcounter{gmlfigure}{0}
+  \def\verbatim@processline{%
+    \immediate\write\@outgml{\the\verbatim@line}}%
+  \gmlon
+  }
+\def\endgmlfile{%
+  \gml{end}%
+  \let\thegmlfile\relax}
+\let\thegmlfile\relax
+\newcounter{gmlfigure}
+\def\gmlon {\def\gml@ctive{true}}
+\def\gmloff{\def\gml@ctive{false}}
+\def\gml@init{%
+  \@bsphack
+  \let\do\@makeother\dospecials
+  \catcode`\^^M\active}
+\let\gml@end\@esphack
+\def\gml#1{\immediate\write\@outgml{#1}}
+\def\gmlcode{\gml@init\verbatim@start}
+\let\endgmlcode\gml@end
+\def\gmltex{\gml{verbatimtex}\gmlcode}
+\def\endgmltex{\endgmlcode\gml{etex}}
+\def\gml@texgroup{\gml{verbatimtex\noexpand\begingroup etex}}
+\def\endgml@texgroup{\gml{verbatimtex\noexpand\endgroup etex}}
+\def\gmlgroup{\@ifnextchar[{\gml@group}{\gml@group[tmp]}}
+\def\gml@group[#1]{\gml{begingroup}\gmlst@rtgroup{#1}}
+\def\gmlst@rtgroup#1{%
+  \gml@texgroup\gml{savecurrentpen; savepencolor;}\gml{save #1;}}
+\let\gml@fingroup\endgml@texgroup
+\def\endgmlgroup{\gml@fingroup\gml{endgroup;}}
+\def\gmlfig@init#1{%
+  \ifx\thegmlfile\relax
+    \errhelp={Outside a gmlfile environment, I have no clue as to where^^J%
+              the METAPOST commands should go.   I will use \jobname.mp,^^J%
+              but this file will probably end up unclosed.}%      
+    \errmessage
+       {I detected a gmlgraph/gmlfigure environment outside of gmlfile}%
+    \gmlfile[\jobname]
+  \fi
+  \global\expandafter\advance\csname c@gmlfigure\endcsname \@ne
+  \leavevmode
+  \IfFileExists{\thegmlfile.\thegmlfigure}%
+    {\includegraphics{\thegmlfile.\thegmlfigure}}%
+    {\typeout{%
+      gamelan: File \thegmlfile.\thegmlfigure\space not found:^^J%
+      gamelan: Process \thegmlfile.mp with GAMELAN and then %
+               reprocess this file.}}%
+  \gml{if \gml@ctive:}
+  \gml{savecurrentpen;}
+  \gml{beginfig(\thegmlfigure);}
+  \gml{pickup _cpen; setpencolor;}
+  \gmlst@rtgroup{#1}
+  \gml{save unitlength; unitlength:=\the\unitlength;}
+  \gml{verbatimtex\noexpand\unitlength\the\unitlength{}etex}
+  }
+\def\gmlfig@end{%
+  \gml@fingroup
+  \gml{endfig;}
+  \gml{fi}
+  }
+\def\gmlfigure{\@ifnextchar[{\gml@fig}{\gml@fig[tmp]}}
+\def\gml@fig[#1]{\gmlfig@init{#1}\gml@init\verbatim@start}
+\def\endgmlfigure{\gml@end\gmlfig@end}
+\def\gmlgraph(#1,#2){\@ifnextchar[{\gmlgr@ph{#1}{#2}}{\gmlgr@ph{#1}{#2}[tmp]}}
+\def\gmlgr@ph#1#2[#3]{%
+  \gmlfig@init{#3}
+  \gml{plaindraw begingraph(#1*unitlength, #2*unitlength)}%
+  \gml@init\verbatim@start}
+\def\endgmlgraph{%
+  \gml@end\gml{endgraph;}\gmlfig@end}
+\@namedef{gmlgraph*}(#1,#2){\gmlgraph(#1,#2)}
+\@namedef{endgmlgraph*}{%
+  \gml@end\gml{framebounds;}\gml{endgraph;}\gmlfig@end}
+\newtoks\gmlbuf@
+\def\gmlnumbers#1{%
+  \gmlbuf@{#1}
+  \gml{init_numbers(^^J%
+       btex$\the\gmlbuf@-$etex,^^Jbtex$\the\gmlbuf@1$etex,^^J%
+       btex$\the\gmlbuf@{\noexpand\times}10$etex,^^J%
+       btex$\the\gmlbuf@{}^-$etex,^^Jbtex$\the\gmlbuf@{}^2$etex);}}
+\def\gmlpenscale#1{\gml{penscale (#1);}}
+\def\gmlpencolor#1{\gml{pencolor (#1);}}
+\def\gmlcolor#1#2{\gml{newcolor #1 (#2);}}
+\def\gmlfunction#1#2#3{\gml{vardef #1(expr #2) = #3 enddef;}}

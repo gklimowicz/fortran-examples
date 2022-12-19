@@ -1,0 +1,77 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+| Process library 'shower_err_1_lib': recorded process 'shower_err_1'
+sqrts =  1.000000000000E+03
+seed = 0
+openmp_num_threads = 1
+| Integrate: current process library needs compilation
+| Process library 'shower_err_1_lib': compiling ...
+| Process library 'shower_err_1_lib': writing makefile
+| Process library 'shower_err_1_lib': removing old files
+| Process library 'shower_err_1_lib': writing driver
+| Process library 'shower_err_1_lib': creating source code
+| Process library 'shower_err_1_lib': compiling sources
+| Process library 'shower_err_1_lib': linking
+| Process library 'shower_err_1_lib': loading
+| Process library 'shower_err_1_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process shower_err_1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'shower_err_1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'shower_err_1'
+|   Library name  = 'shower_err_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'shower_err_1_i1':   e-, e+ => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'shower_err_1'
+| Integrate: iterations = 1:100
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  1.6525865E+02  1.22E+01    7.40    0.74*  36.95
+|-----------------------------------------------------------------------------|
+   1        100  1.6525865E+02  1.22E+01    7.40    0.74   36.95
+|=============================================================================|
+| Name clash for global logfile and process log:
+| Renaming log file from shower_err_1.log
+|   to shower_err_1.var.log .
+n_events = 1
+?ps_isr_active = true
+| Starting simulation for process 'shower_err_1'
+| Simulate: using integration grids from file 'shower_err_1.m1.vg'
+| Simulate: activating parton shower
+| Shower: Using WHIZARD internal shower
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   6.0511E-03
+| Events: writing to ASCII file 'shower_err_1.debug'
+| Events: writing to raw file 'shower_err_1.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+******************************************************************************
+******************************************************************************
+*** FATAL ERROR: ?ps_isr_active is only intended for hadron-collisions
+******************************************************************************
+******************************************************************************
+WHIZARD run aborted.

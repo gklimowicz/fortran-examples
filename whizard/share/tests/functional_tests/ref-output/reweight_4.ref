@@ -1,0 +1,136 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+| Process library 'reweight_4_lib': recorded process 'reweight_4_p1'
+| Process library 'reweight_4_lib': recorded process 'reweight_4_p2'
+sqrts =  8.000000000000E+03
+n_events = 1
+?unweighted = false
+?read_raw = false
+?write_raw = true
+$sample = "reweight_4a"
+| Starting simulation for process 'reweight_4_p1'
+| Simulate: process 'reweight_4_p1' needs integration
+| Integrate: current process library needs compilation
+| Process library 'reweight_4_lib': compiling ...
+| Process library 'reweight_4_lib': writing makefile
+| Process library 'reweight_4_lib': removing old files
+| Process library 'reweight_4_lib': writing driver
+| Process library 'reweight_4_lib': creating source code
+| Process library 'reweight_4_lib': compiling sources
+| Process library 'reweight_4_lib': linking
+| Process library 'reweight_4_lib': loading
+| Process library 'reweight_4_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process reweight_4_p1:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 8.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'reweight_4_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'reweight_4_p1'
+|   Library name  = 'reweight_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'reweight_4_p1_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'reweight_4_p1'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  3.6977136E+07  2.01E+07   54.45   17.22*   0.62
+|-----------------------------------------------------------------------------|
+   1       1000  3.6977136E+07  2.01E+07   54.45   17.22    0.62
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'reweight_4_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Events: writing to raw file 'reweight_4a.evx'
+| Events: generating 1 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing raw file 'reweight_4a.evx'
+?write_raw = false
+?check_event_file = false
+$sample = "reweight_4b"
+$pdf_builtin_set = "MSTW2008LO"
+$pdf_builtin_set = "CT10"
+| Starting simulation for process 'reweight_4_p2'
+| Simulate: process 'reweight_4_p2' needs initialization
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Initializing integration for process reweight_4_p2:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 8.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'reweight_4_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'reweight_4_p2'
+|   Library name  = 'reweight_4_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'reweight_4_p2_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Simulate: process initialization done
+| Simulate: initializing alternate process setup ...
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Initialized builtin PDF MSTW2008LO
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'reweight_4_p2.i1.phs'
+| ...  alternate process setup complete.
+| Simulate: initializing alternate process setup ...
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+| Initialized builtin PDF CT10
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'reweight_4_p2.i1.phs'
+| ...  alternate process setup complete.
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Events: reading from raw file 'reweight_4a.evx'
+Warning: Reading event file: MD5 sum check disabled
+| Events: writing to weight stream file 'reweight_4b.weights.dat'
+| Rescanning weighted events ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'reweight_4b.weights.dat'
+| Events: closing raw file 'reweight_4a.evx'
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of reweight_4b.weights.dat
+0  1.7050298567E+00  1.0709379027E-03  1.0709379027E-03 1
+1  2.2645882447E+00  1.4223993649E-03
+2  3.8324393379E+00  2.4071745904E-03

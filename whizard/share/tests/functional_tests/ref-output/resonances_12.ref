@@ -1,0 +1,79 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+?resonance_history = true
+resonance_on_shell_limit =  4.000000000000E+00
+| Process library 'resonances_12_lib': recorded process 'resonances_12_p'
+sqrts =  2.300000000000E+02
+openmp_num_threads = 1
+?pacify = true
+| Integrate: current process library needs compilation
+| Process library 'resonances_12_lib': compiling ...
+| Process library 'resonances_12_lib': writing makefile
+| Process library 'resonances_12_lib': removing old files
+| Process library 'resonances_12_lib': writing driver
+| Process library 'resonances_12_lib': creating source code
+| Process library 'resonances_12_lib': compiling sources
+| Process library 'resonances_12_lib': linking
+| Process library 'resonances_12_lib': loading
+| Process library 'resonances_12_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process resonances_12_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.300000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'resonances_12_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_12_p'
+|   Library name  = 'resonances_12_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'resonances_12_p_i1':   e-, e+ => A, A [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 16 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'resonances_12_p'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 4 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     2.921E+04   2.95E+03   10.09    2.85     3.4
+|-----------------------------------------------------------------------------|
+   1        800     2.921E+04   2.95E+03   10.09    2.85     3.4
+|=============================================================================|
+n_events = 1
+| Starting simulation for process 'resonances_12_p'
+| Simulate: using integration grids from file 'resonances_12_p.m1.vg'
+| Creating library for resonant subprocesses 'resonances_12_p_R'
+| Process library 'resonances_12_p_R': initialized
+| Process library 'resonances_12_p_R': compiling ...
+| Process library 'resonances_12_p_R': ... success.
+| Simulate: activating resonance insertion
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   3.4229E-05
+| Events: writing to LHEF file 'resonances_12_p.lhe'
+| Events: writing to raw file 'resonances_12_p.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   6.25 %
+| Events: closing LHEF file 'resonances_12_p.lhe'
+| Events: closing raw file 'resonances_12_p.evx'
+| WHIZARD run finished.
+|=============================================================================|

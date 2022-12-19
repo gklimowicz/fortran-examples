@@ -1,0 +1,35 @@
+# SINDARIN input for WHIZARD self-test
+# Testing integration of non-polarized OpenLoops matrix elements.
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$loop_me_method = "openloops"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+mb = 4.2 GeV
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+process openloops_1_p1 = E1, e1 => b, B { nlo_calculation = virtual }
+
+seed = 2222
+
+sqrts = 500 GeV
+iterations = 1:100
+integrate (openloops_1_p1)
+
+!!! Also test massless case
+mb = 0.0 GeV
+
+integrate (openloops_1_p1)

@@ -1,0 +1,30 @@
+# SINDARIN input for WHIZARD self-test
+# Process u, gl -> d, W+ with decay W+ -> E1, n1
+
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process smtest_10p = u, gl => d, Wp
+process smtest_10d = Wp => E1, n1
+
+compile
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (smtest_10d) { iterations = 1:10 error_threshold = 1E-8 }
+
+sqrts = 7 TeV
+beams = p, p => pdf_builtin
+integrate (smtest_10p) { iterations = 1:1000 }
+
+unstable Wp (smtest_10d)
+
+?unweighted = false
+simulate (smtest_10p) { n_events = 1 }

@@ -1,0 +1,29 @@
+!!! Process: Electron-induced muon production at CLIC
+!!! Reported by: Jean-Jacques Blaising on 2015-05-20
+!!! Purpose: Tests that particles that don't radiate stay final state particles
+!!!
+
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+seed = 0
+
+process shower_1_norad_p1 = "e-", "e+" => "mu+", "mu-"
+compile
+sqrts = 3000 GeV
+beams = e1, E1 => isr
+cuts = all Pt > 5 GeV  and Theta > 10 degree and Theta < 170 degree ["mu+":"mu-"]
+?keep_beams = true
+?ps_fsr_active = true
+$shower_method = "PYTHIA6"
+n_events = 10**5
+$sample = "shower_1_norad"
+simulate (shower_1_norad_p1)

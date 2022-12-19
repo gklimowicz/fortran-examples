@@ -1,0 +1,16 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?omega_write_phs_output = true
+
+seed = 0
+
+process collision = "e+", "e-" => "e+", "nue", "d", "ubar", "A", "A"
+sqrts = 500 GeV
+
+integrate (collision) {?phs_only = true $phs_method = "fast_wood"}

@@ -1,0 +1,436 @@
+%% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD code as NOWEB source: common types and objects
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Abstract variables and expressions}
+\includemodulegraph{expr_base}
+
+The two modules introduce abstract variable collections and abstract
+expressions, where the latter uses the former.  These modules allow us
+to code various parts of \whizard\ that require named parameters and
+expression evaluation, without reference to the concrete
+implementation of those.
+\begin{description}
+\item[var\_base]
+  Abstract base type for collecting named parameters and variables.
+\item[expr\_base]
+  Expressions for evaluating parameters, using variables and variable
+  lists.  The module provides an abstract base type which requires an
+  implementation.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Abstract parameter collections}
+In this module, we define an abstract type for collecting named
+parameters or variables of various kind.  The predefined methods enable
+just value retrieval; concrete implementations should implement more.
+<<[[var_base.f90]]>>=
+<<File header>>
+
+module var_base
+
+<<Use kinds>>
+<<Use strings>>
+
+<<Standard module head>>
+
+<<Var base: public>>
+
+<<Var base: types>>
+
+<<Var base: interfaces>>
+
+end module var_base
+@ %def var_base
+@
+\subsection{Constructor/destructor Methods}
+Link the current collection to another variable collection.  This
+enables the chain-of-responsibility feature that is hinted at by the
+[[follow_link]] options in the retrieval methods.
+
+The implementation may allow only certain types for the linked
+collection, or any type.  The argument must carry the TARGET
+attribute, just in case.
+<<Var base: vars: TBP>>=
+  procedure (vars_link), deferred :: link
+<<Var base: interfaces>>=
+  abstract interface
+     subroutine vars_link (vars, target_vars)
+       import
+       class(vars_t), intent(inout) :: vars
+       class(vars_t), intent(in), target :: target_vars
+     end subroutine vars_link
+  end interface
+
+@ %def vars_link
+@ Require a finalizer, just in case.  [[follow_link]] will finalize
+also linked variable collections, which may or may not be intended.
+<<Var base: vars: TBP>>=
+  procedure (vars_final), deferred :: final
+<<Var base: interfaces>>=
+  abstract interface
+     subroutine vars_final (vars, follow_link)
+       import
+       class(vars_t), intent(inout) :: vars
+       logical, intent(in), optional :: follow_link
+     end subroutine vars_final
+  end interface
+
+@ %def vars_final
+@
+@
+\subsection{Type for variable collection}
+The abstract [[vars_t]] type is a structure for collecting parameters
+that may be of numeric or other value kind.  We require, by the
+predefined methods, that there are at least logical, integer, real,
+complex, and string-valued parameters.  The common property is that
+all parameters can be accessed by name.  Furthermore, the parameter
+value may be unknown, and this state can be queried.
+
+The abstract type can be used in abstract expressions (below) and in
+other data structures that essentially only require read-only access.
+
+Concrete implementations (there may be one or more) should add methods
+for setting parameters, more options, value kinds, or anything else.
+<<Var base: public>>=
+  public :: vars_t
+<<Var base: types>>=
+  type, abstract :: vars_t
+   contains
+   <<Var base: vars: TBP>>
+  end type vars_t
+
+@ %def vars_t
+@
+\subsection{Retrieve data}
+These methods implement data queries or retrieval.
+
+There is a [[follow_link]] option: in case of linked variable list
+(chain of responsibility), we may query the next variable collection
+in line.
+
+Check if a variable exists in the collection / is known.
+<<Var base: vars: TBP>>=
+  procedure (vars_get_lval), deferred :: contains
+  procedure (vars_get_lval), deferred :: is_known
+<<Var base: interfaces>>=
+  abstract interface
+     function vars_get_lval (vars, name, follow_link) result (lval)
+       import
+       logical :: lval
+       class(vars_t), intent(in) :: vars
+       type(string_t), intent(in) :: name
+       logical, intent(in), optional :: follow_link
+     end function vars_get_lval
+  end interface
+
+@ %def vars_get_lval
+@
+Return one of the elementary value kinds.  The implementation may
+check type consistency if desired.
+<<Var base: vars: TBP>>=
+  procedure (vars_get_ival), deferred :: get_ival
+  procedure (vars_get_rval), deferred :: get_rval
+  procedure (vars_get_cval), deferred :: get_cval
+  procedure (vars_get_lval), deferred :: get_lval
+  procedure (vars_get_sval), deferred :: get_sval
+<<Var base: interfaces>>=
+  abstract interface
+     function vars_get_ival (vars, name, follow_link) result (ival)
+       import
+       integer :: ival
+       class(vars_t), intent(in) :: vars
+       type(string_t), intent(in) :: name
+       logical, intent(in), optional :: follow_link
+     end function vars_get_ival
+  end interface
+
+  abstract interface
+     function vars_get_rval (vars, name, follow_link) result (rval)
+       import
+       real(default) :: rval
+       class(vars_t), intent(in) :: vars
+       type(string_t), intent(in) :: name
+       logical, intent(in), optional :: follow_link
+     end function vars_get_rval
+  end interface
+
+  abstract interface
+     function vars_get_cval (vars, name, follow_link) result (cval)
+       import
+       complex(default) :: cval
+       class(vars_t), intent(in) :: vars
+       type(string_t), intent(in) :: name
+       logical, intent(in), optional :: follow_link
+     end function vars_get_cval
+  end interface
+
+  abstract interface
+     function vars_get_sval (vars, name, follow_link) result (sval)
+       import
+       type(string_t) :: sval
+       class(vars_t), intent(in) :: vars
+       type(string_t), intent(in) :: name
+       logical, intent(in), optional :: follow_link
+     end function vars_get_sval
+  end interface
+
+@ %def vars_get_ival
+@ %def vars_get_rval
+@ %def vars_get_cval
+@ %def vars_get_sval
+@
+Unset a value of any kind.  The variable should stay, just the value
+becomes unknown.
+<<Var base: vars: TBP>>=
+  procedure (vars_unset), deferred :: unset
+<<Var base: interfaces>>=
+  abstract interface
+     subroutine vars_unset (vars, name, follow_link)
+       import
+       class(vars_t), intent(inout) :: vars
+       type(string_t), intent(in) :: name
+       logical, intent(in), optional :: follow_link
+     end subroutine vars_unset
+  end interface
+
+@ %def vars_unset
+@
+Set a value of the elementary value kinds.  The implementation may
+check type consistency if desired.
+<<Var base: vars: TBP>>=
+  procedure (vars_set_ival), deferred :: set_ival
+  procedure (vars_set_rval), deferred :: set_rval
+  procedure (vars_set_cval), deferred :: set_cval
+  procedure (vars_set_lval), deferred :: set_lval
+  procedure (vars_set_sval), deferred :: set_sval
+<<Var base: interfaces>>=
+  abstract interface
+     subroutine vars_set_ival (vars, name, ival, follow_link)
+       import
+       class(vars_t), intent(inout) :: vars
+       type(string_t), intent(in) :: name
+       integer, intent(in) :: ival
+       logical, intent(in), optional :: follow_link
+     end subroutine vars_set_ival
+  end interface
+
+  abstract interface
+     subroutine vars_set_rval (vars, name, rval, follow_link)
+       import
+       class(vars_t), intent(inout) :: vars
+       type(string_t), intent(in) :: name
+       real(default), intent(in) :: rval
+       logical, intent(in), optional :: follow_link
+     end subroutine vars_set_rval
+  end interface
+
+  abstract interface
+     subroutine vars_set_cval (vars, name, cval, follow_link)
+       import
+       class(vars_t), intent(inout) :: vars
+       type(string_t), intent(in) :: name
+       complex(default), intent(in) :: cval
+       logical, intent(in), optional :: follow_link
+     end subroutine vars_set_cval
+  end interface
+
+  abstract interface
+     subroutine vars_set_lval (vars, name, lval, follow_link)
+       import
+       class(vars_t), intent(inout) :: vars
+       type(string_t), intent(in) :: name
+       logical, intent(in) :: lval
+       logical, intent(in), optional :: follow_link
+     end subroutine vars_set_lval
+  end interface
+
+  abstract interface
+     subroutine vars_set_sval (vars, name, sval, follow_link)
+       import
+       class(vars_t), intent(inout) :: vars
+       type(string_t), intent(in) :: name
+       type(string_t), intent(in) :: sval
+       logical, intent(in), optional :: follow_link
+     end subroutine vars_set_sval
+  end interface
+
+@ %def vars_set_ival
+@ %def vars_set_rval
+@ %def vars_set_cval
+@ %def vars_set_lval
+@ %def vars_set_sval
+@
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Abstract Expressions}
+Expressions are objects that can be initialized once and evaluated
+many times, yielding values of various type.  The expressions use and
+rely on variables.
+
+In this module, all types are abstract.  The implementation (or
+several of them) have to be provided in some other module.  However,
+the applications can use the abstract type without depending on the
+implementation modules.
+
+Unit tests are deferred to implementations.
+<<[[expr_base.f90]]>>=
+<<File header>>
+
+module expr_base
+
+<<Use kinds>>
+  use var_base
+
+<<Standard module head>>
+
+<<Expr base: public>>
+
+<<Expr base: types>>
+
+<<Expr base: interfaces>>
+
+end module expr_base
+@ %def expr_base
+@
+\subsection{Abstract expression type}
+The abstract type is empty.  All data are provided by the implementation.
+<<Expr base: public>>=
+  public :: expr_t
+<<Expr base: types>>=
+  type, abstract :: expr_t
+   contains
+  <<Expr base: expr: TBP>>
+  end type expr_t
+
+@ %def expr_t
+@ Finalizer (if needed)
+<<Expr base: expr: TBP>>=
+  procedure(expr_final), deferred :: final
+<<Expr base: interfaces>>=
+  abstract interface
+     subroutine expr_final (expr)
+       import
+       class(expr_t), intent(inout) :: expr
+     end subroutine expr_final
+  end interface
+
+@ %def expr_final
+@ Output
+<<Expr base: expr: TBP>>=
+  procedure(expr_write), deferred :: write
+<<Expr base: interfaces>>=
+  abstract interface
+     subroutine expr_write (expr, unit, write_vars)
+       import
+       class(expr_t), intent(in) :: expr
+       integer, intent(in), optional :: unit
+       logical, intent(in), optional :: write_vars
+     end subroutine expr_write
+  end interface
+
+@ %def expr_write
+@ Configure the expression for a specific result type.  The expression
+should evaluate to a logical (real), respectively.  We take a variable
+collection as input.  Other input may already be stored in the
+expression object, therefore intent(inout).
+<<Expr base: expr: TBP>>=
+  procedure(expr_setup_expr), deferred :: setup_expr
+  procedure(expr_setup_expr), deferred :: setup_lexpr
+<<Expr base: interfaces>>=
+  abstract interface
+     subroutine expr_setup_expr (expr, vars)
+       import
+       class(expr_t), intent(inout), target :: expr
+       class(vars_t), intent(in), target :: vars
+     end subroutine expr_setup_expr
+  end interface
+
+@ %def expr_setup_expr
+@ Evaluate.  We can assume that all data are inside the object (partly via
+pointer), so no extra arguments.
+<<Expr base: expr: TBP>>=
+  procedure(expr_evaluate), deferred :: evaluate
+<<Expr base: interfaces>>=
+  abstract interface
+     subroutine expr_evaluate (expr)
+       import
+       class(expr_t), intent(inout) :: expr
+     end subroutine expr_evaluate
+  end interface
+
+@ %def expr_evaluate
+@ Get results.  First, check if it is actually defined:
+<<Expr base: expr: TBP>>=
+  procedure(expr_is_known), deferred :: is_known
+<<Expr base: interfaces>>=
+  abstract interface
+     function expr_is_known (expr) result (flag)
+       import
+       class(expr_t), intent(in) :: expr
+       logical :: flag
+     end function expr_is_known
+  end interface
+
+@ %def expr_is_known
+@ Get value.
+<<Expr base: expr: TBP>>=
+  procedure(expr_get_log), deferred :: get_log
+  procedure(expr_get_real), deferred :: get_real
+<<Expr base: interfaces>>=
+  abstract interface
+     function expr_get_log (expr) result (lval)
+       import
+       class(expr_t), intent(in) :: expr
+       logical :: lval
+     end function expr_get_log
+  end interface
+
+  abstract interface
+     function expr_get_real (expr) result (rval)
+       import
+       class(expr_t), intent(in) :: expr
+       real(default) :: rval
+     end function expr_get_real
+  end interface
+
+@ %def expr_get_log expr_get_real
+@
+\subsection{Abstract factory type}
+This abstract type enables us to defer the allocation of a specific expression
+type.  Each implementation has a [[build]] method that will allocate an
+expression with matching type.
+<<Expr base: public>>=
+  public :: expr_factory_t
+<<Expr base: types>>=
+  type, abstract :: expr_factory_t
+   contains
+  <<Expr base: expr factory: TBP>>
+  end type expr_factory_t
+
+@ %def expr_factory_t
+@ Output.
+<<Expr base: expr factory: TBP>>=
+  procedure(expr_factory_write), deferred :: write
+<<Expr base: interfaces>>=
+  abstract interface
+     subroutine expr_factory_write (expr_factory, unit)
+       import
+       class(expr_factory_t), intent(in) :: expr_factory
+       integer, intent(in), optional :: unit
+     end subroutine expr_factory_write
+  end interface
+
+@ %def expr_factory_write
+@ Build method.
+<<Expr base: expr factory: TBP>>=
+  procedure(expr_factory_build), deferred :: build
+<<Expr base: interfaces>>=
+  abstract interface
+     subroutine expr_factory_build (expr_factory, expr)
+       import
+       class(expr_factory_t), intent(in) :: expr_factory
+       class(expr_t), intent(out), allocatable :: expr
+     end subroutine expr_factory_build
+  end interface
+
+@ %def expr_factory_build

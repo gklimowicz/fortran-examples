@@ -1,0 +1,44 @@
+# SINDARIN input for WHIZARD self-test
+# Process with flavor sums and two components
+
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+?pacify = true
+
+seed = 0
+
+?resonance_history = true
+
+process resonances_9_a =   
+  e1,E1 => (u,D,U,d) +
+           (u,D,C,s)
+
+sqrts=500 GeV
+
+me = 0
+mmu = 0.10566
+ms = 0
+mc = 0
+mb = 0
+mH = 2000.
+wH = 10.
+alphas = 1.e-6
+
+compile
+
+library = "resonances_9_a_R"
+show (library)
+
+library = "resonances_9_lib"
+show (library)
+
+?write_raw = false
+integrate ( resonances_9_a ) { iterations = 1:5000 }
+
+sample_format = lhef
+simulate  ( resonances_9_a ) { n_events = 100 }

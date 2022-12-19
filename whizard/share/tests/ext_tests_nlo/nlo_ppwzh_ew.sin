@@ -1,0 +1,12 @@
+include("nlo_settings_ew.sin")
+
+alpha_power = 3
+alphas_power = 0
+
+scale = sum sqrt(Pt^2 + M^2)/2 [Z:Wm:H] + sum Pt/2 [jet]
+
+seed = 1
+$nlo_correction_type = "EW"
+process ppwzh_ew = pr,pr => H, Z, Wm  {nlo_calculation = full}
+
+integrate (ppwzh_ew) { iterations = 1:300:"gw"}

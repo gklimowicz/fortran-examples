@@ -1,0 +1,46 @@
+# SINDARIN input for WHIZARD self test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+?pacify = true
+?sample_pacify = true
+
+model = SM
+
+# photon (Z) exchange only
+alphas = 0
+
+process colors_2_p1 = u, u => u, u
+process colors_2_p2 = u, u => u, u
+
+cuts = all Pt > 1 GeV [u]
+
+# fixed-energy process
+sqrts = 10 GeV
+
+seed = 0
+integrate (colors_2_p1) { iterations = 3:1000:"g" }
+
+$sample = "colors_2_fix"
+sample_format = dump, debug
+
+simulate (colors_2_p1) {
+  n_events = 2
+}
+
+# process with PDF
+sqrts = 100 GeV
+beams = p, p => pdf_builtin
+
+seed = 6
+integrate (colors_2_p2) { iterations = 5:1000:"g" }
+
+$sample = "colors_2_pdf"
+sample_format = dump, debug
+
+simulate (colors_2_p2) {
+  n_events = 2
+}

@@ -1,0 +1,60 @@
+* Test output: prc_omega_5
+*   Purpose: create a QCD process with OMega
+*            and check alpha_s dependence
+
+* Initialize a process library with one entry
+
+* Configure and compile process
+
+* Probe library API
+
+ is active = T
+
+* Set kinematics
+
+ E =   1.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  1.000000000000E+02
+ E =   1.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -1.000000000000E+02
+ E =   1.000000000000E+02
+ P =   1.000000000000E+02  0.000000000000E+00  0.000000000000E+00
+ E =   1.000000000000E+02
+ P =  -1.000000000000E+02  0.000000000000E+00  0.000000000000E+00
+
+* Setup QCD data
+
+* Setup process core
+
+   O'Mega process core: prc_omega_5_p_i1
+   Parameter array:
+     1  1.1780000000E-01
+     2  0.0000000000E+00
+     3  0.0000000000E+00
+     4  1.2000000000E-01
+     5  1.2500000000E+00
+     6  4.2000000000E+00
+     7  1.7310000000E+02
+     8  1.5230000000E+00
+   QCD parameters (running coupling):
+     Scale mu  =  9.11880E+01
+     alpha(mu) =  1.17800E-01
+     LL order  = 0
+     N(flv)    = 5
+   QED parameters (coupling undefined)
+
+* Compute matrix element
+
+ renormalization scale = 100.
+ |amp (1, 6, 1)| =  0.2435E+00
+
+* Modify renormalization scale and compute matrix element again
+
+ renormalization scale = 200.
+ |amp (1, 6, 1)| =  0.2217E+00
+
+* Set alpha(QCD) directly and compute matrix element again
+
+ alpha_qcd = 0.1000
+ |amp (1, 6, 1)| =  0.2094E+00
+
+* Test output end: prc_omega_5

@@ -1,0 +1,47 @@
+* Test output: commands_19
+*   Purpose: combine two plots to a graph
+
+* Initialization
+
+* Input file
+
+plot a
+plot b
+$title = "Graph foo"
+$description = "This is graph foo"
+graph foo = a & b
+
+* Parse file
+
+* Compile command list
+
+ plot: a
+ plot: b
+ var: $title (string, intrinsic)
+ var: $description (string, intrinsic)
+ graph: foo (2 entries)
+
+* Execute command list
+
+* Display analysis object
+
+###############################################################################
+# Graph:  foo
+#------------------------------------------------------------------------------
+# Plot:  a
+#         x                   y                  yerr                xerr
+
+# Summary:
+n_entries = 0
+
+#------------------------------------------------------------------------------
+# Plot:  b
+#         x                   y                  yerr                xerr
+
+# Summary:
+n_entries = 0
+
+
+* Cleanup
+
+* Test output end: commands_19

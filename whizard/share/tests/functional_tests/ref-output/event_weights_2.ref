@@ -1,0 +1,154 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+$method = "omega"
+| Process library 'event_weights_2_lib': recorded process 'event_weights_2_p'
+| Process library 'event_weights_2_lib': compiling ...
+| Process library 'event_weights_2_lib': writing makefile
+| Process library 'event_weights_2_lib': removing old files
+| Process library 'event_weights_2_lib': writing driver
+| Process library 'event_weights_2_lib': creating source code
+| Process library 'event_weights_2_lib': compiling sources
+| Process library 'event_weights_2_lib': linking
+| Process library 'event_weights_2_lib': loading
+| Process library 'event_weights_2_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process event_weights_2_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'event_weights_2_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'event_weights_2_p'
+|   Library name  = 'event_weights_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'event_weights_2_p_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'event_weights_2_p'
+| Integrate: iterations = 3:1000:"g", 3:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  8.6803424E+01  7.69E-02    0.09    0.03*  66.65
+   2        800  8.6983246E+01  6.03E-02    0.07    0.02*  60.65
+   3        800  8.6981187E+01  6.11E-02    0.07    0.02   79.69
+|-----------------------------------------------------------------------------|
+   3       2400  8.6939773E+01  3.75E-02    0.04    0.02   79.69    2.06   3
+|-----------------------------------------------------------------------------|
+   4        800  8.6888780E+01  6.21E-02    0.07    0.02   79.61
+   5        800  8.6803833E+01  6.21E-02    0.07    0.02   79.53
+   6        800  8.6821758E+01  6.15E-02    0.07    0.02*  79.55
+|-----------------------------------------------------------------------------|
+   6       2400  8.6837998E+01  3.57E-02    0.04    0.02   79.55    0.52   3
+|=============================================================================|
+?unweighted = false
+n_events = 2
+?sample_pacify = true
+$sample_normalization = "auto"
+$sample = "event_weights_2a"
+seed = 0
+| Starting simulation for process 'event_weights_2_p'
+| Simulate: using integration grids from file 'event_weights_2_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Events: writing to weight stream file 'event_weights_2a.weights.dat'
+| Events: writing to raw file 'event_weights_2a.evx'
+| Events: generating 2 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing weight stream file 'event_weights_2a.weights.dat'
+| Events: closing raw file 'event_weights_2a.evx'
+$sample_normalization = "1"
+$sample = "event_weights_2b"
+seed = 0
+| Starting simulation for process 'event_weights_2_p'
+| Simulate: using integration grids from file 'event_weights_2_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Events: writing to weight stream file 'event_weights_2b.weights.dat'
+| Events: writing to raw file 'event_weights_2b.evx'
+| Events: generating 2 weighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: closing weight stream file 'event_weights_2b.weights.dat'
+| Events: closing raw file 'event_weights_2b.evx'
+$sample_normalization = "1/n"
+$sample = "event_weights_2c"
+seed = 0
+| Starting simulation for process 'event_weights_2_p'
+| Simulate: using integration grids from file 'event_weights_2_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Events: writing to weight stream file 'event_weights_2c.weights.dat'
+| Events: writing to raw file 'event_weights_2c.evx'
+| Events: generating 2 weighted, unpolarized events ...
+| Events: event normalization mode '1/n'
+|         ... event sample complete.
+| Events: closing weight stream file 'event_weights_2c.weights.dat'
+| Events: closing raw file 'event_weights_2c.evx'
+$sample_normalization = "sigma"
+$sample = "event_weights_2d"
+seed = 0
+| Starting simulation for process 'event_weights_2_p'
+| Simulate: using integration grids from file 'event_weights_2_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Events: writing to weight stream file 'event_weights_2d.weights.dat'
+| Events: writing to raw file 'event_weights_2d.evx'
+| Events: generating 2 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing weight stream file 'event_weights_2d.weights.dat'
+| Events: closing raw file 'event_weights_2d.evx'
+$sample_normalization = "sigma/n"
+$sample = "event_weights_2e"
+seed = 0
+| Starting simulation for process 'event_weights_2_p'
+| Simulate: using integration grids from file 'event_weights_2_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Events: writing to weight stream file 'event_weights_2e.weights.dat'
+| Events: writing to raw file 'event_weights_2e.evx'
+| Events: generating 2 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma/n'
+|         ... event sample complete.
+| Events: closing weight stream file 'event_weights_2e.weights.dat'
+| Events: closing raw file 'event_weights_2e.evx'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of event_weights_2a.weights.dat:
+0  1.04277153E+02  8.44948021E-03  8.44948021E-03 1
+0  9.06316852E+01  9.12682517E-03  9.12682517E-03 1
+Contents of event_weights_2b.weights.dat:
+0  8.95212530E-01  9.98559713E-03  9.98559713E-03 1
+0  1.09455603E+00  1.40794908E-02  1.40794908E-02 1
+Contents of event_weights_2c.weights.dat:
+0  5.62155127E-01  1.56867079E-02  1.56867079E-02 1
+0  5.99739675E-01  8.44001866E-03  8.44001866E-03 1
+Contents of event_weights_2d.weights.dat:
+0  1.03563358E+02  1.66395646E-02  1.66395646E-02 1
+0  7.80412375E+01  1.50483635E-02  1.50483635E-02 1
+Contents of event_weights_2e.weights.dat:
+0  3.92559220E+01  1.11641890E-02  1.11641890E-02 1
+0  4.86120463E+01  1.56210324E-02  1.56210324E-02 1

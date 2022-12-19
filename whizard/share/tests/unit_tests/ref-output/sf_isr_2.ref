@@ -1,0 +1,94 @@
+* Test output: sf_isr_2
+*   Purpose: initialize and fill test structure function object
+
+* Initialize configuration data
+
+* Initialize structure-function object
+
+* Initialize incoming momentum with E=500
+
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.999999999997E+02
+
+* Set kinematics for r=0.9, no ISR mapping, collinear
+
+r =  9.00000E-01
+rb=  1.00000E-01
+
+x =  9.00000E-01
+xb=  1.00000E-01
+f =  1.00000E+00
+
+* Invert kinematics
+
+r =  9.00000E-01
+rb=  1.00000E-01
+f =  1.00000E+00
+
+* Evaluate ISR structure function
+
+ ISR data:
+     flavor =  f(11)
+     alpha    =  7.299270072993E-03
+     q_max    =  5.000000000000E+02
+     mass     =  5.110000000000E-04
+     eps      =  6.177418616369E-02
+     log      =  2.758749813237E+01
+     order    =  3
+     recoil   =  F
+     keep en. =  T
+ SF parameters:
+   x = 9.00000000E-01
+   xb= 1.00000000E-01
+ SF instance: [evaluated]
+   beam      = 1
+   incoming  = 1
+   radiated  = 2
+   outgoing  = 3
+ Interaction: 1
+ Incoming:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.999999999997E+02
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ helicity lock: 3
+ Outgoing:
+ Particle 2
+ E =   5.000000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  5.000000000000E+01
+ mask [fch] = [FFgT]
+ internal links: 1 => X
+ Particle 3
+ E =   4.500000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.499999999997E+02
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ helicity lock: 1
+ State matrix:  norm =  1.000000000000E+00
+ [f(11) h(-1)]
+   [f(22*)]
+     [f(11) h(-1)] => ME(1) = ( 5.047419703641E-01, 0.000000000000E+00)
+ [f(11) h(-1|1)]
+   [f(22*)]
+     [f(11) h(-1|1)] => ME(2) = ( 5.047419703641E-01, 0.000000000000E+00)
+ [f(11) h(1|-1)]
+   [f(22*)]
+     [f(11) h(1|-1)] => ME(3) = ( 5.047419703641E-01, 0.000000000000E+00)
+ [f(11) h(1)]
+   [f(22*)]
+     [f(11) h(1)] => ME(4) = ( 5.047419703641E-01, 0.000000000000E+00)
+
+* Structure-function value, default order
+
+f_isr         =  5.04742E-01
+f_isr * f_map =  5.04742E-01
+
+* Re-evaluate structure function, leading order
+
+f_isr         =  5.35837E-01
+f_isr * f_map =  5.35837E-01
+
+* Cleanup
+
+* Test output end: sf_isr_2

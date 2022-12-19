@@ -1,0 +1,143 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+seed = 0
+| Process library 'lcio_9_lib': recorded process 'lcio_9_p'
+sqrts =  8.000000000000E+03
+openmp_num_threads = 1
+n_events = 1
+?unweighted = true
+?read_raw = false
+?write_raw = false
+$sample = "lcio_9a"
+?keep_beams = true
+| Starting simulation for process 'lcio_9_p'
+| Simulate: process 'lcio_9_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'lcio_9_lib': compiling ...
+| Process library 'lcio_9_lib': writing makefile
+| Process library 'lcio_9_lib': removing old files
+| Process library 'lcio_9_lib': writing driver
+| Process library 'lcio_9_lib': creating source code
+| Process library 'lcio_9_lib': compiling sources
+| Process library 'lcio_9_lib': linking
+| Process library 'lcio_9_lib': loading
+| Process library 'lcio_9_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process lcio_9_p:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 8.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lcio_9_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lcio_9_p'
+|   Library name  = 'lcio_9_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lcio_9_p_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Using user-defined general scale.
+| Starting integration for process 'lcio_9_p'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  3.6766981E+07  1.97E+07   53.64   16.96*   0.62
+|-----------------------------------------------------------------------------|
+   1       1000  3.6766981E+07  1.97E+07   53.64   16.96    0.62
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'lcio_9_p.m1.vg'
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7198E-08
+| Events: writing to LCIO file 'lcio_9a.slcio'
+| Events: writing to weight stream file 'lcio_9a.weights.dat'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.10 %
+Warning: Encountered events with excess weight: 1 events (100.000 %)
+| Maximum excess weight = 1.155E-01
+| Average excess weight = 1.155E-01
+| Events: closing LCIO file 'lcio_9a.slcio'
+| Events: closing weight stream file 'lcio_9a.weights.dat'
+$rescan_input_format = "lcio"
+$sample = "lcio_9b"
+?update_sqme = true
+| Starting simulation for process 'lcio_9_p'
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'lcio_9_p.i1.phs'
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7198E-08
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from LCIO file 'lcio_9a.slcio'
+| Events: writing to weight stream file 'lcio_9b.weights.dat'
+| QCD alpha: using a running strong coupling
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'lcio_9b.weights.dat'
+| Events: closing LCIO file 'lcio_9a.slcio'
+$rescan_input_format = "lcio"
+$sample = "lcio_9c"
+?update_sqme = true
+?use_scale_from_file = true
+| Starting simulation for process 'lcio_9_p'
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'lcio_9_p.i1.phs'
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7198E-08
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from LCIO file 'lcio_9a.slcio'
+| Events: writing to weight stream file 'lcio_9c.weights.dat'
+| QCD alpha: using a running strong coupling
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'lcio_9c.weights.dat'
+| Events: closing LCIO file 'lcio_9a.slcio'
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of lcio_9a.weights.dat
+0  1.00000000XXE+00  7.61092445XXE+04  7.61092445XXE+04 1
+Contents of lcio_9b.weights.dat
+0  1.00000000XXE+00  6.18884689XXE+04  0.00000000XXE+00 1
+Contents of lcio_9c.weights.dat
+0  1.00000000XXE+00  7.61092266XXE+04  0.00000000XXE+00 1

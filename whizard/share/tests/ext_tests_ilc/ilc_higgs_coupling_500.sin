@@ -1,0 +1,29 @@
+include("ilc_settings.sin")
+
+!! Table 6. Cross sections for the process e+ e- -> mu+ mu- b bar bbar.
+!! Expected runtime: ~4 h
+
+process higgs_coupling_trilinear_500_noqcd  = e1, E1 => e2, E2, b, B, b, B { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process higgs_coupling_trilinear_500_qcd    = e1, E1 => e2, E2, b, B, b, B
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 500 GeV
+alphas = 0.0891
+
+sqrts = 500 GeV
+beams = e1, E1
+
+$run_id = "500"
+
+integrate(higgs_coupling_trilinear_500_noqcd,
+          higgs_coupling_trilinear_500_qcd)
+
+tolerance = 2 * sqrt( error(higgs_coupling_trilinear_500_noqcd)**2 + 5e-05**2 )
+expect(integral(higgs_coupling_trilinear_500_noqcd) == 0.02523)
+tolerance = 2 * sqrt( error(higgs_coupling_trilinear_500_qcd)**2 + 6e-05**2 )
+expect(integral(higgs_coupling_trilinear_500_qcd) == 0.03063)
+
+show(results)

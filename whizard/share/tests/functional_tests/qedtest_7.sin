@@ -1,0 +1,30 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+
+model = "QED"
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process qedtest_7_p1 = "e-", "e+" => "mu-", "mu+" {
+  ee = 0.30286
+  me = 0
+  mmu = 0
+}
+
+compile ()
+
+integrate (qedtest_7_p1) {
+  iterations = 3:1000:"g", 3:1000 
+  sqrts = 1000
+}
+
+simulate (qedtest_7_p1) {
+  n_events = 10
+  ?unweighted = true
+  ?read_raw = false
+  ?write_raw = false
+}

@@ -1,0 +1,11 @@
+real default_M_cut = 10 GeV
+real default_E_cut = 10 GeV
+real default_Q_cut = 10 GeV
+alias visible = colored:charged:photon
+
+cuts =
+  all M > default_M_cut [visible, visible]
+  and
+  all E > default_E_cut [visible]
+  and
+  all M < - default_Q_cut [incoming particle, visible]

@@ -1,0 +1,161 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+QED.me =>  0.000000000000E+00
+QED.mmu =>  0.000000000000E+00
+QED.mtau =>  0.000000000000E+00
+| Process library 'event_dump_2_lib': recorded process 'event_dump_2_p1'
+| Process library 'event_dump_2_lib': recorded process 'event_dump_2_p2'
+sqrts =  1.000000000000E+02
+?pacify = true
+seed = 0
+| Integrate: current process library needs compilation
+| Process library 'event_dump_2_lib': compiling ...
+| Process library 'event_dump_2_lib': writing makefile
+| Process library 'event_dump_2_lib': removing old files
+| Process library 'event_dump_2_lib': writing driver
+| Process library 'event_dump_2_lib': creating source code
+| Process library 'event_dump_2_lib': compiling sources
+| Process library 'event_dump_2_lib': linking
+| Process library 'event_dump_2_lib': loading
+| Process library 'event_dump_2_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process event_dump_2_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'event_dump_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'event_dump_2_p1'
+|   Library name  = 'event_dump_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'event_dump_2_p1_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'event_dump_2_p1'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     8.680E+03   7.69E+00    0.09    0.03    66.6
+|-----------------------------------------------------------------------------|
+   1        800     8.680E+03   7.69E+00    0.09    0.03    66.6
+|=============================================================================|
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process event_dump_2_p2:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'event_dump_2_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'event_dump_2_p2'
+|   Library name  = 'event_dump_2_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'event_dump_2_p2_i1':   e-, e+ => t-, t+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'event_dump_2_p2'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     8.708E+03   7.31E+00    0.08    0.02    66.8
+|-----------------------------------------------------------------------------|
+   1        800     8.708E+03   7.31E+00    0.08    0.02    66.8
+|=============================================================================|
+$sample = "event_dump_2"
+?dump_compressed = true
+?dump_screen = true
+event_index_offset = 100
+n_events = 3
+| Starting simulation for processes 'event_dump_2_p1' etc.
+| Simulate: using integration grids from file 'event_dump_2_p1.m1.vg'
+| Simulate: using integration grids from file 'event_dump_2_p2.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 3
+|             corr. to luminosity [fb-1] =   1.7253E-04
+| Events: writing to event dump file 'event_dump_2.pset.dat'
+| Events: display on standard output
+| Events: writing to raw file 'event_dump_2.evx'
+| Events: generating 3 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+========================================================================
+ Event #101
+========================================================================
+ count  = 1
+ passed = T
+ prc id = 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [i]      e-    0    0               [none]                  3-4       50.000        0.000        0.000       50.000        0.000
+   2    [i]      e+    0    0               [none]                  3-4       50.000        0.000        0.000      -50.000        0.000
+   3    [o]      t-    0    0                  1-2               [none]       50.000      -33.567       35.434       10.849        0.000
+   4    [o]      t+    0    0                  1-2               [none]       50.000       33.567      -35.434      -10.849        0.000
+========================================================================
+ Event #102
+========================================================================
+ count  = 2
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [i]      e-    0    0               [none]                  3-4       50.000        0.000        0.000       50.000        0.000
+   2    [i]      e+    0    0               [none]                  3-4       50.000        0.000        0.000      -50.000        0.000
+   3    [o]      m-    0    0                  1-2               [none]       50.000       47.882       13.144       -5.878        0.000
+   4    [o]      m+    0    0                  1-2               [none]       50.000      -47.882      -13.144        5.878        0.000
+========================================================================
+ Event #103
+========================================================================
+ count  = 3
+ passed = T
+ prc id = 2
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [i]      e-    0    0               [none]                  3-4       50.000        0.000        0.000       50.000        0.000
+   2    [i]      e+    0    0               [none]                  3-4       50.000        0.000        0.000      -50.000        0.000
+   3    [o]      t-    0    0                  1-2               [none]       50.000       48.858        8.392       -6.516        0.000
+   4    [o]      t+    0    0                  1-2               [none]       50.000      -48.858       -8.392        6.516        0.000
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: display complete
+| Events: closing event dump file 'event_dump_2.pset.dat'
+| Events: closing raw file 'event_dump_2.evx'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

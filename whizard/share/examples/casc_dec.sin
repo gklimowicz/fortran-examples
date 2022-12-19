@@ -1,0 +1,109 @@
+# casc_dec.sin
+# Simple complete physics example: SUSY cascade decay 
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = MSSM
+
+process dec_su_q	= su1 => u, neu2
+process dec_neu_sl2 	= neu2 => SE12, e1
+
+process susybg = u,U => SU1, su1
+process fullproc = u, U => SU1, u, e1, SE12
+
+compile
+
+?slha_read_decays = true
+read_slha("sps1ap_decays.slha")
+
+integrate (dec_su_q, dec_neu_sl2) { iterations = 1:1000 }
+
+sqrts = 14000
+beams = p, p => lhapdf
+
+cuts = all Pt > 10 GeV [u]
+
+integrate (susybg) { iterations = 5:10000, 2:10000 }
+integrate (fullproc)
+
+n_events = 10000
+
+$title = "Full process"
+$description = 
+  "$p + p \to u+ \bar u \to \bar{\tilde u}_1 + u + \tilde e_{12}^+ + e^-$"
+$x_label = "$M_{\rm inv}(ue^-)$"
+histogram inv_mass1_full (0, 600, 20)
+
+$title = "Factorized process with complete spin correlations"
+$description = 
+  "$p + p \to u\bar u \to \bar{\tilde u}_1 + 
+  (\tilde u_1 \to u + (\tilde\chi_2^0 \to \tilde e_{12}^+ + e^-))$"
+histogram inv_mass1 (0, 600, 20)
+
+$title = "Factorized process with classical spin correlations"
+histogram inv_mass1_dia (0, 600, 20)
+
+$title = "Factorized process with isotropic decay"
+histogram inv_mass1_iso (0, 600, 20)
+
+simulate (fullproc) {
+  $sample = "casc_dec_full"
+  safety_factor = 5
+  analysis = 
+    record inv_mass1_full (eval M / 1 GeV [combine[u,e1]])
+}
+
+
+unstable su1 (dec_su_q)
+unstable neu2 (dec_neu_sl2)
+
+simulate (susybg) {
+  $sample = "casc_dec"
+  analysis = 
+    record inv_mass1 (eval M / 1 GeV [combine[u,e1]])
+}
+
+?diagonal_decay = true
+unstable su1 (dec_su_q)
+unstable neu2 (dec_neu_sl2)
+
+simulate (susybg) {
+  $sample = "casc_dec_dia"
+  analysis = 
+    record inv_mass1_dia (eval M / 1 GeV [combine[u,e1]])
+}
+
+?isotropic_decay = true
+unstable su1 (dec_su_q)
+unstable neu2 (dec_neu_sl2)
+
+simulate (susybg) {
+  $sample = "casc_dec_iso"
+  analysis = 
+    record inv_mass1_iso (eval M / 1 GeV [combine[u,e1]])
+}
+
+write_analysis
+compile_analysis { $out_file = "casc_dec.dat" }

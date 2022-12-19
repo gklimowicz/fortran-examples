@@ -1,0 +1,42 @@
+# $Id: parton_shower_1.sin 4937 2013-12-05 09:29:17Z jr_reuter $
+# SINDARIN input for WHIZARD self-test
+# Process e+ e- -> u ubar hadronized
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+$method = "omega"
+process hadronize_1_p1 = "e-", "e+" => "u", "ubar"
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+iterations = 3:1000:"g", 3:1000 
+sqrts = 1000
+
+cuts = all Pt > 100 [u:ubar]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (hadronize_1_p1)
+
+n_events = 1
+?allow_shower = true
+?ps_fsr_active = true
+$shower_method = "WHIZARD"
+?hadronization_active = true
+$hadronization_method = "WHIZARD"
+$sample = "hadronize_1"
+sample_format = ascii
+?sample_pacify = true
+simulate (hadronize_1_p1)

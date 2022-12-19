@@ -1,0 +1,33 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+
+! Show mtau in SM
+model = SM
+printf "** mtau = 1.777050: %f" (mtau)
+
+! Modify mtau in QED model
+model = QED
+printf "** mtau = 1.770000: %f" (mtau)
+
+mtau = 1.9
+printf "** mtau = 1.900000: %f" (mtau)
+
+! Switch to SM w/ original value
+model = SM
+printf "** mtau = 1.777050: %f" (mtau)
+
+! Switch back to QED, should display modified value
+model = QED
+printf "** mtau = 1.900000: %f" (mtau)
+
+! Locally modify mtau.  Should always start with modified global value
+scan real x = (2.3, 3.5) {
+     model = QED
+     printf "** mtau = 1.900000: %f" (mtau)
+     mtau = x
+     printf "** mtau = %f: %f" (x, mtau)
+}
+
+! Global value again
+printf "** mtau = 1.900000: %f" (mtau)

@@ -1,0 +1,150 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "omega"
+| Process library 'gaussian_2_lib': recorded process 'gaussian_2_p1'
+| Process library 'gaussian_2_lib': recorded process 'gaussian_2_p2'
+seed = 0
+| Process library 'gaussian_2_lib': compiling ...
+| Process library 'gaussian_2_lib': writing makefile
+| Process library 'gaussian_2_lib': removing old files
+| Process library 'gaussian_2_lib': writing driver
+| Process library 'gaussian_2_lib': creating source code
+| Process library 'gaussian_2_lib': compiling sources
+| Process library 'gaussian_2_lib': linking
+| Process library 'gaussian_2_lib': loading
+| Process library 'gaussian_2_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  5.000000000000E+02
+openmp_num_threads = 1
+[user variable] n = 1000
+n_events = 10000
+gaussian_spread1 =  1.000000000000E-01
+gaussian_spread2 =  0.000000000000E+00
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process gaussian_2_p1:
+| Beam structure: e-, e+ => gaussian
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'gaussian_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'gaussian_2_p1'
+|   Library name  = 'gaussian_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'gaussian_2_p1_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: gaussian
+| Beam structure: 2 channels, 0 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'gaussian_2_p1'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784  4.3245615E+02  1.92E+00    0.44    0.12*  33.28
+   2        784  4.3285911E+02  1.67E+00    0.39    0.11*  64.35
+   3        784  4.3644424E+02  1.82E+00    0.42    0.12   61.29
+|-----------------------------------------------------------------------------|
+   3       2352  4.3390707E+02  1.04E+00    0.24    0.12   61.29    1.45   3
+|-----------------------------------------------------------------------------|
+   4        784  4.3597995E+02  1.70E+00    0.39    0.11*  60.70
+   5        784  4.3203785E+02  1.65E+00    0.38    0.11*  60.15
+   6        784  4.3168765E+02  1.71E+00    0.40    0.11   60.11
+|-----------------------------------------------------------------------------|
+   6       2352  4.3321520E+02  9.74E-01    0.22    0.11   60.11    1.98   3
+|=============================================================================|
+n_events = 100
+| Starting simulation for process 'gaussian_2_p1'
+| Simulate: using integration grids from file 'gaussian_2_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 100
+|             corr. to luminosity [fb-1] =   2.3083E-01
+| Events: writing to raw file 'gaussian_2_p1.evx'
+| Events: generating 100 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  62.11 %
+| Events: closing raw file 'gaussian_2_p1.evx'
+gaussian_spread1 =  1.414213562373E-01
+gaussian_spread2 =  1.414213562373E-01
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Initializing integration for process gaussian_2_p2:
+| Beam structure: e-, e+ => gaussian
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'gaussian_2_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'gaussian_2_p2'
+|   Library name  = 'gaussian_2_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'gaussian_2_p2_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: gaussian
+| Beam structure: 2 channels, 0 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'gaussian_2_p2'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784  4.4292001E+02  4.01E+00    0.91    0.25*  31.24
+   2        784  4.4740821E+02  3.48E+00    0.78    0.22*  47.22
+   3        784  4.4696454E+02  3.62E+00    0.81    0.23   48.12
+|-----------------------------------------------------------------------------|
+   3       2352  4.4599211E+02  2.13E+00    0.48    0.23   48.12    0.41   3
+|-----------------------------------------------------------------------------|
+   4        784  4.4786753E+02  3.41E+00    0.76    0.21*  45.37
+   5        784  4.4674697E+02  3.65E+00    0.82    0.23   45.26
+   6        784  4.4532289E+02  3.57E+00    0.80    0.22*  43.18
+|-----------------------------------------------------------------------------|
+   6       2352  4.4668310E+02  2.04E+00    0.46    0.22   43.18    0.13   3
+|=============================================================================|
+n_events = 100
+| Starting simulation for process 'gaussian_2_p2'
+| Simulate: using integration grids from file 'gaussian_2_p2.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Simulation: requested number of events = 100
+|             corr. to luminosity [fb-1] =   2.2387E-01
+| Events: writing to raw file 'gaussian_2_p2.evx'
+| Events: generating 100 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  44.05 %
+| Events: closing raw file 'gaussian_2_p2.evx'
+| WHIZARD run finished.
+|=============================================================================|

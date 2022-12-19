@@ -1,0 +1,190 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Ideas}
+
+\section{Toolbox for Interactive Optimization}
+\paragraph{Idea:}
+  Provide a OpenGL interface to visualize the grid optimization.
+\paragraph{Motivation:}
+  Would help multi channel developers.
+\paragraph{Implementation:}
+  Coding is straightforward, but interface design is hard.
+
+\section{Partially Non-Factorized Importance Sampling}
+\paragraph{Idea:}
+  Allow non-factorized grid optimization in two- or three-dimensional
+  subspaces.
+\paragraph{Motivation:}
+  Handle nastiest subspaces.  Non-factorized approaches are impossible
+  in higher than three dimensions (and probably only realistic in two
+  dimensions), but there are cases that are best handled by including
+  non-factorized optimization in two dimensions.
+\paragraph{Implementation:}
+  The problem is that the present [[vamp_sample_grid0]] can't
+  accomodate this, because other auxiliary information has to be
+  collected, but a generalization is straightforward.  Work has to
+  start from an extended [[divisions]] module.
+
+\section{Correlated Importance Sampling (?)}
+\paragraph{Idea:}
+  Is it possible to include \emph{some} correlations in a mainly
+  factorized context?
+\paragraph{Motivation:}
+  Would be nice \ldots
+\paragraph{Implementation:}
+  First, I have to think about the maths \ldots
+
+\section{Align Coordinate System (i.e.~the grid) with Singularities
+  (or the hot region)}
+\paragraph{Idea:}
+  Solve \texttt{vegas}' nastiest problem by finding the direction(s)
+  along which singularities are aligned.
+\paragraph{Motivation:}
+  Automatically choose proper coordinate system in generator
+  generators and separate wild and smooth directions.
+\paragraph{Implementation:}
+  Diagonalize the covariance matrix~$\mathop{\textrm{cov}}(x_ix_j)$ to
+  find better axes.  Caveats:
+  \begin{itemize}
+    \item damp rotations (rotate only if eigenvalues are spread out
+      sufficiently).
+    \item be careful about blow up of the integration volume, which is
+      $V' = Vd^{d/2}$ in the worst case for hypercubes and can be
+      even worse for stretched cubes. (An adaptive grid can help,
+      since we will have more smooth directions!) 
+  \end{itemize}
+  \emph{Maybe} try non-linear transformations as well.
+
+\section{Automagic Multi Channel}
+\paragraph{Idea:}
+  Find and extract one singularity after the other.
+\paragraph{Motivation:}
+  Obvious.
+\paragraph{Implementation:}
+  Either use multiple of \texttt{vegas}' $p(x)$ for importance
+  sampling.  Or find hot region(s) and split the integration region
+  (\'a la signal/background).
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Cross References}
+\section{Identifiers}
+\nowebindex
+\section{Refinements}
+\nowebchunks
+\InputIfFileExists{\jobname.ind}{}{}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Acknowledgements}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \bibliography{jpsi}
+\begin{thebibliography}{10}
+\bibitem{Lepage:1978:vegas}
+  G.~P.~Lepage, J.~Comp.\ Phys.\ \textbf{27}, 192 (1978).
+\bibitem{Lepage:1980:vegas}
+  G.~P.~Lepage, \textit{\texttt{VEGAS} -- An Adaptive
+  Multi-dimensional Integration Program},
+  Cornell preprint, CLNS-80/447, March 1980.
+\bibitem{Ohl:1998:VAMP-preview}
+  T.~Ohl, \textit{Vegas Revisited: Adaptive Monte Carlo Integration
+  Beyond Factorization}, hep-ph/9806432, Preprint IKDA 98/15,
+  Darmstadt University of Technology, 1998.
+\bibitem{Knuth:1991:literate_programming}
+  D.~E.~Knuth, \textit{Literate Programming}, Vol.~27 of
+  \textit{{CSLI} Lecture Notes} (Center for the Study of Language
+  and Information, Leland Stanford Junior University, Stanford, CA, 1991).
+\bibitem{Ramsey:1994:noweb}
+  N.~Ramsey, IEEE Software \textbf{11},  97  (1994).
+\bibitem{FORTRAN77}
+  American National Standards Institute,
+  \textit{American National Standard Programming Languages FORTRAN,
+    ANSI X3.9-1978,}
+  New York, 1978.
+\bibitem{Fortran90}
+  International Standards Organization,
+  \textit{ISO/IEC 1539:1991, Information technology --- Programming
+    Languages --- Fortran,}
+  Geneva, 1991.
+\bibitem{Fortran03}
+  International Standards Organization,
+  \textit{ISO/IEC 1539-1:2004, Information technology --- Programming
+    Languages --- Fortran,}
+  Geneva, 2004.
+\bibitem{Fortran95}
+  International Standards Organization,
+  \textit{ISO/IEC 1539:1997, Information technology --- Programming
+    Languages --- Fortran,}
+  Geneva, 1997.
+\bibitem{HPF1.1}
+  High Performance Fortran Forum,
+  \textit{High Performance Fortran Language Specification, Version 1.1},
+  Rice University, Houston, Texas, 1994.
+\bibitem{HPF2.0}
+  High Performance Fortran Forum,
+  \textit{High Performance Fortran Language Specification, Version 2.0},
+  Rice University, Houston, Texas, 1997.
+\bibitem{MPI}
+  Message Passing Interface Forum,
+  \textit{MPI: A Message Passing Interface Standard},
+  Technical Report CS-94230, University of Tennessee,
+  Knoxville, Tennessee, 1994.
+\bibitem{Adams/etal:1997:Fortran95}
+  J.~C.~Adams, W.~S.~Brainerd, J.~T.~Martin, B.~T.~Smith, and
+  J.~L.~Wagener,
+  \textit{Fortran 95 Handbook,}
+  The MIT Press, Cambridge, MA, 1997.
+\bibitem{Metcalf/Reid:1996:F}
+  Michael Metcalf and John Reid, \textit{The F Programming Language},
+  (Oxford University Press, 1996).
+\bibitem{Koelbel/etal:1994:HPF}
+  C.~H.~Koelbel, D.~B.~Loveman, R.~S.~Schreiber, G.~L.~Steele Jr.,
+  and M.~E.~Zosel,
+  \textit{The High Performance Fortran Handbook,}
+  The MIT Press, Cambridge, MA, 1994.
+\bibitem{Knuth:1997:TAOCP2}
+  D.~E. Knuth, \textit{Seminumerical Algorithms} (third edition),
+  Vol.~2 of \textit{The Art of Computer Programming}, 
+  (Addison-Wesley, 1997).
+\bibitem{Press/etal:1992:NumRecC}
+  W.~H.~Press, S.~A.~Teukolsky, W.~T.~Vetterling, B.~P.Flannery,
+  \textit{Numerical Recipies in C: The Art of Scientific Computing},
+  2nd edition, (Cambridge University Press, 1992)
+\bibitem{Press/etal:1992:NumRec77}
+  W.~H.~Press, S.~A.~Teukolsky, W.~T.~Vetterling, B.~P.Flannery,
+  \textit{Numerical Recipies in Fortran77:
+     The Art of Scientific Computing},
+  Volume~1 of \textit{Fortran Numerical Recipies},
+  2nd edition, (Cambridge University Press, 1992)
+\bibitem{Press/etal:1996:NumRec90}
+  W.~H.~Press, S.~A.~Teukolsky, W.~T.~Vetterling, B.~P.Flannery,
+  \textit{Numerical Recipies in Fortran90:
+     The Art of Parallel Scientific Computing},
+  Volume~2 of \textit{Fortran Numerical Recipies},
+  (Cambridge University Press, 1992)
+\bibitem{Kawabata:1986:Bases/Spring}
+  S.~Kawabata, Comp.\ Phys.\ Comm.\ \textbf{41}, 127 (1986).
+\bibitem{GRACE:1993:Manual}
+  MINAMI-TATEYA Group, \textit{GRACE Manual}, KEK Report 92-19.
+\bibitem{Veseli:1998:Parallel-Vegas}
+  S.~Veseli,  Comp.\ Phys.\ Comm.\ \textbf{108}, 9 (1998).
+\bibitem{Kleiss/Pittau:1994:multichannel}
+  R.~Kleiss, R.~Pittau,
+  \textit{Weight Optimization in Multichannel Monte Carlo,}
+  Comp.\ Phys.\ Comm.\ \textbf{83}, 141 (1994).
+\bibitem{Marsaglia:1996:CD}
+  George Marsaglia, \textit{The Marsaglia Random Number CD-ROM}, FSU,
+  Dept.~of Statistics and SCRI, 1996.
+\bibitem{Luk75}
+   Y. L. Luke,
+   \textit{Mathematical Functions and their Approximations},
+   Academic Press, New York, 1975.
+\bibitem{Kleiss/Stirling/Ellis:1986:RAMBO}
+  R. Kleiss, W. J. Stirling, S. D. Ellis,
+  \textit{A New Monte Carlo Treatment of Multiparticle Phase Space
+    at High Energies},
+  Comp.\ Phys.\ Comm.\ \textbf{40}, 359 (1986).
+\end{thebibliography}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{fmffile}
+\end{empfile}
+\end{document}

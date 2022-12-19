@@ -1,0 +1,63 @@
+# SINDARIN input for WHIZARD self-test
+# Testing combined NLO calculation of ee -> jj
+# as well as the simulation of combined events
+# with strong cuts applied to provoke events
+# failing the cuts in different combinations
+# using dummy-output for the matrix elements
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+ms = 0
+mc = 0
+mb = 0
+
+alias jet = u:U:d:D:s:S:c:C:b:B:gl
+
+$method = "dummy"
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+sqrts = 500 GeV
+
+jet_algorithm = antikt_algorithm
+jet_r = 0.5
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 200 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4 [@pt_selected] in
+       count [@eta_selected] >= 2
+
+scale = sum Pt/2 [jet]
+
+seed = 1556
+
+?combined_nlo_integration = true
+
+process nlo_8_p1 = e1, E1 => jet, jet { nlo_calculation = full }
+
+n_events = 10
+$sample_normalization = "sigma"
+?unweighted = false
+?negative_weights = true
+?keep_failed_events = true
+?fixed_order_nlo_events = true
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+integrate (nlo_8_p1) { iterations = 1:100 }
+simulate(nlo_8_p1)

@@ -1,0 +1,229 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$method = "recola"
+openmp_num_threads = 1
+| Process library 'recola_1_lib': recorded process 'recola_1_p1'
+seed = 1
+sqrts =  1.00000E+02
+| Integrate: current process library needs compilation
+| Process library 'recola_1_lib': compiling ...
+| Process library 'recola_1_lib': writing makefile
+| Process library 'recola_1_lib': removing old files
+| Process library 'recola_1_lib': writing driver
+| Process library 'recola_1_lib': creating source code
+| Process library 'recola_1_lib': compiling sources
+| Process library 'recola_1_lib': linking
+| Process library 'recola_1_lib': loading
+| Process library 'recola_1_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process recola_1_p1:
+| Recola: registering processes for 'recola_1_p1_BORN'
+| Recola: process #1: e+ e- -> mu+ mu- (LO)
+| Recola: preparing processes for integration
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e+  (mass = 5.1099700E-04 GeV)
+|   e-  (mass = 5.1099700E-04 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'recola_1_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'recola_1_p1'
+|   Library name  = 'recola_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'recola_1_p1_i1':   e+, e- => mu+, mu- [recola]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'recola_1_p1'
+| Integrate: iterations = 1:100
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     5.750E+04   3.95E+03    6.87    0.69    41.5
+|-----------------------------------------------------------------------------|
+   1        100     5.750E+04   3.95E+03    6.87    0.69    41.5
+|=============================================================================|
+?sample_pacify = true
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+n_events = 2
+| Starting simulation for process 'recola_1_p1'
+| Simulate: using integration grids from file 'recola_1_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 2
+|             corr. to luminosity [fb-1] =   3.4784E-05
+| Events: writing to ASCII file 'recola_1_p1.debug'
+| Events: generating 2 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  66.67 %
+| Events: closing ASCII file 'recola_1_p1.debug'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of recola_1.debug:
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = T
+   Normalization      = '1'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  4.86324E-02
+   Squared matrix el. (prc) =  4.86324E-02
+   Event weight (ref)       =  1.00000E+00
+   Event weight (prc)       =  1.00000E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 1
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'recola_1_p1'
+   TAO random-number generator:
+     seed  = 65538
+     calls = 3
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00  5.000000E+01
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00 -5.000000E+01
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(-13)
+ E =   5.000000E+01
+ P =  -2.613124E+01  4.259687E+01 -1.629005E+00
+ T =   1.116369517E-02
+ Parents:  1 2
+ Particle 4 [o] f(13)
+ E =   5.000000E+01
+ P =   2.613124E+01 -4.259687E+01  1.629005E+00
+ T =   1.116369517E-02
+ Parents:  1 2
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.00000E+02
+sqrts_hat* =>  1.00000E+02
+n_in* => 2
+n_out* => 2
+n_tot* => 4
+$process_id* => "recola_1_p1"
+process_num_id* => [unknown integer]
+sqme* =>  4.86324E-02
+sqme_ref* =>  4.86324E-02
+event_index* => 1
+event_weight* =>  1.00000E+00
+event_weight_ref* =>  1.00000E+00
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:-11|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00,-5.0000000E+01| 2.6111793E-07| 1)
+ 2 prt(i:11|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00, 5.0000000E+01| 2.6111793E-07| 2)
+ 3 prt(o:-13| 5.0000000E+01;-2.6131239E+01, 4.2596872E+01,-1.6290046E+00| 1.1163695E-02| 3)
+ 4 prt(o:13| 5.0000000E+01; 2.6131239E+01,-4.2596872E+01, 1.6290046E+00| 1.1163695E-02| 4)
+========================================================================
+========================================================================
+ Event #2
+------------------------------------------------------------------------
+   Unweighted         = T
+   Normalization      = '1'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  1.60258E-01
+   Squared matrix el. (prc) =  1.60258E-01
+   Event weight (ref)       =  1.00000E+00
+   Event weight (prc)       =  1.00000E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 2
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'recola_1_p1'
+   TAO random-number generator:
+     seed  = 65538
+     calls = 6
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(-11)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00  5.000000E+01
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 2 [i] f(11)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00 -5.000000E+01
+ T =   2.611179340E-07
+ Children: 3 4
+ Particle 3 [o] f(-13)
+ E =   5.000000E+01
+ P =  -4.528467E+00 -2.379808E+01  4.373938E+01
+ T =   1.116369517E-02
+ Parents:  1 2
+ Particle 4 [o] f(13)
+ E =   5.000000E+01
+ P =   4.528467E+00  2.379808E+01 -4.373938E+01
+ T =   1.116369517E-02
+ Parents:  1 2
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.00000E+02
+sqrts_hat* =>  1.00000E+02
+n_in* => 2
+n_out* => 2
+n_tot* => 4
+$process_id* => "recola_1_p1"
+process_num_id* => [unknown integer]
+sqme* =>  1.60258E-01
+sqme_ref* =>  1.60258E-01
+event_index* => 2
+event_weight* =>  1.00000E+00
+event_weight_ref* =>  1.00000E+00
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:-11|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00,-5.0000000E+01| 2.6111793E-07| 1)
+ 2 prt(i:11|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00, 5.0000000E+01| 2.6111793E-07| 2)
+ 3 prt(o:-13| 5.0000000E+01;-4.5284672E+00,-2.3798084E+01, 4.3739376E+01| 1.1163695E-02| 3)
+ 4 prt(o:13| 5.0000000E+01; 4.5284672E+00, 2.3798084E+01,-4.3739376E+01| 1.1163695E-02| 4)
+========================================================================

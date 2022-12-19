@@ -1,0 +1,2360 @@
+% prelude.nw -- -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\iffalse %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To: hep-ph@xxx.lanl.gov
+Subject: put
+
+\\
+Title: VAMP, Version 1.0: Vegas AMPlified: Anisotropy,
+Multi-channel sampling and Parallelization.
+Author: Thorsten Ohl (TU Darmstadt)
+Comments: ?? pages, LaTeX (using amsmath.sty).
+Report-no: IKDA 99/??
+\\
+We present an new implementation of the classic Vegas algorithm for
+adaptive multi-dimensional Monte Carlo integration in Fortran.  This
+implementation improves the performance for a large class of
+integrands, supporting stratified sampling in higher dimensions
+through automatic identification of the directions of largest
+variation. This implementation also supports multi channel sampling
+with individual adaptive grids. The sampling can be performed in
+parallel on workstation clusters and other parallel hardware.
+\\
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\NeedsTeXFormat{LaTeX2e}
+\newif\ifbook
+\RequirePackage{ifpdf}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifpdf
+%%% PDF LaTeX
+  %%% \documentclass[12pt,a4paper]{report}
+  \documentclass[12pt,a4paper,chapters]{flex}
+  \booktrue%%%\bookfalse
+  \def\preprintno#1{\relax}
+  \usepackage{type1cm}
+  \pdfoutput=1
+  \usepackage{amsmath,amssymb,amscd}
+  \usepackage{feynmp}
+  \setlength{\unitlength}{1mm}
+  \usepackage[pdftex]{emp}
+  \empaddtoprelude{input graph}
+  \setlength{\unitlength}{1mm}
+  \DeclareGraphicsRule{*}{mps}{*}{}
+  \usepackage[pdftex]{color}
+  \usepackage[pdftex,colorlinks]{hyperref}
+  %%%%%% Don't draw borders:
+  %%%\def\pdfBorderAttrs{/Border [0 0 0] }
+  %%%%%% Default: \def\pdffit{fitbh}
+  %%%\def\pdffit{fit}
+  %%%\makeatletter
+  %%%  \def\new@pdflink#1{\def\hyper@hash{}\pdfdest name{#1!}\pdffit}
+  %%%\makeatother
+  \usepackage{thophys}
+  \usepackage{thohacks}
+  \let\timestamp\today
+  %%% \usepackage{mcite}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\else
+%%% Normal LaTeX
+  %%% \documentclass[12pt]{report}         %%% @HEPPH@
+  %%% \documentclass[12pt,a4paper]{report} %%% @SINGLE@
+  %%% \documentclass[12pt,a4paper]{report} %%% @DOUBLE@
+  \documentclass[a4paper]{report}          %%% @PREPRINT@
+  %%% \documentclass[a4paper,chapters]{flex}   %%% @???@
+  \booktrue%%%\bookfalse                   %%% @PREPRINT@
+  %%% \usepackage[euler]{thopp}            %%% @???@
+  \usepackage{thopp}                       %%% @PREPRINT@
+  \preprintno{\hfil}                       %%% @PREPRINT@
+  \usepackage{thophys}
+  \usepackage{amsmath,amssymb,amscd}
+  \allowdisplaybreaks
+  \usepackage{feynmp}
+  \setlength{\unitlength}{1mm}
+  \usepackage{emp}
+  \empaddtoprelude{input graph;}
+  %%% \empaddtoprelude{prologues:=1;}
+  \setlength{\unitlength}{1mm}
+  %%% \usepackage{mcite}
+  \IfFileExists{thohacks.sty}%
+    {\usepackage{thohacks}}%
+    {\let\timestamp\today
+     \newenvironment{dubious}{\begin{itemize}\item[!!!]}{\end{itemize}}}%
+  \special{%
+    !userdict
+    begin
+      /bop-hook {
+        gsave
+          50 650 translate
+          300 rotate
+          /Times-Roman findfont
+          216 scalefont
+          setfont
+          0 0 moveto
+          0.9 setgray
+          (DRAFT) show
+        grestore
+      } def
+    end}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{noweb}
+%%% \usepackage{nocondmac}
+\setlength{\nwmarginglue}{1em}
+\noweboptions{smallcode,noidentxref}%%%{webnumbering}
+%%% Saving paper:
+\def\nwendcode{\endtrivlist\endgroup}
+\nwcodepenalty=0
+\let\nwdocspar\relax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% This should be part of flex.cls and/or thopp.sty
+\makeatletter
+  \@ifundefined{frontmatter}%
+    {\def\frontmatter{\pagenumbering{roman}}%
+     \def\mainmatter{\cleardoublepage\pagenumbering{arabic}}}
+    {}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newenvironment{procedures}%
+ {\begin{list}{}%
+   {\setlength{\leftmargin}{2em}%
+    \setlength{\rightmargin}{2em}%
+    \setlength{\itemindent}{-1em}%
+    \setlength{\listparindent}{0pt}%
+    \renewcommand{\makelabel}{\hfil}}%
+    \raggedright}%
+ {\end{list}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% more floats:
+\setcounter{topnumber}{3}              % 2
+\setcounter{bottomnumber}{3}           % 2
+\setcounter{totalnumber}{5}            % 3
+\renewcommand{\topfraction}{0.95}      % 0.7
+\renewcommand{\bottomfraction}{0.95}   % 0.3
+\renewcommand{\textfraction}{0.05}     % 0.2
+\renewcommand{\floatpagefraction}{0.8} % 0.5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\Version/{1.0}
+\def\Date/{October 1999}
+\DeclareMathOperator{\atan}{atan}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeindex
+\begin{document}
+\title{%
+  \texttt{VAMP}, Version \Version/: Vegas AMPlified:\\
+  Anisotropy, Multi-channel sampling and Parallelization}
+\author{%
+  Thorsten Ohl%
+    \thanks{e-mail: \texttt{ohl@hep.tu-darmstadt.de}}%
+  {}\thanks{Supported by Bundesministerium f\"ur Bildung,
+       Wissenschaft, Forschung und Technologie, Germany.}\\
+  \hfil \\
+  Darmstadt University of Technology  \\
+  Schlo\ss gartenstr.~9 \\
+  D-64289 Darmstadt \\
+  Germany}
+\date{%
+  IKDA 98/??\\
+  hep-ph/yymmnnn\\
+  \Date/\\
+  \textbf{DRAFT: \timestamp}}
+\maketitle
+\ifbook
+  \frontmatter
+\fi
+\expandafter\ifx\csname abstract\endcsname\relax\else
+\begin{abstract}
+  We present an new implementation of the classic Vegas algorithm
+  for adaptive multi-dimensional Monte Carlo integration in Fortran95.
+  This implementation improves the performance for a large class of
+  integrands, supporting stratified sampling in higher dimensions
+  through automatic identification of the directions of largest
+  variation. This implementation also supports multi channel sampling
+  with individual adaptive grids. Sampling can be performed in
+  parallel on workstation clusters and other parallel hardware.
+  Note that for maintenance of the code, and especially its usage within
+  the event generator WHIZARD, some features of Fortran2003 have been 
+  added.
+\end{abstract}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Revision Control}
+\newpage
+\tableofcontents
+%%% \listoffigures
+%%% \listoftables
+\newpage
+\begin{empfile}
+\begin{fmffile}{\jobname pics}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Program Summary:}
+\begin{itemize}
+  \item \textbf{Title of program:}
+    VAMP, Version \Version/ (\Date/)
+%CPC%  \item \textbf{Catalogue number:}
+%CPC%    ????
+  \item \textbf{Program obtainable}
+%CPC%    from CPC Program Library, Queen's University of Belfast,
+%CPC%    N.~Ireland (see application form in this issue) or
+    by anonymous \verb|ftp| from the host
+    \hfil\allowbreak\verb|crunch.ikp.physik.th-darmstadt.de|
+    in the directory
+    \allowbreak\verb|pub/ohl/vamp|.
+  \item \textbf{Licensing provisions:}
+    Free software under the GNU General Public License.
+  \item \textbf{Programming language used:}
+    From version 2.2.0 of the program:
+    Fortran2003~\cite{Fortran03}
+    Until version 2.1.x of the program:
+    Fortran95~\cite{Fortran95} (Fortran90~\cite{Fortran90} and
+    F~\cite{Metcalf/Reid:1996:F} versions available as well)
+  \item \textbf{Number of program lines in distributed program, including
+      test data, etc.:}
+    $\approx$ 4300 (excluding comments)
+  \item \textbf{Computer/Operating System:}
+    Any with a Fortran95 (or Fortran90 or F) programming environment.
+  \item \textbf{Memory required to execute with typical data:}
+    Negligible on the scale of typical applications calling the library.
+  \item \textbf{Typical running time:}
+    A small fraction (typically a few percent) of the running time of
+    applications calling the library.
+  \item \textbf{Purpose of program:}
+  \item \textbf{Nature of physical problem:}
+  \item \textbf{Method of solution:}
+  \item \textbf{Keywords:}
+    adaptive integration, event generation, parallel processing
+\end{itemize}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifbook
+  \mainmatter
+\else
+  \newpage
+\fi
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+
+We present a reimplementation of the classic
+Vegas~\cite{Lepage:1978:vegas,Lepage:1980:vegas} algorithm
+for adaptive multi-dimensional integration in
+Fortran95~\cite{Fortran95,Adams/etal:1997:Fortran95}\footnote{%
+  Fully functional versions conforming to preceeding Fortran
+  standard~\protect\cite{Fortran90}, High Performance
+  Fortran~(HPF)~\cite{HPF1.1,HPF2.0,Koelbel/etal:1994:HPF}, and to the
+  Fortran90 subset~F~\protect\cite{Metcalf/Reid:1996:F} are available
+  as well. A translation to the obsolete FORTRAN77
+  standard~\protect\cite{FORTRAN77} is possible in principle, but
+  extremely tedious and error prone if the full functionality shall be
+  preserved.} 
+(Note that for the maintenance of the program and especially its usage
+within the event generator WHIZARD parts of the program have been
+adapted to Fortran2003).
+The purpose of this reimplementation is two-fold: for pedagogical reasons
+it is useful to employ Fortran95 features (in particular the
+array language) together with literate
+programming~\cite{Knuth:1991:literate_programming} for expressing the
+algorithm more concisely and more transparently.  On the other hand we
+use a Fortran95 abstract type to separate the state from the
+functions.  This allows multiple instances of Vegas with 
+different adaptions to run in parallel and in paves the road for a
+more parallelizable implementation.
+
+The variable names are more in line with~\cite{Lepage:1978:vegas} than
+with~\cite{Lepage:1980:vegas} or
+with~\cite{Press/etal:1992:NumRecC,Press/etal:1992:NumRec77,%
+  Press/etal:1996:NumRec90}, which is almost identical
+to~\cite{Lepage:1980:vegas}.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Copyleft}
+Mention the GNU General Public License (maybe we can switch to the
+GNU Library General Public License)
+<<Copyleft notice>>=
+! Copyright (C) 1998 by Thorsten Ohl <ohl@hep.tu-darmstadt.de>
+! 
+! VAMP is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by 
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+! 
+! VAMP is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+! GNU General Public License for more details.
+! 
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@ Mention that the tangled sources are not the preferred form of
+distribution:
+<<Copyleft notice>>=
+! This version of the source code of vamp has no comments and
+! can be hard to understand, modify, and improve.  You should have
+! received a copy of the literate `noweb' sources of vamp that
+! contain the documentation in full detail.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Algorithms}
+\begin{dubious}
+  The notation has to be synchronized
+  with~\cite{Ohl:1998:VAMP-preview}!
+\end{dubious}
+We establish some notation to allow a concise discussion.
+Notation:
+\begin{subequations}
+\label{eq:defs}
+\begin{align}
+  \text{expectation:}&&
+    E(f) &=
+      \frac{1}{|\mathcal{D}|} \int_{\mathcal{D}}\!\textrm{d}x\,f(x)\\
+  \text{variance:}&&
+    V(f) &= E(f^2) - (E(f))^2 \\
+  \text{estimate of expectation (average):}&&
+    \braket{X|f} &= \frac{1}{|X|} \sum_{x\in X} f(x)\\
+  \text{estimate of variance:}&&
+    \sigma^2_X(f) &= 
+      \frac{1}{|X|-1} \left( \braket{X|f^2} - \braket{X|f}^2 \right)
+\end{align}
+\end{subequations}
+Where~$|X|$ is the size of the point set
+and~$|\mathcal{D}|=\int_{\mathcal{D}}\!\textrm{d}x$ the size of the
+integration region. If~$\mathcal{E}(\braket{f})$ denotes the ensemble
+average of~$\braket{X|f}$ over random point sets~$X$ with~$|X|=N$, we
+have for expectation and variance
+\begin{subequations}
+\begin{align}
+  \mathcal{E}(\braket{f})  &= E(f) \\
+  \mathcal{E}(\sigma^2(f)) &= V(f) \\
+\intertext{and the ensemble variance of the expectation is also given
+by the variance}
+  \mathcal{V}(\braket{f})  &= \frac{1}{N} V(f)
+\end{align}
+\end{subequations}
+Therefore, it can be estimated from~$\sigma^2_X(f)$.  Below, we will
+also use the notation~$\mathcal{E}_g$ for the ensemble average over
+random point sets~$X_g$ with probability distribution~$g$.  We will
+write~$E_g(f)=E(fg)$ as well.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Importance Sampling}
+If, instead of uniformly distributed points~$X$, we use
+points~$X_g$ distributed according to a probability density~$g$, we
+can easily keep the expectation constant
+\begin{align}
+  \mathcal{E}_g({\braket{f}})
+     &= E_g\left(\frac{f}{g}\right)
+      = E(f) \\
+\intertext{while the variance transformes non-trivially}
+  \mathcal{V}_g({\braket{f}})
+     &= \frac{1}{N} V_g\left(\frac{f}{g}\right)
+      = \frac{1}{N} \left(
+            E_g\left(\frac{f^2}{g^2}\right)
+               - \left(E_g\left(\frac{f}{g}\right)\right)^2 \right)
+\end{align}
+and the error is minimized when~$f/g$ is constant, i.e.~$g$ is a good
+approximation of~$f$.  The non-trivial problem is to find a~$g$ that
+can be generated efficiently and is a good approximation at the same
+time.
+
+One of the more popular approaches is to use a mapping~$\phi$ of the
+integration domain
+\begin{equation}
+  \begin{aligned}
+    \phi: \mathcal{D} &\to \Delta\\
+          x           &\mapsto \xi = \phi(x)
+  \end{aligned}
+\end{equation}
+In the new coordinates, the distribution is multiplied by the Jacobian
+of the inverse map~$\phi^{-1}$:
+\begin{equation}
+  \int_{\mathcal{D}}\!\textrm{d}x\, f(\phi(x))
+    = \int_\Delta\!\textrm{d}\xi\, J_{\phi^{-1}}(\xi) f(\xi)
+\end{equation}
+A familiar example is given by the map
+\begin{equation}
+  \begin{aligned}
+    \phi: [0,1] &\to \mathbf{R} \\
+          x     &\mapsto \xi = x^0 + a \cdot \tan\left(
+                     \left(x-\frac{1}{2}\right)\pi \right)
+  \end{aligned}
+\end{equation}
+with the inverse~$\phi^{-1}(\xi)=\atan((\xi-x_0)/a)/\pi+1/2$
+and the corresponding Jacobian reproducing a resonance
+\begin{equation}
+  J_{\phi^{-1}}(\xi)
+      = \frac{\mathrm{d}\phi^{-1}(\xi)}{\mathrm{d}\xi}
+      = \frac{a}{\pi}\,\frac{1}{(\xi-x^0)^2 + a^2}
+\end{equation}
+Obviously, this works only for a few special distributions.
+Fortunately, we can combine several of these mappings to build
+efficient integration algorithms, as will be explained in
+section~\ref{sec:MC} below.  Another approach is to construct the
+approximation numerically, by appropriate binning of the integration
+domain~(cf.~\cite{Lepage:1978:vegas,Lepage:1980:vegas,
+Kawabata:1986:Bases/Spring}.  The most popular technique for this will
+be discussed below in section~\ref{sec:vegas}.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Stratified Sampling}
+The technique of importance sampling concentrates the sampling points
+in the region where the contribution to the integrand is largest.
+Alternatively we can also concentrates the sampling points in the
+region where the contribution to the variance is largest.
+
+If we divide the sampling region~$\mathcal{D}$ into~$n$ disjoint
+subregions~$\mathcal{D}^i$
+\begin{equation}
+  \mathcal{D} = \bigcup_{i=1}^n \mathcal{D}^i,\;\;\;
+   \mathcal{D}^i \cap \mathcal{D}^j = \emptyset\;\;(i\not=j)
+\end{equation}
+a new estimator is
+\begin{dubious}
+  Bzzzt!  Wrong.  These multi-channel formulae are incorrect for
+  partitionings and must be fixed.
+\end{dubious}
+\begin{equation}
+  \overline{\braket{X|f}}
+     = \sum_{i=1}^n \frac{N_i}{N} \braket{X_{\theta_i}|f}
+\end{equation}
+where
+\begin{equation}
+   \theta_i(x) =
+      \begin{cases}
+          1 & \text{ for } x\in \mathcal{D}^i \\
+          0 & \text{ for } x\not\in \mathcal{D}^i
+      \end{cases}
+\end{equation}
+and
+\begin{equation}
+  \sum_{i=1}^n N_i = N
+\end{equation}
+since the expectation is linear
+\begin{equation}
+  \mathcal{E}(\overline{\braket{f}})
+    = \sum_{i=1}^n \frac{N_i}{N} \mathcal{E}_{\theta_i}(\braket{f})
+    = \sum_{i=1}^n \frac{N_i}{N} E_{\theta_i}(f)
+    = \sum_{i=1}^n \frac{N_i}{N} E(f\theta_i)
+    = E(f)
+\end{equation}
+On the other hand, the variance of the estimator~$\overline{\braket{X|f}}$ is
+\begin{equation}
+  \mathcal{V}(\overline{\braket{f}})
+     = \sum_{i=1}^n \frac{N_i}{N} \mathcal{V}_{\theta_i}(\braket{f})
+\end{equation}
+This is minimized for
+\begin{equation}
+  N_i \propto \sqrt{V(f\cdot\theta_{\mathcal{D}^i})}
+\end{equation}
+as a simple variation of~$\mathcal{V}(\overline{\braket{f}})$ shows.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Vegas}
+\label{sec:vegas}
+\begin{dubious}
+  Under construction!
+\end{dubious}
+
+\begin{empcmds}
+  vardef layout =
+    pair ul, ur, ll, lr;
+    ypart (ul) = ypart (ur); ypart (ll) = ypart (lr);
+    xpart (ul) = xpart (ll); xpart (ur) = xpart (lr);
+    numeric weight_width, weight_dist;
+    weight_width = 0.1w; weight_dist = 0.05w;
+    ll = (.1w,.1w);
+    ur = (w-weight_width-weight_dist,h-weight_width-weight_dist);
+    numeric equ_div, adap_div, rx, ry, rxp, rxm, ryp, rym;
+    equ_div = 3;  adap_div = 8;
+    rx = 5.2; ry = 3.6;
+    rxp = ceiling rx; rxm = floor rx;
+    ryp = ceiling ry; rym = floor ry;
+    numeric pi; pi = 180;
+    vardef adap_fct_x (expr x) = (x + sind(2*x*pi)/8) enddef;
+    vardef weight_x (expr x) = (1 + 2*sind(1*x*pi)**2) / 3 enddef;
+    vardef adap_fct_y (expr x) = (x + sind(4*x*pi)/16) enddef;
+    vardef weight_y (expr x) = (1 + 2*sind(2*x*pi)**2) / 3 enddef;
+    vardef grid_pos (expr i, j) =
+      (adap_fct_y(j/adap_div))[(adap_fct_x(i/adap_div))[ll,lr],
+                               (adap_fct_x(i/adap_div))[ul,ur]]
+    enddef;
+    vardef grid_square (expr i, j) =
+      grid_pos (i,j) -- grid_pos (i+1,j) -- grid_pos (i+1,j+1)
+        -- grid_pos (i,j+1) -- cycle
+    enddef;
+  enddef;
+  vardef decoration =
+    fill (lr shifted (weight_y(0)*(weight_width,0))
+             for y = .1 step .1 until 1.01:
+               .. y[lr,ur] shifted (weight_y(y)*(weight_width,0))
+             endfor
+             -- ur -- lr -- cycle) shifted (weight_dist,0) withcolor 0.7white;
+    fill (ul shifted (weight_x(0)*(0,weight_width))
+             for x = .1 step .1 until 1.01:
+               .. x[ul,ur] shifted (weight_x(x)*(0,weight_width))
+             endfor
+             -- ur -- ul -- cycle) shifted (0,weight_dist) withcolor 0.7white;
+    picture px, py;
+    px = btex $p_1(x_1)$ etex; py = btex $p_2(x_2)$ etex;
+    label.top (image (unfill bbox px; draw px),
+                .5[ul,ur] shifted (0,weight_dist));
+    label.rt (image (unfill bbox py; draw py),
+                .75[lr,ur] shifted (weight_dist,0));
+    label.lrt (btex $\mathcal{D}_{1,1}$ etex, ll);
+    label.bot (btex $x_1$ etex, .5[ll,lr]);
+    label.bot (btex $\mathcal{D}_{2,1}$ etex, lr);
+    label.ulft (btex $\mathcal{D}_{1,2}$ etex, ll);
+    label.lft (btex $x_2$ etex, .5[ll,ul]);
+    label.lft (btex $\mathcal{D}_{2,2}$ etex, ul);
+  enddef;
+\end{empcmds}
+\begin{figure}
+  \begin{center}
+    \begin{emp}(55,50)
+      layout;
+      fill grid_square (rxm,rym) withcolor 0.7white;
+      pickup pencircle scaled .7pt;
+      for i = 0 upto adap_div:
+        draw grid_pos(i,0) -- grid_pos(i,adap_div);
+        draw grid_pos(0,i) -- grid_pos(adap_div,i);
+      endfor
+      pickup pencircle scaled 2pt;
+      drawdot grid_pos(rx,ry);
+      decoration;
+    \end{emp}
+    \begin{emp}(55,50)
+      layout;
+      vardef grid_sub_pos (expr i, di, j, dj) =
+        (dj/equ_div)[(di/equ_div)[grid_pos(i,j),grid_pos(i+1,j)],
+                     (di/equ_div)[grid_pos(i,j+1),grid_pos(i+1,j+1)]]
+      enddef;
+      vardef grid_sub_square (expr i, di, j, dj) =
+        grid_sub_pos (i,di,j,dj)
+          -- grid_sub_pos (i,di+1,j,dj)
+          -- grid_sub_pos (i,di+1,j,dj+1)
+          -- grid_sub_pos (i,di,j,dj+1)
+          -- cycle
+      enddef;
+      fill grid_square (rxm,rym) withcolor 0.8white;
+      fill grid_sub_square (rxm,0,rym,1) withcolor 0.6white;
+      pickup pencircle scaled .7pt;
+      for i = 0 upto adap_div:
+        draw grid_pos(i,0) -- grid_pos(i,adap_div);
+        draw grid_pos(0,i) -- grid_pos(adap_div,i);
+      endfor
+      pickup pencircle scaled .5pt;
+      for i = 0 upto (adap_div-1):
+        for j = 1 upto (equ_div-1):
+          draw grid_sub_pos(i,j,0,0)
+                 -- grid_sub_pos(i,j,adap_div,0) dashed evenly;
+          draw grid_sub_pos(0,0,i,j)
+                 -- grid_sub_pos(adap_div,0,i,j) dashed evenly;
+        endfor
+      endfor
+      pickup pencircle scaled 2pt;
+      drawdot grid_pos(rx,ry);
+      decoration;
+    \end{emp}
+  \end{center}
+  \caption{\label{fig:nonstrat/strat}%
+    \texttt{vegas} grid structure for non-stratified sampling (left) and
+    for genuinely stratified sampling (right), which is used in low
+    dimensions.  N.B.: the grid and the weight functions~$p_{1,2}$ are
+    only in qualitative agreement.}
+\end{figure}
+
+\begin{empcmds}
+  numeric pi;
+  pi = 180;
+  vardef adap_fct_one (expr x) =
+    (x + sind(2*x*pi)/8)
+  enddef;
+  vardef adap_fct_two (expr x) =
+    (x + sind(4*x*pi)/16)
+  enddef;
+  vardef adap_fct (expr x) =
+     adap_fct_two (x)
+  enddef;
+  vardef drawbar expr p =
+    draw ((0,-.5)--(0,.5)) scaled 1mm shifted p
+  enddef;
+\end{empcmds}
+
+\begin{empcmds}
+  vardef pseudo (expr xlo, xhi, ylo, yhi, 
+                      equ_lo, equ_hi, equ_div,
+                      adap_lo, adap_hi, adap_div,
+                      r, do_labels, do_arrow) =
+    pair equ_grid.lo, equ_grid.hi, adap_grid[]lo, adap_grid[]hi;
+    ypart (equ_grid.lo) = ypart (equ_grid.hi);
+    ypart (adap_grid[1]lo) = ypart (adap_grid[1]hi);
+    ypart (adap_grid[2]lo) = ypart (adap_grid[2]hi);
+    xpart (equ_grid.lo) = xpart (adap_grid[1]lo) = xpart (adap_grid[2]lo);
+    xpart (equ_grid.hi) = xpart (adap_grid[1]hi) = xpart (adap_grid[2]hi);
+    equ_grid.hi = (xhi, yhi);
+    adap_grid[1]lo = .5[equ_grid.lo,adap_grid[2]lo];
+    adap_grid[2]lo = (xlo, ylo);
+    numeric rp, rm;
+    rp = ceiling r;
+    rm = floor r;
+    pickup pencircle scaled .5pt;
+    for i = adap_lo upto adap_hi:
+        draw (i/adap_div)[adap_grid[1]lo,adap_grid[1]hi]
+               -- (adap_fct(i/adap_div))[adap_grid[2]lo,adap_grid[2]hi]
+             withcolor 0.7white;
+    endfor
+    if do_arrow:
+      fill (rm/adap_div)[adap_grid[1]lo,adap_grid[1]hi]
+             -- (rp/adap_div)[adap_grid[1]lo,adap_grid[1]hi]
+             -- (adap_fct(rp/adap_div))[adap_grid[2]lo,adap_grid[2]hi]
+             -- (adap_fct(rm/adap_div))[adap_grid[2]lo,adap_grid[2]hi]
+             -- cycle withcolor 0.7white;
+    fi
+    if do_labels:
+      label.lft (btex \texttt{0} etex, equ_grid.lo);
+      label.rt (btex \texttt{d\%ng} etex, equ_grid.hi);
+    fi
+    draw (equ_lo/equ_div)[equ_grid.lo,equ_grid.hi]
+          -- (equ_hi/equ_div)[equ_grid.lo,equ_grid.hi];
+    for i = equ_lo upto equ_hi:
+      drawbar (i/equ_div)[equ_grid.lo,equ_grid.hi];
+    endfor
+    if do_labels:
+      label.lft (btex $\xi$, \texttt{i: 0} etex, adap_grid[1]lo);
+      label.rt (btex \texttt{ubound(d\%x)} etex, adap_grid[1]hi);
+      label.lft (btex \texttt{d\%x: 0} etex, adap_grid[2]lo);
+      label.rt (btex \texttt{1} etex, adap_grid[2]hi);
+    fi
+    draw (adap_lo/adap_div)[adap_grid[1]lo,adap_grid[1]hi]
+          -- (adap_hi/adap_div)[adap_grid[1]lo,adap_grid[1]hi];
+    draw (adap_fct(adap_lo/adap_div))[adap_grid[2]lo,adap_grid[2]hi]
+          -- (adap_fct(adap_hi/adap_div))[adap_grid[2]lo,adap_grid[2]hi];
+    for i = adap_lo upto adap_hi:
+      drawbar (i/adap_div)[adap_grid[1]lo,adap_grid[1]hi];
+      drawbar (adap_fct(i/adap_div))[adap_grid[2]lo,adap_grid[2]hi];
+    endfor
+    if do_arrow:
+      pickup pencircle scaled 1pt;
+      pair cell, ia, grid;
+      ia = (r/adap_div)[adap_grid[1]lo,adap_grid[1]hi];
+      cell = ia shifted (equ_grid.hi - adap_grid[1]hi);
+      grid = (adap_fct(r/adap_div))[adap_grid[2]lo,adap_grid[2]hi];
+      if do_labels:
+        label.top (btex \texttt{cell - r} etex, cell);
+      fi
+      drawarrow cell -- ia;
+      drawarrow ia -- grid;
+      if do_labels:
+        label.bot (btex \texttt{x} etex, grid);
+      fi
+    fi
+  enddef;
+\end{empcmds}
+
+\begin{figure}
+  \begin{center}
+    \begin{emp}(120,30)
+      pseudo (.3w, .8w, .1h, .8h, 0, 8, 8,  0, 12, 12, 5.2,   true, true);
+    \end{emp}
+  \end{center}
+  \caption{\label{fig:pseudo}%
+    One-dimensional illustration of the \texttt{vegas} grid structure
+    for pseudo stratified sampling, which is used in high dimensions.}
+\end{figure}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Vegas' Inflexibility}
+\label{sec:vegas/inflexibility}
+\label{sec:quadrupole}
+
+The classic implementation of the Vegas
+algorithm~\cite{Lepage:1978:vegas,Lepage:1980:vegas} treats all
+dimensions alike.  This constraint allows a very concise
+FORTRAN77-style coding of the algorithm, but there is no theoretical
+reason for having the same number of divisions in each direction.
+On the contrary, under these circumstances, even a dimension in which
+the integrand is rather smooth will contribute to the exponential
+blow-up of cells for stratified sampling.  It is obviously beneficial
+to use a finer grid in those directions in which the fluctuations are
+stronger, while a coarser grid will suffice in the other directions.
+
+One small step along this line is implemented in Version~5.0 of the
+package \texttt{BASES/SPRING}~\cite{Kawabata:1986:Bases/Spring}, where
+one set of ``wild'' variables is separated from ``smooth''
+variables~\cite{GRACE:1993:Manual}.
+
+The present reimplementation of the Vegas algorithm allows the
+application to choose the number of divisions in each direction
+freely.  The routines that reshape the grid accept an integer array
+with the number of divisions as an optional argument~[[num_div]].  It
+is easy to construct examples in which the careful use of this feature
+reduces the variance significantly.
+
+Currently, no attempt is made for automatic optimization of the number
+of divisions.  One reasonable approach is to monitor Vegas' grid
+adjustments and to increase the number of division in those directions
+where Vegas' keeps adjusting because of fluctuations.  For each
+direction, a numerical measure of these fluctuations is given by the
+spread in the~$m_i$.  The total number of cells can be kept constant
+by reducing the number of divisions in the other directions
+appropriately.  Thus
+\begin{equation}
+  n_{\text{div},j} \to
+   \frac{Q_j n_{\text{div},j}}{\left(\prod_j Q_j\right)^{1/n_{\text{dim}}}}
+\end{equation}
+where we have used the damped standard deviation
+\begin{equation}
+  Q_j = \left(\sqrt{\mathop{\textrm{Var}}(\{m\}_j)}\right)^\alpha
+\end{equation}
+instead of the spread.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Vegas' Dark Side}
+\label{sec:vegas/problem}
+\begin{dubious}
+  Under construction!
+\end{dubious}
+
+A partial solution of this problem will be presented in
+section~\ref{sec:revolving}.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Multi Channel Sampling}
+\label{sec:MC}
+
+Even if Vegas performs well for a large class of integrands, many
+important applications do not lead to a factorizable distribution.
+The class of integrands that can be integranted efficiently by Vegas
+can be enlarged substantially by using multi channel methods.  The new
+class will include almost all integrals appearing in high energy
+physics simulations.
+
+\begin{dubious}
+  The first version of this section is now obsolete.
+  Consult~\cite{Ohl:1998:VAMP-preview} instead.
+\end{dubious}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Revolving}
+\label{sec:revolving}
+\begin{dubious}
+  Under construction!
+\end{dubious}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Parallelization}
+\label{sec:parallelization}
+Traditionally, parallel processing has not played a large r\^ole in
+simulations for high energy physics.  A natural and trivial method of
+utilizing many processors will run many instances of the same (serial)
+program with different values of the input parameters in parallel.
+Typical matrix elements and phase space integrals offer few
+opportunities for small scale parallelization.
+
+On the other hand, parameter fitting has become possible recently for
+observables involving a phase space integration.  In this case, fast
+evaluation of the integral is essential and parallel execution becomes
+an interesting option.
+
+A different approach to parallelizing Vegas has been presented
+recently~\cite{Veseli:1998:Parallel-Vegas}.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Multilinear Structure of the Sampling Algorithm}
+\label{sec:multi-linear}
+In order to discuss the problems with parallelizing adaptive
+integration algorithms and to present solutions, it helps to introduce
+some mathematical notation.  A sampling~$S$ is a map from the
+space~$\pi$ of point sets and the space~$F$ of functions to the real
+(or complex) numbers
+\begin{equation*}
+\begin{aligned}
+  S: \pi \times F & \to \mathbf{R} \\
+     (p,f)        & \mapsto I = S(p,f)
+\end{aligned}
+\end{equation*}
+For our purposes, we have to be more specific about the nature of the
+point set.  In general, the point set will be characterized by a 
+sequence of pseudo random numbers~$\rho\in R$ and by one or more
+grids~$G\in\Gamma$ used for importance or stratified sampling.  A
+simple sampling
+\begin{equation}
+\label{eq:S0}
+\begin{aligned}
+  S_0: R \times \Gamma \times A \times F \times\mathbf{R}\times\mathbf{R}
+         & \to R \times \Gamma \times A \times F \times\mathbf{R}\times\mathbf{R}\\
+       (\rho, G, a, f, \mu_1, \mu_2) & \mapsto
+            (\rho', G, a', f, \mu_1', \mu_2')
+                = S_0 (\rho, G, a, f, \mu_1, \mu_2)
+\end{aligned}
+\end{equation}
+estimates the $n$-th moments $\mu_n'\in\mathbf{R}$ of the
+function~$f\in F$.  The integral and its standard deviation can be
+derived easily from the moments
+\begin{subequations}
+\begin{align}
+  I        &= \mu_1 \\
+  \sigma^2 &= \frac{1}{N-1} \left(\mu_2 - \mu_1^2\right)
+\end{align}
+\end{subequations}
+while the latter are more convenient for the following discussion.
+In addition, $S_0$ collects auxiliary information to be used in the
+grid refinement, denoted by~$a\in A$.
+The unchanged arguments~$G$ and~$f$ have been added to the result
+of~$S_0$ in~(\ref{eq:S0}), so that~$S_0$ has identical domain and
+codomain and 
+can therefore be iterated.  Previous estimates~$\mu_n$ may be used
+in the estimation of~$\mu_n'$, but a particular~$S_0$ is free to
+ignore them as well.  Using a little notational freedom, we
+augment~$\mathbf{R}$ and~$A$ with a special value~$\cdot$, which will
+always be discarded by~$S_0$.
+
+In an adaptive integration algorithm, there is also a refinement
+operation~$r:\Gamma\times A \to\Gamma$ that can be extended naturally
+to the codomain of~$S_0$
+\begin{equation}
+\begin{aligned}
+  r: R \times \Gamma \times A \times F \times\mathbf{R}\times\mathbf{R}
+       & \to R \times \Gamma \times A \times F \times\mathbf{R}\times\mathbf{R}\\
+     (\rho, G, a, f, \mu_1, \mu_2) & \mapsto
+        (\rho, G', a, f, \mu_1, \mu_2) = r (\rho, G, a, f, \mu_1, \mu_2)
+\end{aligned}
+\end{equation}
+so that~$S=rS_0$ is well defined and we can specify $n$-step adaptive
+sampling as
+\begin{equation}
+\label{eq:Sn}
+  S_n = S_0 (rS_0)^n
+\end{equation}
+Since, in a typical application, only the estimate of the integral and
+the standard deviation are used, a projection can be applied to the
+result of~$S_n$: 
+\begin{equation}
+\label{eq:P}
+\begin{aligned}
+  P: R \times \Gamma \times A \times F \times\mathbf{R}\times\mathbf{R}
+       & \to \mathbf{R}\times\mathbf{R}\\
+       (\rho, G, a, f, \mu_1, \mu_2) & \mapsto (I,\sigma)
+\end{aligned}
+\end{equation}
+Then
+\begin{equation}
+  (I,\sigma) = P S_0 (rS_0)^n (\rho, G_0, \cdot, f, \cdot, \cdot)
+\end{equation}
+and a good refinement prescription~$r$, such as Vegas, will minimize
+the~$\sigma$.
+
+For parallelization, it is crucial to find a division of~$S_n$ or any
+part of it into \emph{independent} pieces that can be evaluated in
+parallel.  In order to be effective, $r$ has to be applied to
+\emph{all} of~$a$ and therefore a sychronization of~$G$ before and
+after~$r$ is appropriately.  Forthermore, $r$ usually uses only a tiny
+fraction of the CPU time and it makes little sense to invest a lot of
+effort into parallelizing it beyond what the Fortran compiler can
+infer from array notation.  On the other hand, $S_0$ can be
+parallelized naturally, because all operations are linear, including
+he computation of~$a$.  We only have to make sure that the cost of
+communicating the results of~$S_0$ and~$r$ back and forth during the
+computation of~$S_n$ do not offset any performance gain from parallel
+processing.
+
+When we construct a decomposition of~$S_0$ and proof that it does not
+change the results, i.e.
+\begin{equation}
+  S_0 = \iota S_0 \phi
+\end{equation}
+where~$\phi$ is a forking operation and~$\iota$ is a joining
+operation, we are faced with the technical problem of a parallel
+random number source~$\rho$.
+As made explicit in~(\ref{eq:S0}, $S_0$ changes the state of the
+random number general~$\rho$, demanding \emph{identical} results
+therefore imposes a strict ordering on the operations and defeats
+parallelization.  It is possible to devise implementations of~$S_0$
+and~$\rho$ that circumvent this problem by distributing subsequences
+of~$\rho$ in such a way among processes that results do not depend on
+the number of parallel processes.
+
+However, a reordering of the random number sequence will only change
+the result by the statistical error, as long as the scale of the
+allowed reorderings is \emph{bounded} and much smaller than the period
+of the random number generator~\footnote{Arbirtrary reorderings on the
+scale of the period of the random number generators could select
+constant sequences and have to be forbidden.}  Below, we will
+therefore use the notation $x\approx y$ for ``equal for an appropriate
+finite reordering of the~$\rho$ used in calculating~$x$ and~$y$''.
+For our porposes, the relation~$x\approx y$ is strong enough and
+allows simple and efficient implementations.
+
+Since~$S_0$ is essentially a summation, it is natural to expect a
+linear structure 
+\begin{subequations}
+\label{eq:S0-parallel}
+\begin{equation}
+  \bigoplus_i S_0(\rho_i, G_i, a_i, f, \mu_{1,i}, \mu_{2,i})
+     \approx S_0 (\rho, G, a, f, \mu_1, \mu_2)
+\end{equation}
+where
+\begin{align}
+  \rho 	&= \bigoplus_i \rho_i \\
+  G    	&= \bigoplus_i G_i \\
+  a    	&= \bigoplus_i a_i \\
+  \mu_n &= \bigoplus_i \mu_{n,i}
+\end{align}
+\end{subequations}
+for appropriate definitions of ``$\oplus$''. For the moments, we have
+standard addition
+\begin{equation}
+  \mu_{n,1} \oplus \mu_{n,2} = \mu_{n,1} + \mu_{n,2}
+\end{equation}
+and since we only demand equality up to reordering, we only need that
+the~$\rho_i$ are statistically independent.  This leaves us with~$G$
+and~$a$ and we have to discuss importance sampling ans stratified
+sampling separately.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Importance Sampling}
+In the case of naive Monte Carlo and importance sampling the natural
+decomposition of~$G$ is to take~$j$ copies of the same
+grid~$G/j$ which is identical to~$G$, each with one $j$-th of the
+total sampling points.  As long as the~$a$ are linear themselves, we
+can add them up just like the moments
+\begin{equation}
+  a_1 \oplus a_2 = a_1 + a_2
+\end{equation}
+and we have found a decomposition~(\ref{eq:S0-parallel}).  In the
+case of Vegas, the~$a_i$ are sums of function values at the sampling
+points.  Thus they are obviously linear and this approach is
+applicable to Vegas in the importance sampling mode.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Stratified Sampling}
+The situation is more complicated in the case of stratified sampling.
+The first complication is that in pure stratified sampling there are
+only two sampling points per cell.  Splitting the grid in two pieces
+as above provide only a very limited amount of parallelization.  The
+second complication is that the~$a$ are no longer linear, since they
+corrspond to a sampling of the variance per cell and no longer of
+function values themselves.
+
+However, as long as the samplings contribute to disjoint bins only, we
+can still ``add'' the variances by combining bins.  The solution is
+therefore to divide the grid into disjoint bins along the divisions of
+the stratification grid and to assign a set of bins to each processor.
+
+Finer decompositions will incur higher communications costs and other
+resource utilization.  An implementation based on~PVM is described
+in~\cite{Veseli:1998:Parallel-Vegas}, which miminizes the overhead by
+running identical copies of the grid~$G$ on each processor.  Since
+most of the time is usually spent in function evaluations, it makes
+sense to run a full~$S_0$ on each processor, skipping function
+evaluations everywhere but in the region assigned to the processor.
+This is a neat trick, which is unfortunately tied to the computational
+model of message passing systems such as~PVM and~MPI~\cite{MPI}.  More
+general paradigms can not be supported since the separation of the
+state for the processors is not explicit (it is implicit in the
+separated address space of the PVM or MPI processes).
+
+However, it is possible to implement~(\ref{eq:S0-parallel}) directly
+in an efficient manner.  This is based on the observation that the
+grid~$G$ used by Vegas is factorized into divisions~$D^j$ for each
+dimension
+\begin{equation}
+\label{eq:factorize}
+  G = \bigotimes_{j=1}^{n_{\text{dim}}} D^j
+\end{equation}
+and decompositions of the~$D^j$ induce decompositions of~$G$
+\begin{multline}
+\label{eq:decomp}
+  G_1 \oplus G_2
+    = \left(
+        \bigotimes_{j=1}^{i-1} D^j
+          \otimes D^i_1 \otimes \bigotimes_{i=j+1}^{n_{\text{dim}}} D^j
+      \right)
+      \oplus
+      \left(
+        \bigotimes_{j=1}^{i-1} D^j
+          \otimes D^i_2 \otimes \bigotimes_{i=j+1}^{n_{\text{dim}}} D^j
+      \right) \\
+    = \bigotimes_{j=1}^{i-1} D^j
+        \otimes \left( D^i_1 \oplus D^i_2 \right)
+        \otimes \bigotimes_{j=i+1}^{n_{\text{dim}}} D^j
+\end{multline}
+We can translate~(\ref{eq:decomp}) directly to code that performs the
+decomposition~$D^i = D^i_1 \oplus D^i_2$ discussed below and simply
+duplicates the other divisions~$D^{j\not=i}$.  A decomposition along
+multiple dimensions is implemented by a recursive application
+of~(\ref{eq:decomp}).
+
+In Vegas, the auxiliary information~$a$ inherits a factorization
+similar to the grid~$(\ref{eq:factorize})$
+\begin{equation}
+\label{eq:factorize'}
+  a = (d^1,\ldots,d^{n_{\text{dim}}})
+\end{equation}
+but not a multilinear structure.  Instead, \emph{as long as the
+decomposition respects the stratification grid}, we find the in place
+of~(\ref{eq:decomp})
+\begin{equation}
+\label{eq:decomp'}
+  a_1 \oplus a_2
+    = (d^1_1 + d^1_2,\ldots, d^i_1 \oplus d^i_2, \ldots,
+       d^{n_{\text{dim}}}_1 + d^{n_{\text{dim}}}_2)
+\end{equation}
+with ``$+$'' denoting the standard addition of the bin contents and
+``$\oplus$'' denoting the aggregation of disjoint bins.  If the
+decomposition of the division would break up cells of the
+stratification grid~(\ref{eq:decomp'}) would be incorrect, because, as
+discussed above, the variance is not linear.
+
+Now it remains to find a decomposition
+\begin{equation}
+  D^i = D^i_1 \oplus D^i_2
+\end{equation}
+for both the pure stratification mode and the pseudo stratification
+mode of vegas (cf.\ figure~\ref{fig:nonstrat/strat}).  In the pure
+stratification mode, the stratification grid is strictly finer than
+the adaptive grid and we can decompose along either of them
+immediately.  Technically, a decomposition along the coarser of the two
+is straightforward.  Since the adaptive grid already  has more than
+25~bins, a decomposition along the stratification grid makes no
+practical sense and the decomposition along the adaptive grid has been
+implemented.  The sampling algorithm~$S_0$ can be applied
+\emph{unchanged} to the individual grids resulting from the
+decomposition.
+
+\begin{figure}
+  \begin{center}
+    \begin{emp}(120,90)
+       pseudo (.3w, .8w, .7h, .9h, 0, 8, 8,  0, 12, 12, 5.2,   true, true);
+       % lcm (lcm (3, 8) / 3, 12)
+       pseudo (.3w, .8w, .4h, .6h, 0, 8, 8,  0, 24, 24, 5.2*2, false, true);
+       % forks
+       pseudo (.2w, .7w, .1h, .3h, 0, 2, 8,  0,  6, 24, 5.2*2, false, false);
+       pseudo (.3w, .8w, .1h, .3h, 2, 5, 8,  6, 15, 24, 5.2*2, false, true);
+       pseudo (.4w, .9w, .1h, .3h, 5, 8, 8, 15, 24, 24, 5.2*2, false, false);
+       label.urt (btex \texttt{ds(1)} etex, (.2w, 0));
+       label.top (btex \texttt{ds(2)} etex, (.5w, 0));
+       label.ulft (btex \texttt{ds(3)} etex, (.9w, 0));
+    \end{emp}
+  \end{center}
+  \caption{\label{fig:pseudo-fork}%
+    Forking one dimension~\texttt{d} of a grid into three parts
+    \texttt{ds(1)}, \texttt{ds(2)}, and~\texttt{ds(3)}.  The picture
+    illustrates the most complex case of pseudo stratified sampling
+    (cf.~fig.~\ref{fig:pseudo}).}
+\end{figure}
+
+For pseudo stratified sampling (cf.\ figure~\ref{fig:pseudo}), the
+situation is more complicated, because the adaptive and the
+stratification grid do not share bin boundaries.  Since Vegas does
+\emph{not} use the variance in this mode, it would be theoretically
+possible to decompose along the adaptive grid and to mimic the
+incomplete bins of the stratification grid in the sampling algorithm.
+However, this would be a technical complication, destroying the
+universality of~$S_0$.  Therefore, the adaptive grid is subdivided in
+a first step in
+\begin{equation}
+  \mathop{\textrm{lcm}}
+     \left( \frac{\mathop{\textrm{lcm}}(n_f,n_g)}{n_f}, n_x \right)
+\end{equation}
+bins,\footnote{The coarsest grid covering the division of~$n_g$ bins
+into~$n_f$ forks has $n_g / \mathop{\textrm{gcd}}(n_f,n_g) =
+\mathop{\textrm{lcm}}(n_f,n_g) / n_f$ bins per fork.} such that the
+adaptive grid is strictly finer than the stratification grid.  This
+procedure is shown in figure~\ref{fig:pseudo-fork}.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{State and Message Passing}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Random Numbers}
+
+In the parallel example sitting on top of MPI~\cite{MPI} takes
+advantage of the ability of Knuth's generator~\cite{Knuth:1997:TAOCP2}
+to generate statistically independent subsequences.  However, since
+the state of the random number generator is explicit in all procedure
+calls, other means of obtaining subsequences can be implemented in a
+trivial wrapper.
+
+The results of the parallel example will depend on the number of
+processors, because this effects the subsequences being used.  Of
+course, the variation will be compatible with the statistical error.
+It must be stressed that the results are deterministic for a given
+number of processors and a given set of random number generator seeds.
+Since parallel computing environments allow to fix the number of
+processors, debugging of exceptional conditions is possible.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Practice}
+In this section we show three implementations of~$S_n$: one serial,
+and two parallel, based on
+HPF~\cite{HPF1.1,HPF2.0,Koelbel/etal:1994:HPF} and MPI~\cite{MPI},
+respectively.  From these examples, it should be
+obvious how to adapt VAMP to other parallel computing paradigms.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Serial}
+Here is a bare bones serail version of~$S_n$, for comparison with the
+parallel versions below.  The real implementation of
+[[vamp_sample_grid]] in the module [[vamp]] includes some error 
+handling, diagnostics and the projection~$P$ (cf.~(\ref{eq:P})):
+<<Serial implementation of $S_n=S_0(rS_0)^n$>>=
+subroutine vamp_sample_grid (rng, g, iterations, func)
+  type(tao_random_state), intent(inout) :: rng
+  type(vamp_grid), intent(inout) :: g
+  integer, intent(in) :: iterations
+  <<Interface declaration for [[func]]>>
+  integer :: iteration
+  iterate: do iteration = 1, iterations
+     call vamp_sample_grid0 (rng, g, func)
+     call vamp_refine_grid (g)
+  end do iterate
+end subroutine vamp_sample_grid
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{HPF}
+The HPF version of~$S_n$ is based on decomposing the grid~[[g]] as
+described in section~\ref{sec:multi-linear} and lining up the
+components in an array~[[gs]].  The elements of~[[gs]] can then be
+processed im parallel.  This version can be compiled with any Fortran
+compiler and a more complete version of this procedure (including
+error handling, diagnostics and the projection~$P$) is included with
+VAMP as [[vamp_sample_grid_parallel]] in the module [[vamp]].  This
+way, the algorithm can be tested on a serial machine, but there will
+obviously be no performance gain.\par
+Instead of one random number generator state~[[rng]], it takes an
+array consisting of one state per processor.  These [[rng(:)]] are
+assumed to be initialized, such that the resulting sequences are
+statistically independent.  For this purpose, Knuth's random number
+generator~\cite{Knuth:1997:TAOCP2} is most convenient and is included
+with VAMP (see the example on page~\pageref{pg:tao-hpf}).  Before
+each~$S_0$, the procedure [[vamp_distribute_work]] determines a good
+decomposition of the grid~[[d]] into [[size(rng)]] pieces.  This
+decomposition is encoded in the array [[d]] where [[d(1,:)]] holds the
+dimensions along which to split the grid and [[d(2,:)]] holds the
+corrsponding number of divisions.  Using this information, the grid is
+decomposed by [[vamp_fork_grid]].  The HPF compiler will then
+distribute the [[!hpf$ independent]] loop among the
+processors. Finally, [[vamp_join_grid]] gathers the results.
+<<Parallel implementation of $S_n=S_0(rS_0)^n$ (HPF)>>=
+subroutine vamp_sample_grid_hpf (rng, g, iterations, func)
+  type(tao_random_state), dimension(:), intent(inout) :: rng
+  type(vamp_grid), intent(inout) :: g
+  integer, intent(in) :: iterations
+  <<Interface declaration for [[func]]>>
+  type(vamp_grid), dimension(:), allocatable :: gs, gx
+  !hpf$ processors p(number_of_processors())
+  !hpf$ distribute gs(cyclic(1)) onto p
+  integer, dimension(:,:), pointer :: d
+  integer :: iteration, num_workers
+  iterate: do iteration = 1, iterations
+     call vamp_distribute_work (size (rng), vamp_rigid_divisions (g), d)
+     num_workers = max (1, product (d(2,:)))
+     if (num_workers > 1) then
+        allocate (gs(num_workers), gx(vamp_fork_grid_joints (d)))
+        call vamp_create_empty_grid (gs)
+        call vamp_fork_grid (g, gs, gx, d)
+        !hpf$ independent
+        do i = 1, num_workers
+           call vamp_sample_grid0 (rng(i), gs(i), func)
+        end do
+        call vamp_join_grid (g, gs, gx, d)
+        call vamp_delete_grid (gs)
+        deallocate (gs, gx)
+     else
+        call vamp_sample_grid0 (rng(1), g, func)
+     end if
+     call vamp_refine_grid (g)
+  end do iterate
+end subroutine vamp_sample_grid_hpf
+@ Since [[vamp_sample_grid0]] performes the bulk of the computation, an
+almost linear speedup with the number of processors can
+be achieved, if [[vamp_distribute_work]] finds a good decomposition of
+the grid.  The version of [[vamp_distribute_work]] distributed with
+VAMP does a good job in most cases, but will not be able to use all
+processors if their number is a prime number larger than the number of
+divisions in the stratification grid. Therefore it can be beneficial
+to tune [[vamp_distribute_work]] to specific hardware.  Furthermore,
+using a finer stratification grid can improve performance.\par
+For definiteness, here is an example of how to set up the array of
+random number generators for HPF.  Note that this simple seeding
+procedure only guarantees statistically independent sequences with
+Knuth's random number generator~\cite{Knuth:1997:TAOCP2} and will fail
+with other approaches.
+\label{pg:tao-hpf}
+<<Parallel usage of $S_n=S_0(rS_0)^n$ (HPF)>>=
+type(tao_random_state), dimension(:), allocatable :: rngs
+!hpf$ processors p(number_of_processors())
+!hpf$ distribute gs(cyclic(1)) onto p
+integer :: i, seed
+! ...
+allocate (rngs(number_of_processors()))
+seed = 42 !: can be read from a file, of course \ldots
+!hpf$ independent
+do i = 1, size (rngs)
+   call tao_random_create (rngs(i), seed + i)
+end do
+! ...
+call vamp_sample_grid_hpf (rngs, g, 6, func)
+! ...
+@
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{MPI}
+The MPI version is more low level, because we have to keep track of
+message passing ourselves.  Note that we have made this
+synchronization points explicit with three
+[[if ... then ... else ... end if]] blocks: forking, sampling, and
+joining.  These blocks could be merged (without any performance gain)
+at the expense of readability.  We assume that [[rng]] has been
+initialized in each process such that the sequences are again
+statistically independent.
+<<Parallel implementation of $S_n=S_0(rS_0)^n$ (MPI)>>=
+subroutine vamp_sample_grid_mpi (rng, g, iterations, func)
+  type(tao_random_state), dimension(:), intent(inout) :: rng
+  type(vamp_grid), intent(inout) :: g
+  integer, intent(in) :: iterations
+  <<Interface declaration for [[func]]>>
+  type(vamp_grid), dimension(:), allocatable :: gs, gx
+  integer, dimension(:,:), pointer :: d
+  integer :: num_proc, proc_id, iteration, num_workers
+  call mpi90_size (num_proc)
+  call mpi90_rank (proc_id)
+  iterate: do iteration = 1, iterations
+     if (proc_id == 0) then
+        call vamp_distribute_work (num_proc, vamp_rigid_divisions (g), d)
+        num_workers = max (1, product (d(2,:)))
+     end if
+     call mpi90_broadcast (num_workers, 0)
+     if (proc_id == 0) then
+        allocate (gs(num_workers), gx(vamp_fork_grid_joints (d)))
+        call vamp_create_empty_grid (gs)
+        call vamp_fork_grid (g, gs, gx, d)
+        do i = 2, num_workers
+           call vamp_send_grid (gs(i), i-1, 0)
+        end do
+     else if (proc_id < num_workers) then
+        call vamp_receive_grid (g, 0, 0)
+     end if
+     if (proc_id == 0) then
+        if (num_workers > 1) then
+           call vamp_sample_grid0 (rng, gs(1), func)
+        else
+           call vamp_sample_grid0 (rng, g, func)
+        end if
+     else if (proc_id < num_workers) then
+        call vamp_sample_grid0 (rng, g, func)
+     end if
+     if (proc_id == 0) then
+        do i = 2, num_workers
+           call vamp_receive_grid (gs(i), i-1, 0)
+        end do
+        call vamp_join_grid (g, gs, gx, d)
+        call vamp_delete_grid (gs)
+        deallocate (gs, gx)
+        call vamp_refine_grid (g)
+     else if (proc_id < num_workers) then
+        call vamp_send_grid (g, 0, 0)
+     end if
+  end do iterate
+end subroutine vamp_sample_grid_mpi
+@ A more complete version of this procedure is included with VAMP as
+well, this time as [[vamp_sample_grid]] in the MPI support module
+[[vampi]].
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Design Trade Offs}
+\label{sec:design}
+
+There have been three competing design goals for vegas, that are not
+fully compatible and had to be reconciled with compromises:
+\begin{itemize}
+  \item \textit{Ease-Of-Use:}
+     few procedures, few arguments.
+  \item \textit{Parallelizability:}
+     statelessness
+  \item \textit{Performance and Flexibility:}
+     rich interface, functionality.
+\end{itemize}
+In fact, parallelizability and ease-of-use are complementary.  A
+parallelizable implementation has to expose \emph{all} the internal
+state.  In our case, this includes the state of the random number
+generator and the adaptive grid.  A simple interface would hide such
+details from the user.
+
+The modern language features introduced to Fortran
+in~1990~\cite{Fortran90} allows to reconcile these competing goals.
+Two abstract data types [[vamp_state]] and [[tao_random_state]] hide
+the details of the implementation from the user and encapsulate the
+two states in just two variables.
+
+Another problem with parallelizability arised from the lack of a
+general exception mechanism in Fortran.  The Fortran90
+standard~\cite{Fortran95} forbids \emph{any} input/output (even to the
+terminal) as well as [[stop]] statements in parallelizable ([[pure]])
+procedures.  This precludes simple approaches to monitoring and error
+handling.  In Vegas we use a simple hand crafted exception
+mechanism~(see chapter~\ref{sec:exceptions}) for communicating error
+conditions to the out layers of the applications.  Unfortunately this
+requires the explicit passing of state in argument lists.
+
+An unfortunate consequence of the similar approach to monitoring is
+that monitoring is \emph{not} possible during execution.  Instead,
+intermediate results can only be examined after a parallelized section
+of code has completed.
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Programming Language}
+
+We have chosen to implement VAMP in Fortran90/95, which some might
+consider a questionable choice today.  Nevertheless, we are convinced
+that Fortran90/95 (with all it's weaknesses) is, by a wide margin, the
+right tool for the job.
+
+Let us consider the alternatives
+\begin{itemize}
+  \item FORTRAN77 is still the dominant language in high energy
+    physics and all running experiment's software environments are
+    based on it.  However, the standard~\cite{FORTRAN77} is obsolete
+    now and the successors~\cite{Fortran90,Fortran95} have added many
+    desirable features, while retaining almost all of FORTRAN77 a a
+    subset.
+  \item \texttt{C}/\texttt{C++} appears to be the most popular
+    programming language in industry and among young high energy
+    physicists. Large experiments have taken a bold move and are
+    basing their software environment on \texttt{C++}.
+  \item Typed higher order functional programming languages (ML,
+    Haskell, etc.) are a very promising development.  Unfortunately,
+    there is not yet enough industry support for high performance
+    optimizing compilers.  While the performance penalty of these
+    languages is not as high as commonly believed (research compilers,
+    which do not perform extensive processor specific optimizations,
+    result in code that runs by a factor of two or three slower than
+    equivalent Fortran code), it is relevant for long running,
+    computing intensive applications.  In addition, these languages
+    are syntactically and idiomatically very different from Fortran
+    and \texttt{C}.  Another implementation of VAMP in ML will be
+    undertaken for research purposes to investigate new algorithms
+    that can only be expressed awkwardly in Fortran, but we do not
+    expect it to gain immediate popularity.
+\end{itemize}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Usage}
+\section{Basic Usage}
+\begin{procedures}
+  \item{} [[type(vamp_grid)]]
+    \hfil\goodbreak
+  \item{} [[subroutine vamp_create_grid]] (%
+      [[g]],
+      [[domain]]
+      [,~[[num_calls]]{}]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+    Create a fresh grid for the integration domain
+    \begin{equation}
+      \mathcal{D} =
+                 [D_{1,1},D_{2,1}]
+          \times [D_{1,2},D_{2,2}]
+          \times \ldots
+          \times [D_{1,n},D_{2,n}]
+    \end{equation}
+    dropping all accumulated results.  This function \emph{must not}
+    be called twice on the first argument, without an intervening
+    [[vamp_delete_grid]].   Iff the variable [[num_calls]] is given, it
+    will be the number of sampling points per iteration for the call
+    to [[vamp_sample_grid]].
+  \item{} [[subroutine vamp_delete_grid]] (%
+      [[g]]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+  \item{} [[subroutine vamp_discard_integral]] (%
+      [[g]]
+      [,~[[num_calls]]{}]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+    Keep the current optimized grid, but drop the accumulated results
+    for the integral (value and errors).  Iff the variable
+    [[num_calls]] is given, it will be the new number of sampling
+    points per iteration for the calls to [[vamp_sample_grid]].
+  \item{} [[subroutine vamp_reshape_grid]] (%
+      [[g]]
+      [,~[[num_calls]]{}]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+    Keep the current optimized grid and the accumulated results for
+    the integral (value and errors).    The variable [[num_calls]] is
+    the new number of sampling points per iteration for the calls to
+    [[vamp_sample_grid]].
+  \item{} [[subroutine vamp_sample_grid]] (%
+      [[rng]],
+      [[g]],
+      [[func]],
+      [[iterations]]
+      [,~[[integral]]{}]
+      [,~[[std_dev]]{}]
+      [,~[[avg_chi2]]{}]
+      [,~[[exc]]{}]
+      [,~[[history]]{}])
+    \hfil\goodbreak
+    Sample the function [[func]] using the grid [[g]] for
+    [[iterations]] iterations and optimize the grid after each
+    iteration.  The results are returned in [[integral]], [[std_dev]]
+    and [[avg_chi2]].  The random number generator uses and updates
+    the state stored in [[rng]].  The explicit random number state is
+    inconvenient, but required for parallelizability.
+  \item{} [[subroutine vamp_integrate]] (%
+      [[rng]],
+      [[g]],
+      [[func]],
+      [[calls]]
+      [,~[[integral]]{}]
+      [,~[[std_dev]]{}]
+      [,~[[avg_chi2]]{}]
+      [,~[[exc]]{}]
+      [,~[[history]]{}])
+    \hfil\goodbreak
+    This is a wrapper around the above routines, that is steered by a
+    [[integer, dimension(2,:)]] array [[calls]]. For each~[[i]], there
+    will be [[calls(1,i)]] iterations with [[calls(2,i)]] sampling points.
+  \item{} [[subroutine vamp_integrate]] (%
+      [[rng]],
+      [[domain]],
+      [[func]],
+      [[calls]]
+      [,~[[integral]]{}]
+      [,~[[std_dev]]{}]
+      [,~[[avg_chi2]]{}]
+      [,~[[exc]]{}]
+      [,~[[history]]{}])
+    \hfil\goodbreak
+    A second specific form of [[vamp_integrate]].  This one keeps a
+    private grid and provides the shortest---and most
+    inflexible---calling sequence.
+\end{procedures}
+<<Interface declaration for [[func]]>>=
+interface
+   function func (xi, data, weights, channel, grids) result (f)
+     use kinds
+     use vamp_grid_type !NODEP!
+     import vamp_data_t
+     real(kind=default), dimension(:), intent(in) :: xi
+     class(vamp_data_t), intent(in) :: data
+     real(kind=default), dimension(:), intent(in), optional :: weights
+     integer, intent(in), optional :: channel
+     type(vamp_grid), dimension(:), intent(in), optional :: grids
+     real(kind=default) :: f
+   end function func
+end interface
+@ %def func
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Basic Example}
+In Fortran95, the function to be sampled \emph{must} be \texttt{pure},
+i.e. have no side effects to allow parallelization.  The optional
+arguments [[weights]] and [[channel]] \emph{must} be declared to allow
+the compiler to verify the interface, but they are ignored during
+basic use.  Their use for multi channel sampling will be explained
+below.  Here's a Gaussian
+\begin{equation}
+  f(x) = e^{-\frac{1}{2}\sum_i x_i^2}
+\end{equation}
+<<[[basic.f90]]>>=
+module basic_fct
+  use kinds
+  implicit none
+  private
+  public :: fct
+contains
+  function fct (x, weights, channel) result (f_x)
+    real(kind=default), dimension(:), intent(in) :: x
+    real(kind=default), dimension(:), intent(in), optional :: weights
+    integer, intent(in), optional :: channel
+    real(kind=default) :: f_x
+    f_x = exp (-0.5 * sum (x*x))
+  end function fct
+end module basic_fct
+@ In the main program, we need to import five modules.  The customary
+module [[kinds]] defines [[double]] as the kind for double precision
+floating point numbers.  The model [[exceptions]] provides simple
+error handling support (parallelizable routines are not allowed to
+issue error messages themselve, but must pass them along).  The module
+[[tao_random_numbers]] hosts the random number generator used and
+[[vamp]] is the adaptive interation module proper. Finally, the
+application module [[basic_fct]] has to be imported as well.
+<<[[basic.f90]]>>=
+program basic
+  use kinds
+  use exceptions
+  use tao_random_numbers
+  use vamp
+  use basic_fct
+  implicit none
+@ Then we define four variables for an error message, the random
+number generator state and the adaptive integration grid.  We also
+declare a variable for holding the integration domain and variables
+for returning the result.  In this case we integrate the 7-dimensional
+hypercube.
+<<[[basic.f90]]>>=
+  type(exception) :: exc
+  type(tao_random_state) :: rng
+  type(vamp_grid) :: grid
+  real(kind=default), dimension(2,7) :: domain
+  real(kind=default) :: integral, error, chi2
+  domain(1,:) = -1.0
+  domain(2,:) =  1.0
+@ Initialize and seed the random number generator. Initialize the grid
+for 10\,000 sampling points.
+<<[[basic.f90]]>>=
+  call tao_random_create (rng, seed=0)
+  call clear_exception (exc)
+  call vamp_create_grid (grid, domain, num_calls=10000, exc=exc)
+  call handle_exception (exc)
+@ Warm up the grid in six low statistics iterations.  Clear the error
+status before and check it after the sampling.
+<<[[basic.f90]]>>=
+  call clear_exception (exc)
+  call vamp_sample_grid (rng, grid, fct, 6, exc=exc)
+  call handle_exception (exc)
+@ Throw away the intermediate results and reshape the grid for 100\,000
+sampling points---keeping the adapted grid---and do four iterations of
+a higher statistics integration
+<<[[basic.f90]]>>=
+  call clear_exception (exc)
+  call vamp_discard_integral (grid, num_calls=100000, exc=exc)
+  call handle_exception (exc)
+  call clear_exception (exc)
+  call vamp_sample_grid (rng, grid, fct, 4, integral, error, chi2, exc=exc)
+  call handle_exception (exc)
+  print *, "integral = ", integral, "+/-", error, " (chi^2 = ", chi2, ")"
+end program basic
+@ Since this is the most common use, there is a convenience routine
+available and the following code snippet is equivalent:
+<<Alternative to [[basic.f90]]>>=
+integer, dimension(2,2) :: calls
+calls(:,1) = (/ 6,  10000 /)
+calls(:,2) = (/ 4, 100000 /)
+call clear_exception (exc)
+call vamp_integrate (rng, domain, fct, calls, integral, error, chi2, exc=exc)
+call handle_exception (exc)
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Advanced Usage}
+\begin{dubious}
+  Caveat emptor: no magic of literate programming can guarantee that
+  the following remains in sync with the implementation.  This has to
+  be maintained manually.
+\end{dubious}
+All [[real]] variables are declared as [[real(kind=default)]] in the
+source and the variable [[double]] is imported from the module
+[[kinds]] (see appendix~\ref{sec:kinds}).  The representation of real
+numbers can therefore be changed by changing [[double]] in [[kinds]].
+\subsection{Types}
+\begin{procedures}
+  \item{} [[type(vamp_grid)]]
+    \hfil\goodbreak
+  \item{} [[type(vamp_grids)]]
+    \hfil\goodbreak
+  \item{} [[type(vamp_history)]]
+    \hfil\goodbreak
+  \item{} [[type(exception)]]
+    \hfil\goodbreak
+    (from module [[exceptions]])
+\end{procedures}
+\subsection{Shared Arguments}
+Arguments keep their name across procedures, in order to make the
+Fortran90 keyword interface consistent.
+\begin{procedures}
+  \item{} [[real, intent(in) :: accuracy]]
+    \hfil\goodbreak
+    Terminate~$S_n$ after $n'<n$ iterations, if relative error is
+    smaller than [[accuracy]].  Specifically, the terminatio condition
+    is
+    \begin{equation}
+      \frac{\text{[[std_dev]]}}{\text{[[integral]]}} < \text{[[accuracy]]}
+    \end{equation}
+  \item{} [[real, intent(out) :: avg_chi2]]
+    \hfil\goodbreak
+    The average~$\chi^2$ of the iterations.
+  \item{} [[integer, intent(in) :: channel]]
+    \hfil\goodbreak
+    Call [[func]] with this optional argument.  Multi channel sampling
+    uses this to emulate arrays of functions
+  \item{} [[logical, intent(in) :: covariance]]
+    \hfil\goodbreak
+    Collect covariance data.
+  \item{} [[type(exception), intent(inout) :: exc]]
+    \hfil\goodbreak
+    Exceptional conditions are reported in [[exc]].
+  \item{} [[type(vamp_grid), intent(inout) :: g]]
+    \hfil\goodbreak
+    Unless otherwise noted, [[g]] denotes the active sampling grid
+    in the documentation below.
+  \item{} [[type(vamp_histories), dimension(:), intent(inout) :: histories]]
+    \hfil\goodbreak
+    Diagnostic information for multi channel sampling.
+  \item{} [[type(vamp_history), dimension(:), intent(inout) :: history]]
+    \hfil\goodbreak
+    Diagnostic information for single channel sampling or summary of
+    multi channel sampling.
+  \item{} [[real, intent(out) :: integral]]
+    \hfil\goodbreak
+    The current best estimate of the integral.
+  \item{} [[integer, intent(in) :: iterations]]
+    \hfil\goodbreak
+  \item{} [[real, dimension(:,:), intent(in) :: map]]
+    \hfil\goodbreak
+  \item{} [[integer, intent(in) :: num_calls]]
+    \hfil\goodbreak
+    The number of sampling points.
+  \item{} [[integer, dimension(:), intent(in) :: num_div]]
+    \hfil\goodbreak
+    Number of divisions of the adaptive grid in each dimension.
+  \item{} [[logical, intent(in) :: quadrupole]]
+    \hfil\goodbreak
+    Allow ``quadrupole oscillations'' of the sampling
+    grid~(cf.~section~\ref{sec:quadrupole}).
+  \item{} [[type(tao_random_state), intent(inout) :: rng]]
+    \hfil\goodbreak
+    Unless otherwise noted, [[rng]] denotes the source of random
+    numbers used for sampling in the documentation below.
+  \item{} [[real, intent(out) :: std_dev]]
+    \hfil\goodbreak
+    The current best estimate of the error on the integral.
+  \item{} [[logical, intent(in) :: stratified]]
+    \hfil\goodbreak
+    Try to use stratified sampling.
+  \item{} [[real(kind=default), dimension(:), intent(in) :: weights]]
+    \hfil\goodbreak
+  \item{} [[...]]
+    \hfil\goodbreak
+\end{procedures}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Single Channel Procedures}
+\begin{procedures}
+  \item{} [[subroutine vamp_create_grid]] (%
+      [[g]],
+      [[domain]],
+      [[num_calls]]
+      [,~[[quadrupole]]{}]
+      [,~[[stratified]]{}]
+      [,~[[covariance]]{}]
+      [,~[[map]]{}]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[real, dimension(:,:), intent(in) :: domain]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_create_empty_grid]] (%
+      [[g]])
+    \hfil\goodbreak
+  \item{} [[subroutine vamp_discard_integral]] (%
+      [[g]]
+      [,~[[num_calls]]{}]
+      [,~[[stratified]]{}]
+      [,~[[quadrupole]]{}]
+      [,~[[covariance]]{}]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+  \item{} [[subroutine vamp_reshape_grid]] (%
+      [[g]]
+      [,~[[num_calls]]{}]
+      [,~[[num_div]]{}]
+      [,~[[stratified]]{}]
+      [,~[[quadrupole]]{}]
+      [,~[[covariance]]{}]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+  \item{} [[subroutine vamp_sample_grid]] (%
+      [[rng]],
+      [[g]],
+      [[func]],
+      [[iterations]]
+      [,~[[integral]]{}]
+      [,~[[std_dev]]{}]
+      [,~[[avg_chi2]]{}]
+      [,~[[accuracy]]{}]
+      [,~[[channel]]{}]
+      [,~[[weights]]{}]
+      [,~[[exc]]{}]
+      [,~[[history]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[func]]
+        \hfil\goodbreak
+    \end{procedures}
+    $S_n$ with~$n=\text{[[iterations]]}$
+  \item{} [[subroutine vamp_sample_grid0]] (%
+      [[rng]],
+      [[g]],
+      [[func]],
+      [,~[[channel]]{}]
+      [,~[[weights]]{}]
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[func]]
+        \hfil\goodbreak
+    \end{procedures}
+    $S_0$
+  \item{} [[subroutine vamp_refine_grid]] (%
+      [[g]],
+      [,~[[exc]]{}])
+    \hfil\goodbreak
+    $r$
+  \item{} [[subroutine vamp_average_iterations]] (%
+      [[g]],
+      [[iteration]],
+      [[integral]],
+      [[std_dev]],
+      [[avg_chi2]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[integer, intent(in) :: iteration]]
+        \hfil\goodbreak
+        Number of iterations so far (needed for~$\chi^2$).
+    \end{procedures}
+  \item{} [[subroutine vamp_integrate]] (%
+      [[g]],
+      [[func]],
+      [[calls]]
+      [,~[[integral]]{}]
+      [,~[[std_dev]]{}]
+      [,~[[avg_chi2]]{}]
+      [,~[[accuracy]]{}]
+      [,~[[covariance]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[func]]
+        \hfil\goodbreak
+      \item{} [[integer, dimension(:,:), intent(in) :: calls]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_integratex]] (%
+      [[region]],
+      [[func]],
+      [[calls]]
+      [,~[[integral]]{}]
+      [,~[[std_dev]]{}]
+      [,~[[avg_chi2]]{}]
+      [,~[[stratified]]{}]
+      [,~[[accuracy]]{}]
+      [,~[[pancake]]{}]
+      [,~[[cigar]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[real, dimension(:,:), intent(in) :: region]]
+        \hfil\goodbreak
+      \item{} [[func]]
+        \hfil\goodbreak
+      \item{} [[integer, dimension(:,:), intent(in) :: calls]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: pancake]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: cigar]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_copy_grid]] (%
+      [[lhs]],
+      [[rhs]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: lhs]]
+        \hfil\goodbreak
+      \item{} [[type(vamp_grid), intent(in) :: rhs]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_delete_grid]] (%
+      [[g]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Inout/Output and Marshling}
+\begin{procedures}
+  \item{} [[subroutine vamp_write_grid]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_read_grid]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_write_grids]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_read_grids]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+\begin{procedures}
+  \item{} [[pure subroutine vamp_marshal_grid]] (%
+      [[g]],
+      [[integer_buffer]],
+      [[double_buffer]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(in) :: g]]
+        \hfil\goodbreak
+      \item{} [[integer, dimension(:), intent(inout) :: integer_buffer]]
+        \hfil\goodbreak
+      \item{} [[real(kind=default), dimension(:), intent(inout) :: double_buffer]]
+        \hfil\goodbreak
+    \end{procedures}
+    Marshal the grid [[g]] in the integer array [[integer_buffer]] and
+    the real array [[double_buffer]], which must have at least the
+    sizes obtained from
+    [[call vamp_marshal_grid_size (g, integer_size, double_size)]].
+    \begin{dubious}
+      Note that we can not use the~[[transfer]] intrinsic function for
+      marshalling types that contain pointers that substitute for
+      allocatable array components.  [[transfer]] would copy the pointers
+      in this case and not where they point to!
+    \end{dubious}
+  \item{} [[pure subroutine vamp_marshal_grid_size]] (%
+      [[g]],
+      [[integer_size]],
+      [[double_size]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(in) :: g]]
+        \hfil\goodbreak
+      \item{} [[integer :: words]]
+        \hfil\goodbreak
+    \end{procedures}
+    Compute the sizes of the arrays required for marshaling the
+    grid [[g]].
+  \item{} [[pure subroutine vamp_unmarshal_grid]] (%
+      [[g]],
+      [[integer_buffer]],
+      [[double_buffer]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[integer, dimension(:), intent(in) :: integer_buffer]]
+        \hfil\goodbreak
+      \item{} [[real(kind=default), dimension(:), intent(in) :: double_buffer]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+Marshaling and unmarshaling need to use two separate buffers for
+integers and floating point numbers.  In a homogeneous network, the
+intrinsic procedure [[transfer]] could be used to store the floating
+point numbers in the integer array.  In a heterogenous network this
+will fail.  However, message passing environments provide methods for
+sending floating point numbers.  For example, here's how to send a
+grid from process~0 to process~1 in MPI~\cite{MPI}
+<<MPI communication example>>=
+call vamp_marshal_grid_size (g, isize, dsize)
+allocate (ibuf(isize), dbuf(dsize))
+call mpi_comm_rank (MPI_COMM_WORLD, proc_id, errno)
+select case (proc_id)
+   case (0)
+      call vamp_marshal_grid (g, ibuf, dbuf)
+      call mpi_send (ibuf, size (ibuf), MPI_INTEGER, &
+                     1, 1, MPI_COMM_WORLD, errno)
+      call mpi_send (dbuf, size (dbuf), MPI_DOUBLE_PRECISION, &
+                     1, 2, MPI_COMM_WORLD, errno)
+   case (1)
+      call mpi_recv (ibuf, size (ibuf), MPI_INTEGER, &
+                     0, 1, MPI_COMM_WORLD, status, errno)
+      call mpi_recv (dbuf, size (dbuf), MPI_DOUBLE_PRECISION, &
+                     0, 2, MPI_COMM_WORLD, status, errno)
+      call vamp_unmarshal_grid (g, ibuf, dbuf)
+end select
+@ assuming that [[double]] is such that [[MPI_DOUBLE_PRECISION]]
+corresponds to [[real(kind=default)]].  The module [[vampi]] provides
+two high level functions [[vamp_send_grid]] and
+[[vamp_receive_grid]] that handle the low level details:
+<<MPI communication example'>>=
+call mpi_comm_rank (MPI_COMM_WORLD, proc_id, errno)
+select case (proc_id)
+   case (0)
+      call vamp_send_grid (g, 1, 0)
+   case (1)
+      call vamp_receive_grid (g, 0, 0)
+end select
+@ 
+\begin{procedures}
+  \item{} [[subroutine vamp_marshal_history_size]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_marshal_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_unmarshal_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Multi Channel Procedures}
+\begin{equation}
+\label{eq:gophi_i!}
+  g\circ\phi_i
+     = \left|\frac{\partial\phi_i}{\partial x}\right|^{-1}
+       \left( \alpha_i g_i + 
+       \sum_{\substack{j=1\\j\not=i}}^{N_c} \alpha_j (g_j\circ\pi_{ij})
+          \left|\frac{\partial\pi_{ij}}{\partial x}\right| \right)\,.
+\end{equation}
+@
+<<Interface declaration for [[phi]]>>=
+interface
+   pure function phi (xi, channel) result (x)
+     use kinds
+     real(kind=default), dimension(:), intent(in) :: xi
+     integer, intent(in) :: channel
+     real(kind=default), dimension(size(xi)) :: x
+   end function phi
+end interface
+@ %def phi
+@
+<<Interface declaration for [[ihp]]>>=
+interface
+   pure function ihp (x, channel) result (xi)
+     use kinds
+     real(kind=default), dimension(:), intent(in) :: x
+     integer, intent(in) :: channel
+     real(kind=default), dimension(size(x)) :: xi
+   end function ihp
+end interface
+@ %def ihp
+@ 
+<<Interface declaration for [[jacobian]]>>=
+interface
+   pure function jacobian (x, data, channel) result (j)
+     use kinds
+     use vamp_grid_type !NODEP!
+     import vamp_data_t
+     real(kind=default), dimension(:), intent(in) :: x
+     class(vamp_data_t), intent(in) :: data
+     integer, intent(in) :: channel
+     real(kind=default) :: j
+   end function jacobian
+end interface
+@ %def jacobian
+\begin{procedures}
+  \item{} [[function vamp_multi_channel]] (%
+      [[func]],
+      [[phi]],
+      [[ihp]],
+      [[jacobian]],
+      [[x]],
+      [[weightsl]],
+      [[grids]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[real(kind=default), dimension(:), intent(in) :: x]]
+        \hfil\goodbreak
+      \item{} [[real(kind=default), dimension(:), intent(in) :: weights]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: channel]]
+        \hfil\goodbreak
+      \item{} [[type(vamp_grid), dimension(:), intent(in) :: grids]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[function vamp_multi_channel0]] (%
+      [[func]],
+      [[phi]],
+      [[jacobian]],
+      [[x]],
+      [[weightsl]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[real(kind=default), dimension(:), intent(in) :: x]]
+        \hfil\goodbreak
+      \item{} [[real(kind=default), dimension(:), intent(in) :: weights]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: channel]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_check_jacobian]] (%
+      [[rng]],
+      [[n]],
+      [[channel]],
+      [[region]],
+      [[delta]],
+      [,~[[x_delta]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(tao_random_state), intent(inout) :: rng]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: n]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: channel]]
+        \hfil\goodbreak
+      \item{} [[real(kind=default), dimension(:,:), intent(in) :: region]]
+        \hfil\goodbreak
+      \item{} [[real(kind=default), intent(out) :: delta]]
+        \hfil\goodbreak
+      \item{} [[real(kind=default), dimension(:), intent(out), optional :: x_delta]]
+        \hfil\goodbreak
+    \end{procedures}
+    Verify that
+    \begin{equation}
+      g(\phi(x)) = \frac{1}{\left|\frac{\partial\phi}{\partial x}\right|(x)}
+    \end{equation}
+  \item{} [[subroutine vamp_copy_grids]] (%
+      [[lhs]],
+      [[rhs]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: lhs]]
+        \hfil\goodbreak
+      \item{} [[type(vamp_grids), intent(in) :: rhs]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_delete_grids]] (%
+      [[g]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_create_grids]] (%
+      [[g]],
+      [[domain]],
+      [[num_calls]],
+      [[weights]]
+      [,~[[maps]]{}] 
+      [,~[[stratified]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[real, dimension(:,:), intent(in) :: domain]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: num_calls]]
+        \hfil\goodbreak
+      \item{} [[real, dimension(:), intent(in) :: weights]]
+        \hfil\goodbreak
+      \item{} [[real, dimension(:,:,:), intent(in) :: maps]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_create_empty_grids]] (%
+      [[g]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_discard_integrals]] (%
+      [[g]]
+      [,~[[num_calls]]{}]
+      [,~[[stratified]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: num_calls]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_refine_weights]] (%
+      [[g]]
+      [,~[[power]]{})
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[real, intent(in) :: power]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_update_weights]] (%
+      [[g]],
+      [[weights]]
+      [,~[[num_calls]]{}]
+      [,~[[stratified]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[real, dimension(:), intent(in) :: weights]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: num_calls]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_reshape_grids]] (%
+      [[g]],
+      [[num_calls]]
+      [,~[[stratified]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: num_calls]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_reduce_channels]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_sample_grids]] (%
+      [[g]],
+      [[func]],
+      [[iterations]]
+      [,~[[integral]]{}]
+      [,~[[std_dev]]{}]
+      [,~[[accuracy]]{}]
+      [,~[[covariance]]{}]
+      [,~[[variance]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[func]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: iterations]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[function vamp_sum_channels]] (%
+      [[x]],
+      [[weights]],
+      [[func]])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[real, dimension(:), intent(in) :: x]]
+        \hfil\goodbreak
+      \item{} [[real, dimension(:), intent(in) :: weights]]
+        \hfil\goodbreak
+      \item{} [[func]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Event Generation}
+\begin{procedures}
+  \item{} [[subroutine vamp_next_event]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+  \item{} [[subroutine vamp_warmup_grid]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[func]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: iterations]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_warmup_grids]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grids), intent(inout) :: g]]
+        \hfil\goodbreak
+      \item{} [[func]]
+        \hfil\goodbreak
+      \item{} [[integer, intent(in) :: iterations]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parallelization}
+\begin{procedures}
+  \item{} [[subroutine vamp_fork_grid]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_join_grid]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_fork_grid_joints]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_sample_grid_parallel]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_distribute_work]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Diagnostics}
+\begin{procedures}
+  \item{} [[subroutine vamp_create_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_copy_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_delete_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_terminate_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_get_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_get_history_single]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_print_history]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+    \begin{dubious}
+      Discuss why the value of the integral in each channel differs.
+    \end{dubious}
+\end{procedures}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Other Procedures}
+\begin{procedures}
+  \item{} [[subroutine vamp_rigid_divisions]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[function vamp_get_covariance]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_nullify_covariance]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[function vamp_get_variance]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+  \item{} [[subroutine vamp_nullify_variance]] (%
+      [[g]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+    \begin{procedures}
+      \item{} [[type(vamp_grid), intent(inout) :: g]]
+        \hfil\goodbreak
+    \end{procedures}
+\end{procedures}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{(Currently) Undocumented Procedures}
+\begin{procedures}
+  \item{} [[subroutine ]] (%
+      [[...]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+  \item{} [[function ]] (%
+      [[...]],
+      [,~[[...]]{}])
+    \hfil\goodbreak
+\end{procedures}
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

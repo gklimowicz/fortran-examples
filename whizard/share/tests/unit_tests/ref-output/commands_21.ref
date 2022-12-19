@@ -1,0 +1,49 @@
+* Test output: commands_21
+*   Purpose: create and use analysis expression
+
+* Initialization: create observable
+
+* Input file
+
+model = "Test"
+process commands_21_p = s, s => s, s
+compile
+iterations = 1:100
+integrate (commands_21_p)
+?unweighted = true
+n_events = 3
+?read_raw = false
+observable m
+analysis = record m (eval M [s])
+simulate (commands_21_p)
+
+* Parse file
+
+* Compile command list
+
+ model = "Test"
+ process: commands_21_p (2 -> X)
+ compile ()
+ iterations: 1 pass
+ integrate (commands_21_p)
+ var: ?unweighted (logical, intrinsic)
+ var: n_events (int, intrinsic)
+ var: ?read_raw (logical, intrinsic)
+ observable: m
+ analysis: [defined]
+ simulate (commands_21_p)
+
+* Execute command list
+
+* Display analysis object
+
+###############################################################################
+# Observable: m
+average     =  1.250000000000E+02
+error[abs]  =  0.000000000000E+00
+error[rel]  =  0.000000000000E+00
+n_entries   = 3
+
+* Cleanup
+
+* Test output end: commands_21

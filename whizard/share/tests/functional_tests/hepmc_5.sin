@@ -1,0 +1,33 @@
+# Sindarin input for WHIZARD self-test
+# Process e- e+ -> W+ W-
+
+model = "SM"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process hepmc_5_p = e1, E1 => Wp, Wm
+
+sqrts = 200
+
+polarized Wp
+polarized Wm
+
+iterations = 1:100
+integrate (hepmc_5_p)
+
+n_events = 10
+sample_format = hepevt, hepmc
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+?polarized_events = true
+
+simulate (hepmc_5_p)

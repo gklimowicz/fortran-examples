@@ -1,0 +1,76 @@
+!!! Process: Generic tests of Whizard+Shower at ILC 500 GeV
+!!! Reported by: Mikael Berggren on 2015-06-21
+!!! Purpose: Try to catch all possible misbehaviors in the matrix of options
+!!!
+
+model = SM_CKM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+seed = 0
+
+ms = 0
+mc = 0
+me = 0
+alphas = 1.e-6
+$omega_flags =  "-model:constant_width"
+sqrts = 500 GeV
+iterations = 5:50000:"gw", 5:50000
+cuts = all Pt > 5 GeV  and Theta > 10 degree and Theta < 170 degree [lepton:lepton]
+n_events = 10000
+?keep_remnants = true
+?keep_beams = true
+?hadronization_active = true
+?ps_fsr_active = true
+ps_max_n_flavors = 5
+ps_mass_cutoff = 1
+ps_fsr_lambda = 0.29
+! OPAL tune:
+$ps_PYTHIA_PYGIVE = "MSTJ(28)=0; PMAS(25,1)=120.; PMAS(25,2)=0.3605E-02; MSTJ(41)=2; MSTU(22)=2000; PARJ(21)=0.40000; PARJ(41)=0.11000; PARJ(42)=0.52000; PARJ(81)=0.25000; PARJ(82)=1.90000; MSTJ(11)=3; PARJ(54)=-0.03100; PARJ(55)=-0.00200; PARJ(1)=0.08500; PARJ(3)=0.45000; PARJ(4)=0.02500; PARJ(2)=0.31000; PARJ(11)=0.60000; PARJ(12)=0.40000; PARJ(13)=0.72000; PARJ(14)=0.43000; PARJ(15)=0.08000; PARJ(16)=0.08000; PARJ(17)=0.17000;    MSTP(3)=1;MSTP(71)=1"
+
+!!>>   MSTP(125)=2 mean full pythia output, default means reduced output. Check both
+$circe2_file="ilc500.circe"
+$circe2_design="ILC"
+?circe2_polarized = false
+beams_pol_density = @(-1),@(1)
+beams_pol_fraction = 1.0,1.0
+isr_alpha = 0.0072993
+isr_mass = 0.000511
+
+alias bq = b:B
+alias electrons = e1:E1
+alias mus = e2:E2
+alias taus = e3:E3
+alias nu_es = n1:N1
+alias nu_mus = n2:N2
+alias nu_taus = n3:N3
+alias quark = u:d:s:c:b:U:D:S:C:B
+alias quark_notb = u:d:s:c:U:D:S:C
+alias up_type_q = u:c:U:C
+alias down_type_q = d:s:b:D:S:B
+alias down_type_q_notb = d:s:D:S
+alias lepton = e1:e2:e3:E1:E2:E3
+alias not_electron = e2:e3:E2:E3
+alias neutrino = n1:n2:n3:N1:N2:N3
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+n_events = 10000
+beams = e1, E1  => isr
+process shower_3_jj = e1, E1 => quark_notb, quark_notb
+
+integrate (shower_3_jj)
+scan string $meth = ("PYTHIA6", "WHIZARD") {
+  $shower_method = $meth
+  $sample = "shower_3_jj_" & $shower_method
+  simulate (shower_3_jj)
+}
+show (integral(shower_3_jj))
+show (error(shower_3_jj))

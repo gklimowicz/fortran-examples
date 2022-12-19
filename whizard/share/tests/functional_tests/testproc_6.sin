@@ -1,0 +1,33 @@
+# SINDARIN input for WHIZARD self-test
+# Check rebuilding/keeping of phase-space file
+
+model = "Test"
+
+?logging = true
+?vis_history = false
+?integration_timer = false
+
+$method = "unit_test"
+process testproc_6_p1 = s, s => s, s
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+?phs_only = true
+
+sqrts = 1000
+integrate (testproc_6_p1)
+
+# Rebuild the phase-space file
+?rebuild_phase_space = true
+integrate (testproc_6_p1)
+
+# Keep it
+?rebuild_phase_space = false
+integrate (testproc_6_p1)
+
+# Rebuild because parameter has changed
+sqrts = 500
+integrate (testproc_6_p1)

@@ -1,0 +1,61 @@
+# SINDARIN input for WHIZARD self-test
+# Test check for summing observables in expressions
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+seed = 0
+
+alias tt = t:T
+
+phs_off_shell = 3
+phs_t_channel = 3
+
+me = 0
+mmu = 0
+
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+iterations = 1:1280
+
+# Contains flavor sum with different masses
+process smtest_17_1 = g, g => t, T, t, T
+process smtest_17_2 = g, g => t, T, t, T
+process smtest_17_3 = g, g => t, T, t, T
+
+sqrts = 2 TeV
+
+scale = mZ
+
+integrate (smtest_17_1)
+
+seed = 0
+
+scale = ( eval Pt [extract index 1 [tt]]
+        + eval Pt [extract index 2 [tt]]
+        + eval Pt [extract index 3 [tt]]
+	+ eval Pt [extract index 4 [tt]]) / 2
+
+integrate (smtest_17_2)
+
+seed = 0
+
+scale = sum Pt/2 [tt]
+
+integrate (smtest_17_3)
+
+expect (integral(smtest_17_2) == integral(smtest_17_3))
+
+seed = 0
+
+scale = eval Ht/2 [tt]
+
+integrate (smtest_17_3)

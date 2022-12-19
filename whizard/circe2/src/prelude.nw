@@ -1,0 +1,3027 @@
+% circe2/prelude.nw -- 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\circe/{\texttt{circe}}
+\def\Version/{2.0}
+\def\Date/{June 2014}
+%BEGIN LATEX
+\special{%
+  !userdict
+  begin
+    /bop-hook {
+      gsave
+        50 650 translate
+        300 rotate
+        /Times-Roman findfont
+        216 scalefont
+        setfont
+        0 0 moveto
+        0.9 setgray
+        (DRAFT) show
+      grestore
+    } def
+  end}
+%END LATEX
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%BEGIN LATEX
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{ifpdf}
+%END LATEX
+\ifpdf
+  \documentclass[12pt,a4paper]{article}
+  \usepackage{type1cm}
+  %%% FIXME: hyperref doesn't work ...
+  %usepackage[pdftex,colorlinks]{hyperref}
+  \usepackage[pdftex]{graphics,emp}
+  \DeclareGraphicsRule{*}{mps}{*}{}
+\else
+  \documentclass[a4paper]{article}
+  \usepackage[nologo]{thopp}
+  \usepackage{graphics,emp}
+\fi
+%BEGIN IMAGE
+\setlength{\unitlength}{1mm}
+\empaddtoprelude{input graph}
+\empaddtoprelude{input sarith}
+%END IMAGE
+\usepackage{amsmath,amssymb,alltt,units}
+%HEVEA \newcommand{\tr}{\mathrm{tr}}
+%BEGIN LATEX
+\DeclareMathOperator{\tr}{tr}
+\providecommand{\dd}{\mathrm{d}}
+\allowdisplaybreaks
+\makeindex
+\IfFileExists{hevea.sty}%
+  {\usepackage{hevea}}
+  {\def\ahref##1##2{{##2}}%
+   \def\ahrefloc##1##2{{##2}}%
+   \def\aname##1##2{{##2}}%
+   \def\ahrefurl##1{\url{##1}}%
+   \def\footahref##1##2{##2\footnote{\url{##1}}}%
+   \def\mailto##1{\texttt{##1}}%
+   \def\imgsrc##1##2[]{}%
+   \def\home##1{\protect\raisebox{-.75ex}{\char126}##1}%
+   \def\latexonly{\relax}%
+   \def\endlatexonly{\relax}}
+%END LATEX
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[noweb,bypages]{ocamlweb}
+\empaddtoTeX{\usepackage{ocamlweb}}
+\renewcommand{\ocwinterface}[1]{\subsection{Interface of \ocwupperid{#1}}}
+\renewcommand{\ocwmodule}[1]{\subsection{Implementation of \ocwupperid{#1}}}
+\renewcommand{\ocwinterfacepart}{\relax}
+\renewcommand{\ocwcodepart}{\relax}
+\renewcommand{\ocwbeginindex}{\begin{theindex}}
+\newcommand{\thocwmodulesection}[1]{\subsubsection{#1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{noweb}
+%%% \usepackage{nocondmac}
+\setlength{\nwmarginglue}{1em}
+\noweboptions{smallcode,noidentxref}%%%{webnumbering}
+%%% Saving paper:
+\def\nwendcode{\endtrivlist\endgroup}
+\nwcodepenalty=0
+\let\nwdocspar\relax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Some decorations depend on local stuff.  Make it optional.
+\IfFileExists{thohacks.sty}%
+  {\usepackage{thohacks}}%
+  {\let\timestamp\today}%
+%BEGIN LATEX
+\ifpdf
+  \def\Kirke/{K$\acute\iota${}$\rho${}$\kappa${}$\eta$}
+  \def\KirkeOne/{\texttt{circe1}}
+  \def\KirkeTwo/{\texttt{circe2}}
+\else
+  % \IfFileExists{greek.sty}%
+  %   {\usepackage{greek}%
+  %    \def\Kirke/{{\greek Ki'rkh}}}%
+  %   {\def\Kirke/{K$\acute\iota${}$\rho${}$\kappa${}$\eta$}}
+  \def\Kirke/{K$\acute\iota${}$\rho${}$\kappa${}$\eta$}
+  \def\KirkeOne/{\Kirke/\kern0.2em1}
+  \def\KirkeTwo/{\Kirke/\kern0.2em2}
+\fi
+%END LATEX 
+%HEVEA \def\Kirke/{\begin{toimage}K$\acute\iota${}$\rho${}$\kappa${}$\eta$\end{toimage}\imageflush}
+%HEVEA \def\KirkeOne/{\texttt{circe1}}
+%HEVEA \def\KirkeTwo/{\texttt{circe2}}
+
+\newcommand{\modpoly}{%
+  \;(\text{modulo } 2 \text{ and } z^{100}+z^{37}+1)}
+\newenvironment{params}%
+ {\begin{list}{}%
+   {\setlength{\leftmargin}{2em}%
+    \setlength{\rightmargin}{2em}%
+    \setlength{\itemindent}{-1em}%
+    \setlength{\listparindent}{0pt}%
+    \renewcommand{\makelabel}{\hfil}}}%
+ {\end{list}}
+\newenvironment{itemized}%
+ {\begin{list}{}%
+   {\setlength{\leftmargin}{2em}%
+    \setlength{\rightmargin}{2em}%
+    \setlength{\itemindent}{-1em}%
+    \setlength{\listparindent}{0pt}%
+    \renewcommand{\makelabel}{\hfil}}}%
+ {\end{list}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% LOTS of floats:
+\setcounter{topnumber}{3}              % 2
+\setcounter{bottomnumber}{3}           % 2
+\setcounter{totalnumber}{5}            % 3
+\renewcommand{\topfraction}{0.95}      % 0.7
+\renewcommand{\bottomfraction}{0.95}   % 0.3
+\renewcommand{\textfraction}{0.05}     % 0.2
+\renewcommand{\floatpagefraction}{0.8} % 0.5
+\setlength{\abovecaptionskip}{.5\baselineskip}
+\setlength{\belowcaptionskip}{\baselineskip}
+\widowpenalty=4000
+\clubpenalty=4000
+\displaywidowpenalty=4000
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeindex
+\begin{document}
+%BEGIN IMAGE
+\begin{empfile}
+%END IMAGE
+\bibliographystyle{prsty}%%%{unsrt}%%%{physics}
+\title{%
+  \Kirke/ Version \Version/:\\
+  Beam Spectra for Simulating Linear Collider Physics}
+\author{%
+  Thorsten Ohl%
+    \thanks{e-mail: \texttt{ohl@physik.uni-wuerzburg.de}}\\
+  \hfil\\
+    Institute for Theoretical Physics and Astrophysics\\
+    W\"urzburg University\\
+    Campus Hubland Nord\\
+    Emil-Hilb-Weg 22\\
+    97074 W\"urzburg\\
+    Germany}
+\date{%
+  \Date/\\
+  \textbf{DRAFT: \timestamp}}
+\maketitle
+\begin{abstract}
+  \ldots
+\end{abstract}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%tableofcontents\newpage                                       %!MANUAL%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section*{Caveat}
+\begin{Large}\bfseries
+  This manual is outdated and describes the old Fortran77 interface.
+  This interface has been replaced by a similar, but thoroughly modern
+  Fortran~2003 interface.
+  
+  Also the new smoothing feature of \verb+circe2_tool+ ist not
+  described here.
+  
+  Please see the annotated template and other files in
+  \verb+share/examples/+ for a starting point for rolling your own
+  beam descriptions.
+\end{Large}
+\newpage
+\section*{Program Summary:}
+\begin{raggedright}
+\begin{itemize}
+  \item \textbf{Title of program:}
+    \Kirke/, Version \Version/ (\Date/)
+%CPC%  \item \textbf{Catalogue number:}
+%CPC%    ????
+  \item \textbf{Program obtainable}
+%CPC%    from CPC Program Library, Queen's University of Belfast,
+%CPC%    N.~Ireland (see application form in this issue) or
+    from \verb|http://www.hepforge.org/downloads/whizard|.
+  \item \textbf{Licensing provisions:}
+    Free software under the GNU General Public License.
+  \item \textbf{Programming languages used:}
+    Fortran, OCaml\cite{O'Caml}
+    (available from \verb|http://caml.inria.fr/ocaml| and
+     \verb|http://ocaml.org|).
+  \item \textbf{Number of program lines in distributed program}
+    $\approx$ ??? lines of Fortran (excluding comments) for the library;
+    $\approx$ ??? lines of OCaml for the utility program
+  \item \textbf{Computer/Operating System:}
+    Any with a Fortran programming environment.
+  \item \textbf{Memory required to execute with typical data:}
+    Negligible on the scale of typical applications calling the library.
+  \item \textbf{Typical running time:}
+    A negligible fraction of the running time of
+    applications calling the library.
+  \item \textbf{Purpose of program:}
+    Provide efficient, realistic and reproducible parameterizations of
+    the correlated $e^\pm$- and $\gamma$-beam spectra for linear
+    colliders and photon colliders. 
+  \item \textbf{Nature of physical problem:}
+    The intricate beam dynamics in the interaction region of a
+    high luminosity linear collider at $\sqrt s = 500$GeV result in
+    non-trivial energy spectra of the scattering electrons, positrons and
+    photons.  Physics simulations require efficient, reproducible,
+    realistic and easy-to-use parameterizations of these spectra.
+  \item \textbf{Method of solution:}
+    Parameterization, curve fitting, adaptive sampling, Monte Carlo
+    event generation. 
+  \item \textbf{Keywords:}
+    Event generation, beamstrahlung, linear colliders, photon
+    colliders.
+\end{itemize}
+\end{raggedright}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Introduction}
+
+The expeditious construction of a high-energy, high-luminosity
+$\mathrm{e}^+\mathrm{e}^-$ Linear Collider~(LC) to complement the
+Large Hadron Collider~(LHC) has been identified as the next world wide
+project for High Energy Physics~(HEP).  The dynamics of the dense
+colliding beams providing the high luminosities required by such a
+facility is highly non-trivial and detailed simulations have to be
+performed to predict the energy spectra provided by these beams.  The
+microscopic simulations of the beam dynamics require too much computer
+time and memory for direct use in physics programs.  Nevertheless, the
+results of such simulations have to be available as input for physics
+studies, since these spectra affect the sensitivity of experiments for
+the search for deviations from the standard model and to new physics.
+
+\Kirke/ Version~1.x (\KirkeOne/ for short)~\cite{Ohl:1996:Circe} has
+become a de-facto standard for inclusion of realistic energy spectra
+of TeV-scale $\mathrm{e}^+\mathrm{e}^-$ LCs in physics calculations
+and event generators.  It is supported by the major multi purpose
+event generators~\cite{PYTHIA,HERWIG} and has been used in many
+dedicated analysises.  \Kirke/ provides a fast, concise and convenient
+parameterization of the results of such simulations.
+
+\KirkeOne/ assumed strictly factorized distributions with a very
+restricted functional form (see~\cite{Ohl:1996:Circe} for details).
+This approach was sufficient for exploratory studies of physics at
+TeV-scale $\mathrm{e}^+\mathrm{e}^-$ LCs.  Future studies
+of physics at $\mathrm{e}^+\mathrm{e}^-$ LCs will require
+a more detailed description and the estimation of non-factorized
+contributions.  In particular, all distributions at laser
+backscattering $\gamma\gamma$
+colliders~\cite{Ginzburg/Telnov/etal:1983:gamma-collider} and at
+multi-TeV $\mathrm{e}^+\mathrm{e}^-$ LCs are correlated and can not
+be approximated by \KirkeOne/ at all.  In addition, the proliferation
+of accelerator designs since the release of \KirkeOne/ has make the
+maintenance of parameterizations as FORTRAN77 \texttt{BLOCK DATA}
+unwieldy.
+
+\Kirke/ Version 2.0 (\KirkeTwo/ for short) successfully addresses
+these shortcomings of \KirkeOne/, as can be seen in
+figure~\ref{fig:z}.  It should be noted that the large~$z$ region and
+the blown-up $z\to0$~region are taken from the \emph{same} pair of datasets.  In
+section~\ref{sec:demonstration} below, figures~\ref{fig:z/20/q}
+to~\ref{fig:z/20/m2} demonstrate the interplay of \KirkeTwo/'s
+features. The algorithms
+implemented\footnote{A small number of well defined extensions that
+has have not been implemented yet are identified in
+section~\ref{sec:API} below.} in \KirkeTwo/ should suffice for all
+studies until $\mathrm{e}^+\mathrm{e}^-$ LCs and photon colliders come
+on-line and probably beyond.  The implementation \KirkeTwo/
+bears no resemblance at all with the implementation of \KirkeOne/.
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(53,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z.input.histo", $,
+        augment.simulation ($1, smin (4, 100 Smul $2));)
+      gdata ("z.50m2.histo", $,
+        augment.circe[0] ($1, smin (4, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(53,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z_low.input.histo", $,
+        augment.simulation ("1.0e4" Smul $1, "1.0e4" Smul $2);)
+      gdata ("z_low.50m2.histo", $,
+        augment.circe[0] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}\times10^{4}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:z}%
+    Comparison of a simulated realistic $\gamma\gamma$ luminosity
+    spectrum (helicities:~$(+,+)$) for a \unit[500]{GeV} photon collider
+    at TESLA~\cite{Telnov:2001:priv} (filled area) with its \KirkeTwo/
+    parameterization (solid line) using 50~bins in both directions.
+    The $10^4$-fold blow-up of the $z\to0$~region is
+    taken from the same pair of datasets as the plot including the
+    large~$z$ region.}
+\end{figure}
+
+\KirkeTwo/ describes the distributions by two-dimensional grids that
+are optimized using an algorithm derived from
+VEGAS~\cite{VEGAS}.  The implementation
+was modeled on the implementation in
+VAMP~\cite{VAMP}, but changes were required
+for sampling static event sets instead of distributions given as
+functions.  The problem solved by \KirkeTwo/ is rather different from
+the Monte Carlo integration with importance or stratified sampling
+that is the focus of~VEGAS and~VAMP.  In the case of VEGAS/VAMP the function is
+given as a mathematical function, either analytically or
+numerically. In this case, while the adapted grid is being be refined,
+resources can be invested for studying the function more closely in
+problematic regions.  \KirkeTwo/ does not have this luxury, because it
+must reconstruct (``\emph{guess}'') a function from a \emph{fixed} and
+\emph{finite} sample.  Therefore it cannot avoid to introduce biases,
+either through a fixed global functional form (as in \KirkeOne/)
+through step functions (histograms).  \KirkeTwo/ combines the two approaches and
+uses automatically adapted histograms mapped by a patchwork of
+functions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Notes on the Implementation}
+The FORTRAN77 library is extremely simple (about 800 lines) and
+performs only two tasks: one small set of subroutines efficiently
+generates pairs of random numbers distributed according to two
+dimensional histograms with factorized non-uniform bins stored in a
+file.  A second set of functions calculates the value of the
+corresponding distributions.
+
+FORTRAN77 has been chosen solely for practical reasons: at the time of
+writing, the majority of programs expected to use the \KirkeTwo/ are
+legacy applications written in FORTRAN77.  The simple functionality of
+the FORTRAN77 library can however be reproduced trivially in any other
+programming language that will be needed in the future.
+
+The non-trivial part of constructing an optimized histogram from an
+arbitrary distribution is performed by a utility program
+\verb+circe2_tool+ written in Objective Caml~\cite{O'Caml} (or O'Caml
+for short).  O'Caml is available as Free Software for almost all
+computers and operating systems currently used in high energy physics.
+Bootstrapping the O'Caml compiler is straightforward and quick.  Furthermore,
+parameterizations are distributed together with \KirkeTwo/, and most
+users will not even need to compile \verb+circe2_tool+.  Therefore
+there are no practical problems in using a modern programming language
+like O'Caml that allows---in the author's experience---a both more rapid
+and safer development than FORTRAN77 or~C++.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Overview}
+The remainder of this paper is organized as follows.  For the benefit
+of users of the library, the Application Program Interface~(API) is
+described immediately in section~\ref{sec:API} after defining the
+notation in section~\ref{sec:physics}.  Section~\ref{sec:API-samples}
+shows some examples using the procedures described in
+section~\ref{sec:API}.
+
+A description of the inner workings of \KirkeTwo/ that is more
+detailed than required for using the library starts in
+section~\ref{sec:algorithms}.  An understanding of the algorithms
+employed is helpful for preparing beam descriptions using the program
+\texttt{circe2\_tool} which is described in
+section~\ref{sec:circe2_tool-user}.  Details of the implementation of
+\texttt{circe2\_tool} can be found in
+section~\ref{sec:circe2_tool-implementation}, where also the benefits
+provided by modern functional programming languages for program
+organization in the large are discussed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Physics}
+\label{sec:physics}
+
+The customary parametrization of polarization in beam physics~\cite{%
+  Ginzburg/Telnov/etal:1984:gamma-collider,%
+  Chen/etal:1995:CAIN}
+is in terms of density matrices for the leptons
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \rho_{\mathrm{e}^{\pm}}(\zeta)
+    = \frac{1}{2}\left(1+\zeta_{i}\sigma_{i}\right)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+and the so-called Stokes' parameters for photons
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \rho_{\gamma}(\xi)
+    = \frac{1}{2}\left(1+\xi_{i}\sigma_{i}\right)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+where the pseudo density matrix $2\times2$-matrix~$\rho_{\gamma}$ for
+a pure polarization state~$\epsilon_{\mu}$ is given by
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  [\rho_{\gamma}]_{ij}
+    = \langle(\epsilon e_{i})(\epsilon^{*} e_{j})\rangle
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+using two unit vectors~$e_{1/2}$ orthogonal to the momentum.
+Keeping in mind the different interpretations of~$\zeta$ and~$\xi$, we
+will from now on unify the mathematical treatment and use the two
+interchangably, since the correct interpretation will always be clear
+from the context.  Using the notation~$\sigma_{0}=1$, the joint
+polarization density matrix for two colliding particles can be written
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+\label{eq:rho(chi)}
+  \rho(\chi)
+    = \sum_{a,a'=0}^{3} \frac{\chi_{aa'}}{4}\, \sigma_{a} \otimes \sigma_{a'}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+with~$\chi_{0,0}=\tr\rho(\chi)=1$. Averaging density matrices
+will in general lead to correlated density matrices, even if the
+density matrices that are being averaged are factorized or correspond
+to pure states.
+
+The most complete description~$B$ of a pair of colliding beams is
+therefore provided by a probability density and a density matrix for
+each pair~$(x_{1},x_{2})$ of energy fractions:
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \begin{aligned}
+     B: [0,1]\times[0,1] &\to \mathbf{R}^{+}\times M \\
+           (x_{1},x_{2}) &\mapsto (D(x_{1},x_{2}), \rho(x_{1},x_{2}))
+  \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+where~$\rho(x_{1},x_{2})$ will conveniently be given using the
+parametrization~(\ref{eq:rho(chi)}).  Sophisticated event generators
+can use~$D(x_{1},x_{2})$ and~$\rho(x_{1},x_{2})$ to account for all
+spin correlations with the on-shell transition matrix~$T$
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \mathrm{d}\sigma
+    = \int\!\mathrm{d}x_{1}\wedge\mathrm{d}x_{2}\,D(x_{1},x_{2})\,
+        \tr\left( P_{\Omega} T(x_{1}x_{2}s)
+                          \rho(x_{1},x_{2})T^{\dagger}(x_{1}x_{2}s) \right)\,
+        \mathrm{dLIPS}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Polarization Averaged Distributions}
+\label{sec:averaged}
+
+Physics applications that either ignore polarization (this is often not
+advisable, but can be a necessary compromise in some cases) or know
+that polarization will play no significant role can ignore the density
+matrix, which
+amounts to summing over all polarization states.  If the microscopic
+simulations that have been used to obtain the distributions described
+by \KirkeTwo/ do not keep track of polarization, 93\%~of disk space
+can be saved by supporting simplified interfaces that ignore
+polarization altogether.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Helicity Distributions}
+\label{sec:helicities}
+
+Between the extremes of polarization averaged distributions on one
+end and full correlated density matrices on the other end, there is
+one particularly important case for typical applications, that
+deserves a dedicated implementation.
+
+In the approximation of projecting on the subspace consisting of
+circular polarizations
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \rho(\chi) = \frac{1}{4} \left(
+      \chi_{0,0} \cdot 1          \otimes 1
+    + \chi_{0,3} \cdot 1          \otimes \sigma_{3}
+    + \chi_{3,0} \cdot \sigma_{3} \otimes 1
+    + \chi_{3,3} \cdot \sigma_{3} \otimes \sigma_{3} \right)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+the density matrix can be rewritten as a convex combination of
+manifest projection operators build out
+of~$\sigma_{\pm}=(1\pm\sigma_{3})/2$:
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \rho(\chi) =
+      \chi_{++} \cdot \sigma_{+} \otimes \sigma_{+}
+    + \chi_{+-} \cdot \sigma_{+} \otimes \sigma_{-}
+    + \chi_{-+} \cdot \sigma_{-} \otimes \sigma_{+}
+    + \chi_{--} \cdot \sigma_{-} \otimes \sigma_{-}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+The coefficients are given by
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{subequations}
+\begin{align}
+  \chi_{++} &= \frac{1}{4}\left(\chi_{0,0}+\chi_{0,3}+\chi_{3,0}+\chi_{3,3}\right) \ge 0 \\
+  \chi_{+-} &= \frac{1}{4}\left(\chi_{0,0}-\chi_{0,3}+\chi_{3,0}-\chi_{3,3}\right) \ge 0 \\
+  \chi_{-+} &= \frac{1}{4}\left(\chi_{0,0}+\chi_{0,3}-\chi_{3,0}-\chi_{3,3}\right) \ge 0 \\
+  \chi_{--} &= \frac{1}{4}\left(\chi_{0,0}-\chi_{0,3}-\chi_{3,0}+\chi_{3,3}\right) \ge 0
+\end{align}
+\end{subequations}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+and satisfy
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \chi_{++} + \chi_{+-} + \chi_{-+} + \chi_{--}
+    = \tr\rho(\chi) = 1
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+Of course, the~$\chi_{\epsilon_1\epsilon_2}$ are recognized as the probabilities for
+finding a particular combination of helicities for particles moving
+along the $\pm\vec{e}_{3}$ direction and we can introduce partial
+probability distributions
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  D_{p_1p_2}^{\epsilon_1\epsilon_2}(x_{1},x_{2})
+   = \chi_{\epsilon_1\epsilon_2} \cdot D_{p_1p_2}(x_{1},x_{2}) \ge 0
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+that are to be combined with the polarized cross sections
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \frac{\mathrm{d}\sigma}{\mathrm{d}\Omega}(s)
+    = \sum_{\epsilon_1,\epsilon_2=\pm}
+      \int\!\mathrm{d}x_{1}\wedge\mathrm{d}x_{2}\,
+        D^{\epsilon_1\epsilon_2}(x_{1},x_{2})\,
+        \left(\frac{\mathrm{d}\sigma}%
+                   {\mathrm{d}\Omega}\right)^{\epsilon_1\epsilon_2}
+        (x_{1}x_{2}s)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+This case deserves special consideration because it is a good
+approximation for a majority of applications and, at the same time, it
+is the most general case that allows an interpretation as classical
+probabilities.  The latter feature allows the preparation of
+separately tuned probability densities for all four helicity
+combinations. In practical applications this turns out to be useful
+because the power law behaviour of the extreme low energy tails turns
+out to have a mild polarization dependence.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{API}
+\label{sec:API}
+
+\begin{table}
+  \begin{center}
+    \begin{tabular}{llll}
+      load beam
+        & from file                  & \texttt{cir2ld}
+        & (p.~\pageref{pg:cir2ld}) \\\hline
+      distributions      
+        & luminosity                 & \texttt{cir2lm}
+        & (p.~\pageref{pg:cir2lm}) \\
+        & probability density        & \texttt{cir2dn}
+        & (p.~\pageref{pg:cir2dn}) \\
+        & density matrix             & \texttt{cir2dm}
+        & (extension, p.~\pageref{pg:cir2dm}) \\\hline
+      event generation
+        & flavors/helicities         & \texttt{cir2ch}
+        & (p.~\pageref{pg:cir2ch}) \\
+        & $(x_{1},x_{2})$            & \texttt{cir2gn}
+        & (p.~\pageref{pg:cir2gn}) \\
+        & general polarization       & \texttt{cir2gp}
+        & (extension, p.~\pageref{pg:cir2gp}) \\\hline\hline
+      internal
+        & current beam               & \texttt{/cir2cm/}
+        & (p.~\pageref{pg:cir2cm}) \\
+        & beam data base             & \texttt{cir2bd}
+        & (optional, p.~\pageref{pg:cir2cm}) \\
+        & (cont'd)                   & \texttt{/cir2cd/}
+        & (optional, p.~\pageref{pg:cir2cm})
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:API}
+    Summary of all functions, procedures and comon blocks.}
+\end{table}
+
+All floating point numbers in the interfaces are declared as
+\texttt{double precision}.  In most applications, the accuracy
+provided by single precision floating point numbers is likely to
+suffice.  However most application programs will use double precision
+floating point numbers anyway so the most convenient choice is to use
+double precision in the interfaces as well.
+
+In all interfaces, the integer particle codes follow the conventions
+of the Particle Data Group~\cite{PDG}.  In particular
+\label{pg:PDG-codes}
+\begin{params}
+   \item \texttt{p =  11}: electrons
+   \item \texttt{p = -11}: positrons
+   \item \texttt{p =  22}: photons
+\end{params}
+while other particles are unlikely to appear in the context
+of~\KirkeTwo/ before the design of $\mu$-colliders enters a more
+concrete stage.  Similarly, in all interfaces, the sign of the
+helicities are denoted by integers
+\begin{params}
+   \item \texttt{h =  1}: helicity~$+1$ for photons or~$+1/2$ for
+     leptons (electrons and positrons)
+   \item \texttt{h = -1}: helicity~$-1$ for photons or~$-1/2$ for
+     leptons (electrons and positrons)
+\end{params}
+As part of tis API, we also define a few extensions, which will be
+available in future versions, but have not been implemented yet.  This
+allows application programs to anticipate these extensions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Initialization}
+\label{sec:initialization}
+
+Before any of the event generation routines or the functions computing
+probability densities can be used, beam descriptions have to be
+loaded.  This is accomplished by the routine \texttt{cir2ld}
+(mnemonic: \textit{LoaD}), which must have been called at least once
+before any other procedure is invoked:
+\begin{params}
+   \item \texttt{subroutine cir2ld (file, design, roots, ierror)}
+     \label{pg:cir2ld}
+     \begin{params}
+       \item \texttt{character*(*) file} (input): name of a \KirkeTwo/
+         parameter file in the format described in
+         table~\ref{tab:fileformat}. Conventions for filenames are
+         system dependent and the names of files will consequently be
+         installation dependent.  This can not be avoided. 
+       \item \texttt{character*(*) design} (input): name of the accelerator
+         design.  The name must not be longer than 72
+         characters. It is expected that design names follow the
+         following naming scheme for
+         $\mathrm{e}^{+}\mathrm{e}^{-}$~LCs
+         \begin{params}
+           \item \texttt{TESLA}: TESLA supercoducting design (DESY)
+           \item \texttt{XBAND}: NLC/JLC X-band design (KEK, SLAC)
+           \item \texttt{CLIC}: CLIC two-beam design (CERN)
+         \end{params}
+         Special operating modes should be designated by a qualifier
+         \begin{params}
+           \item \texttt{/GG}: laser backscattering $\gamma\gamma$
+             collider (e.\,g.~\verb+'TESLA/GG'+)
+           \item \texttt{/GE}: laser backscattering $\gamma\mathrm{e}^{-}$
+             collider
+           \item \texttt{/EE}: $\mathrm{e}^{-}\mathrm{e}^{-}$ collider
+         \end{params}
+         If there is more than one matching beam description, the
+         \emph{last} of them is used.  If \texttt{design}
+         contains a~\verb+'*'+, only the characters \emph{before}
+         the~\verb+'*'+ matter in the match. E.\,g.:
+         \begin{params}
+           \item \verb+design = 'TESLA'+ matches only \verb+'TESLA'+
+           \item \verb+design = 'TESLA*'+ matches any of
+             \verb+'TESLA (Higgs factory)'+, \verb+'TESLA (GigaZ)'+,
+             \verb+'TESLA'+, etc.
+           \item \verb+design = '*'+ matches everything and is a
+             convenient shorthand for the case that there is only a
+             single design per file
+         \end{params}
+         NB: \verb+'*'+ is not a real wildcard: everything after
+         the first \verb+'*'+ is ignored.
+       \item \texttt{double precision roots} (input): $\sqrt{s}/\unit{GeV}$
+         of the accelerator.  This must match within
+         $\Delta\sqrt{s}=\unit[1]{GeV}$.  There is currently no facility for
+         interpolation between fixed energy designs (see
+         section~\ref{sec:interpolation}, however). 
+       \item \texttt{integer ierror} (input/output):
+         if~$\text{\texttt{ierror}}>0$ on input, comments will be echoed to the
+         standard output stream.  On output, if no errors have been
+         encountered \texttt{cir2ld} guarantees that
+         $\text{\texttt{ierror}}=0$.  If $\text{\texttt{ierror}}<0$,
+         an error has occured:
+         \begin{params}
+           \item \texttt{ierror = -1}: file not found
+           \item \texttt{ierror = -2}: no match for design and~$\sqrt{s}$
+           \item \texttt{ierror = -3}: invalid format of parameter file
+           \item \texttt{ierror = -4}: parameter file too large
+         \end{params}
+     \end{params}
+\end{params}
+A typical application, assuming that a file named
+\texttt{photon\_colliders.circe} contains beam descriptions for photon
+colliders (including \texttt{TESLA/GG}) is
+\begin{alltt}\small
+      integer ierror
+      ...
+      ierror = 1
+      call cir2ld ('photon_colliders.circe', 'TESLA/GG', 500D0, ierror)
+      if (ierror .lt. 0)
+        print *, 'error: cir2ld failed: ', ierror
+        stop
+      end if
+      ...
+\end{alltt}
+In order to allow application programs to be as independent from
+operating system dependent file naming conventions, the file formal
+has been designed so beam descriptions can be concatenated and
+application programs can hide file names from the user completely, as
+in
+\begin{alltt}\small
+      subroutine ldbeam (design, roots, ierror)
+      implicit none
+      character*(*) design
+      double precision roots
+      integer ierror
+      call cir2ld ('beam_descriptions.circe', design, roots, ierror)
+      if (ierror .eq. -1)
+        print *, 'ldbeam: internal error: file not found'
+        stop
+      end if
+      end
+\end{alltt}
+The other extreme uses one file per design and uses the \verb+'*'+
+wildcard to make the \texttt{design} argument superfluous.
+\begin{alltt}\small
+      subroutine ldfile (name, roots, ierror)
+      implicit none
+      character*(*) name
+      double precision roots
+      integer ierror
+      call cir2ld (name, '*', roots, ierror)
+      end
+\end{alltt}
+Note that while it is in principle possible to use a data file
+intended for helicity states for polarization averaged distributions
+instead, no convenience procedures for this purpose are provided.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Luminosities}
+One of the results of the simulations that provide the input for
+\KirkeTwo/ are the partial luminosities for all combinations of
+flavors and helicities.  The luminosities for a combination of flavors
+and helicities can be inspected with the function \texttt{cir2lm}
+(\textit{LuMinosity}).  The return value is given in the convenient units
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \unit{fb}^{-1}\upsilon^{-1} = 10^{32} \unit{cm}^{-2}\unit{sec}^{-1}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+where $\upsilon=\unit[10^7]{sec}\approx \unit{year}/\pi$ is an
+``effective year'' of running with about 30\%\ up-time
+\begin{params}
+   \item \texttt{double precision function cir2lm (p1, h1, p2, h2)}
+     \label{pg:cir2lm}
+     \begin{params}
+       \item \texttt{integer p1} (input):
+         particle code for the first particle
+       \item \texttt{integer h1} (input):
+         helicity of the first particle
+       \item \texttt{integer p2} (input):
+         particle code for the second particle
+       \item \texttt{integer h2} (input):
+         helicity of the second particle
+     \end{params}
+\end{params}
+For the particle codes and helicities the special value~$0$ can be
+used to imply a sum over all flavors and helicities.  E.\,g.~the total
+luminosity is obtained with
+\begin{alltt}\small
+      lumi = cir2lm (0, 0, 0, 0)
+\end{alltt}
+and the $\gamma\gamma$ luminosity summed over all helicities
+\begin{alltt}\small
+      lumigg = cir2lm (22, 0, 22, 0)
+\end{alltt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sampling and Event Generation}
+
+Given a combination of flavors and helicities, the routine
+\texttt{cir2gn} (\textit{GeNerate}) can be called repeatedly to obtain
+a sample of pairs~$(x_{1},x_{2})$ distributed according to the
+currently loaded beam description:
+\begin{params}
+   \item \texttt{subroutine cir2gn (p1, h1, p2, h2, x1, x2, rng)}
+     \label{pg:cir2gn}
+     \begin{params}
+       \item \texttt{integer p1} (input):
+         particle code for the first particle
+       \item \texttt{integer h1} (input):
+         helicity of the first particle
+       \item \texttt{integer p2} (input):
+         particle code for the second particle
+       \item \texttt{integer h2} (input):
+         helicity of the second particle
+       \item \texttt{double precision x1} (output): fraction of the beam
+         energy carried by the first particle
+       \item \texttt{double precision x2} (output): fraction of the beam
+         energy carried by the second particle
+       \item \texttt{external rng}: subroutine
+\begin{alltt}\small
+      subroutine rng (u)
+      double precision u
+      u = ...
+      end
+\end{alltt}
+         generating a uniform deviate, i.\,e.~a random number
+         uniformly distributed in~$[0,1]$.
+     \end{params}
+\end{params}
+If the combination of flavors and helicities has zero luminosity for
+the selected accelerator design parameters, \emph{no error code} is
+available (\texttt{x1} and \texttt{x2} are set to a very large
+negative value in this case).  Applications should use
+\texttt{cir2lm} to test that the luminosity is non vanishing.
+
+Instead of scanning the luminosities for all possible combinations of
+flavors and helicities, applications can call the procedure
+\texttt{cir2ch} (\textit{CHannel}) which chooses a ``channel'' (a
+combination of flavors and helicities) for the currently loaded
+beam description with the relative probabilities given by the luminosities:
+\begin{params}
+   \item \texttt{subroutine cir2ch (p1, h1, p2, h2, rng)}
+     \label{pg:cir2ch}
+     \begin{params}
+       \item \texttt{integer p1} (output):
+         particle code for the first particle
+       \item \texttt{integer h1} (output):
+         helicity of the first particle
+       \item \texttt{integer p2} (output):
+         particle code for the second particle
+       \item \texttt{integer h2} (output):
+         helicity of the second particle
+       \item \texttt{external rng}: subroutine generating a uniform
+         deviate (as above)
+     \end{params}
+\end{params}
+Many applications will use these two functions only in the combination
+\begin{alltt}\small
+      subroutine circe2 (p1, h1, p2, h2, x1, x2, rng)
+      integer p1, h1, p2, h2
+      double precision x1, x2
+      external rng
+      call cir2ch (p1, h1, p2, h2, rng)
+      call cir2gn (p1, h1, p2, h2, x1, x2, rng)
+      end
+\end{alltt}
+after which randomly distributed \texttt{p1}, \texttt{h1},
+\texttt{p2}, \texttt{h2}, \texttt{x1}, and \texttt{x2} are available
+for further processing.
+
+NB: a function like \texttt{circe2} has not been added to the default
+FORTRAN77 API, because \texttt{cir2gn} and \texttt{circe2} have the
+same number and types of arguments, differing only in the input/output
+direction of four of the arguments.  This is a source of errors that a
+FORTRAN77 compiler can not help the application programmer to spot.
+The current design should be less error prone and is only minimally
+less convenient because of the additional procedure call
+\begin{alltt}\small
+      integer p1, h1, p2, h2
+      double precision x1, x2
+      integer n, nevent
+      external rng
+      ...
+      do 10 n = 1, nevent
+        call cir2ch (p1, h1, p2, h2, rng)
+        call cir2gn (p1, h1, p2, h2, x1, x2, rng)
+        ...
+  10  continue
+      ...
+\end{alltt}
+Implementations in more modern programming languages (Fortran90/95,
+C++, Java, O'Caml, etc.) can and will provide a richer API with
+reduced name space pollution and danger of confusion.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Extensions: General Polarizations}
+
+Given a pair of flavors, triples $(x_{1},x_{2},\rho)$ of momentum
+fractions together with density matrices for the polarizations
+distributed according to the currently loaded beam descriptions can be
+obtained by repeatedly calling \texttt{cir2gp}
+(\textit{GeneratePolarized}):
+\begin{params}
+   \item \texttt{subroutine cir2gp (p1, p2, x1, x2, pol, rng)}
+     \label{pg:cir2gp}
+     \begin{params}
+       \item \texttt{integer p1} (input):
+         particle code for the first particle
+       \item \texttt{integer p2} (input):
+         particle code for the second particle
+       \item \texttt{double precision x1} (output): fraction of the beam
+         energy carried by the first particle
+       \item \texttt{double precision x2} (output): fraction of the beam
+         energy carried by the second particle
+       \item \texttt{double precision pol(0:3,0:3)} (output):
+         the joint density matrix of the two polarizations is
+         parametrized by a real $4\times4$-matrix
+%HEVEA\begin{center}
+%BEGIN IMAGE
+         \begin{equation}
+           \rho(\chi) = \sum_{a,a'=0}^{3} \frac{\chi_{aa'}}{4}\,
+             \sigma_{a} \otimes \sigma_{a'}
+         \end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+         using the notation~$\sigma_{0}=1$. We have
+         $\text{\texttt{pol(0,0)}}=1$ since~$\tr\rho=1$.
+       \item \texttt{external rng}: subroutine generating a uniform deviate
+     \end{params}
+\end{params}
+\textit{This procedure has not been implemented in version~2.0 and
+will be provided in release~2.1.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Distributions}
+The normalized luminosity density~$D_{p_{1}p_{2}} (x_{1},x_{2})$ for
+the given flavor and helicity combination for the currently loaded
+beam description satisfies
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \int\!\mathrm{d}x_{1}\wedge\mathrm{d}x_{2}\,
+    D_{p_{1}p_{2}} (x_{1},x_{2}) = 1
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+and is calculated by~\texttt{cir2dn} \textit{(DistributioN)}:
+\begin{params}
+   \item \texttt{double precision function cir2dn (p1, h1, p2, h2, x1, x2)}
+     \label{pg:cir2dn}
+     \begin{params}
+       \item \texttt{integer p1} (input):
+         particle code for the first particle
+       \item \texttt{integer h1} (input):
+         helicity of the first particle
+       \item \texttt{integer p2} (input):
+         particle code for the second particle
+       \item \texttt{integer h2} (input):
+         helicity of the second particle
+       \item \texttt{double precision x1} (input): fraction of the beam
+         energy carried by the first particle
+       \item \texttt{double precision x2} (input): fraction of the beam
+         energy carried by the second particle
+     \end{params}
+\end{params}
+If any of the helicities is~0 and the loaded beam description is not
+summed over polarizations, the result is \emph{not} the polarization
+summed distribution and~0 is returned instead.  Application programs
+must either sum by themselves or load a more efficient abbreviated beam
+description.
+
+\KirkeOne/ users should take note that the densities are now
+normalized \emph{individually} and no longer relative to a master
+$\mathrm{e}^{+}\mathrm{e}^{-}$ distribution.  Users of \KirkeOne/
+should also take note that the special treatment of
+$\delta$-distributions at the endpoints has been removed.  The
+corresponding contributions have been included in small bins close to
+the endpoints.  For small enough bins, this approach is sufficiently
+accurate and avoids the pitfalls of the approach of \KirkeOne/.
+
+\begin{dubious}
+Applications that convolute the \KirkeTwo/ distributions with other
+distributions can benefit from accessing the map employed by
+\KirkeTwo/ internally through \texttt{cir2mp} (\textit{MaP}):
+\begin{params}
+   \item \texttt{subroutine cir2mp (p1, h1, p2, h2, x1, x2, m1, m2, d)}
+     \label{pg:cir2mp}
+     \begin{params}
+       \item \texttt{integer p1} (input):
+         particle code for the first particle
+       \item \texttt{integer h1} (input):
+         helicity of the first particle
+       \item \texttt{integer p2} (input):
+         particle code for the second particle
+       \item \texttt{integer h2} (input):
+         helicity of the second particle
+       \item \texttt{double precision x1} (input): fraction of the beam
+         energy carried by the first particle
+       \item \texttt{double precision x2} (input): fraction of the beam
+         energy carried by the second particle
+       \item \texttt{integer m1} (output): map
+       \item \texttt{integer m2} (output): map
+       \item \texttt{double precision d} (output):
+     \end{params}
+\end{params}
+\end{dubious}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Extensions: General Polarizations}
+The product of the normalized luminosity density~$D_{p_{1}p_{2}}
+(x_{1},x_{2})$ and the joint polarization density mattrix for
+the given flavor and helicity combination for the currently loaded
+beam description is calculated by~\texttt{cir2dm} (\textit{DensityMatrices}):
+\begin{params}
+   \item \texttt{double precision function cir2dm (p1, p2, x1, x2, pol)}
+     \label{pg:cir2dm}
+     \begin{params}
+       \item \texttt{integer p1} (input):
+         particle code for the first particle
+       \item \texttt{integer p2} (input):
+         particle code for the second particle
+       \item \texttt{double precision x1} (input): fraction of the beam
+         energy carried by the first particle
+       \item \texttt{double precision x2} (input): fraction of the beam
+         energy carried by the second particle
+       \item \texttt{double precision pol(0:3,0:3)} (output):
+         the joint density matrix multiplied by the normalized
+         probability density.  The density matrix is
+         parametrized by a real $4\times4$-matrix
+%HEVEA\begin{center}
+%BEGIN IMAGE
+         \begin{equation}
+           D_{p_{1}p_{2}} (x_{1},x_{2})\cdot\rho(\chi)
+              = \sum_{a,a'=0}^{3} \frac{1}{4}\chi_{p_{1}p_{2},aa'}(x_{1},x_{2})\,
+                  \sigma_{a} \otimes \sigma_{a'}
+         \end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+         using the notation~$\sigma_{0}=1$. We have
+         $\text{\texttt{pol(0,0)}}=D_{p_{1}p_{2}} (x_{1},x_{2})$
+         since~$\tr\rho=1$.
+     \end{params}
+\end{params}
+\textit{This procedure has not been implemented in version~2.0 and
+will be provided in release~2.1.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Private Parts}
+The following need not concern application programmer, except that
+there must be no clash with any other global name in the application
+program:
+\begin{params}
+   \item \texttt{common /cir2cm/}: the internal data store for \KirkeTwo/,
+     which \emph{must not} be accessed by application programs.\label{pg:cir2cm}
+\end{params}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Examples}
+\label{sec:API-samples}
+
+In this section, we collect some simple yet complete examples using
+the API described in section~\ref{sec:API}.  In all examples, the role
+of the physics application is played by a \texttt{write} statement,
+which would be replaced by an appropriate event generator for hard
+scattering physics or background events.  The examples assume the
+existence of either a file \texttt{default.circe} describing
+polarized $\sqrt{s}=\unit[500]{GeV}$ beams or an abbreviated file
+\texttt{default\_polavg.circe} where the helicities are summed over.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Unweighted Event Generation}
+\label{sec:API-samples-unweighted}
+
+\KirkeTwo/ has been designed for the efficient generation of
+unweighted events, i.\,e.~event samples that are distributed according
+to the given probability density.  Examples of weighted events are
+discussed in section~\ref{sec:API-samples-weighted} below.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Mixed Flavors and Helicities}
+The most straightforward application uses a stream of events with a
+mixture of flavors and helicities in \emph{random} order.  If the
+application can consume events without the need for costly
+reinitializations when the flavors are changed, a simple loop around
+\texttt{cir2ch} and \texttt{cir2gn} suffices:
+\begin{alltt}\small
+      program demo1
+      implicit none
+      integer p1, h1, p2, h2, n, nevent, ierror
+      double precision x1, x2
+      external random
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      write (*, '(A7,4(X,A4),2(X,A10))')
+     $     '#', 'pdg1', 'hel1', 'pdg2', 'hel2', 'x1', 'x2'
+      do 10 n = 1, nevent
+        call cir2ch (p1, h1, p2, h2, random)
+        call cir2gn (p1, h1, p2, h2, x1, x2, random)
+        write (*, '(I7,4(X,I4),2(X,F10.8))') n, p1, h1, p2, h2, x1, x2
+ 10   continue
+      end
+\end{alltt}
+The following minimalistic linear congruential random number
+generator can be used for demonstrating the interface, but it is known
+to produce correlations and \emph{must} be replaced by a more
+sophisticated one in real applications:
+\begin{alltt}\small
+      subroutine random (r)
+      implicit none
+      double precision r
+      integer M, A, C
+      parameter (M = 259200, A = 7141, C = 54773)
+      integer n
+      save n
+      data n /0/
+      n = mod (n*A + C, M)
+      r = dble (n) / dble (M)
+      end
+\end{alltt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Separated Flavors and Helicities}
+If the application can not switch efficiently among flavors and
+helicities, another approach is more useful.  It walks through the
+flavors and helicities sequentially and uses the partial luminosities
+\texttt{cir2lm} to determine the correct number of events for each
+combination:
+\begin{alltt}\small
+      program demo2
+      implicit none
+      integer i1, i2, pdg(3), h1, h2, i, n, nevent, nev, ierror
+      double precision x1, x2, lumi, cir2lm
+      external random, cir2lm
+      data pdg /22, 11, -11/
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      lumi = cir2lm (0, 0, 0, 0)
+      write (*, '(A7,4(X,A4),2(X,A10))')
+     $     '#', 'pdg1', 'hel1', 'pdg2', 'hel2', 'x1', 'x2'
+      i = 0
+      do 10 i1 = 1, 3
+        do 11 i2 = 1, 3
+          do 12 h1 = -1, 1, 2
+            do 13 h2 = -1, 1, 2
+              nev = nevent * cir2lm (pdg(i1), h1, pdg(i2), h2) / lumi
+              do 20 n = 1, nev
+                call cir2gn (pdg(i1), h1, pdg(i2), h2, x1, x2, random)
+                i = i + 1
+                write (*, '(I7,4(X,I4),2(X,F10.8))')
+     $               i, pdg(i1), h1, pdg(i2), h2, x1, x2
+ 20           continue
+ 13         continue
+ 12       continue
+ 11     continue
+ 10   continue
+      end
+\end{alltt}
+More care can be taken to guarantee that the total number of events
+is not reduced by rounding \texttt{new} towards~$0$, but the error
+will be negligible for reasonably high statistics anyway.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Polarization Averaged}
+
+If the helicities are to be ignored, the abbreviated file
+\texttt{default\_polavg.circe} can be read. 
+The code remains unchanged, but the variables~\texttt{h1}
+and~\texttt{h2} will always be set to~0.
+\begin{alltt}\small
+      program demo3
+      implicit none
+      integer p1, h1, p2, h2, n, nevent, ierror
+      double precision x1, x2
+      external random
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default_polavg.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      write (*, '(A7,2(X,A4),2(X,A10))')
+     $     '#', 'pdg1', 'pdg2', 'x1', 'x2'
+      do 10 n = 1, nevent
+        call cir2ch (p1, h1, p2, h2, random)
+        call cir2gn (p1, h1, p2, h2, x1, x2, random)
+        write (*, '(I7,2(X,I4),2(X,F10.8))') n, p1, p2, x1, x2
+ 10   continue
+      end
+\end{alltt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Flavors and Helicity Projections}
+There are three ways to produce samples with a fixed subset of flavors
+or helicities. As an example, we generate a sample of two photon
+events with~$L=0$. The first approach generates the two channels~$++$ and~$--$
+sequentially:
+\begin{alltt}\small
+      program demo4
+      implicit none
+      double precision x1, x2, lumipp, lumimm, cir2lm
+      integer n, nevent, npp, nmm, ierror
+      external random, cir2lm
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      lumipp = cir2lm (22,  1, 22,  1)
+      lumimm = cir2lm (22, -1, 22, -1)
+      npp = nevent * lumipp / (lumipp + lumimm)
+      nmm = nevent - npp
+      write (*, '(A7,2(X,A10))') '#', 'x1', 'x2'
+      do 10 n = 1, npp
+        call cir2gn (22,  1, 22,  1, x1, x2, random)
+        write (*, '(I7,2(X,F10.8))') n, x1, x2
+ 10   continue
+      do 20 n = 1, nmm
+        call cir2gn (22, -1, 22, -1, x1, x2, random)
+        write (*, '(I7,2(X,F10.8))') n, x1, x2
+ 20   continue
+      end
+\end{alltt}
+a second approach alternates between the two possibilities
+\begin{alltt}\small
+      program demo5
+      implicit none
+      double precision x1, x2, u, lumipp, lumimm, cir2lm
+      integer n, nevent, ierror
+      external random, cir2lm
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      lumipp = cir2lm (22,  1, 22,  1)
+      lumimm = cir2lm (22, -1, 22, -1)
+      write (*, '(A7,2(X,A10))') '#', 'x1', 'x2'
+      do 10 n = 1, nevent
+        call random (u)
+        if (u * (lumipp + lumimm) .lt. lumipp) then
+          call cir2gn (22,  1, 22,  1, x1, x2, random)
+        else
+          call cir2gn (22, -1, 22, -1, x1, x2, random)
+        endif
+        write (*, '(I7,2(X,F10.8))') n, x1, x2
+ 10   continue
+      end
+\end{alltt}
+finally, the third approach uses rejection to select the desired
+flavors and helicities
+\begin{alltt}\small
+      program demo6
+      implicit none
+      integer p1, h1, p2, h2, n, nevent, ierror
+      double precision x1, x2
+      external random
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      write (*, '(A7,2(X,A10))') '#', 'x1', 'x2'
+      n = 0
+ 10   continue
+        call cir2ch (p1, h1, p2, h2, random)
+        call cir2gn (p1, h1, p2, h2, x1, x2, random)
+        if ((p1 .eq. 22) .and. (p2 .eq. 22) .and.
+     $      (((h1 .eq.  1) .and. (h2 .eq.  1)) .or.
+     $       ((h1 .eq. -1) .and. (h2 .eq. -1)))) then
+          n = n + 1
+          write (*, '(I7,2(X,F10.8))') n, x1, x2
+        end if
+        if (n .lt. nevent) then
+          goto 10
+        end if
+      end
+\end{alltt}
+All generated distributions are equivalent, but the chosen
+subsequences of random numbers will be different.  It depends on the
+application and the channels under consideration, which approach is the most
+appropriate.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Distributions and Weighted Event Generation}
+\label{sec:API-samples-weighted}
+
+If no events are to be generated, \texttt{cir2dn} can be used to
+calculate the probability density~$D(x_{1},x_{2})$ at a given point.
+This can be used for numerical integration other than Monte Carlo or
+for importance sampling in the case that the distribution to be folded
+with~$D$ is more rapidly varying than~$D$ itself.
+
+Depending on the beam descriptions, these distributions are available
+either for fixed helicities 
+\begin{alltt}\small
+      program demo7
+      implicit none
+      integer n, nevent, ierror
+      double precision x1, x2, w, cir2dn
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      write (*, '(A7,3(X,A10))') '#', 'x1', 'x2', 'weight'
+      do 10 n = 1, nevent
+        call random (x1)
+        call random (x2)
+        w = cir2dn (22, 1, 22, 1, x1, x2)
+        write (*, '(I7,2(X,F10.8),X,E10.4)') n, x1, x2, w
+ 10   continue
+      end
+\end{alltt}
+or summed over all helicities if the beam description is
+polarization averaged:
+\begin{alltt}\small
+      program demo8
+      implicit none
+      integer n, nevent, ierror
+      double precision x1, x2, w, cir2dn
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default_polavg.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      write (*, '(A7,3(X,A10))') '#', 'x1', 'x2', 'weight'
+      do 10 n = 1, nevent
+        call random (x1)
+        call random (x2)
+        w = cir2dn (22, 0, 22, 0, x1, x2)
+        write (*, '(I7,2(X,F10.8),X,E10.4)') n, x1, x2, w
+ 10   continue
+      end
+\end{alltt}
+If the beam description is not polarization averaged, the application
+can perform the averaging itself (note that each distribution is
+normalized):
+\begin{alltt}\small
+      program demo9
+      implicit none
+      integer n, nevent, ierror
+      double precision x1, x2, w, cir2dn, cir2lm
+      double precision lumi, lumipp, lumimp, lumipm, lumimm
+      nevent = 20
+      ierror = 1
+      call cir2ld ('default.circe', '*', 500D0, ierror)
+      if (ierror .lt. 0) stop
+      lumipp = cir2lm (22,  1, 22,  1)
+      lumipm = cir2lm (22,  1, 22, -1)
+      lumimp = cir2lm (22, -1, 22,  1)
+      lumimm = cir2lm (22, -1, 22, -1)
+      lumi = lumipp + lumimp + lumipm + lumimm
+      write (*, '(A7,3(X,A10))') '#', 'x1', 'x2', 'weight'
+      do 10 n = 1, nevent
+        call random (x1)
+        call random (x2)
+        w = (   lumipp * cir2dn (22,  1, 22,  1, x1, x2)
+     $        + lumipm * cir2dn (22,  1, 22, -1, x1, x2)
+     $        + lumimp * cir2dn (22, -1, 22,  1, x1, x2)
+     $        + lumimm * cir2dn (22, -1, 22, -1, x1, x2)) / lumi
+        write (*, '(I7,2(X,F10.8),X,E10.4)') n, x1, x2, w
+ 10   continue
+      end
+\end{alltt}
+The results produced by the preceeding pair of examples will differ
+point-by-point, because the
+polarized and the polarization summed distribution will be binned
+differently.  However, all histograms of the results with reasonable bin sizes
+will agree.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Scans and Interpolations}
+\label{sec:interpolation}
+
+Currently there is no supported mechanism for interpolating among
+distributions for the discrete parameter sets.  The most useful
+application of such a facility would be a scan of the energy
+dependence of an observable
+\begin{subequations}
+\label{eq:scan}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \mathcal{O}(s) =
+     \int\!\mathrm{d}x_1\mathrm{d}x_2 \mathrm{d}\Omega\,
+        D(x_1,x_2,s)
+        \frac{\mathrm{d}\sigma}{\mathrm{d}\Omega}(x_1,x_2,s,\Omega)
+        O(x_1,x_2,s,\Omega)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+which has to take into account the $s$-dependence of the
+distribution~$D(x_1,x_2,s)$.  Full simulations of the beam dynamics
+for each value of~$s$ are too costly and
+\KirkeOne/~\cite{Ohl:1996:Circe} supported linear interpolation
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \bar D(x_1,x_2,s)
+    = \frac{(s-s_{-})D(x_1,x_2,s_{+}) + (s_{+}-s)D(x_1,x_2,s_{-})}%
+           {s_{+}-s_{-}}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+\end{subequations}
+as an economical compromise.  However, since
+$\mathcal{O}$~in~(\ref{eq:scan}) is a strictly \emph{linear}
+functional of~$D$, it is mathematically equivalent to
+interpolating~$\mathcal{O}$ itself
+\begin{subequations}
+\label{eq:scan'}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \bar{\mathcal{O}}(s)
+    = \frac{(s-s_{-})\tilde{\mathcal{O}}(s,s_{+})
+              + (s_{+}-s)\tilde{\mathcal{O}}(s,s_{-})}%
+           {s_{+}-s_{-}}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+where
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \tilde{\mathcal{O}}(s,s_0) =
+     \int\!\mathrm{d}x_1\mathrm{d}x_2 \mathrm{d}\Omega\,
+        D(x_1,x_2,s_0)
+        \frac{\mathrm{d}\sigma}{\mathrm{d}\Omega}(x_1,x_2,s,\Omega)
+        O(x_1,x_2,s,\Omega)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+\end{subequations}
+Of course, evaluating the two integrals in~(\ref{eq:scan'}) with
+comparable accuracy demands four times the calculational effort of the
+single integral in~(\ref{eq:scan}). 
+Therefore, if overwhelming demand arises, support for~(\ref{eq:scan})
+can be reinstated, but at the price of a considerably more involved
+API for loading distributions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Algorithms}
+\label{sec:algorithms}
+
+\KirkeTwo/ attempts to recover a probability density~$w(x_{1},x_{2})$
+from a finite set of
+triples~$\left.\{(x_{1,i},x_{2,i},w_{i})\}\right|_{i=1,\ldots,N}$ that
+are known to be distributed according to~$w(x_{1},x_{2})$.  This recovery
+should introduce as little bias as possible.  The solution should
+provide a computable form of~$w(x_{1},x_{2})$ as well as a procedure
+for generating more sets of triples~$\{(x_{1,i},x_{2,i},w_{i})\}$ with
+``the same'' distribution.
+
+The discrete distribution
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \hat w(x_{1},w_{2})
+    = \sum_i w_{i}\delta(x_{1}-x_{1,i})\delta(x_{2}-x_{2,i})
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+adds no bias, but is obviously not an adequate solution of the
+problem, because it depends qualitatively on the sample.  While the
+sought after distribution may contain singularities, their
+number and the dimension of their support
+must not depend on the sample size.  There is, of course, no
+unique solution to this problem and we must allow some prejudices to
+enter in order to single out the most adequate solution.
+
+The method employed by \KirkeOne/ was to select a family of analytical
+distributions that are satisfy reasonable criteria suggested by
+physics~\cite{Ohl:1996:Circe} and select representatives by fitting
+the parameters of these distributions.  This has been unreasonably successful
+for modelling the general properties, but must fail eventually if
+finer details are studied.  Enlarging the families is theoretically
+possible but empirically it turns out that the number of free
+parameters grows faster than the descriptive power of the families.
+
+Another approach is to forego functions that are defined globally by
+an analytical expression and to perform interpolation of binned
+samples, requiring continuity of the distribution and their
+derivatives.  Again, this fails in practice, this time because such
+interpolations tend to create wild fluctuations for statistically
+distributed data and the resulting distributions will often violate
+basic conditions like positivity.
+
+Any attempt to recover the distributions that uses local properties
+will have to bin the data
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  N_{i} = \int_{\Delta_{i}}\!\mathrm{d}x\,w(x)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+with
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \Delta_{i} \cap \Delta_{j} = \emptyset\quad(i\not=j), \qquad
+  \bigcup_{i} \Delta_{i} = [0,1]\times[0,1]
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+Therefore it appears to be eminently reasonable to approximate~$w$ by
+a piecewise constant
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \hat w(x) = \sum_i \frac{N_{i}}{|\Delta_{i}|}\Theta(x\in\Delta_{i})\,.
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+However, this
+procedure alse introduces a bias and if the number of bins is to
+remain finite, this bias cannot be removed.
+
+Nevertheless, one can tune this bias to the problem under study and
+obtain better approximations by making use of the well known fact that
+probability distributions are not invariant under coordinate
+transformations.
+%%% seems not to exist
+% , as described in section~\ref{sec:transformations} below. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Histograms}
+The obvious approach to histogramming is to cover the unit
+square~$[0,1]\times[0,1]$ uniformly with~$n_{b}^2$ squares, but this
+approach is not economical in its use of storage.
+For example, high energy physics studies at
+a~$\sqrt{s}=\unit[500]{GeV}$ LC will require an energy
+resolution of better than~$\unit[1]{GeV}$ and we should bin each beam
+in steps of~$\unit[500]{MeV}$, i.\,e.~$n_{b}=500$.  This results in a
+two dimensional histogram of~$500^{2}=25000$ bins for each combination
+of flavor and helicity.  Using non-portable binary storage, this
+amounts to~\unit[100]{KB} for typical single precision floating point
+numbers and~\unit[200]{KB} for typical double precision floating point
+numbers.
+
+Obviously, binary storage is not a useful exchange format and we have
+to use an ASCII exchange format, which in its human readable form uses
+14~bytes for single precision and 22~bytes for double precision and
+the above estimates have to be changed to~\unit[350]{KB}
+and~\unit[550]{KB} respectively.  We have four flavor combinations if
+pair creation is ignored and nine flavor combinations if it is taken
+into account.  For each flavor combination there are four helicity
+combinations and we arrive at~16 or~$36$ combinations.
+
+Altogether, a fixed bin histogram requires up to~$\unit[20]{MB}$ of
+data for \emph{each} accelerator design at \emph{each} energy step for
+a mere~$1\%$ energy resolution.  While this could be handled with
+modern hardware, we have to keep in mind that the storage requirements
+grow quadratically with the resolution and that several generations of
+designs should be kept available for comparison studies.
+
+For background studies, low energy tails down to the pair production
+threshold~$m_{e}=\unit[511]{KeV}\approx10^{-6}\cdot\sqrt{s}$ have to
+be described correctly.  Obviously, fixed bin histograms are not an
+option at all in this case.
+
+\begin{dubious}
+  mention 2-D Delauney triangulations here
+\end{dubious}
+\begin{dubious}
+  mention Stazsek's FOAM~\cite{Jadach:2000:FOAM} here
+\end{dubious}
+\begin{dubious}
+  praise VEGAS/VAMP
+\end{dubious}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Coordinate Dependence of Sampling Distributions}
+\label{sec:jacobians}
+The contents of this section is well known to all practitioners and is repeated only for
+establishing notation.  For any sufficiently smooth (piecewise
+differentiable suffices) map
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     \phi : D_{x} &\to D_{y} \\
+      x &\mapsto y = \phi(x)
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+integrals of distribution functions $w:D_{y}\to\mathbf{R}$ are
+invariant, as long as we apply the correct Jacobian factor
+\begin{subequations}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \int_{D_{y}}\!\mathrm{d}y\,w(y)
+    = \int_{D_{x}}\!\mathrm{d}x\,\frac{\mathrm{d}\phi}{\mathrm{d}x}\cdot(w\circ\phi)(x)
+    = \int_{D_{x}}\!\mathrm{d}x\,w^{\phi}(x)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+where
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  w^{\phi}(x)
+    = (w\circ\phi)(x)\cdot\frac{\mathrm{d}\phi}{\mathrm{d}x}(x)
+    = \frac{(w\circ\phi)(x)}%
+           {{\displaystyle\left(\frac{\mathrm{d}\phi^{-1}}{\mathrm{d}y}\circ\phi\right)(x)}}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+\end{subequations}
+The fraction can be thought of as being defined by the product, if the
+map~$\phi$ is not invertible.  Below, we will always deal with
+invertible maps and the fraction is more suggestive for our purposes.
+Therefore, $\phi$ induces a pull-back map~$\phi^{*}$ on the space of
+integrable functions
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+\label{eq:pull-back}
+   \begin{aligned}
+     \phi^{*} : L_1(D_{y},\mathbf{R}) &\to L_1(D_{x},\mathbf{R}) \\
+      w &\mapsto w^{\phi}
+            = \frac{w\circ\phi}%
+                   {{\displaystyle\left(\frac{\mathrm{d}\phi^{-1}}%
+                                             {\mathrm{d}y}\circ\phi\right)}}
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+If we find a map~$\phi_{w}$ with~$\mathrm{d}\phi^{-1}/\mathrm{d}y\sim
+w$, then sampling the transformed weight~$w^{\phi_{w}}$ will be very
+stable, even if sampling the original weight~$w$ is not.
+
+On the other hand, the inverse map
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     (\phi^{*})^{-1} : L_1(D_{x},\mathbf{R}) &\to L_1(D_{y},\mathbf{R}) \\
+      w &\mapsto w^{(\phi^{-1})}
+          = \left(\frac{\mathrm{d}\phi^{-1}}{\mathrm{d}y}\right)
+              \cdot(w\circ\phi^{-1})
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+with $(\phi^{-1})^{*}=(\phi^{*})^{-1}$ can be used to transform a
+uniform distribution into the potentially much more
+interesting~$\mathrm{d}\phi^{-1}/\mathrm{d}y$.
+
+\subsection{Sampling Distributions With Integrable Singularities}
+A typical example appearing in \KirkeOne/
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \int^{1}\!\mathrm{d}x\,w(x)
+    \approx \int^{1}\!\mathrm{d}x\,(1-x)^{\beta}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+converges for~$\beta>-1$, while the variance
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \int^{1}\!\mathrm{d}x\,(w(x))^{2}
+    \approx \int^{1}\!\mathrm{d}x\,(1-x)^{2\beta}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+does not converge for~$\beta\le-1/2$.  Indeed, this case is the
+typical case for realistic beamstrahlung spectra at
+$\mathrm{e}^+\mathrm{e}^-$ LCs and has to covered.
+
+Attempting a naive VEGAS/VAMP adaption fails, because the
+\emph{nonintegrable} variance density acts as a sink for bins, even
+though the density itself is integrable.
+\begin{dubious}
+  \begin{itemize}
+    \item examples show that moments of distributions are reproduced
+      \emph{much} better after mapping, even if histograms look
+      indistinguishable.
+    \item biasing doesn't appear to work as well as fences
+  \end{itemize}
+\end{dubious}
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(50,40)
+      pickup pencircle scaled 1.0pt;
+      setrange (0, 0, 1, 0.8);
+      autogrid (otick.bot,);
+      frame.bot;
+      path p;
+      for x = 0.001 step 0.01 until 0.9:
+        augment.p (x, 0.2 * (x ** (-0.2)) + 0.001 / ((x - 0.7)**2 + 0.003));
+      endfor
+      gdraw p;
+      glabel.top (btex $\epsilon$ etex, (0.02, 0.02));
+      glabel.top (btex $\hat y$ etex, (0.4, 0.02));
+      glabel.lft (btex $w(y)$ etex, (-0.02, 0.7));
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:sample-distribution}%
+    Distribution with both an integrable singularity $\propto x^{-0.2}$
+    and a peak at finite~$x\approx 0.7$.}
+\end{figure}
+The distributions that we want to describe can contain integrable
+singularities and $\delta$-distributions at the endpoints.  Since
+there is always a finite resolution, both contributions can be
+handled by a finite binsize at the endpoints.  However, we can expect
+to improve the convergence of the grid adaption in neighborhoods of the
+singularities by canceling the singularities with the Jacobian of a
+power map. Also the description of the distribution \emph{inside} each
+bin will be improved for reasonable maps.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Piecewise Differentiable Maps}
+\label{sec:PDM}
+\begin{dubious}
+   blah, blah, blah
+\end{dubious}
+Ansatz:
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     \Phi_{\{\phi\}} : [X_{0},X_{1}]
+        &\to [Y_{0},Y_{1}] \\
+      x &\mapsto \Phi_{\{\phi\}}(x)
+           = \sum_{i=1}^{n} \Theta(x_{i}-x) \Theta(x-x_{i-1}) \phi(x)
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+with~$x_{0}=X_{0}$, $x_{n}=X_{1}$ and~$x_{i} > x_{i-1}$. In each
+interval 
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     \phi_{i} : [x_{i-1},x_{i}]
+        &\to [y_{i-1},y_{i}] \\
+      x &\mapsto y = \phi_{i}(x)
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+with $y_{0}=Y_{0}$, $y_{n}=Y_{1}$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Powers}
+\begin{dubious}
+  integrable singularities
+\end{dubious}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     \psi_{a_{i},b_{i}}^{\alpha_{i},\xi_{i},\eta_{i}} :
+       [x_{i-1},x_{i}] &\to [y_{i-1},y_{i}] \\
+      x &\mapsto \psi_{a_{i},b_{i}}^{\alpha_{i},\xi_{i},\eta_{i}}(x)
+             = \frac{1}{b_{i}}(a_{i}(x-\xi_{i}))^{\alpha_{i}} + \eta_{i}
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+We assume~$\alpha_{i}\not=0$, $a_{i}\not=0$ and~$b_{i}\not=0$.
+Note that~$\psi_{a,b}^{\alpha,\xi,\eta}$ encompasses both typical cases
+for integrable endpoint singularities ~$x\in[0,1]$:
+\begin{subequations}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{align}
+   \psi_{1,1}^{\alpha,0,0}(x) & = x^{\alpha} \\
+   \psi_{-1,-1}^{\alpha,1,1}(x) & = 1 - (1-x)^{\alpha}
+\end{align}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+\end{subequations}
+The inverse maps are
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     (\psi_{a_{i},b_{i}}^{\alpha_{i},\xi_{i},\eta_{i}})^{-1} :
+      [y_{i-1},y_{i}] &\to [x_{i-1},x_{i}] \\
+      y &\mapsto (\psi_{a_{i},b_{i}}^{\alpha_{i},\xi_{i},\eta_{i}})^{-1}(y)
+               = \frac{1}{a_{i}} (b_{i}(y-\eta_{i}))^{1/\alpha_{i}} + \xi_{i}
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+and incidentally:
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  (\psi_{a,b}^{\alpha,\xi,\eta})^{-1} = \psi_{b,a}^{1/\alpha,\eta,\xi}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+The Jacobians are
+\begin{subequations}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{align}
+  \frac{\mathrm{d}y}{\mathrm{d}x} (x)
+     &= \frac{a\alpha}{b} (a(x-\xi))^{\alpha-1} \\
+\label{eq:pull-back-power}
+  \frac{\mathrm{d}x}{\mathrm{d}y} (y)
+     &= \frac{b}{a\alpha} (b(y-\eta))^{1/\alpha-1}
+\end{align}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+\end{subequations}
+and satisfy, of course,
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \frac{\mathrm{d}x}{\mathrm{d}y} (y(x))
+    = \frac{1}{{\displaystyle\frac{\mathrm{d}y}{\mathrm{d}x} (x)}}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+In order to get a strictly monotonous function, we require
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \frac{a\alpha}{b} > 0
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+Since we will see below that almost always in practical
+applications~$\alpha>0$, this means~$\epsilon(a)=\epsilon(b)$.
+
+From~(\ref{eq:pull-back}) and~(\ref{eq:pull-back-power}), we see that
+this map is useful for handling weights\footnote{%
+  The limiting case~$(y-\eta)^{-1}$ could be covered by
+  maps~$x\mapsto\mathrm{e}^{a(x-\xi)}/b+\eta$, where the
+  non-integrability of the density is reflected in the fact that the
+  domain of the map is semi-infinite
+  (i.\,e.~$x\to-\epsilon(a)\cdot\infty$).  In physical applications,
+  the densities are usually integrable and we do not consider this
+  case in the following.}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   w(y) \propto (y-\eta)^{\beta}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+for $\beta>-1$, if we choose~$\beta-(1/\alpha-1)\ge0$,
+i.\,e.~$\alpha\gtrsim 1/(1+\beta)$.
+
+The five parameters $(\alpha,\xi,\eta,a,b)$ are partially redundant.
+Indeed, there is a one parameter semigroup of transformations
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+\label{eq:ab-semigroup}
+  (\alpha,\xi,\eta,a,b) \to (\alpha,\xi,\eta,at,bt^{\alpha}),
+     \qquad (t > 0)
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+that leaves~$\psi_{a,b}^{\alpha,\xi,\eta}$ invariant:
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \psi_{a,b}^{\alpha,\xi,\eta} = \psi_{at,bt^{\alpha}}^{\alpha,\xi,\eta}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+Assuming that multiplications are more efficient than sign transfers,
+the redundant representation is advantageous.  Unless sign transfers
+are implemented directly in hardware, they involve a branch in the
+code and the assumption appears to be reasonable.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Identity}
+The identity map
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     \iota : [x_{i-1},x_{i}]
+        &\to [y_{i-1},y_{i}] = [x_{i-1},x_{i}] \\
+      x &\mapsto \iota(x) = x
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+is a special case of the power map~$\iota=\psi_{1,1}^{1,0,0}$, but,
+for efficiency,  it is useful to provide a dedicated
+``implementation'' anyway.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Resonances}
+\begin{dubious}
+  \begin{itemize}
+    \item not really needed in the applications so far, because the
+      variance remains integrable.
+    \item no clear example for significantly reduced numbers of bins
+      for the same qualitaty with mapping.
+    \item added for illustration.
+  \end{itemize}
+\end{dubious}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     \rho_{a_{i},b_{i}}^{\xi_{i},\eta_{i}}: [x_{i-1},x_{i}]
+        &\to [y_{i-1},y_{i}] \\
+      x &\mapsto \rho_{a_{i},b_{i}}^{\xi_{i},\eta_{i}}(x)
+         = a_{i} \tan\left(\frac{a_{i}}{b_{i}^2}(x-\xi_{i})\right) + \eta_{i}
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+Inverse
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \begin{aligned}
+     (\rho_{a_{i},b_{i}}^{\xi_{i},\eta_{i}})^{-1}: [y_{i-1},y_{i}]
+        &\to [x_{i-1},x_{i}] \\
+      y &\mapsto (\rho_{a_{i},b_{i}}^{\xi_{i},\eta_{i}})^{-1}(y)
+          = \frac{b_{i}^2}{a_{i}}
+            \textrm{atan}\left(\frac{y-\eta_{i}}{a_{i}}\right) + \xi_{i}
+   \end{aligned}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+is useful for mapping \emph{known} peaks, since
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+   \frac{\mathrm{d}\phi^{-1}}{\mathrm{d}y}(y)
+     = \frac{\mathrm{d}x}{\mathrm{d}y}(y)
+     = \frac{b^2}{(y-\eta)^2+a^2}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Patching Up}
+Given a collection of intervals with associated maps, it remains to
+construct a combined map.  Since \emph{any} two intervals can be mapped
+onto each other by a map with constant Jacobian, we have a ``gauge''
+freedom and must treat~$x_{i-1}$ and~$x_{i}$ as free parameters in
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  \psi_{a_{i},b_{i}}^{\alpha_{i},\xi_{i},\eta_{i}} :
+     [x_{i-1},x_{i}] \to [y_{i-1},y_{i}]
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+i.\,e.
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+\label{eq:interval-constraint}
+    x_{j} = (\psi_{a_{i},b_{i}}^{\alpha_{i},\xi_{i},\eta_{i}})^{-1}(y_{j})
+          = \frac{1}{a_{i}}(b_{i}(y_{j}-\eta_{i}))^{1/\alpha_{i}} + \xi_{i}
+    \qquad \text{for}\; j\in\{i-1,i\}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+Since $\alpha$~and~$\eta$ denote the strength and the location of the
+singularity, respectively, they are the relevant input parameters and
+we must solve the constraints~(\ref{eq:interval-constraint})
+for~$\xi_{i}$, $a_{i}$ and~$b_{i}$.  Indeed a family of solutions is
+\begin{subequations}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{align}
+\label{eq:ai}
+  a_{i}   &= \frac{   (b_{i}(y_{i}-\eta_{i}))^{1/\alpha_{i}}
+                    - (b_{i}(y_{i-1}-\eta_{i}))^{1/\alpha_{i}}}%
+                  {x_{i} - x_{i-1}} \\
+  \xi_{i} &= \frac{   x_{i-1}|y_{i}  -\eta_{i}|^{1/\alpha_{i}}
+                    - x_{i}  |y_{i-1}-\eta_{i}|^{1/\alpha_{i}}}%
+                  {          |y_{i}  -\eta_{i}|^{1/\alpha_{i}}
+                    -        |y_{i-1}-\eta_{i}|^{1/\alpha_{i}}}
+\end{align}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+\end{subequations}
+which is unique up to~(\ref{eq:ab-semigroup}).  The
+degeneracy~(\ref{eq:ab-semigroup}) can finally be resolved by
+demanding~$|b|=1$ in~(\ref{eq:ai}).
+
+It remains to perform a `gauge fixing' and choose the
+domains~$[x_{i-1},x_{i}]$. The minimal solution is~$x_{i}=y_{i}$ for
+all~$i$, which maps the boundaries between different mappings onto
+themselves and we need only to store
+either~$\{x_{0},x_{1},\ldots,x_{n}\}$
+or~$\{y_{0},y_{1},\ldots,y_{n}\}$. 
+
+For the resonance map
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{equation}
+  x_{j} = (\rho_{a_{i},b_{i}}^{\xi_{i},\eta_{i}})^{-1}(y_{j})
+        = \frac{b_{i}^2}{a_{i}}
+            \textrm{atan}\left(\frac{y_{j}-\eta_{i}}{a_{i}}\right)
+              + \xi_{i}
+    \qquad \text{for}\; j\in\{i-1,i\}
+\end{equation}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+i.\,e.
+\begin{subequations}
+%HEVEA\begin{center}
+%BEGIN IMAGE
+\begin{align}
+  b_{i}
+    &= \sqrt{a_{i}
+         \frac{x_{i}-x_{i-1}}%
+              {   \textrm{atan}\left(\frac{y_{i}  -\eta_{i}}{a_{i}}\right)
+                - \textrm{atan}\left(\frac{y_{i-1}-\eta_{i}}{a_{i}}\right)}} \\
+  \xi_{i}
+    &= \frac{   x_{i-1}\textrm{atan}\left(\frac{y_{i}  -\eta_{i}}{a_{i}}\right)
+              - x_{i}  \textrm{atan}\left(\frac{y_{i-1}-\eta_{i}}{a_{i}}\right)}%
+            {x_{i}-x_{i-1}}
+\end{align}
+%END IMAGE
+%HEVEA\imageflush
+%HEVEA\end{center}
+\end{subequations}
+as a function of the physical peak location~$\eta$ and width~$a$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Preparing Beam Descriptions with \texttt{circe2\_tool}}
+\label{sec:circe2_tool-user}
+\begin{dubious}
+  rationale
+\end{dubious}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\texttt{circe2\_tool} Files}
+\begin{dubious}
+  \texttt{\{} and \texttt{\}}
+\end{dubious}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Per File Options}
+
+\begin{params}
+  \item \texttt{file}: a double quote delimited string denoting the
+    name of the output file that will be read by \texttt{cir2ld} (in
+    the format described in table~\ref{tab:fileformat}).
+\end{params}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Per Design Options}
+
+\begin{params}
+  \item \texttt{design}: a double quote delimited string denoting a
+    name for the design.  See the description of~\texttt{cir2ld} on
+    page~\pageref{pg:cir2ld} for conventions for these names.
+  \item \texttt{roots}: $\sqrt{s}/\unit{GeV}$ of the accelerator design.
+  \item \texttt{bins}: number of bins for the histograms in both
+    directions. \texttt{bins/1} and \texttt{bins/2} apply only
+    to~$x_{1}$ and~$x_{2}$ respectively.  This number can be
+    overwritten by channel options.
+  \item \texttt{comment}: a double quote delimited string denoting a
+    one line comment that will be copied to the output file.  This
+    command can be repeated.
+\end{params}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Per Channel Options}
+
+If an option can apply to either beam or both, it can be qualified
+by~\texttt{/1} or~\texttt{/2}.  For example, \texttt{bins} applies to
+both beams, while \texttt{bins/1} and \texttt{bins/2} apply only
+to~$x_{1}$ and~$x_{2}$ respectively.
+\begin{params}
+  \item \texttt{bins}: number of bins for the histograms.  These
+    overwrite the per-design option.
+  \item \texttt{pid}: particle identification: either a PDG
+    code~\cite{PDG} (see page~\ref{pg:PDG-codes}) or one of
+    \texttt{gamma}, \texttt{photon}, \texttt{electron},
+    \texttt{positron}.
+  \item \texttt{pol}: polarization: one of~$\{-1,0,1\}$, where
+    $0$~means unpolarized (see page~\ref{pg:PDG-codes}).
+  \item \texttt{min}: minimum value of the coordinate(s).  The default is~$0$.
+  \item \texttt{max}: maximum value of the coordinate(s).  The default is~$1$.
+  \item \texttt{fix}
+  \item \texttt{free}
+  \item \texttt{map}: apply a map to a subinterval.  Currently, three
+    types of maps are supported:
+    \begin{params}
+      \item \verb+id {+ $n$
+        \verb+[+$x_{\min}$\verb+,+$x_{\max}$\verb+] }+: apply an
+        identity map in the interval~$[x_{\min},x_{\max}]$ subdivided
+        into~$n$ bins.  The non-trivial effect of this map is that the
+        endpoints~$x_{\min}$ and~$x_{\max}$ are frozen.
+      \item \verb+power {+ $n$
+        \verb+[+$x_{\min}$\verb+,+$x_{\max}$%
+        \verb+] beta = +$\beta$\verb+ eta = +$\eta$\verb+ }+: apply a
+        power map in the interval~$[x_{\min},x_{\max}]$ subdivided
+        into~$n$ bins.  $\alpha = 1 / (1 + \beta)$, such that an
+        integrable singularity at~$\eta$ with power~$\beta$ is mapped
+        away. This is the most important map in practical applications
+        and manual fine tuning is rewarded.
+      \item \verb+resonance {+ $n$
+        \verb+[+$x_{\min}$\verb+,+$x_{\max}$%
+        \verb+] center = +$\eta$\verb+ width = +$a$\verb+ }+: apply a
+        resonance map in the interval~$[x_{\min},x_{\max}]$ subdivided
+        into~$n$ bins.  This map is hardly ever needed, since
+        VEGAS/VAMP appears to be able to handle non-singular peaks very well.
+    \end{params}
+  \item \texttt{triangle}
+  \item \texttt{notriangle}
+  \item \texttt{lumi}: luminosity of the beam design, it units of
+    \begin{equation}
+      \unit{fb}^{-1}\upsilon^{-1} = 10^{32} \unit{cm}^{-2}\unit{sec}^{-1}
+    \end{equation}
+    where $\upsilon=\unit[10^7]{sec}\approx \unit{year}/\pi$ is an
+    ``effective year'' of running with about 30\%\ up-time
+  \item \texttt{events}: a double quote delimited string denoting the
+    name of the input file.
+  \item \texttt{ascii}: input file contains formatted ASCII numbers.
+  \item \texttt{binary}: input file is in raw binary format that can
+    be accessed by fast memory mapped I/O.  Such files are not
+    portable and must not contain Fortran record markers.
+  \item \texttt{columns}: number of columns in a binary file.
+  \item \texttt{iterations}: maximum number of iterations of the
+    VEGAS/VAMP refinement.  It is not necessary to set this
+    parameter, but e.\,g.~\texttt{iterations = 0} is useful for
+    illustrating the effect of adaption.
+\end{params}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\texttt{circe2\_tool} Demonstration}
+\label{sec:demonstration}
+
+We can use the example of figure~\ref{fig:z} (a simulated realistic
+$\gamma\gamma$ luminosity spectrum (helicities:~$(+,+)$) for a
+\unit[500]{GeV} photon collider at TESLA~\cite{Telnov:2001:priv}) to
+demonstrate the effects of different options.  In order to amplify the
+effects, only 20~bins are used in each direction, but
+figure~\ref{fig:z/20/m} will show that adequate results are achievable
+in this case too.
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z.input.histo", $,
+        augment.simulation ($1, smin (4, 100 Smul $2));)
+      gdata ("z.20q.histo", $,
+        augment.circe[0] ($1, smin (4, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z_low.input.histo", $,
+        augment.simulation ("1.0e4" Smul $1, "1.0e4" Smul $2);)
+      gdata ("z_low.20q.histo", $,
+        augment.circe[0] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      gdata ("z_low.50q.histo", $,
+        augment.circe[1] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      gdraw circe[1];
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}\times10^{4}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:z/20/q}%
+    Using 20~equidistant bins in each direction. In the region blown
+    up on the right neither 20~equidistant bins nor 50~equidistant bin
+    produce enough events to be visible.  In this and all following
+    plots, the simulated input data is shown as a filled histogram,
+    and the \KirkeTwo/ parametrization is shown as a solid line.}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 8);
+      path simulation, circe[];
+      gdata ("x.input.histo", $,
+        augment.simulation ($1, smin (8, 100 Smul $2));)
+      gdata ("x.20q.histo", $,
+        augment.circe[0] ($1, smin (8, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $x_{1}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 8);
+      path simulation, circe[];
+      gdata ("x.input.histo", $,
+        augment.simulation ($1, smin (8, 100 Smul $2));)
+      gdata ("x.20.histo", $,
+        augment.circe[0] ($1, smin (8, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $x_{1}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:x/20/q}%
+    Using 20~bins, both equidistant~(left) and adapted~(right).}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z.input.histo", $,
+        augment.simulation ($1, smin (4, 100 Smul $2));)
+      gdata ("z.20.histo", $,
+        augment.circe[0] ($1, smin (4, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z_low.input.histo", $,
+        augment.simulation ("1.0e4" Smul $1, "1.0e4" Smul $2);)
+      gdata ("z_low.20.histo", $,
+        augment.circe[0] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      gdata ("z_low.50.histo", $,
+        augment.circe[1] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      gdraw circe[1];
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}\times10^{4}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:z/20}%
+    20~adapted bins.  In the blow-up, the 50~bin result is shown for
+    illustration as a thin line, while the 20~bin result remains
+    almost invisible.}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z.input.histo", $,
+        augment.simulation ($1, smin (4, 100 Smul $2));)
+      gdata ("z.20qm.histo", $,
+        augment.circe[0] ($1, smin (4, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z_low.input.histo", $,
+        augment.simulation ("1.0e4" Smul $1, "1.0e4" Smul $2);)
+      gdata ("z_low.20qm.histo", $,
+        augment.circe[0] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}\times10^{4}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:z/20/qm}%
+    Using 20~equidistant bins in each direction with a power map
+    appropriate for~$x^{-0.67}$.}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 8);
+      path simulation, circe[];
+      gdata ("x.input.histo", $,
+        augment.simulation ($1, smin (8, 100 Smul $2));)
+      gdata ("x.20qm.histo", $,
+        augment.circe[0] ($1, smin (8, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $x_{1}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 8);
+      path simulation, circe[];
+      gdata ("x.input.histo", $,
+        augment.simulation ($1, smin (8, 100 Smul $2));)
+      gdata ("x.20m.histo", $,
+        augment.circe[0] ($1, smin (8, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $x_{1}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:x/20/m}%
+    Using 20~bins with a power map appropriate for~$x^{-0.67}$,
+    equidistant~(left) and adapted~(right).}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z.input.histo", $,
+        augment.simulation ($1, smin (4, 100 Smul $2));)
+      gdata ("z.20m.histo", $,
+        augment.circe[0] ($1, smin (4, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z_low.input.histo", $,
+        augment.simulation ("1.0e4" Smul $1, "1.0e4" Smul $2);)
+      gdata ("z_low.20m.histo", $,
+        augment.circe[0] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}\times10^{4}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:z/20/m}%
+    Using 20~adapted bins in each direction with a power map
+    appropriate for~$x^{-0.67}$.}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+%BEGIN IMAGE
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z.input.histo", $,
+        augment.simulation ($1, smin (4, 100 Smul $2));)
+      gdata ("z.20m2.histo", $,
+        augment.circe[0] ($1, smin (4, 100 Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}$ etex, OUT);
+    \end{empgraph}
+    \quad
+    \begin{empgraph}(55,40)
+      vardef smin (expr a, b) = if a Sleq b: a else: b fi enddef;
+      setrange (0, 0, 1, 4);
+      path simulation, circe[];
+      gdata ("z_low.input.histo", $,
+        augment.simulation ("1.0e4" Smul $1, "1.0e4" Smul $2);)
+      gdata ("z_low.20m2.histo", $,
+        augment.circe[0] ("1.0e4" Smul $1, smin (4, "1.0e4" Smul $2));)
+      pickup pencircle scaled 0.5pt;
+      augment.simulation (1,0);
+      augment.simulation (0,0);
+      gfill (simulation -- cycle) withcolor (0.7,0.7,0.7);
+      pickup pencircle scaled 1pt;
+      gdraw circe[0];
+      pickup pencircle scaled 0.5pt;
+      glabel.bot (btex $z=\sqrt{x_{1}x_{2}}\times10^{4}$ etex, OUT);
+    \end{empgraph}
+%END IMAGE
+%HEVEA\imageflush
+  \end{center}
+  \caption{\label{fig:z/20/m2}%
+    Using $4+16$~adapted bins in each direction with a power map
+    appropriate for~$x^{-0.67}$ in the 4~bins below~$x<0.05$.}
+\end{figure}
+
+In figure~\ref{fig:z/20/q}, 20~equidistant bins in each direction
+\begin{alltt}
+  bins = 20 iterations = 0
+\end{alltt}
+produce an acceptable description of the high energy peak but are
+clearly inadequate for~$z<0.2$.  In the blown up region, neither
+20~equidistant bins nor 50~equidistant bin produce more than a handful
+of events and remain almost invisible.  The bad low energy behaviour
+can be understood from the convolution of the obviously coarse
+approximations in left figure of figure~\ref{fig:x/20/q}.  Letting the
+grid adapt
+\begin{alltt}
+  bins = 20
+\end{alltt}
+produces a much better approximation in the right figure of
+figure~\ref{fig:x/20/q}.  And indeed, the convolution in
+figure~\ref{fig:z/20} is significantly improved for~$x\lesssim0.2$,
+but remains completely inadequate in the very low energy region, blown
+up on the right hand side.
+
+A better description of the low energy tail requires a power map
+and figure~\ref{fig:z/20/qm} shows that equidistant bins
+\begin{alltt}
+  map = power \{ 20 [0,1] beta = -0.67 eta = 0 \} iterations = 0
+\end{alltt}
+already produce a much improved description of the low energy region,
+including the blow-up on the right hand side.  However, the
+description of the peak has gotten much worse, which is explained by
+the coarsening of the bins in the high energy region, as shown in
+figure~\ref{fig:x/20/m}.  The best result is obtained by combining a
+power map with adaption
+\begin{alltt}
+  map = power \{ 20 [0,1] beta = -0.67 eta = 0 \}
+\end{alltt}
+with the results depicted in figure~\ref{fig:z/20/m}.  Balancing the
+number of bins used for a neighborhood of the integrable singularity
+at~$x_{i}\to0$ and the remainder can be improved by allocating a fixed
+number of bins for each
+\begin{alltt}
+  map = power \{ 4 [0,0.05] beta = -0.67 eta = 0 \}
+  map = id \{ 16 [0.05,1] \}
+\end{alltt}
+as shown in figure~\ref{fig:z/20/m2}.  If the data were not
+stochastic, this manual allocation would not be necessary, because the
+neighborhood of the singularity would not contribute to the variance
+and consequently use few bins.  However, the stochastic variance an
+not be suppressed and will pull in more bins than useful.  If the
+power of the map were overcompensating the power of the singularity,
+instead of being tuned to it, the limit~$x_{i}\to0$ would would be
+suppressed automatically.  But in this case, the low-energy tail could
+not be described accurately.
+
+The description with 20~bins in figure~\ref{fig:z/20/m2} is not as
+precise as the 50~bins
+\begin{alltt}
+  map = power \{ 10 [0,0.05] beta = -0.67 eta = 0 \}
+  map = id \{ 40 [0.05,1] \}
+\end{alltt}
+in figure~\ref{fig:z}, but can suffice for many studies and requires
+less than one sixth of the storage space.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{More \texttt{circe2\_tool} Examples}
+Here is an example that can be used to demonstrate the beneficial
+effects of powermaps.  The simulated events in
+\texttt{teslagg\_500.gg.++.events} are processed once with map and
+once without a map.  Both times 50~bins are used in each direction.
+\begin{verbatim}
+{ file = "test_mappings.circe"
+  { design = "TESLA" roots = 500
+    { pid/1 = 22 pid/2 = 11 pol/1 = 1 pol/2 = 1
+      events = "teslagg_500.gg.++.events" binary lumi = 110.719
+      bins/1 = 50
+      map/2 = id { 49 [0,0.9999999999] }
+      map/2 = id { 1 [0.9999999999,1] } } }
+  { design = "TESLA (mapped)" roots = 500
+    { pid/1 = 22 pid/2 = 11 pol/1 = 1 pol/2 = 1
+      events = "teslagg_500.gg.++.events" binary lumi = 110.719
+      map/1 = power { 50 [0,1] beta = -0.67 eta = 0 }
+      map/2 = power { 49 [0,0.9999999999] beta = -0.6 eta = 1 }
+      map/2 = id { 1 [0.9999999999,1] } } } }
+\end{verbatim}
+In a second step, the distributions generated from both designs in
+\texttt{test\_mappings.circe} can be compared with the original
+distribution.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}
+  \begin{center}
+    \begin{tabular}{lcl}
+       \verb+!+ \textit{any comment}               & & optional, repeatable \\
+       \verb+CIRCE2 FORMAT#1+                      & & mandatory start line \\
+       \verb+design, roots+                        & & \\
+       \verb+'+\textit{name}\verb+'+\quad$\sqrt{s}$& & mandatory quotes! \\
+       \verb+#channels, pol.support+               & & \\
+       $n_{c}$\quad\verb+'+\textit{name}\verb+'+   & & mandatory quotes! \\
+       \verb+pid1, pol1, pid2, pol2, lumi+
+         & $\rceil$ & repeat $n_{c}$ times \\
+       $p_1\;h_1\;p_2\;h_2\;\int\!\mathcal{L}$     & & \\
+       \verb+#bins1, #bins2, triangle?+            & & \\
+       $n_{1}\;n_{2}\;t$                           & & \\
+       \verb+x1, map1, alpha1, xi1, eta1, a1, b1+
+         & & \\
+       $x_{1,0}^{\hphantom{2,n_{2}}}$
+         & & \\
+       $x_{1,1}^{\hphantom{2,n_{2}}}\;
+        m_{1,1}^{\hphantom{2,n_{2}}}\;
+        \alpha_{1,1}^{\hphantom{2,n_{2}}}\;
+        \xi_{1,1}^{\hphantom{2,n_{2}}}\;
+        \eta_{1,1}^{\hphantom{2,n_{2}}}\;
+        a_{1,1}^{\hphantom{2,n_{2}}}\;
+        b_{1,1}$
+         & & \\
+       $\ldots$
+         & & \\
+       $x_{1,n_{1}}^{\hphantom{2,n_{2}}}\;
+        m_{1,n_{1}}^{\hphantom{2,n_{2}}}\;
+        \alpha_{1,n_{1}}^{\hphantom{2,n_{2}}}\;
+        \xi_{1,n_{1}}^{\hphantom{2,n_{2}}}\;
+        \eta_{1,n_{1}}^{\hphantom{2,n_{2}}}\;
+        a_{1,n_{1}}^{\hphantom{2,n_{2}}}\;
+        b_{1,n_{1}}$
+         & & \\
+       \verb+x2, map2, alpha2, xi2, eta2, a2, b2+
+         & & \\
+       $x_{2,0}^{\hphantom{2,n_{2}}}$
+         & & \\
+       $x_{2,1}^{\hphantom{2,n_{2}}}\;
+        m_{2,1}^{\hphantom{2,n_{2}}}\;
+        \alpha_{2,1}^{\hphantom{2,n_{2}}}\;
+        \xi_{2,1}^{\hphantom{2,n_{2}}}\;
+        \eta_{2,1}^{\hphantom{2,n_{2}}}\;
+        a_{2,1}^{\hphantom{2,n_{2}}}\;
+        b_{2,1}^{\hphantom{2,n_{2}}}$
+         & & \\
+       $\ldots$
+         & & \\
+       $x_{2,n_{2}}^{\hphantom{2,n_{2}}}\;
+        m_{2,n_{2}}^{\hphantom{2,n_{2}}}\;
+        \alpha_{2,n_{2}}^{\hphantom{2,n_{2}}}\;
+        \xi_{2,n_{2}}^{\hphantom{2,n_{2}}}\;
+        \eta_{2,n_{2}}^{\hphantom{2,n_{2}}}\;
+        a_{2,n_{2}}^{\hphantom{2,n_{2}}}\;
+        b_{2,n_{2}}^{\hphantom{2,n_{2}}}$
+         & & \\
+       \verb+weights+                              & & \\
+       $w_{1}\;\;[w_1\chi_{1}^{0,1}\;\;w_1\chi_{1}^{0,2}\;\;
+                  \ldots\;\;w_1\chi_{1}^{3,3}]$
+         & & optional $w\cdot\chi$ \\
+       $w_{2}\;\;[w_1\chi_{2}^{0,1}\;\;w_1\chi_{2}^{0,2}\;\;
+                  \ldots\;\;w_1\chi_{2}^{3,3}]$        & & \\
+       $\ldots$                                    & & \\
+       $w_{n_1n_2}\;\;[w_1\chi_{n_1n_2}^{0,1}\;\;w_1\chi_{n_1n_2}^{0,2}\;\;
+                       \ldots\;\;w_1\chi_{n_1n_2}^{3,3}]$ 
+         & $\rfloor$ & end repeat \\
+       \verb+ECRIC2+
+         & & mandatory end line
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:fileformat}
+    File format.  The variable input lines (except comments) are
+    designed to be readable by FORTRAN77 `list-directed' input.  The
+    files are generated from simulation data with the program
+    \texttt{circe2\_tool} and are read transparently by the procedure
+    \texttt{cir2ld}. The format is documented here only for
+    completeness.}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{On the Implementation of \texttt{circe2\_tool}}
+\label{sec:circe2_tool-implementation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Divisions}
+
+\begin{figure}
+%BEGIN LATEX
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+%END LATEX
+\begin{alltt}\small
+module type Division =
+  sig
+    type t
+    val copy : t -> t
+    val record : t -> float -> float -> unit
+    val rebin : ?power:float -> t -> t
+    val find : t -> float -> int
+    val bins : t -> float array
+    val to_channel : out_channel -> t -> unit
+  end
+\end{alltt}
+%BEGIN LATEX
+    \end{minipage}
+  \end{center}
+%END LATEX
+  \caption{\label{fig:division}%
+    O'Caml signature for divisions. \texttt{Division.t} is
+    the abstract data type for division of a real interval.
+    Note that \texttt{Division} does \emph{not} contain a function
+    \texttt{create : \ldots{} -> t} for constructing maps.  This
+    is provided by concrete implementations (see
+    figures~\protect\ref{fig:mono_division}
+    and~\protect\ref{fig:poly_division}), that can be
+    projected on \texttt{Diffmap}}
+\end{figure}
+
+\begin{figure}
+%BEGIN LATEX
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+%END LATEX
+\begin{alltt}\small
+module type Mono_Division =
+  sig
+    include Division
+    val create : int -> float -> float -> t
+  end
+\end{alltt}
+%BEGIN LATEX
+    \end{minipage}
+  \end{center}
+%END LATEX
+  \caption{\label{fig:mono_division}%
+    O'Caml signature for simple divisions of an interval.
+    The \texttt{create} function returns an equidistant
+    starting division.}
+\end{figure}
+
+\begin{dubious}
+  VEGAS/VAMP, basically \ldots
+\end{dubious}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Differentiable Maps}
+
+\begin{figure}
+%BEGIN LATEX
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+%END LATEX
+\begin{alltt}\small
+module type Diffmap =
+  sig
+    type t
+    type domain
+    val x_min : t -> domain
+    val x_max : t -> domain
+    type codomain
+    val y_min : t -> codomain
+    val y_max : t -> codomain
+    val phi : t -> domain -> codomain
+    val ihp : t -> codomain -> domain
+    val jac : t -> domain -> float
+    val caj : t -> codomain -> float
+  end
+
+module type Real_Diffmap =
+  T with type domain = float and type codomain = float
+\end{alltt}
+%BEGIN LATEX
+    \end{minipage}
+  \end{center}
+%END LATEX
+  \caption{\label{fig:diffmap}%
+    O'Caml signature for differentiable maps.  \texttt{Diffmap.t} is
+    the abstract data type for differentiable maps.  Note that
+    \texttt{Diffmap} does \emph{not} contain a functions like
+    \texttt{create : \ldots{} -> t} for constructing maps.  These
+    are provided by concrete implementations, that can be
+    projected onto \texttt{Diffmap}.}
+\end{figure}
+
+\begin{figure}
+%BEGIN LATEX
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+%END LATEX
+\begin{alltt}\small
+module type Real_Diffmaps =
+  sig
+    include Real_Diffmap
+    val id : float -> float -> t
+  end
+\end{alltt}
+%BEGIN LATEX
+    \end{minipage}
+  \end{center}
+%END LATEX
+  \caption{\label{fig:diffmaps}%
+    Collections of real differentiable maps, including at least
+    the identity.  The function \texttt{id} returns an identity
+    map from a real interval onto itself.}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Polydivisions}
+
+\begin{figure}
+%BEGIN LATEX
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+%END LATEX
+\begin{alltt}\small
+module type Poly_Division =
+  sig
+    include Division
+    module M : Real_Diffmaps
+    val create :
+      (int * M.t) list -> int -> float -> float -> t
+  end
+
+module Make_Poly_Division (M : Real_Diffmaps) :
+  Poly_Division with module Diffmaps = M
+\end{alltt}
+%BEGIN LATEX
+    \end{minipage}
+  \end{center}
+%END LATEX
+  \caption{\label{fig:poly_division}%
+    O'Caml signature for divisions of an interval, with
+    piecewise differentiable mappings, as specified by
+    the first argument of \texttt{create}.  The functor
+    \texttt{Make\_Poly\_Division} \ldots}
+\end{figure}
+
+\begin{dubious}
+  patched divisions \ldots
+\end{dubious}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Grids}
+
+\begin{figure}
+%BEGIN LATEX
+  \begin{center}
+    \begin{minipage}{0.8\textwidth}
+%END LATEX
+\begin{alltt}\small
+module type Grid =
+  sig
+    module D : Division
+    type t
+    val create : D.t -> D.t -> t
+    val copy : t -> t
+    val record : t -> float -> float -> float -> unit
+    val rebin : ?power:float -> t -> t
+    val variance : t -> float
+    val to_channel : out_channel -> t -> unit
+  end
+
+module Make_Grid (D : Division) : Grid with module D = D
+\end{alltt}
+%BEGIN LATEX
+    \end{minipage}
+  \end{center}
+%END LATEX
+  \caption{\label{fig:grids}%
+    O'Caml signature for grids.  The functor \texttt{Make\_Grid}
+    can be applied to \emph{any} module of type \texttt{Division},
+    in particular both \texttt{Mono\_Division}
+    and~\texttt{Poly\_Division}.}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Next Generation}
+\label{sec:TNG}
+Future generations can try to implement the following features:
+
+\subsection{Variable \#{} of Bins}
+One can monitor the total variance in each interval of the
+polydivisions and move bins from smooth intervals to wildly varying
+intervals, keeping tho total number of bins constant.
+
+\subsection{Adapting Maps Per-Cell}
+Iff there is enough statistics, one can adapt the mapping class and
+parameters per bin.
+\begin{dubious}
+  There's a nice duality between adapting bins for a constant mapping
+  on one side and adapting mappings for constant bins.  Can one
+  merge the two approaches.
+\end{dubious}
+
+\subsection{Non-Factorized Polygrids}
+One could think of a non-factorized distribution of mappings.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+\label{sec:conclusions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Acknowledgements}
+Thanks to Valery Telnov for useful discussions.  Thanks to the
+worldwide Linear Collider community and the ECFA/DESY study groups in
+particular for encouragement. This research is supported by
+Bundesministerium f\"ur Bildung und Forschung, Germany, (05\,HT9RDA).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \bibliography{circe}
+\begin{thebibliography}{10}
+  \bibitem{Ohl:1996:Circe}
+    T. Ohl, Comput.{} Phys.{} Commun.{} \textbf{101} (1997) 269
+      [hep-ph/9607454].
+%%CITATION = HEP-PH 9607454;%%
+  \bibitem{PYTHIA}
+    T.~Sjostrand, L.~Lonnblad and S.~Mrenna,
+      \textit{PYTHIA 6.2: Physics and manual},
+      LU-TP 01-21, [hep-ph/0108264].
+%%CITATION = HEP-PH 0108264;%%
+  \bibitem{HERWIG}
+    G.~Corcella et al., \textit{Herwig 6.3 release note},
+    CAVENDISH-HEP 01-08, CERN-TH 2001-173, DAMTP 2001-61,
+    [hep-ph/0107071].
+%%CITATION = HEP-PH 0107071;%%
+  \bibitem{Ginzburg/Telnov/etal:1983:gamma-collider}
+    I.~F.~Ginzburg, G.~L.~Kotkin, V.~G.~Serbo and V.~I.~Telnov,
+    Nucl.{} Instrum.{} Meth.{}  \textbf{205} (1983) 47.
+%%CITATION = NUIMA,205,47;%%
+  \bibitem{VEGAS}
+    G.~P. Lepage, J. Comp.{} Phys.{} {\bf 27},  192  (1978);
+    G.~P. Lepage, Technical Report No.~CLNS-80/447, Cornell (1980).
+  \bibitem{VAMP}
+    T. Ohl, Comput.{} Phys.{} Commun.{} \textbf{120} (1999) 13
+    [hep-ph/9806432];
+%%CITATION = HEP-PH 9806432;%%
+    T. Ohl, \textit{Electroweak Gauge Bosons at Future
+      Electron-Positron Colliders}, Darmstadt University of Technology,
+      1999, IKDA 99/11, LC-REV-1999-005 [hep-ph/9911437].
+%%CITATION = HEP-PH 9911437;%%
+  \bibitem{Telnov:2001:priv}
+    V. Telnov, 2001 (private communication).
+  \bibitem{O'Caml}
+    Xavier Leroy, \textit{The Objective Caml System, Release 3.02,
+      Documentation and User's Guide}, Technical Report, INRIA, 2001,
+    \texttt{http://pauillac.inria.fr/ocaml/}.
+  \bibitem{Ginzburg/Telnov/etal:1984:gamma-collider}
+    I.~F.~Ginzburg, G.~L.~Kotkin, S.~L.~Panfil, V.~G.~Serbo and V.~I.~Telnov,
+    Nucl.{} Instrum.{} Meth.{} A \textbf{219} (1984) 5.
+%%CITATION = NUIMA,A219,5;%%
+  \bibitem{Chen/etal:1995:CAIN}
+    P.~Chen, G.~Horton-Smith, T.~Ohgaki, A.~W.~Weidemann and K.~Yokoya,
+    Nucl.{} Instrum.{} Meth.{} \textbf{A355} (1995) 107.
+%%CITATION = NUIMA,A355,107;%%
+  \bibitem{PDG}
+    D.~E.~Groom {\it et al.}  [Particle Data Group Collaboration],
+      \textit{Review of particle physics},
+      Eur.{} Phys.{} J.{} \textbf{C15} (2000) 1.
+%%CITATION = EPHJA,C15,1;%%
+  \bibitem{Knu97}
+    D.E.~Knuth, \textit{The Art of Computer Programming, Vol.~2}, (3rd
+    ed.), Addison-Wesley, Reading, MA, 1997.
+  \bibitem{Mar96}
+    George Marsaglia, \textit{The Marsaglia Random Number CD-ROM}, FSU,
+    Dept.~of Statistics and SCRI, 1996.
+  \bibitem{Jadach:2000:FOAM}
+    S.~Jadach,
+    % ``Foam: Multi-Dimensional General Purpose Monte Carlo Generator
+    % With Self-Adapting Symplectic Grid,''
+    Comput.{} Phys.{} Commun.{} \textbf{130} (2000) 244
+    [arXiv:physics/9910004].
+%%CITATION = PHYS-ICS 9910004;%%
+\end{thebibliography}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Local Variables:
+% mode:noweb
+% noweb-doc-mode:latex-mode
+% noweb-code-mode:fortran-mode
+% indent-tabs-mode:nil
+% page-delimiter:"^%%%.*\n"
+% End:

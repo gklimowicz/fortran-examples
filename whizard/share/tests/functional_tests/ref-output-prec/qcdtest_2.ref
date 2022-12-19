@@ -1,0 +1,68 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+$method = "omega"
+| Process library 'qcdtest_2_lib': recorded process 'qcdtest_2_p1'
+| Process library 'qcdtest_2_lib': compiling ...
+| Process library 'qcdtest_2_lib': writing makefile
+| Process library 'qcdtest_2_lib': removing old files
+| Process library 'qcdtest_2_lib': writing driver
+| Process library 'qcdtest_2_lib': creating source code
+| Process library 'qcdtest_2_lib': compiling sources
+| Process library 'qcdtest_2_lib': linking
+| Process library 'qcdtest_2_lib': loading
+| Process library 'qcdtest_2_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process qcdtest_2_p1:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'qcdtest_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'qcdtest_2_p1'
+|   Library name  = 'qcdtest_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'qcdtest_2_p1_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'qcdtest_2_p1'
+| Integrate: iterations = 3:1000:"g", 3:2000
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  3.2376811E+02  1.07E+02   33.18   10.49*   1.11
+   2       1000  2.6140971E+02  2.40E+01    9.19    2.91*   4.85
+   3       1000  3.2858713E+02  1.63E+01    4.97    1.57*  10.38
+|-----------------------------------------------------------------------------|
+   3       3000  3.0760554E+02  1.34E+01    4.36    2.39   10.38    2.68   3
+|-----------------------------------------------------------------------------|
+   4       2000  3.1897725E+02  1.15E+01    3.59    1.61    7.93
+   5       2000  3.1169461E+02  1.16E+01    3.73    1.67    5.93
+   6       2000  3.4933292E+02  1.46E+01    4.19    1.87    4.92
+|-----------------------------------------------------------------------------|
+   6       6000  3.2343323E+02  7.12E+00    2.20    1.71    4.92    2.15   3
+|=============================================================================|
+| WHIZARD run finished.
+|=============================================================================|

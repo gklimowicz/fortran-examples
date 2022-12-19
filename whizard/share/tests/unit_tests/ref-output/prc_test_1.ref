@@ -1,0 +1,72 @@
+* Test output: prc_test_1
+*   Purpose: create a trivial process
+*            build a library and access the matrix element
+
+* Initialize a process library with one entry
+
+* Configure library
+
+* Load library
+
+ Process library: prc_test1
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = a
+
+ Process library entries: 1
+ Entry #1: [a] prc_test1_a.1 = int (test_me)
+
+ Process #1:
+ ID = 'prc_test1_a'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = prc_test1_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = test_me
+   Process variant     = test_me
+   MD5 sum (def)       = '                                '
+
+* Probe library API:
+
+ is active                 = T
+ n_processes               = 1
+
+* Constants of prc_test1_a_i1:
+
+ component ID     = prc_test1_a_i1
+ model name       = Test
+ md5sum           = '                                '
+ openmp supported = F
+ n_in  = 2
+ n_out = 2
+ n_flv = 1
+ n_hel = 1
+ n_col = 1
+ n_cin = 2
+ n_cf  = 1
+ flv state = 25 25 25 25
+ hel state =  0  0  0  0
+ col state = 0 0 0 0 0 0 0 0
+ ghost flag = F F F F
+ color factors = 1.000 0.000
+ cf index = 1 1
+
+* Set kinematics:
+
+  p1 =  1.0000  0.0000  0.0000  1.0000
+  p2 =  1.0000  0.0000  0.0000 -1.0000
+  p3 =  1.0000  1.0000  0.0000  0.0000
+  p4 =  1.0000 -1.0000  0.0000  0.0000
+
+* Compute matrix element:
+
+ |amp| =  0.1000E+01
+
+* Test output end: prc_test_1

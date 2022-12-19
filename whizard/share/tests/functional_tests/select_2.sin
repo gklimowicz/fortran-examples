@@ -1,0 +1,43 @@
+# Sindarin input for WHIZARD self-test
+
+model = "SM"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process select_2_p = e1, E1 => Wp, Wm
+process select_2_d = Wp => u, D
+
+sqrts = 1000
+integrate (select_2_p) { iterations=1:1000 }
+
+?allow_decays = true
+
+n_events = 20
+?unweighted = false
+
+observable ct_a
+observable ct_b
+
+# fully correlated decay: centered backwards in ct
+unstable Wp (select_2_d)
+simulate (select_2_p) { 
+  $sample = "select_2a"
+  analysis = record ct_a (eval cos (Theta_star) [u, D])
+}
+
+# select intermediate Wp helicity = 0: symmetric in ct
+unstable Wp (select_2_d) { decay_helicity = 0 }
+simulate (select_2_p) { 
+  $sample = "select_2b"
+  analysis = record ct_b (eval cos (Theta_star) [u, D])
+}
+
+write_analysis () { $out_file = "select_2.dat" }

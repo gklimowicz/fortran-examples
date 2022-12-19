@@ -1,0 +1,51 @@
+# SINDARIN input for WHIZARD self-test
+# Process p p -> e2, E2
+
+library = "lhapdf6_1_lib"
+model = "SM"
+ms = 0
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?phs_s_mapping = false
+?write_raw = false
+
+seed = 0
+
+alias q = u:d:s
+alias Q = U:D:S
+alias lepton = e1:e2:e3:E1:E2:E3
+$method = "omega"
+process lhapdf6_1_p = q, Q => e2, E2
+
+compile ()
+
+$phs_method = "wood"
+
+$integration_method = "vamp"
+
+cuts = all Pt > 100 GeV [lepton]
+   and all M > 10 GeV [lepton, lepton]
+
+iterations = 4:500, 2:500
+sqrts = 1000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+sample_format = lhef
+
+beams = u, U
+integrate (lhapdf6_1_p)
+simulate (lhapdf6_1_p) 
+   { $sample = "lhapdf6_1_p_1" $lhef_version = "1.0" }
+
+beams = p, p => lhapdf
+integrate (lhapdf6_1_p)
+simulate (lhapdf6_1_p) 
+   { $sample = "lhapdf6_1_p_2" $lhef_version = "1.0" }

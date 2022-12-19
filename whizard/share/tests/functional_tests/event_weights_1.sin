@@ -1,0 +1,56 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+ee = 0.30286
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+$method = "omega"
+process event_weights_1_p = "e-", "e+" => "mu-", "mu+"
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+iterations = 3:1000:"g", 3:1000 
+sqrts = 1000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+integrate (event_weights_1_p)
+
+sample_format = weight_stream
+?unweighted = true
+n_events = 2
+
+$sample_normalization = "auto"
+$sample = "event_weights_1a"
+seed = 0
+simulate (event_weights_1_p)
+
+$sample_normalization = "1"
+$sample = "event_weights_1b"
+seed = 0
+simulate (event_weights_1_p)
+
+$sample_normalization = "1/n"
+$sample = "event_weights_1c"
+seed = 0
+simulate (event_weights_1_p)
+
+$sample_normalization = "sigma"
+$sample = "event_weights_1d"
+seed = 0
+simulate (event_weights_1_p)
+
+$sample_normalization = "sigma/n"
+$sample = "event_weights_1e"
+seed = 0
+simulate (event_weights_1_p)

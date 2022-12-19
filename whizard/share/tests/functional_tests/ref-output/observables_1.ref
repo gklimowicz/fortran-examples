@@ -1,0 +1,92 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+QED.me =>  0.000000000000E+00
+| Process library 'observables_1_lib': recorded process 'observables_1_p'
+sqrts =  1.000000000000E+03
+?debug_process = false
+?debug_verbose = false
+n_events = 1
+| Starting simulation for process 'observables_1_p'
+| Simulate: process 'observables_1_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'observables_1_lib': compiling ...
+| Process library 'observables_1_lib': writing makefile
+| Process library 'observables_1_lib': removing old files
+| Process library 'observables_1_lib': writing driver
+| Process library 'observables_1_lib': creating source code
+| Process library 'observables_1_lib': compiling sources
+| Process library 'observables_1_lib': linking
+| Process library 'observables_1_lib': loading
+| Process library 'observables_1_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process observables_1_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e-  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'observables_1_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'observables_1_p'
+|   Library name  = 'observables_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'observables_1_p_i1':   e-, e- => e-, e- [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 16 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'observables_1_p'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 4 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  6.5018830E+05  2.96E+04    4.55    1.29*  10.42
+|-----------------------------------------------------------------------------|
+   1        800  6.5018830E+05  2.96E+04    4.55    1.29   10.42
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'observables_1_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.5380E-06
+| Events: writing to ASCII file 'observables_1_p.debug'
+| Events: writing to raw file 'observables_1_p.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   9.09 %
+| Events: closing ASCII file 'observables_1_p.debug'
+| Events: closing raw file 'observables_1_p.evx'
+$out_file = "observables_1.dat"
+| Opening file 'observables_1.dat' for output
+| Writing analysis data to file 'observables_1.dat'
+| Closing file 'observables_1.dat' for output
+| WHIZARD run finished.
+|=============================================================================|
+Contents of observables_1.dat:
+###############################################################################
+# Observable: rap1
+average     = -3.844545302725E+00
+error[abs]  =  0.000000000000E+00
+error[rel]  =  0.000000000000E+00
+n_entries   = 1
+###############################################################################
+# Observable: rap2
+average     =  7.689090605450E+00
+error[abs]  =  0.000000000000E+00
+error[rel]  =  0.000000000000E+00
+n_entries   = 1

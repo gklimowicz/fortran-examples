@@ -1,0 +1,52 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?rebuild_events = false
+
+$method = "unit_test"
+process testproc_7_p1 = s, s => s, s
+
+seed = 0
+
+compile ()
+
+$phs_method = "single"
+$integration_method = "midpoint"
+iterations = 1:1000
+sqrts = 1000
+
+integrate (testproc_7_p1)
+
+# Generate event and write a new event file
+?read_raw = false
+?write_raw = true
+n_events = 1
+simulate (testproc_7_p1) { alt_setup = { cuts = true } }
+
+?read_raw = true
+?write_raw = true
+
+int i = 1
+
+# Just read from the event file
+simulate (testproc_7_p1) { alt_setup = { cuts = true } }
+
+i = 2
+
+# Read from the event file with different alt setup (should write instead)
+simulate (testproc_7_p1) { alt_setup = { cuts = false } }
+
+i = 3
+
+# Read from the event file without alt setup (should write instead)
+simulate (testproc_7_p1)
+
+
+
+
+

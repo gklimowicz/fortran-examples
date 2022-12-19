@@ -1,0 +1,53 @@
+include("ilc_settings.sin")
+
+!! Table 2. The cross sections for different e+e- -> 6f final states corresponding to the Higgs production via vector-boson fusion signal.
+!! Expected runtime: ~1 d
+
+process higgs_prod_electron_500_1_noqcd = e1, E1 => e1, E1, u, U, d, D { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process higgs_prod_electron_500_1_qcd   = e1, E1 => e1, E1, u, U, d, D
+process higgs_prod_electron_500_2       = e1, E1 => e1, E1, u, U, e1, E1
+process higgs_prod_electron_500_3       = e1, E1 => e1, E1, u, U, e2, E2
+process higgs_prod_neutrino_500_1_noqcd = e1, E1 => n1, N1, u, D, d, U { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process higgs_prod_neutrino_500_1_qcd   = e1, E1 => n1, N1, u, D, d, U
+process higgs_prod_neutrino_500_2       = e1, E1 => n1, N1, u, D, e1, N1
+process higgs_prod_neutrino_500_3       = e1, E1 => n1, N1, u, D, e2, N2
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 500 GeV
+alphas = 0.0891
+
+sqrts = 500 GeV
+beams = e1, E1
+
+$run_id = "500"
+
+integrate(higgs_prod_electron_500_1_noqcd,
+          higgs_prod_electron_500_1_qcd,
+          higgs_prod_electron_500_2,
+          higgs_prod_electron_500_3,
+          higgs_prod_neutrino_500_1_noqcd,
+          higgs_prod_neutrino_500_1_qcd,
+          higgs_prod_neutrino_500_2,
+          higgs_prod_neutrino_500_3)
+
+tolerance = 2 * sqrt( error(higgs_prod_electron_500_1_noqcd)**2 + 0.0024**2 )
+expect(integral(higgs_prod_electron_500_1_noqcd) == 1.2446)
+tolerance = 2 * sqrt( error(higgs_prod_electron_500_1_qcd)**2 + 0.0024**2 )
+expect(integral(higgs_prod_electron_500_1_qcd) == 1.2729)
+tolerance = 2 * sqrt( error(higgs_prod_electron_500_2)**2 + 1.6e-05**2 )
+expect(integral(higgs_prod_electron_500_2) == 0.006667)
+tolerance = 2 * sqrt( error(higgs_prod_electron_500_3)**2 + 2e-05**2 )
+expect(integral(higgs_prod_electron_500_3) == 0.009168)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_500_1_noqcd)**2 + 0.005**2 )
+expect(integral(higgs_prod_neutrino_500_1_noqcd) == 2.432)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_500_1_qcd)**2 + 0.005**2 )
+expect(integral(higgs_prod_neutrino_500_1_qcd) == 2.46)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_500_2)**2 + 0.0019**2 )
+expect(integral(higgs_prod_neutrino_500_2) == 0.9127)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_500_3)**2 + 0.0017**2 )
+expect(integral(higgs_prod_neutrino_500_3) == 0.8937)
+
+show(results)

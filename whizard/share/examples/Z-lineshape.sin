@@ -1,0 +1,75 @@
+# Z-lineshape.sin
+# Simple complete physics example: Z lineshape in the Standard Model
+########################################################################
+#
+# Copyright (C) 1999-2022 by
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+# We choose our favourite model
+model = SM
+
+beams = e1, E1
+
+# Define some particle containers for the cuts
+alias lep = e1:E1:e2:E2
+alias prt = lep:A
+
+# These are the two processes we want to compare
+process bornproc = e1, E1 => e2, E2
+process realcorr = e1, E1 => e2, E2, A
+compile
+
+cuts = all E >= 100 MeV [prt]
+   and all abs (cos(Theta)) <= 0.99 [prt]
+   and all M2 >= (1 GeV)^2 [prt, prt]
+
+# Define title and labels as global variables that will be used in the plot:
+$description = "A WHIZARD 3.0 Example"
+$x_label = "$\sqrt{s}$/GeV"
+$y_label = "$\sigma(s)$/pb"
+x_min = 88 GeV
+x_max = 95 GeV
+
+# Allocate one plot
+$title = "The Z Lineshape in $e^+e^-\to\mu^+\mu^-$"
+plot lineshape_born
+
+# Allocate another plot
+$title = "The Z Lineshape in $e^+e^-\to\mu^+\mu^-\gamma$"
+plot lineshape_realcorr {$draw_options = "withcolor blue"}
+
+# Compute the cross sections for different sqrts
+# with smaller steps around the peak
+scan sqrts = ((88.0 GeV => 90.0 GeV /+ 0.5 GeV),
+              (90.1 GeV => 91.9 GeV /+ 0.1 GeV),
+              (92.0 GeV => 95.0 GeV /+ 0.5 GeV)) {
+  integrate (bornproc) { iterations = 2:1000:"gw", 1:2000 }
+  record lineshape_born (sqrts, integral (bornproc) / 1000)
+  integrate (realcorr)   { iterations = 5:3000:"gw", 2:5000 }
+  record lineshape_realcorr (sqrts, integral (realcorr) / 1000)
+}
+
+$title = "The Z Lineshape in $e^+e^-\to\mu^+\mu^-(\gamma)$"
+graph g1 = lineshape_born & lineshape_realcorr {$draw_options = "withcolor blue"}
+
+compile_analysis { $out_file = "Z-lineshape.dat" }

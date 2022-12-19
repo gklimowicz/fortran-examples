@@ -1,0 +1,123 @@
+* Test output: Parsing
+*   Purpose: test parse routines
+
+* File contents (syntax definition):
+SEQ expr = term addition*
+SEQ addition = plus_or_minus term
+SEQ term = factor multiplication*
+SEQ multiplication = times_or_over factor
+SEQ factor = atom exponentiation*
+SEQ exponentiation = '^' atom
+ALT atom = real | delimited_expr
+GRO delimited_expr = ( expr )
+ALT plus_or_minus = '+' | '-'
+ALT times_or_over = '*' | '/'
+KEY '+'
+KEY '-'
+KEY '*'
+KEY '/'
+KEY '^'
+REA real
+EOF
+
+Syntax table:
+ SEQUENCE    <expr> = <term> <addition>*
+ SEQUENCE    <addition> = <plus_or_minus> <term>
+ SEQUENCE    <term> = <factor> <multiplication>*
+ SEQUENCE    <multiplication> = <times_or_over> <factor>
+ SEQUENCE    <factor> = <atom> <exponentiation>*
+ SEQUENCE    <exponentiation> = '^' <atom>
+ ALTERNATIVE <atom> = <real> | <delimited_expr>
+ GROUP       <delimited_expr> = ( <expr> )
+ ALTERNATIVE <plus_or_minus> = '+' | '-'
+ ALTERNATIVE <times_or_over> = '*' | '/'
+ KEYWORD     '+'
+ KEYWORD     '-'
+ KEYWORD     '*'
+ KEYWORD     '/'
+ KEYWORD     '^'
+ REAL        <real>
+Keyword list:
+ ( ) ^ * / + -
+
+Lexer setup:
+ WHITESPACE ' 	
+' '' ->  EMPTY
+ QUOTED     ''' ''' ->  QUOTED
+ NUMERIC    'EeDd' '' ->  NUMERIC
+ IDENTIFIER '+' '' ->  IDENTIFIER
+ IDENTIFIER '-' '' ->  IDENTIFIER
+ IDENTIFIER '*' '' ->  IDENTIFIER
+ IDENTIFIER '/' '' ->  IDENTIFIER
+ IDENTIFIER '^' '' ->  IDENTIFIER
+ IDENTIFIER '(' '' ->  IDENTIFIER
+ IDENTIFIER ')' '' ->  IDENTIFIER
+ IDENTIFIER '' '' ->  IDENTIFIER
+ IDENTIFIER 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ' ->  IDENTIFIER
+Keyword list:
+ ( ) ^ * / + -
+
+* File contents (input file):
+(27+8^3-2/3)*(4+7)^2*99
+EOF
+Parse tree:
++  SEQUENCE    <expr>  =  <term>
+|  +  SEQUENCE    <term>  =  <factor> <multiplication> <multiplication>
+|  |  +  SEQUENCE    <factor>  =  <expr>
+|  |  |  +  SEQUENCE    <expr>  =  <term> <addition> <addition>
+|  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  +  SEQUENCE    <factor>  =  <real>
+|  |  |  |  |  |  +  REAL        <real>  =  2.700000000000E+01
+|  |  |  |  +  SEQUENCE    <addition>  =  '+' <term>
+|  |  |  |  |  +  KEYWORD     '+'  = [keyword] +
+|  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  +  SEQUENCE    <factor>  =  <real> <exponentiation>
+|  |  |  |  |  |  |  +  REAL        <real>  =  8.000000000000E+00
+|  |  |  |  |  |  |  +  SEQUENCE    <exponentiation>  =  '^' <real>
+|  |  |  |  |  |  |  |  +  KEYWORD     '^'  = [keyword] ^
+|  |  |  |  |  |  |  |  +  REAL        <real>  =  3.000000000000E+00
+|  |  |  |  +  SEQUENCE    <addition>  =  '-' <term>
+|  |  |  |  |  +  KEYWORD     '-'  = [keyword] -
+|  |  |  |  |  +  SEQUENCE    <term>  =  <factor> <multiplication>
+|  |  |  |  |  |  +  SEQUENCE    <factor>  =  <real>
+|  |  |  |  |  |  |  +  REAL        <real>  =  2.000000000000E+00
+|  |  |  |  |  |  +  SEQUENCE    <multiplication>  =  '/' <factor>
+|  |  |  |  |  |  |  +  KEYWORD     '/'  = [keyword] /
+|  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <real>
+|  |  |  |  |  |  |  |  +  REAL        <real>  =  3.000000000000E+00
+|  |  +  SEQUENCE    <multiplication>  =  '*' <factor>
+|  |  |  +  KEYWORD     '*'  = [keyword] *
+|  |  |  +  SEQUENCE    <factor>  =  <expr> <exponentiation>
+|  |  |  |  +  SEQUENCE    <expr>  =  <term> <addition>
+|  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  +  SEQUENCE    <factor>  =  <real>
+|  |  |  |  |  |  |  +  REAL        <real>  =  4.000000000000E+00
+|  |  |  |  |  +  SEQUENCE    <addition>  =  '+' <term>
+|  |  |  |  |  |  +  KEYWORD     '+'  = [keyword] +
+|  |  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <real>
+|  |  |  |  |  |  |  |  +  REAL        <real>  =  7.000000000000E+00
+|  |  |  |  +  SEQUENCE    <exponentiation>  =  '^' <real>
+|  |  |  |  |  +  KEYWORD     '^'  = [keyword] ^
+|  |  |  |  |  +  REAL        <real>  =  2.000000000000E+00
+|  |  +  SEQUENCE    <multiplication>  =  '*' <factor>
+|  |  |  +  KEYWORD     '*'  = [keyword] *
+|  |  |  +  SEQUENCE    <factor>  =  <real>
+|  |  |  |  +  REAL        <real>  =  9.900000000000E+01
+* Cleanup, everything should now be empty:
+
+Parse tree:
+ [empty]
+
+Lexer setup:
+ [empty]
+
+* File contents:
+EOF
+
+Syntax table:
+ [not allocated]
+Keyword list:
+ [empty]
+
+* Test output end: parser_1

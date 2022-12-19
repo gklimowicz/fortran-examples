@@ -1,0 +1,708 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$method = "omega"
+| Process library 'pythia6_4_lib': recorded process 'pythia6_4_p1'
+| Process library 'pythia6_4_lib': recorded process 'pythia6_4_p2'
+| Process library 'pythia6_4_lib': recorded process 'pythia6_4_p3'
+SM.me =>  1.00000E+00
+isr_mass =  1.00000E+00
+| Process library 'pythia6_4_lib': compiling ...
+| Process library 'pythia6_4_lib': writing makefile
+| Process library 'pythia6_4_lib': removing old files
+| Process library 'pythia6_4_lib': writing driver
+| Process library 'pythia6_4_lib': creating source code
+| Process library 'pythia6_4_lib': compiling sources
+| Process library 'pythia6_4_lib': linking
+| Process library 'pythia6_4_lib': loading
+| Process library 'pythia6_4_lib': ... success.
+seed = 0
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.00000E+03
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process pythia6_4_p1:
+| Beam structure: e-, e+ => circe1 => isr
+| Beam data (collision):
+|   e-  (mass = 1.0000000E+00 GeV)
+|   e+  (mass = 1.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| CIRCE1: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pythia6_4_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'pythia6_4_p1'
+|   Library name  = 'pythia6_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'pythia6_4_p1_i1':   e-, e+ => Z, H [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: circe1 => isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'pythia6_4_p1'
+| Integrate: iterations = 3:1000:"g", 3:1000
+| Integrator: 1 chains, 1 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.729E+01   3.15E-01    1.82    0.58    13.5
+   2       1000     1.683E+01   1.92E-01    1.14    0.36    24.5
+   3       1000     1.722E+01   1.96E-01    1.14    0.36    20.9
+|-----------------------------------------------------------------------------|
+   3       3000     1.706E+01   1.26E-01    0.74    0.40    20.9    1.28   3
+|-----------------------------------------------------------------------------|
+   4       1000     1.704E+01   1.77E-01    1.04    0.33    20.7
+   5       1000     1.691E+01   1.68E-01    0.99    0.31    20.5
+   6       1000     1.719E+01   2.18E-01    1.27    0.40    18.0
+|-----------------------------------------------------------------------------|
+   6       3000     1.702E+01   1.06E-01    0.62    0.34    18.0    0.53   3
+|=============================================================================|
+error_threshold =  1.00000E-08
+n_events = 1
+?rebuild_events = true
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?allow_shower = true
+?ps_fsr_active = true
+$shower_method = "PYTHIA6"
+$sample = "pythia6_4a"
+| Starting simulation for process 'pythia6_4_p1'
+| Simulate: using integration grids from file 'pythia6_4_p1.m1.vg'
+| Simulate: activating parton shower
+| Shower: Using PYTHIA6 shower
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.8738E-02
+| Events: writing to ASCII file 'pythia6_4a.debug'
+| Events: writing to raw file 'pythia6_4a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  16.67 %
+| Events: closing ASCII file 'pythia6_4a.debug'
+| Events: closing raw file 'pythia6_4a.evx'
+$sample = "pythia6_4b"
+?hadronization_active = true
+| Starting simulation for process 'pythia6_4_p1'
+| Simulate: using integration grids from file 'pythia6_4_p1.m1.vg'
+| Simulate: activating parton shower
+| Shower: Using PYTHIA6 shower
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA6 interface for hadronization and decays
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.8738E-02
+| Events: writing to ASCII file 'pythia6_4b.debug'
+| Events: writing to raw file 'pythia6_4b.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  11.11 %
+| Events: closing ASCII file 'pythia6_4b.debug'
+| Events: closing raw file 'pythia6_4b.evx'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Partial contents of pythia6_4a.debug:
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = T
+   Normalization      = '1'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  1.26826E+29
+   Squared matrix el. (prc) =  1.26826E+29
+   Event weight (ref)       =  1.00000E+00
+   Event weight (prc)       =  1.00000E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 1
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'pythia6_4_p1'
+   TAO random-number generator:
+     seed  = 2
+     calls = 3
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00  4.999990E+02
+ T =   1.000000000E+00
+ Children: 3 4
+ Particle 2 [b] f(-11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00 -4.999990E+02
+ T =   1.000000000E+00
+ Children: 3 4
+ Particle 3 [v] f(11)
+ E =   4.889225E+02
+ P =   0.000000E+00  0.000000E+00  4.889215E+02
+ T =   1.000000000E+00
+ Parents:  1 2
+ Children: 5 7
+ Particle 4 [v] f(-11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00 -4.999990E+02
+ T =   1.000000000E+00
+ Parents:  1 2
+ Children: 6 8
+ Particle 5 [i] f(11)
+ E =   4.889225E+02
+ P =   0.000000E+00  0.000000E+00  4.889215E+02
+ T =   1.000000000E+00
+ Parents:  3
+ Children: 9 10
+ Particle 6 [i] f(-11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00 -4.999990E+02
+ T =   1.000000000E+00
+ Parents:  4
+ Children: 9 10
+ Particle 7 [x] f(22*)
+ E =   9.238685E-26
+ P =   0.000000E+00  0.000000E+00  9.238685E-26
+ T =   0.000000000E+00
+ Parents:  3
+ Particle 8 [x] f(22*)
+ E =   3.002344E-06
+ P =   0.000000E+00  0.000000E+00 -3.002344E-06
+ T =   0.000000000E+00
+ Parents:  4
+ Particle 9 [o] f(23)
+ E =   4.877065E+02
+ P =   2.139324E+02  3.349530E+02  2.675477E+02
+ T =   8.315287819E+03
+ Parents:  5 6
+ Particle 10 [o] f(25)
+ E =   5.012161E+02
+ P =  -2.139324E+02 -3.349530E+02 -2.786252E+02
+ T =   1.562500000E+04
+ Parents:  5 6
+========================================================================
+========================================================================
+ Event transform: shower
+------------------------------------------------------------------------
+   Associated process: 'pythia6_4_p1'
+   TAO random-number generator:
+     seed  = 3
+     calls = 1
+   Number of tries = 1
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [b]      e-    0    0               [none]                  3-4      500.000        0.000        0.000      499.999        1.000
+   2    [b]      e+    0    0               [none]                  3-4      500.000        0.000        0.000     -499.999        1.000
+   3    [r]      e-    0    0                  1-2                  5,7      488.923        0.000        0.000      488.922        1.000
+   4    [r]      e+    0    0                  1-2                  6,8      500.000        0.000        0.000     -499.999        1.000
+   5    [i]      e-    0    0                    3                 9-10      488.923        0.000        0.000      488.922        1.000
+   6    [i]      e+    0    0                    4                 9-10      500.000        0.000        0.000     -499.999        1.000
+   7    [x]       A    0    0                    3               [none]        0.000        0.000        0.000        0.000        0.000
+   8    [x]       A    0    0                    4               [none]        0.000        0.000        0.000       -0.000        0.000
+   9    [r]       Z    0    0                  5-6                11-12      487.706      213.932      334.953      267.548     8315.288
+  10    [r]       H    0    0                  5-6                13-14      501.216     -213.932     -334.953     -278.625    15625.000
+  11    [r]     nue    0    0                    9                   15      208.603       57.610      171.250      104.259        0.000
+  12    [r]  nuebar    0    0                    9                   16      279.103      156.322      163.703      163.289        0.000
+  13    [r]    tau-    0    0                   10                   17      321.895     -111.680     -261.425     -150.989        3.158
+  14    [r]    tau+    0    0                   10                18-19      179.321     -102.252      -73.528     -127.636        3.158
+  15    [o]     nue    0    0                   11               [none]      208.603       57.610      171.250      104.259        0.000
+  16    [o]  nuebar    0    0                   12               [none]      279.103      156.322      163.703      163.289        0.000
+  17    [r]    tau-    0    0                   13                20-22      321.889     -111.678     -261.420     -150.986        3.158
+  18    [r]    tau+    0    0                   14                23-24      179.284     -102.225      -73.513     -127.615        3.158
+  19    [o]       A    0    0                   14               [none]        0.043       -0.030       -0.019       -0.024        0.000
+  20    [o] numubar    0    0                   17               [none]       14.551       -5.197      -11.825       -6.700        0.000
+  21    [o]     mu-    0    0                   17               [none]      174.208      -59.700     -141.787      -81.735        0.011
+  22    [o]   nutau    0    0                   17               [none]      133.131      -46.781     -107.809      -62.551        0.000
+  23    [o] nutauba    0    0                   18               [none]        3.537       -1.902       -1.305       -2.681        0.000
+  24    [o]     pip    0    0                   18               [none]      175.747     -100.322      -72.208     -124.934        0.019
+------------------------------------------------------------------------
+Sum of incoming momenta: p(0:3) =          988.923        0.000        0.000      -11.077 
+Sum of beam remnant momenta: p(0:3) =        0.000        0.000        0.000        0.000 
+Sum of outgoing momenta: p(0:3) =          988.923        0.000        0.000      -11.077 
+------------------------------------------------------------------------
+ Shower settings:
+------------------------------------------------------------------------
+ Master switches:
+   ps_isr_active                =  F
+   ps_fsr_active                =  T
+   ps_tau_dec                   =  F
+   muli_active                  =  F
+   hadronization_active         =  F
+ General settings:
+   method                       =  PYTHIA6
+   shower_verbose               =  F
+   ps_mass_cutoff               =  1.000000000000E+00
+   ps_max_n_flavors             =  5
+    [ISR off]
+ FSR settings:
+   ps_fsr_lambda                =  2.900000000000E-01
+   ps_fsr_alphas_running        =  T
+ Matching Settings:
+   mlm_matching                 =  F
+   ckkw_matching                =  F
+ PYTHIA6 specific settings:
+   ps_PYTHIA_PYGIVE             = ''
+ PYTHIA8 specific settings:
+   ps_PYTHIA8_config            = ''
+   ps_PYTHIA8_config_file       = ''
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.00000E+03
+sqrts_hat* =>  9.88860E+02
+n_in* => 2
+n_out* => 10
+n_tot* => 12
+$process_id* => "pythia6_4_p1"
+process_num_id* => [unknown integer]
+sqme* =>  1.26826E+29
+sqme_ref* =>  1.26826E+29
+event_index* => 1
+event_weight* =>  1.00000E+00
+event_weight_ref* =>  1.00000E+00
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:11|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.9999900E+02| 1.0000000E+00| 1)
+ 2 prt(b:-11|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.9999900E+02| 1.0000000E+00| 2)
+ 3 prt(i:11|-4.8892252E+02; 0.0000000E+00, 0.0000000E+00,-4.8892150E+02| 1.0000000E+00| 3)
+ 4 prt(i:-11|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.9999900E+02| 1.0000000E+00| 4)
+ 5 prt(o:22| 0.0000000E+00; 0.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.0000000E+00| 5)
+ 6 prt(o:22| 3.0023441E-06; 0.0000000E+00, 0.0000000E+00,-3.0023441E-06| 0.0000000E+00| 6)
+ 7 prt(o:12| 2.0860337E+02; 5.7610220E+01, 1.7124978E+02, 1.0425901E+02| 0.0000000E+00| 7)
+ 8 prt(o:-12| 2.7910310E+02; 1.5632217E+02, 1.6370318E+02, 1.6328866E+02| 0.0000000E+00| 8)
+ 9 prt(o:22| 4.3097371E-02;-2.9784316E-02,-1.9454623E-02,-2.4326848E-02| 0.0000000E+00| 9)
+ 10 prt(o:-14| 1.4550881E+01;-5.1974934E+00,-1.1824866E+01,-6.6997576E+00| 0.0000000E+00| 10)
+ 11 prt(o:13| 1.7420764E+02;-5.9699936E+01,-1.4178703E+02,-8.1735224E+01| 1.1164036E-02| 11)
+ 12 prt(o:16| 1.3313072E+02;-4.6780568E+01,-1.0780860E+02,-6.2551358E+01| 0.0000000E+00| 12)
+ 13 prt(o:-16| 3.5365798E+00;-1.9022296E+00,-1.3052507E+00,-2.6805298E+00| 0.0000000E+00| 13)
+ 14 prt(o:211| 1.7574714E+02;-1.0032238E+02,-7.2207754E+01,-1.2493397E+02| 1.9479785E-02| 14)
+========================================================================
+Partial contents of pythia6_4b.debug:
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = T
+   Normalization      = '1'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  4.55387E+10
+   Squared matrix el. (prc) =  4.55387E+10
+   Event weight (ref)       =  1.00000E+00
+   Event weight (prc)       =  1.00000E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 1
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'pythia6_4_p1'
+   TAO random-number generator:
+     seed  = 6
+     calls = 3
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00  4.999990E+02
+ T =   1.000000000E+00
+ Children: 3 4
+ Particle 2 [b] f(-11)
+ E =   5.000000E+02
+ P =   0.000000E+00  0.000000E+00 -4.999990E+02
+ T =   1.000000000E+00
+ Children: 3 4
+ Particle 3 [v] f(11)
+ E =   4.945513E+02
+ P =   0.000000E+00  0.000000E+00  4.945503E+02
+ T =   1.000000000E+00
+ Parents:  1 2
+ Children: 5 7
+ Particle 4 [v] f(-11)
+ E =   4.992909E+02
+ P =   0.000000E+00  0.000000E+00 -4.992899E+02
+ T =   1.000000000E+00
+ Parents:  1 2
+ Children: 6 8
+ Particle 5 [i] f(11)
+ E =   4.945513E+02
+ P =   0.000000E+00  0.000000E+00  4.945503E+02
+ T =   1.000000000E+00
+ Parents:  3
+ Children: 9 10
+ Particle 6 [i] f(-11)
+ E =   4.972005E+02
+ P =   0.000000E+00  0.000000E+00 -4.971995E+02
+ T =   1.000000000E+00
+ Parents:  4
+ Children: 9 10
+ Particle 7 [x] f(22*)
+ E =   2.004619E-12
+ P =   0.000000E+00  0.000000E+00  2.004619E-12
+ T =   0.000000000E+00
+ Parents:  3
+ Particle 8 [x] f(22*)
+ E =   2.090446E+00
+ P =   0.000000E+00  0.000000E+00 -2.090446E+00
+ T =   0.000000000E+00
+ Parents:  4
+ Particle 9 [o] f(23)
+ E =   4.923215E+02
+ P =  -2.803370E+02 -3.910835E+02 -5.029927E+01
+ T =   8.315287819E+03
+ Parents:  5 6
+ Particle 10 [o] f(25)
+ E =   4.994303E+02
+ P =   2.803370E+02  3.910835E+02  4.765012E+01
+ T =   1.562500000E+04
+ Parents:  5 6
+========================================================================
+========================================================================
+ Event transform: shower
+------------------------------------------------------------------------
+   Associated process: 'pythia6_4_p1'
+   TAO random-number generator:
+     seed  = 7
+     calls = 1
+   Number of tries = 1
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [b]      e-    0    0               [none]                  3-4      500.000        0.000        0.000      499.999        1.000
+   2    [b]      e+    0    0               [none]                  3-4      500.000        0.000        0.000     -499.999        1.000
+   3    [r]      e-    0    0                  1-2                  5,7      494.551        0.000        0.000      494.550        1.000
+   4    [r]      e+    0    0                  1-2                  6,8      499.291        0.000        0.000     -499.290        1.000
+   5    [i]      e-    0    0                    3                 9-10      494.551        0.000        0.000      494.550        1.000
+   6    [i]      e+    0    0                    4                 9-10      497.200        0.000        0.000     -497.199        1.000
+   7    [x]       A    0    0                    3               [none]        0.000        0.000        0.000        0.000        0.000
+   8    [x]       A    0    0                    4               [none]        2.090        0.000        0.000       -2.090        0.000
+   9    [r]       Z    0    0                  5-6                11-12      492.321     -280.337     -391.083      -50.299     8315.288
+  10    [r]       H    0    0                  5-6                13-14      499.430      280.337      391.083       47.650    15625.000
+  11    [r]       d  500    0                    9                23-28      374.021     -196.291     -318.215      -10.033        0.109
+  12    [r]    dbar  501  500                    9          18-22,29-33      118.301      -84.046      -72.869      -40.266        0.109
+  13    [r]    tau-    0    0                   10                   15      380.186      242.184      292.944       -8.288        3.158
+  14    [r]    tau+    0    0                   10                16-17      119.245       38.153       98.140       55.938        3.158
+  15    [r]    tau-    0    0                   13                34-35      380.186      242.184      292.944       -8.288        3.158
+  16    [r]    tau+    0    0                   14                36-38      119.182       38.133       98.088       55.909        3.158
+  17    [o]       A    0    0                   14               [none]        0.063        0.020        0.052        0.030        0.000
+  18    [o]    dbar  502  501                   12               [none]       36.573      -26.562      -20.363      -14.741        0.109
+  19    [o]      gl  503  502                   12               [none]       16.471      -10.475      -11.515       -5.384        0.000
+  20    [o]      gl  504  503                   12               [none]       38.090      -25.699      -25.009      -12.843        0.000
+  21    [o]      gl  505  504                   12               [none]        5.932       -3.764       -4.247       -1.727        0.000
+  22    [o]       u    0  505                   12               [none]       17.636      -11.855      -12.205       -4.627        0.109
+  23    [o]       d  506    0                   11               [none]      260.323     -137.273     -221.067       -7.306        0.109
+  24    [o]      gl  507  506                   11               [none]       61.399      -31.961      -52.410       -1.218        0.000
+  25    [o]      gl  508  507                   11               [none]       13.328       -7.095      -11.282       -0.058        0.000
+  26    [o]      gl  509  508                   11               [none]        4.456       -2.246       -3.848        0.029        0.000
+  27    [o]      gl  510  509                   11               [none]        5.566       -2.710       -4.832       -0.533        0.000
+  28    [o]      gl  511  510                   11               [none]        2.460       -1.216       -2.095       -0.428        0.000
+  29    [o]      gl  512  511                   12               [none]        5.823       -2.817       -5.096       -0.051        0.000
+  30    [o]      gl  513  512                   12               [none]        1.176       -0.897       -0.692       -0.319        0.000
+  31    [o]      gl  514  513                   12               [none]       12.096       -8.229       -8.792        1.136        0.000
+  32    [o]      gl  515  514                   12               [none]        0.463       -0.280       -0.269       -0.253        0.000
+  33    [o]    ubar    0  515                   12               [none]       10.530       -7.257       -7.362       -1.978        0.109
+  34    [o]   nutau    0    0                   15               [none]      241.141      154.242      185.293       -5.014        0.000
+  35    [o]     pim    0    0                   15               [none]      139.044       87.943      107.651       -3.275        0.019
+  36    [o]     nue    0    0                   16               [none]       74.915       24.101       61.663       35.058        0.000
+  37    [o]      e+    0    0                   16               [none]        7.721        2.726        6.401        3.348        0.000
+  38    [o] nutauba    0    0                   16               [none]       36.546       11.305       30.025       17.502        0.000
+------------------------------------------------------------------------
+Sum of incoming momenta: p(0:3) =          991.752        0.000        0.000       -2.649 
+Sum of beam remnant momenta: p(0:3) =        2.090        0.000        0.000       -2.090 
+Sum of outgoing momenta: p(0:3) =          991.752        0.000        0.000       -2.649 
+------------------------------------------------------------------------
+ Shower settings:
+------------------------------------------------------------------------
+ Master switches:
+   ps_isr_active                =  F
+   ps_fsr_active                =  T
+   ps_tau_dec                   =  F
+   muli_active                  =  F
+   hadronization_active         =  T
+ General settings:
+   method                       =  PYTHIA6
+   shower_verbose               =  F
+   ps_mass_cutoff               =  1.000000000000E+00
+   ps_max_n_flavors             =  5
+    [ISR off]
+ FSR settings:
+   ps_fsr_lambda                =  2.900000000000E-01
+   ps_fsr_alphas_running        =  T
+ Matching Settings:
+   mlm_matching                 =  F
+   ckkw_matching                =  F
+ PYTHIA6 specific settings:
+   ps_PYTHIA_PYGIVE             = ''
+ PYTHIA8 specific settings:
+   ps_PYTHIA8_config            = ''
+   ps_PYTHIA8_config_file       = ''
+========================================================================
+========================================================================
+ Event transform: hadronization
+------------------------------------------------------------------------
+   Associated process: 'pythia6_4_p1'
+   TAO random-number generator:
+     seed  = 9
+     calls = 1
+   Number of tries = 1
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [b]      e-    0    0               [none]                  3-4      500.000        0.000        0.000      499.999        1.000
+   2    [b]      e+    0    0               [none]                  3-4      500.000        0.000        0.000     -499.999        1.000
+   3    [r]      e-    0    0                  1-2                  5,7      494.551        0.000        0.000      494.550        1.000
+   4    [r]      e+    0    0                  1-2                  6,8      499.291        0.000        0.000     -499.290        1.000
+   5    [i]      e-    0    0                    3                 9-10      494.551        0.000        0.000      494.550        1.000
+   6    [i]      e+    0    0                    4                 9-10      497.200        0.000        0.000     -497.199        1.000
+   7    [x]       A    0    0                    3               [none]        0.000        0.000        0.000        0.000        0.000
+   8    [x]       A    0    0                    4               [none]        2.090        0.000        0.000       -2.090        0.000
+   9    [r]       Z    0    0                  5-6                11-12      492.321     -280.337     -391.083      -50.299     8315.288
+  10    [r]       H    0    0                  5-6                13-14      499.430      280.337      391.083       47.650    15625.000
+  11    [r]       d  500    0                    9                23-28      374.021     -196.291     -318.215      -10.033        0.109
+  12    [r]    dbar  501  500                    9          18-22,29-33      118.301      -84.046      -72.869      -40.266        0.109
+  13    [r]    tau-    0    0                   10                   15      380.186      242.184      292.944       -8.288        3.158
+  14    [r]    tau+    0    0                   10                16-17      119.245       38.153       98.140       55.938        3.158
+  15    [r]    tau-    0    0                   13                34-35      380.186      242.184      292.944       -8.288        3.158
+  16    [r]    tau+    0    0                   14                36-38      119.182       38.133       98.088       55.909        3.158
+  17    [o]       A    0    0                   14               [none]        0.063        0.020        0.052        0.030        0.000
+  18    [r]    dbar  502  501                   12                   39       36.573      -26.562      -20.363      -14.741        0.109
+  19    [r]      gl  503  502                   12                   39       16.471      -10.475      -11.515       -5.384        0.000
+  20    [r]      gl  504  503                   12                   39       38.090      -25.699      -25.009      -12.843        0.000
+  21    [r]      gl  505  504                   12                   39        5.932       -3.764       -4.247       -1.727        0.000
+  22    [r]       u    0  505                   12                   39       17.636      -11.855      -12.205       -4.627        0.109
+  23    [r]       d  506    0                   11                   47      260.323     -137.273     -221.067       -7.306        0.109
+  24    [r]      gl  507  506                   11                   47       61.399      -31.961      -52.410       -1.218        0.000
+  25    [r]      gl  508  507                   11                   47       13.328       -7.095      -11.282       -0.058        0.000
+  26    [r]      gl  509  508                   11                   47        4.456       -2.246       -3.848        0.029        0.000
+  27    [r]      gl  510  509                   11                   47        5.566       -2.710       -4.832       -0.533        0.000
+  28    [r]      gl  511  510                   11                   47        2.460       -1.216       -2.095       -0.428        0.000
+  29    [r]      gl  512  511                   12                   47        5.823       -2.817       -5.096       -0.051        0.000
+  30    [r]      gl  513  512                   12                   47        1.176       -0.897       -0.692       -0.319        0.000
+  31    [r]      gl  514  513                   12                   47       12.096       -8.229       -8.792        1.136        0.000
+  32    [r]      gl  515  514                   12                   47        0.463       -0.280       -0.269       -0.253        0.000
+  33    [r]    ubar    0  515                   12                   47       10.530       -7.257       -7.362       -1.978        0.109
+  34    [o]   nutau    0    0                   15               [none]      241.141      154.242      185.293       -5.014        0.000
+  35    [o]     pim    0    0                   15               [none]      139.044       87.943      107.651       -3.275        0.019
+  36    [o]     nue    0    0                   16               [none]       74.915       24.101       61.663       35.058        0.000
+  37    [o]      e+    0    0                   16               [none]        7.721        2.726        6.401        3.348        0.000
+  38    [o] nutauba    0    0                   16               [none]       36.546       11.305       30.025       17.502        0.000
+  39    [r]     hr3    0    0                18-22                40-46      114.702      -78.355      -73.338      -39.321       92.230
+  40    [r] etaprim    0    0                   39                57-59       18.165      -12.914      -10.923       -6.556        0.918
+  41    [r]    rho0    0    0                   39                60-61        9.870       -6.846       -5.467       -4.461        0.770
+  42    [o]     pip    0    0                   39               [none]       20.645      -14.648      -12.294       -7.777        0.019
+  43    [r]    rhom    0    0                   39                62-63        9.208       -6.164       -6.099       -3.015        0.503
+  44    [r]    rhop    0    0                   39                64-65       16.233      -10.640      -11.053       -5.262        0.426
+  45    [r]    rho0    0    0                   39                66-67       10.824       -7.415       -7.110       -3.329        0.544
+  46    [r]    rho0    0    0                   39                68-69       29.756      -19.729      -20.392       -8.921        0.802
+  47    [r]     hr3    0    0                23-33                48-56      377.620     -201.982     -317.745      -10.978      717.598
+  48    [r]    rhom    0    0                   47                70-71      118.201      -62.025     -100.560       -3.382        0.713
+  49    [o]     pip    0    0                   47               [none]      125.708      -67.002     -106.319       -3.101        0.019
+  50    [r]    rhom    0    0                   47                72-73       84.526      -43.076      -72.699       -1.835        0.668
+  51    [o]       p    0    0                   47               [none]        9.534       -5.556       -7.668       -0.601        0.880
+  52    [r]    rhom    0    0                   47                74-75        7.325       -4.282       -5.883       -0.102        0.708
+  53    [r] Deltaba    0    0                   47                76-77       12.659       -6.637      -10.711       -0.408        1.331
+  54    [r]    rhop    0    0                   47                78-79        9.098       -5.994       -6.777        0.473        0.680
+  55    [o]     pim    0    0                   47               [none]        0.319       -0.155       -0.202       -0.131        0.019
+  56    [r]    rho0    0    0                   47                80-81       10.248       -7.255       -6.927       -1.890        0.839
+  57    [r]     pi0    0    0                   40                82-83        7.670       -5.456       -4.583       -2.834        0.018
+  58    [r]     pi0    0    0                   40                84-85        2.486       -1.801       -1.493       -0.828        0.018
+  59    [r]     eta    0    0                   40                86-88        8.010       -5.657       -4.846       -2.894        0.300
+  60    [o]     pip    0    0                   41               [none]        6.232       -4.442       -3.140       -3.037        0.019
+  61    [o]     pim    0    0                   41               [none]        3.639       -2.404       -2.327       -1.424        0.019
+  62    [o]     pim    0    0                   43               [none]        4.729       -3.012       -3.370       -1.385        0.019
+  63    [r]     pi0    0    0                   43                89-90        4.479       -3.152       -2.729       -1.630        0.018
+  64    [o]     pip    0    0                   44               [none]        6.374       -3.987       -4.547       -2.009        0.019
+  65    [r]     pi0    0    0                   44                91-92        9.858       -6.653       -6.506       -3.253        0.018
+  66    [o]     pim    0    0                   45               [none]        9.214       -6.282       -6.009       -3.050        0.019
+  67    [o]     pip    0    0                   45               [none]        1.610       -1.133       -1.101       -0.279        0.019
+  68    [o]     pim    0    0                   46               [none]       24.468      -16.435      -16.664       -7.131        0.019
+  69    [o]     pip    0    0                   46               [none]        5.289       -3.294       -3.728       -1.790        0.019
+  70    [o]     pim    0    0                   48               [none]       52.846      -27.775      -44.944       -1.118        0.019
+  71    [r]     pi0    0    0                   48                93-94       65.355      -34.250      -55.616       -2.264        0.018
+  72    [o]     pim    0    0                   50               [none]       69.152      -35.282      -59.448       -1.782        0.019
+  73    [r]     pi0    0    0                   50                95-96       15.374       -7.794      -13.251       -0.054        0.018
+  74    [o]     pim    0    0                   52               [none]        6.557       -3.744       -5.380        0.074        0.019
+  75    [r]     pi0    0    0                   52                97-98        0.769       -0.538       -0.503       -0.176        0.018
+  76    [o]    nbar    0    0                   53               [none]       10.085       -5.187       -8.595       -0.238        0.883
+  77    [r]     pi0    0    0                   53               99-100        2.574       -1.450       -2.116       -0.170        0.018
+  78    [o]     pip    0    0                   54               [none]        2.469       -1.471       -1.973       -0.142        0.019
+  79    [r]     pi0    0    0                   54              101-102        6.629       -4.523       -4.804        0.615        0.018
+  80    [o]     pip    0    0                   56               [none]        5.139       -3.931       -3.154       -0.992        0.019
+  81    [o]     pim    0    0                   56               [none]        5.110       -3.323       -3.773       -0.898        0.019
+  82    [o]       A    0    0                   57               [none]        6.482       -4.645       -3.839       -2.388        0.000
+  83    [o]       A    0    0                   57               [none]        1.187       -0.811       -0.744       -0.446        0.000
+  84    [o]       A    0    0                   58               [none]        2.137       -1.582       -1.252       -0.705        0.000
+  85    [o]       A    0    0                   58               [none]        0.348       -0.219       -0.242       -0.122        0.000
+  86    [r]     pi0    0    0                   59              103-104        2.957       -2.059       -1.770       -1.164        0.018
+  87    [r]     pi0    0    0                   59              105-106        2.502       -1.854       -1.487       -0.769        0.018
+  88    [r]     pi0    0    0                   59              107-108        2.551       -1.744       -1.589       -0.962        0.018
+  89    [o]       A    0    0                   63               [none]        0.128       -0.104       -0.061       -0.044        0.000
+  90    [o]       A    0    0                   63               [none]        4.351       -3.048       -2.669       -1.586        0.000
+  91    [o]       A    0    0                   65               [none]        4.368       -2.899       -2.928       -1.449        0.000
+  92    [o]       A    0    0                   65               [none]        5.491       -3.754       -3.578       -1.804        0.000
+  93    [o]       A    0    0                   71               [none]       47.380      -24.780      -40.350       -1.627        0.000
+  94    [o]       A    0    0                   71               [none]       17.975       -9.470      -15.265       -0.637        0.000
+  95    [o]       A    0    0                   73               [none]        2.167       -1.132       -1.847       -0.033        0.000
+  96    [o]       A    0    0                   73               [none]       13.207       -6.662      -11.404       -0.020        0.000
+  97    [o]       A    0    0                   75               [none]        0.740       -0.514       -0.496       -0.191        0.000
+  98    [o]       A    0    0                   75               [none]        0.029       -0.023       -0.007        0.016        0.000
+  99    [o]       A    0    0                   77               [none]        0.075       -0.058       -0.046       -0.000        0.000
+ 100    [o]       A    0    0                   77               [none]        2.499       -1.391       -2.069       -0.170        0.000
+ 101    [o]       A    0    0                   79               [none]        2.041       -1.366       -1.497        0.243        0.000
+ 102    [o]       A    0    0                   79               [none]        4.588       -3.157       -3.308        0.372        0.000
+ 103    [o]       A    0    0                   86               [none]        1.839       -1.250       -1.099       -0.782        0.000
+ 104    [o]       A    0    0                   86               [none]        1.118       -0.809       -0.671       -0.382        0.000
+ 105    [o]       A    0    0                   87               [none]        0.128       -0.074       -0.086       -0.058        0.000
+ 106    [o]       A    0    0                   87               [none]        2.374       -1.780       -1.401       -0.711        0.000
+ 107    [o]       A    0    0                   88               [none]        1.544       -1.031       -1.011       -0.546        0.000
+ 108    [o]       A    0    0                   88               [none]        1.007       -0.713       -0.577       -0.416        0.000
+------------------------------------------------------------------------
+Sum of incoming momenta: p(0:3) =          991.752        0.000        0.000       -2.649 
+Sum of beam remnant momenta: p(0:3) =        2.090        0.000        0.000       -2.090 
+Sum of outgoing momenta: p(0:3) =          991.752        0.000        0.000       -2.649 
+------------------------------------------------------------------------
+ Shower settings:
+------------------------------------------------------------------------
+ Master switches:
+   ps_isr_active                =  F
+   ps_fsr_active                =  T
+   ps_tau_dec                   =  F
+   muli_active                  =  F
+   hadronization_active         =  T
+ General settings:
+   method                       =  PYTHIA6
+   shower_verbose               =  F
+   ps_mass_cutoff               =  1.000000000000E+00
+   ps_max_n_flavors             =  5
+    [ISR off]
+ FSR settings:
+   ps_fsr_lambda                =  2.900000000000E-01
+   ps_fsr_alphas_running        =  T
+ Matching Settings:
+   mlm_matching                 =  F
+   ckkw_matching                =  F
+ PYTHIA6 specific settings:
+   ps_PYTHIA_PYGIVE             = ''
+ PYTHIA8 specific settings:
+   ps_PYTHIA8_config            = ''
+   ps_PYTHIA8_config_file       = ''
+------------------------------------------------------------------------
+ Hadronization settings:
+------------------------------------------------------------------------
+ Master switches:
+   active                =  T
+ General settings:
+   hadron_method         =  PYTHIA6
+ pT generation parameters
+   enhanced_fraction     =   1.000000000000E-02
+   enhanced_width        =   2.000000000000E+00
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.00000E+03
+sqrts_hat* =>  9.91748E+02
+n_in* => 2
+n_out* => 51
+n_tot* => 53
+$process_id* => "pythia6_4_p1"
+process_num_id* => [unknown integer]
+sqme* =>  4.55387E+10
+sqme_ref* =>  4.55387E+10
+event_index* => 1
+event_weight* =>  1.00000E+00
+event_weight_ref* =>  1.00000E+00
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:11|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.9999900E+02| 1.0000000E+00| 1)
+ 2 prt(b:-11|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.9999900E+02| 1.0000000E+00| 2)
+ 3 prt(i:11|-4.9455132E+02; 0.0000000E+00, 0.0000000E+00,-4.9455031E+02| 1.0000000E+00| 3)
+ 4 prt(i:-11|-4.9720047E+02; 0.0000000E+00, 0.0000000E+00, 4.9719947E+02| 1.0000000E+00| 4)
+ 5 prt(o:22| 2.0046190E-12; 0.0000000E+00, 0.0000000E+00, 2.0046190E-12| 0.0000000E+00| 5)
+ 6 prt(o:22| 2.0904455E+00; 0.0000000E+00, 0.0000000E+00,-2.0904455E+00| 0.0000000E+00| 6)
+ 7 prt(o:22| 6.2998339E-02; 1.9869673E-02, 5.1830919E-02, 2.9791653E-02| 0.0000000E+00| 7)
+ 8 prt(o:16| 2.4114129E+02; 1.5424152E+02, 1.8529313E+02,-5.0135572E+00| 0.0000000E+00| 8)
+ 9 prt(o:-211| 1.3904430E+02; 8.7942806E+01, 1.0765053E+02,-3.2746690E+00| 1.9479785E-02| 9)
+ 10 prt(o:12| 7.4914701E+01; 2.4101359E+01, 6.1662566E+01, 3.5058023E+01| 0.0000000E+00| 10)
+ 11 prt(o:-11| 7.7211259E+00; 2.7264437E+00, 6.4007861E+00, 3.3484665E+00| 0.0000000E+00| 11)
+ 12 prt(o:-16| 3.6545907E+01; 1.1305031E+01, 3.0024614E+01, 1.7502061E+01| 0.0000000E+00| 12)
+ 13 prt(o:211| 2.0644928E+01;-1.4648419E+01,-1.2293640E+01,-7.7771347E+00| 1.9479785E-02| 13)
+ 14 prt(o:211| 1.2570846E+02;-6.7002237E+01,-1.0631878E+02,-3.1010114E+00| 1.9479785E-02| 14)
+ 15 prt(o:2212| 9.5343062E+00;-5.5555299E+00,-7.6679167E+00,-6.0148564E-01| 8.8035059E-01| 15)
+ 16 prt(o:-211| 3.1900906E-01;-1.5520136E-01,-2.0229933E-01,-1.3143255E-01| 1.9479785E-02| 16)
+ 17 prt(o:211| 6.2316421E+00;-4.4418117E+00,-3.1404461E+00,-3.0367402E+00| 1.9479785E-02| 17)
+ 18 prt(o:-211| 3.6386996E+00;-2.4038351E+00,-2.3266799E+00,-1.4243569E+00| 1.9479785E-02| 18)
+ 19 prt(o:-211| 4.7289778E+00;-3.0115605E+00,-3.3697839E+00,-1.3852115E+00| 1.9479785E-02| 19)
+ 20 prt(o:211| 6.3741091E+00;-3.9872367E+00,-4.5472004E+00,-2.0086559E+00| 1.9479785E-02| 20)
+ 21 prt(o:-211| 9.2140612E+00;-6.2823415E+00,-6.0092813E+00,-3.0496173E+00| 1.9479785E-02| 21)
+ 22 prt(o:211| 1.6100044E+00;-1.1325495E+00,-1.1009466E+00,-2.7907475E-01| 1.9479785E-02| 22)
+ 23 prt(o:-211| 2.4467711E+01;-1.6434729E+01,-1.6664228E+01,-7.1311018E+00| 1.9479785E-02| 23)
+ 24 prt(o:211| 5.2885494E+00;-3.2937817E+00,-3.7278021E+00,-1.7899076E+00| 1.9479785E-02| 24)
+ 25 prt(o:-211| 5.2846122E+01;-2.7775352E+01,-4.4944105E+01,-1.1181943E+00| 1.9479785E-02| 25)
+ 26 prt(o:-211| 6.9152455E+01;-3.5282488E+01,-5.9447575E+01,-1.7816862E+00| 1.9479785E-02| 26)
+ 27 prt(o:-211| 6.5566506E+00;-3.7438701E+00,-5.3803481E+00, 7.4013587E-02| 1.9479785E-02| 27)
+ 28 prt(o:-2112| 1.0085294E+01;-5.1867436E+00,-8.5948493E+00,-2.3795638E-01| 8.8279178E-01| 28)
+ 29 prt(o:211| 2.4688726E+00;-1.4707713E+00,-1.9729478E+00,-1.4198951E-01| 1.9479785E-02| 29)
+ 30 prt(o:211| 5.1386326E+00;-3.9313707E+00,-3.1538181E+00,-9.9187754E-01| 1.9479785E-02| 30)
+ 31 prt(o:-211| 5.1095213E+00;-3.3233707E+00,-3.7731066E+00,-8.9811062E-01| 1.9479785E-02| 31)
+ 32 prt(o:22| 6.4823383E+00;-4.6451307E+00,-3.8393853E+00,-2.3880100E+00| 0.0000000E+00| 32)
+ 33 prt(o:22| 1.1872551E+00;-8.1063756E-01,-7.4375139E-01,-4.4640259E-01| 0.0000000E+00| 33)
+ 34 prt(o:22| 2.1373103E+00;-1.5822013E+00,-1.2518597E+00,-7.0539481E-01| 0.0000000E+00| 34)
+ 35 prt(o:22| 3.4826746E-01;-2.1906908E-01,-2.4160892E-01,-1.2216420E-01| 0.0000000E+00| 35)
+ 36 prt(o:22| 1.2824808E-01;-1.0412208E-01,-6.0628649E-02,-4.3935494E-02| 0.0000000E+00| 36)
+ 37 prt(o:22| 4.3508004E+00;-3.0481274E+00,-2.6687752E+00,-1.5861975E+00| 0.0000000E+00| 37)
+ 38 prt(o:22| 4.3676843E+00;-2.8989430E+00,-2.9278532E+00,-1.4493004E+00| 0.0000000E+00| 38)
+ 39 prt(o:22| 5.4907247E+00;-3.7540109E+00,-3.5780010E+00,-1.8037097E+00| 0.0000000E+00| 39)
+ 40 prt(o:22| 4.7379654E+01;-2.4780199E+01,-4.0350057E+01,-1.6267413E+00| 0.0000000E+00| 40)
+ 41 prt(o:22| 1.7975397E+01;-9.4696507E+00,-1.5265467E+01,-6.3728726E-01| 0.0000000E+00| 41)
+ 42 prt(o:22| 2.1670130E+00;-1.1322046E+00,-1.8474185E+00,-3.3206772E-02| 0.0000000E+00| 42)
+ 43 prt(o:22| 1.3207015E+01;-6.6615307E+00,-1.1403896E+01,-2.0449496E-02| 0.0000000E+00| 43)
+ 44 prt(o:22| 7.3952436E-01;-5.1443072E-01,-4.9558194E-01,-1.9145720E-01| 0.0000000E+00| 44)
+ 45 prt(o:22| 2.9202330E-02;-2.3443288E-02,-7.0163341E-03, 1.5936103E-02| 0.0000000E+00| 45)
+ 46 prt(o:22| 7.4521866E-02;-5.8327332E-02,-4.6383477E-02,-6.1829434E-05| 0.0000000E+00| 46)
+ 47 prt(o:22| 2.4994859E+00;-1.3914916E+00,-2.0693585E+00,-1.7010660E-01| 0.0000000E+00| 47)
+ 48 prt(o:22| 2.0412160E+00;-1.3664479E+00,-1.4967530E+00, 2.4313264E-01| 0.0000000E+00| 48)
+ 49 prt(o:22| 4.5875525E+00;-3.1569884E+00,-3.3076606E+00, 3.7208020E-01| 0.0000000E+00| 49)
+ 50 prt(o:22| 1.8389161E+00;-1.2502079E+00,-1.0988299E+00,-7.8177054E-01| 0.0000000E+00| 50)
+ 51 prt(o:22| 1.1183987E+00;-8.0875113E-01,-6.7140887E-01,-3.8203066E-01| 0.0000000E+00| 51)
+ 52 prt(o:22| 1.2813832E-01;-7.4456848E-02,-8.6434829E-02,-5.8349173E-02| 0.0000000E+00| 52)
+ 53 prt(o:22| 2.3738185E+00;-1.7796854E+00,-1.4009927E+00,-7.1060091E-01| 0.0000000E+00| 53)
+ 54 prt(o:22| 1.5438090E+00;-1.0308652E+00,-1.0111100E+00,-5.4618668E-01| 0.0000000E+00| 54)
+ 55 prt(o:22| 1.0071618E+00;-7.1290506E-01,-5.7747438E-01,-4.1552940E-01| 0.0000000E+00| 55)
+========================================================================

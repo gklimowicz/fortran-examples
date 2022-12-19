@@ -1,0 +1,55 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?rebuild_events = false
+
+$method = "unit_test"
+process testproc_4_p1 = s, s => s, s
+
+seed = 0
+
+compile ()
+
+$phs_method = "single"
+$integration_method = "midpoint"
+iterations = 1:1000
+sqrts = 1000
+
+integrate (testproc_4_p1)
+
+# Generate event and Write a new event file
+?read_raw = false
+?write_raw = true
+n_events = 1
+simulate (testproc_4_p1)
+
+# Just read from the event file
+?read_raw = true
+?write_raw = true
+n_events = 1
+simulate (testproc_4_p1)
+
+# Append a new event to the event file
+?read_raw = true
+?write_raw = true
+n_events = 2
+simulate (testproc_4_p1)
+
+# Generate event, no file
+?read_raw = false
+?write_raw = false
+n_events = 1
+simulate (testproc_4_p1)
+
+# Read previous event file, don't write
+?read_raw = true
+?write_raw = false
+n_events = 2
+simulate (testproc_4_p1)
+
+

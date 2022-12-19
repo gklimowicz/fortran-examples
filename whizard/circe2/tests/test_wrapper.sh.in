@@ -1,0 +1,73 @@
+#! /bin/sh
+########################################################################
+
+if test X"$CIRCE2_EVENTS" = X; then
+  n_events=100000
+else
+  n_events="$CIRCE2_EVENTS"
+fi
+
+if test X"$CIRCE2_SEED1" = X; then
+  seed1=1
+else
+  seed1="$CIRCE2_SEED1"
+fi
+
+if test X"$CIRCE2_SEED2" = X; then
+  seed2=2
+else
+  seed2="$CIRCE2_SEED2"
+fi
+
+########################################################################
+
+src_builddir=@top_builddir@/circe2/src
+test_srcdir=@top_srcdir@/circe2/share/tests
+grep=@GREP@
+circe2_moments=$src_builddir/circe2_moments
+circe2_tool=$src_builddir/circe2_tool.opt
+
+########################################################################
+
+thistest=$1
+channels=$test_srcdir/$thistest.channels
+input=$test_srcdir/$thistest.input
+circe2=$thistest.circe2
+output=$thistest.output
+events=$thistest.events
+
+if test "X$2" != X; then
+  mode="$2"
+else
+  mode=check
+fi
+
+########################################################################
+
+rm -f $events $circe2 $output
+if test -s $channels && test -s $input; then
+  $circe2_moments generate $circe2 $n_events $seed1 <$channels >$events
+  if test -s $events; then
+    $circe2_tool -f $input >/dev/null 2>&1
+    rm -f $events
+    if test -s $circe2; then
+      $circe2_moments $mode $circe2 $n_events $seed2 <$channels >$output 2>&1
+      if $grep OK $output >/dev/null 2>&1; then
+        exit 0
+      else
+        exit 1
+      fi
+    else
+      echo " FAIL: $circe2_tool -f $input" >$output
+      exit 2
+    fi
+  else
+    echo " FAIL: $circe2_moments generate $circe2 $n_events $seed1" >$output
+    exit 3
+  fi
+else
+  echo " FAIL: missing $channels and/or $input" >$output
+  exit 4
+fi
+
+########################################################################

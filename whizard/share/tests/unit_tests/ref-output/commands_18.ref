@@ -1,0 +1,88 @@
+* Test output: commands_18
+*   Purpose: declare a plot
+
+* Initialization
+
+* Input file
+
+$obs_label = "foo"
+$obs_unit = "cm"
+$title = "Plot foo"
+$description = "This is plot foo"
+$x_label = "x axis"
+$y_label = "y axis"
+?x_log = false
+?y_log = true
+x_min = -1
+x_max = 1
+y_min = 0.1
+y_max = 1000
+plot foo
+
+* Parse file
+
+* Compile command list
+
+ var: $obs_label (string, intrinsic)
+ var: $obs_unit (string, intrinsic)
+ var: $title (string, intrinsic)
+ var: $description (string, intrinsic)
+ var: $x_label (string, intrinsic)
+ var: $y_label (string, intrinsic)
+ var: ?x_log (logical, intrinsic)
+ var: ?y_log (logical, intrinsic)
+ var: x_min (real, intrinsic)
+ var: x_max (real, intrinsic)
+ var: y_min (real, intrinsic)
+ var: y_max (real, intrinsic)
+ plot: foo
+
+* Execute command list
+
+* Record two data items
+
+* Display analysis store
+
+###############################################################################
+# Plot:  foo
+title       = "Plot foo"
+description = "This is plot foo"
+x_label     = "x axis"
+y_label     = "y axis"
+x_log       = F
+y_log       = T
+x_min       = -1.000000000000E+00
+x_max       =  1.000000000000E+00
+y_min       =  1.000000000000E-01
+y_max       =  1.000000000000E+03
+width_mm    = 130
+height_mm   = 90
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+with_hbars  = F
+with_base   = F
+piecewise   = F
+fill        = F
+draw        = T
+err         = F
+symbols     = F
+fill_options= "withcolor col.default"
+draw_options= ""
+err_options = ""
+symbol      = "fshape(circle scaled 1mm)()"
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+#         x                   y                  yerr                xerr
+   0.000000000000E+00  2.000000000000E+01  0.000000000000E+00  2.500000000000E-01
+   5.000000000000E-01  2.000000000000E-01  7.000000000000E-02  0.000000000000E+00
+   3.000000000000E+00  2.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+
+# Summary:
+n_entries = 3
+
+
+* Cleanup
+
+* Test output end: commands_18

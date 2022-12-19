@@ -1,0 +1,50 @@
+% custom.hva -- tuning HEVEA for WHIZARD documentation
+% Wolfgang's version, continued by JRR
+% Specials
+\newcommand{\thisversion}{3.1.0}
+\newenvironment{interaction}{\small\verbatim}{\endverbatim\endsmall}
+\newenvironment{syntax}{\begin{quote}\begin{flushleft}\tt}{\end{flushleft}\end{quote}}
+\newcommand{\var}[1]{$\langle$\textit{#1}$\rangle$}   
+% Standard Math
+%% \newcommand{\to}{->}
+\newcommand{\text}[1]{#1}
+\newcommand{\substack}[1]{#1}
+\newenvironment{multline}{\begin{equation}}{\end{equation}}
+\newenvironment{subequations}{}{}
+% Thophys
+\newcommand{\braket}[1]{\langle#1\rangle}
+\newcommand{\Braket}[1]{\langle#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\Bra}[1]{\langle#1|}
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\Ket}[1]{|#1\rangle}
+\newcommand{\strut}{}
+\newcommand{\diag}{\text{diag}}
+% Thohacks
+\newcommand{\dubious}{\begin{quote}}
+\newcommand{\enddubious}{\end{quote}}
+\newcommand{\timestamp}{\heveadate}
+% TeX
+\newcommand{\hfil}{}
+\newcommand{\hfill}{}
+\newcommand{\hss}{}
+%% \newcommand{\sqrt}[1]{#1^{\frac12}}
+%% \newcommand{\baselineskip}{3mm}
+% Misc
+\newcommand{\tr}{\mathrm{tr}}
+% Color!
+\definecolor{code}{gray}{0.8}
+\newenvironment{fwbgcolor}[1]
+  {\@open{TABLE}{CELLPADDING=10 WIDTH="100\%"}
+     \@open{TR}{}
+       \@open{TD}{BGCOLOR=\@getcolor{#1}}}
+  {    \@close{TD}
+     \@close{TR}
+   \@close{TABLE}}
+\newenvironment{code}{\fwbgcolor{code}\verbatim}{\endverbatim\endfwbgcolor}
+\newenvironment{Code}{\fwbgcolor{code}\verbatim}{\endverbatim\endfwbgcolor}
+\endinput
+Local Variables:
+mode:latex
+indent-tabs-mode:nil
+End:

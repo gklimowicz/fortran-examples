@@ -1,0 +1,4831 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD code as NOWEB source: system interfaces
+\chapter{System: Interfaces and Handlers}
+\includemodulegraph{system}
+
+Here, we collect modules that deal with the ``system'':
+operating-system interfaces, error handlers and diagnostics.
+\begin{description}
+\item[system\_defs]
+  Constants relevant for the modules in this set.
+\item[diagnostics]
+  Error and diagnostic message handling.  Any
+  messages and errors issued by WHIZARD functions are handled by the
+  subroutines in this module, if possible.
+\item[os\_interface]
+  Execute system calls, build and link external object files and libraries.
+\item[cputime]
+  Timer data type and methods, for measuring performance.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Constants}
+The parameters here are used in various parts of the program,
+starting from the modules in the current chapter.  Some of them may be
+modified if the need arises.
+<<[[system_defs.f90]]>>=
+<<File header>>
+
+module system_defs
+
+  use, intrinsic :: iso_fortran_env, only: iostat_end, iostat_eor !NODEP!
+
+<<Standard module head>>
+
+<<System defs: public parameters>>
+
+end module system_defs
+@ %def system_defs
+@
+\subsection{Version}
+The version string is used for checking files.  Note that the string
+length MUST NOT be changed, because reading binary files relies on it.
+<<System defs: public parameters>>=
+  integer, parameter, public :: VERSION_STRLEN = 255
+  character(len=VERSION_STRLEN), parameter, public :: &
+       & VERSION_STRING = "WHIZARD version <<Version>> (<<Date>>)"
+
+@ %def VERSION_STRLEN VERSION_STRING
+@
+\subsection{Text Buffer}
+There is a hard limit on the line length which we should export.  This
+buffer size is used both by the message handler, the lexer, and some
+further modules.
+<<System defs: public parameters>>=
+  integer, parameter, public :: BUFFER_SIZE = 1000
+
+@ %def BUFFER_SIZE
+@
+\subsection{IOSTAT Codes}
+Defined in [[iso_fortran_env]], but we would like to use shorthands.
+<<System defs: public parameters>>=
+  integer, parameter, public :: EOF = iostat_end,  EOR = iostat_eor
+
+@ %def EOF EOR
+@
+\subsection{Character Codes}
+Single-character constants.
+<<System defs: public parameters>>=
+  character, parameter, public :: BLANK = ' '
+  character, parameter, public :: TAB = achar(9)
+  character, parameter, public :: CR = achar(13)
+  character, parameter, public :: LF = achar(10)
+  character, parameter, public :: BACKSLASH = achar(92)
+
+@ %def BLANK TAB CR NL
+@ Character strings that indicate character classes.
+<<System defs: public parameters>>=
+  character(*), parameter, public :: WHITESPACE_CHARS = BLANK// TAB // CR // LF
+  character(*), parameter, public :: LCLETTERS = "abcdefghijklmnopqrstuvwxyz"
+  character(*), parameter, public :: UCLETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  character(*), parameter, public :: DIGIT_CHARS = "0123456789"
+
+@ %def WHITESPACE_CHARS LCLETTERS UCLETTERS DIGIT_CHARS
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{C wrapper for sigaction}
+This implements calls to [[sigaction]] and the appropriate signal handlers in
+C.  The functionality is needed for the [[diagnostics]] module.
+<<[[signal_interface.c]]>>=
+/*
+<<File header>>
+*/
+#include <signal.h>
+#include <stdlib.h>
+
+extern int wo_sigint;
+extern int wo_sigterm;
+extern int wo_sigxcpu;
+extern int wo_sigxfsz;
+
+static void wo_handler_sigint (int sig) {
+  wo_sigint = sig;
+}
+
+static void wo_handler_sigterm (int sig) {
+  wo_sigterm = sig;
+}
+
+static void wo_handler_sigxcpu (int sig) {
+  wo_sigxcpu = sig;
+}
+
+static void wo_handler_sigxfsz (int sig) {
+  wo_sigxfsz = sig;
+}
+
+int wo_mask_sigint () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = wo_handler_sigint;
+  return sigaction(SIGINT, &sa, NULL);
+}
+
+int wo_mask_sigterm () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = wo_handler_sigterm;
+  return sigaction(SIGTERM, &sa, NULL);
+}
+
+int wo_mask_sigxcpu () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = wo_handler_sigxcpu;
+  return sigaction(SIGXCPU, &sa, NULL);
+}
+
+int wo_mask_sigxfsz () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = wo_handler_sigxfsz;
+  return sigaction(SIGXFSZ, &sa, NULL);
+}
+
+int wo_release_sigint () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = SIG_DFL;
+  return sigaction(SIGINT, &sa, NULL);
+}
+
+int wo_release_sigterm () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = SIG_DFL;
+  return sigaction(SIGTERM, &sa, NULL);
+}
+
+int wo_release_sigxcpu () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = SIG_DFL;
+  return sigaction(SIGXCPU, &sa, NULL);
+}
+
+int wo_release_sigxfsz () {
+  struct sigaction sa;
+  sigset_t blocks;
+  sigfillset (&blocks);
+  sa.sa_flags = 0;
+  sa.sa_mask = blocks;
+  sa.sa_handler = SIG_DFL;
+  return sigaction(SIGXFSZ, &sa, NULL);
+}
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{C wrapper for printf}
+The [[printf]] family of functions is implemented in C with an undefined
+number of arguments.  This is not supported by the [[bind(C)]] interface.  We
+therefore write wrappers for the versions of [[sprintf]] that
+we will actually use.
+
+This is used by the [[formats]] module.
+<<[[sprintf_interface.c]]>>=
+/*
+<<File header>>
+*/
+#include <stdio.h>
+
+int sprintf_none(char* str, const char* format) {
+  return sprintf(str, format);
+}
+
+int sprintf_int(char* str, const char* format, int val) {
+  return sprintf(str, format, val);
+}
+
+int sprintf_double(char* str, const char* format, double val) {
+  return sprintf(str, format, val);
+}
+
+int sprintf_str(char* str, const char* format, const char* val) {
+  return sprintf(str, format, val);
+}
+
+<<sprintf interfaces>>=
+  interface
+    function sprintf_none (str, fmt) result (stat) bind(C)
+      use iso_c_binding !NODEP!
+      integer(c_int) :: stat
+      character(c_char), dimension(*), intent(inout) :: str
+      character(c_char), dimension(*), intent(in) :: fmt
+    end function sprintf_none
+  end interface
+
+  interface
+    function sprintf_int (str, fmt, val) result (stat) bind(C)
+      use iso_c_binding !NODEP!
+      integer(c_int) :: stat
+      character(c_char), dimension(*), intent(inout) :: str
+      character(c_char), dimension(*), intent(in) :: fmt
+      integer(c_int), value :: val
+    end function sprintf_int
+  end interface
+
+  interface
+    function sprintf_double (str, fmt, val) result (stat) bind(C)
+      use iso_c_binding !NODEP!
+      integer(c_int) :: stat
+      character(c_char), dimension(*), intent(inout) :: str
+      character(c_char), dimension(*), intent(in) :: fmt
+      real(c_double), value :: val
+    end function sprintf_double
+  end interface
+
+  interface
+    function sprintf_str(str, fmt, val) result (stat) bind(C)
+      use iso_c_binding !NODEP!
+      integer(c_int) :: stat
+      character(c_char), dimension(*), intent(inout) :: str
+      character(c_char), dimension(*), intent(in) :: fmt
+      character(c_char), dimension(*), intent(in) :: val
+    end function sprintf_str
+  end interface
+
+@ %def sprintf_int sprintf_double sprintf_str
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Error, Message and Signal Handling}
+We are not so ambitious as to do proper exception handling in
+[[WHIZARD]], but at least it may be useful to have a common interface
+for diagnostics: Results, messages, warnings, and such.  As module
+variables we keep a buffer where the current message may be written to
+and a level indicator which tells which messages should be written on
+screen and which ones should be skipped.  Alternatively, a string may
+be directly supplied to the message routine: this overrides the
+buffer, avoiding the necessety of formatted I/O in trivial cases.
+<<[[diagnostics.f90]]>>=
+<<File header>>
+
+module diagnostics
+
+  use, intrinsic :: iso_c_binding !NODEP!
+
+<<Use kinds>>
+<<Use strings>>
+
+  use system_defs, only: BUFFER_SIZE, MAX_ERRORS
+
+<<Standard module head>>
+
+<<Diagnostics: public>>
+
+<<Diagnostics: parameters>>
+
+<<Diagnostics: types>>
+
+<<Diagnostics: variables>>
+
+<<Diagnostics: interfaces>>
+
+  interface
+<<Diagnostics: sub interfaces>>
+  end interface
+
+end module diagnostics
+
+<<Diagnostics: external procedures>>
+@ %def diagnostics
+@
+<<[[diagnostics_sub.f90]]>>=
+<<File header>>
+
+submodule (diagnostics) diagnostics_s
+
+  use, intrinsic :: iso_fortran_env, only: output_unit !NODEP!
+
+  use system_dependencies
+<<Use debug>>
+  use string_utils, only: str
+  use io_units
+
+  implicit none
+
+contains
+
+<<Diagnostics: procedures>>
+
+end submodule diagnostics_s
+
+@ %def diagnostics_s
+@
+Diagnostics levels:
+<<Diagnostics: public>>=
+  public :: RESULT, DEBUG, DEBUG2
+<<Diagnostics: parameters>>=
+  integer, parameter :: TERMINATE=-2, BUG=-1, FATAL=1, &
+       ERROR=2, WARNING=3, MESSAGE=4, RESULT=5, &
+       DEBUG=6, DEBUG2=7
+@ %def FATAL ERROR WARNING MESSAGE RESULT DEBUG DEBUG2
+Diagnostics areas:
+<<Diagnostics: public>>=
+  public :: d_area
+<<Diagnostics: interfaces>>=
+  interface d_area
+     module procedure d_area_of_string
+     module procedure d_area_to_string
+  end interface
+<<Diagnostics: sub interfaces>>=
+    module function d_area_of_string (string) result (i)
+      integer :: i
+      type(string_t), intent(in) :: string
+    end function d_area_of_string
+
+    elemental module function d_area_to_string (i) result (string)
+      type(string_t) :: string
+      integer, intent(in) :: i
+    end function d_area_to_string
+<<Diagnostics: procedures>>=
+  module function d_area_of_string (string) result (i)
+    integer :: i
+    type(string_t), intent(in) :: string
+    select case (char (string))
+    case ("particles")
+       i = D_PARTICLES
+    case ("events")
+       i = D_EVENTS
+    case ("shower")
+       i = D_SHOWER
+    case ("model_features")
+       i = D_MODEL_F
+    case ("matching")
+       i = D_MATCHING
+    case ("transforms")
+       i = D_TRANSFORMS
+    case ("subtraction")
+       i = D_SUBTRACTION
+    case ("virtual")
+       i = D_VIRTUAL
+    case ("threshold")
+       i = D_THRESHOLD
+    case ("phasespace")
+       i = D_PHASESPACE
+    case ("mismatch")
+       i = D_MISMATCH
+    case ("me_methods")
+       i = D_ME_METHODS
+    case ("process_integration")
+       i = D_PROCESS_INTEGRATION
+    case ("tauola")
+       i = D_TAUOLA
+    case ("core")
+       i = D_CORE
+    case ("vamp2")
+       i = D_VAMP2
+    case ("mpi")
+       i = D_MPI
+    case ("qft")
+       i = D_QFT
+    case ("beams")
+       i = D_BEAMS
+    case ("real")
+       i = D_REAL
+    case ("flavor")
+       i = D_FLAVOR
+    case ("all")
+       i = D_ALL
+    case default
+       print "(A)", "Possible values for --debug are:"
+       do i = 0, D_LAST
+          print "(A)", char ('  ' // d_area_to_string(i))
+       end do
+       call msg_fatal ("Please use one of the listed areas")
+    end select
+  end function d_area_of_string
+
+  elemental module function d_area_to_string (i) result (string)
+    type(string_t) :: string
+    integer, intent(in) :: i
+    select case (i)
+    case (D_PARTICLES)
+       string = "particles"
+    case (D_EVENTS)
+       string = "events"
+    case (D_SHOWER)
+       string = "shower"
+    case (D_MODEL_F)
+       string = "model_features"
+    case (D_MATCHING)
+       string = "matching"
+    case (D_TRANSFORMS)
+       string = "transforms"
+    case (D_SUBTRACTION)
+       string = "subtraction"
+    case (D_VIRTUAL)
+       string = "virtual"
+    case (D_THRESHOLD)
+       string = "threshold"
+    case (D_PHASESPACE)
+       string = "phasespace"
+    case (D_MISMATCH)
+       string = "mismatch"
+    case (D_ME_METHODS)
+       string = "me_methods"
+    case (D_PROCESS_INTEGRATION)
+       string = "process_integration"
+    case (D_TAUOLA)
+       string = "tauola"
+    case (D_CORE)
+       string = "core"
+    case (D_VAMP2)
+       string = "vamp2"
+    case (D_MPI)
+       string = "mpi"
+    case (D_QFT)
+       string = "qft"
+    case (D_BEAMS)
+       string = "beams"
+    case (D_REAL)
+       string = "real"
+    case (D_FLAVOR)
+       string = "flavor"
+    case (D_ALL)
+       string = "all"
+    case default
+       string = "undefined"
+    end select
+  end function d_area_to_string
+
+@ %def d_area
+@
+<<Diagnostics: public>>=
+  public :: D_PARTICLES, D_EVENTS, D_SHOWER, D_MODEL_F, &
+       D_MATCHING, D_TRANSFORMS, D_SUBTRACTION, D_VIRTUAL, D_THRESHOLD, &
+       D_PHASESPACE, D_MISMATCH, D_ME_METHODS, D_PROCESS_INTEGRATION, &
+       D_TAUOLA, D_CORE, D_VAMP2, D_MPI, D_QFT, D_BEAMS, D_REAL, D_FLAVOR
+<<Diagnostics: parameters>>=
+  integer, parameter :: D_ALL=0, D_PARTICLES=1, D_EVENTS=2, &
+       D_SHOWER=3, D_MODEL_F=4, &
+       D_MATCHING=5, D_TRANSFORMS=6, &
+       D_SUBTRACTION=7, D_VIRTUAL=8, D_THRESHOLD=9, D_PHASESPACE=10, &
+       D_MISMATCH=11, D_ME_METHODS=12, D_PROCESS_INTEGRATION=13, &
+       D_TAUOLA=14, D_CORE=15, D_VAMP2 = 16, D_MPI = 17, D_QFT = 18, &
+       D_BEAMS=19, D_REAL=20, D_FLAVOR=21, D_LAST=21
+@ %def D_ALL D_PARTICLES D_EVENTS
+@ %def D_SHOWER D_MODEL_F D_MATCHING D_TRANSFORMS
+@ %def D_SUBTRACTION D_VIRTUAL D_THRESHOLD D_PHASESPACE
+@ %def D_MISMATCH D_ME_METHODS D_PROCESS_INTEGRATION
+@ %def D_TAUOLA D_CORE D_VAMP2 D_MPI D_QFT
+@
+<<Diagnostics: public>>=
+  public :: msg_level
+<<Diagnostics: variables>>=
+  integer, save, dimension(D_ALL:D_LAST) :: msg_level = RESULT
+@ %def msg_level
+@
+<<Diagnostics: parameters>>=
+  integer, parameter, public :: COL_UNDEFINED = -1
+  integer, parameter, public :: COL_GREY = 90, COL_PEACH = 91, COL_LIGHT_GREEN = 92, &
+     COL_LIGHT_YELLOW = 93, COL_LIGHT_BLUE = 94, COL_PINK = 95, &
+     COL_LIGHT_AQUA = 96, COL_PEARL_WHITE = 97, COL_BLACK = 30, &
+     COL_RED = 31, COL_GREEN = 32, COL_YELLOW = 33, COL_BLUE = 34, &
+     COL_PURPLE = 35, COL_AQUA = 36
+
+@ %def COLORS
+@
+<<Diagnostics: public>>=
+  public :: set_debug_levels
+<<Diagnostics: sub interfaces>>=
+    module subroutine set_debug_levels (area_str)
+      type(string_t), intent(in) :: area_str
+    end subroutine set_debug_levels
+<<Diagnostics: procedures>>=
+  module subroutine set_debug_levels (area_str)
+    type(string_t), intent(in) :: area_str
+    integer :: area
+    if (.not. debug_on)  call msg_fatal ("Debugging options &
+         &can be used only if configured with --enable-fc-debug")
+    area = d_area (area_str)
+    if (area == D_ALL) then
+       msg_level = DEBUG
+    else
+       msg_level(area) = DEBUG
+    end if
+  end subroutine set_debug_levels
+
+@ %def set_debug_levels
+@
+<<Diagnostics: public>>=
+  public :: set_debug2_levels
+<<Diagnostics: sub interfaces>>=
+    module subroutine set_debug2_levels (area_str)
+      type(string_t), intent(in) :: area_str
+    end subroutine set_debug2_levels
+<<Diagnostics: procedures>>=
+  module subroutine set_debug2_levels (area_str)
+    type(string_t), intent(in) :: area_str
+    integer :: area
+    if (.not. debug_on)  call msg_fatal ("Debugging options &
+         &can be used only if configured with --enable-fc-debug")
+    area = d_area (area_str)
+    if (area == D_ALL) then
+       msg_level = DEBUG2
+    else
+       msg_level(area) = DEBUG2
+    end if
+  end subroutine set_debug2_levels
+
+@ %def set_debug2_levels
+@
+<<Diagnostics: types>>=
+  type :: terminal_color_t
+     integer :: color = COL_UNDEFINED
+  contains
+  <<Diagnostics: terminal color: TBP>>
+  end type terminal_color_t
+
+@ %def terminal_color_t
+@
+<<Diagnostics: public>>=
+  public :: term_col
+<<Diagnostics: interfaces>>=
+  interface term_col
+     module procedure term_col_int
+     module procedure term_col_char
+  end interface term_col
+
+@ %def term_col
+@
+<<Diagnostics: sub interfaces>>=
+    module function term_col_int (col_int) result (color)
+      type(terminal_color_t) :: color
+      integer, intent(in) :: col_int
+    end function term_col_int
+
+    module function term_col_char (col_char) result (color)
+      type(terminal_color_t) :: color
+      character(len=*), intent(in) :: col_char
+    end function term_col_char
+<<Diagnostics: procedures>>=
+  module function term_col_int (col_int) result (color)
+    type(terminal_color_t) :: color
+    integer, intent(in) :: col_int
+    color%color = col_int
+  end function term_col_int
+
+  module function term_col_char (col_char) result (color)
+    type(terminal_color_t) :: color
+    character(len=*), intent(in) :: col_char
+    type(string_t) :: buf
+    select case (col_char)
+    case ('Grey')
+       color%color = COL_GREY
+    case ('Peach')
+       color%color = COL_PEACH
+    case ('Light Green')
+       color%color = COL_LIGHT_GREEN
+    case ('Light Yellow')
+       color%color = COL_LIGHT_YELLOW
+    case ('Light Blue')
+       color%color = COL_LIGHT_BLUE
+    case ('Pink')
+       color%color = COL_PINK
+    case ('Light Aqua')
+       color%color = COL_LIGHT_AQUA
+    case ('Pearl White')
+       color%color = COL_PEARL_WHITE
+    case ('Black')
+       color%color = COL_BLACK
+    case ('Red')
+       color%color = COL_RED
+    case ('Green')
+       color%color = COL_GREEN
+    case ('Yellow')
+       color%color = COL_YELLOW
+    case ('Blue')
+       color%color = COL_BLUE
+    case ('Purple')
+       color%color = COL_PURPLE
+    case ('Aqua')
+       color%color = COL_AQUA
+    case default
+       buf = var_str ('Color ') // var_str (col_char) // var_str (' is not defined')
+       call msg_warning (char (buf))
+       color%color = COL_UNDEFINED
+    end select
+  end function term_col_char
+
+@ %def term_col_int term_col_char
+@
+Mask fatal errors so that are treated as normal errors.  Useful for
+interactive mode.
+<<Diagnostics: public>>=
+  public :: mask_fatal_errors
+<<Diagnostics: variables>>=
+  logical, save :: mask_fatal_errors = .false.
+@ %def mask_fatal_errors
+@
+How to handle bugs and unmasked fatal errors.  Either execute a normal
+stop statement, or call the C [[exit()]] function, or try to cause a
+program crash by dereferencing a null pointer.
+
+These procedures are appended to the [[diagnostics]] source code, but
+not as module procedures but as external procedures.  This avoids a
+circular module dependency across source directories.
+<<Diagnostics: parameters>>=
+  integer, parameter, public :: TERM_STOP = 0, TERM_EXIT = 1, TERM_CRASH = 2
+@ %def TERM_STOP TERM_EXIT TERM_CRASH
+<<Diagnostics: public>>=
+  public :: handle_fatal_errors
+<<Diagnostics: variables>>=
+  integer, save :: handle_fatal_errors = TERM_EXIT
+<<Diagnostics: external procedures>>=
+  subroutine fatal_force_crash ()
+    use diagnostics, only: handle_fatal_errors, TERM_CRASH !NODEP!
+    implicit none
+    handle_fatal_errors = TERM_CRASH
+  end subroutine fatal_force_crash
+
+  subroutine fatal_force_exit ()
+    use diagnostics, only: handle_fatal_errors, TERM_EXIT !NODEP!
+    implicit none
+    handle_fatal_errors = TERM_EXIT
+  end subroutine fatal_force_exit
+
+  subroutine fatal_force_stop ()
+    use diagnostics, only: handle_fatal_errors, TERM_STOP !NODEP!
+    implicit none
+    handle_fatal_errors = TERM_STOP
+  end subroutine fatal_force_stop
+
+@ %def fatal_force_crash
+@ %def fatal_force_exit
+@ %def fatal_force_stop
+@
+Keep track of errors.  This might be used for exception handling,
+later.  The counter is incremented only for screen messages, to avoid
+double counting.
+<<Diagnostics: public>>=
+  public :: msg_count
+<<Diagnostics: variables>>=
+  integer, dimension(TERMINATE:WARNING), save :: msg_count = 0
+@ %def msg_count
+@ Keep a list of all errors and warnings.  Since we do not know the number of
+entries beforehand, we use a linked list.
+<<Diagnostics: types>>=
+  type :: string_list
+     character(len=BUFFER_SIZE) :: string
+     type(string_list), pointer :: next
+  end type string_list
+  type :: string_list_pointer
+     type(string_list), pointer :: first, last
+  end type string_list_pointer
+
+@ %def string_list string_list_pointer
+<<Diagnostics: variables>>=
+  type(string_list_pointer), dimension(TERMINATE:WARNING), save :: &
+       & msg_list = string_list_pointer (null(), null())
+@ %def msg_list
+@ Create a format string indicating color
+
+@ Add the current message buffer contents to the internal list.
+<<Diagnostics: procedures>>=
+  subroutine msg_add (level)
+    integer, intent(in) :: level
+    type(string_list), pointer :: message
+    select case (level)
+    case (TERMINATE:WARNING)
+       allocate (message)
+       message%string = msg_buffer
+       nullify (message%next)
+       if (.not.associated (msg_list(level)%first)) &
+            & msg_list(level)%first => message
+       if (associated (msg_list(level)%last)) &
+            & msg_list(level)%last%next => message
+       msg_list(level)%last => message
+       msg_count(level) = msg_count(level) + 1
+    end select
+  end subroutine msg_add
+
+@ %def msg_add
+@
+Initialization:
+<<Diagnostics: public>>=
+  public :: msg_list_clear
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_list_clear
+    end subroutine msg_list_clear
+<<Diagnostics: procedures>>=
+  module subroutine msg_list_clear
+    integer :: level
+    type(string_list), pointer :: message
+    do level = TERMINATE, WARNING
+       do while (associated (msg_list(level)%first))
+          message => msg_list(level)%first
+          msg_list(level)%first => message%next
+          deallocate (message)
+       end do
+       nullify (msg_list(level)%last)
+    end do
+    msg_count = 0
+  end subroutine msg_list_clear
+
+@ %def msg_list_clear
+@ Display the summary of errors and warnings (no need to count
+fatals\ldots)
+<<Diagnostics: public>>=
+  public :: msg_summary
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_summary (unit)
+      integer, intent(in), optional :: unit
+    end subroutine msg_summary
+<<Diagnostics: procedures>>=
+  module subroutine msg_summary (unit)
+    integer, intent(in), optional :: unit
+    call expect_summary (unit)
+1   format (A,1x,I2,1x,A,I2,1x,A)
+    if (msg_count(ERROR) > 0 .and. msg_count(WARNING) > 0) then
+       write (msg_buffer, 1) "There were", &
+            & msg_count(ERROR), "error(s) and  ", &
+            & msg_count(WARNING), "warning(s)."
+       call msg_message (unit=unit)
+    else if (msg_count(ERROR) > 0) then
+       write (msg_buffer, 1) "There were", &
+            & msg_count(ERROR), "error(s) and no warnings."
+       call msg_message (unit=unit)
+    else if (msg_count(WARNING) > 0) then
+       write (msg_buffer, 1) "There were no errors and  ", &
+            & msg_count(WARNING), "warning(s)."
+       call msg_message (unit=unit)
+    end if
+  end subroutine msg_summary
+
+@ %def msg_summary
+@ Print the list of all messages of a given level.
+<<Diagnostics: public>>=
+  public :: msg_listing
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_listing (level, unit, prefix)
+      integer, intent(in) :: level
+      integer, intent(in), optional :: unit
+      character(len=*), intent(in), optional :: prefix
+    end subroutine msg_listing
+<<Diagnostics: procedures>>=
+  module subroutine msg_listing (level, unit, prefix)
+    integer, intent(in) :: level
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: prefix
+    type(string_list), pointer :: message
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    if (present (unit))  u = unit
+    message => msg_list(level)%first
+    do while (associated (message))
+       if (present (prefix)) then
+          write (u, "(A)") prefix // trim (message%string)
+       else
+          write (u, "(A)") trim (message%string)
+       end if
+       message => message%next
+    end do
+    flush (u)
+  end subroutine msg_listing
+
+@ %def msg_listing
+@ The message buffer:
+<<Diagnostics: public>>=
+  public :: msg_buffer
+<<Diagnostics: variables>>=
+  character(len=BUFFER_SIZE), save :: msg_buffer = " "
+@ %def msg_buffer
+@
+After a message is issued, the buffer should be cleared:
+<<Diagnostics: procedures>>=
+  subroutine buffer_clear
+    msg_buffer = " "
+  end subroutine buffer_clear
+
+@ %def buffer_clear
+<<Diagnostics: public>>=
+  public :: create_col_string
+<<Diagnostics: sub interfaces>>=
+    module function create_col_string (color) result (col_string)
+       type(string_t) :: col_string
+       integer, intent(in) :: color
+    end function create_col_string
+<<Diagnostics: procedures>>=
+  module function create_col_string (color) result (col_string)
+     type(string_t) :: col_string
+     integer, intent(in) :: color
+     character(2) :: buf
+     write (buf, '(I2)') color
+     col_string = var_str ("[") // var_str (buf) // var_str ("m")
+  end function create_col_string
+
+@ %def create_col_string
+@ The generic handler for messages.  If the unit is omitted (or $=6$), the
+message is written to standard output if the precedence if
+sufficiently high (as determined by the value of
+[[msg_level]]).  If the string is omitted, the buffer is used.
+In any case, the buffer is cleared after printing.  In accordance with
+FORTRAN custom, the first column in the output is left blank.  For
+messages and warnings, an additional exclamation mark and a blank is
+prepended.  Furthermore, each message is appended to the internal
+message list (without prepending anything).
+<<Diagnostics: procedures>>=
+  subroutine message_print (level, string, str_arr, unit, logfile, area, color)
+    integer, intent(in) :: level
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: str_arr
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: logfile
+    integer, intent(in), optional :: area
+    integer, intent(in), optional :: color
+    type(string_t) :: col_string, prep_string, aux_string, head_footer, app_string
+    integer :: lu, i, ar
+    logical :: severe, is_error
+    ar = D_ALL; if (present (area))  ar = area
+    severe = .false.
+    head_footer  = "******************************************************************************"
+    aux_string = ""
+    is_error = .false.
+    app_string = ""
+    select case (level)
+    case (TERMINATE)
+       prep_string = ""
+    case (BUG)
+       prep_string   = "*** WHIZARD BUG: "
+       aux_string    = "***              "
+       severe = .true.
+       is_error = .true.
+    case (FATAL)
+       prep_string   = "*** FATAL ERROR: "
+       aux_string    = "***              "
+       severe = .true.
+       is_error = .true.
+    case (ERROR)
+       prep_string = "*** ERROR: "
+       aux_string  = "***        "
+       is_error = .true.
+    case (WARNING)
+       prep_string = "Warning: "
+    case (MESSAGE)
+       prep_string = "| "
+    case (DEBUG, DEBUG2)
+       prep_string = "D: "
+    case default
+       prep_string = ""
+    end select
+    if (present (color)) then
+       if (color > COL_UNDEFINED) then
+          col_string = create_col_string (color)
+          prep_string = achar(27) // col_string // prep_string
+          app_string = app_string // achar(27) // "[0m"
+       end if
+    end if
+    if (present(string))  msg_buffer = string
+    lu = log_unit
+    if (present(unit)) then
+       if (unit /= output_unit) then
+          if (severe) write (unit, "(A)") char(head_footer)
+          if (is_error) write (unit, "(A)") char(head_footer)
+          write (unit, "(A,A,A)") char(prep_string), trim(msg_buffer), &
+               char(app_string)
+          if (present (str_arr)) then
+             do i = 1, size(str_arr)
+                write (unit, "(A,A)") char(aux_string), char(trim(str_arr(i)))
+             end do
+          end if
+          if (is_error) write (unit, "(A)") char(head_footer)
+          if (severe) write (unit, "(A)") char(head_footer)
+          flush (unit)
+          lu = -1
+       else if (level <= msg_level(ar)) then
+          if (severe) print "(A)", char(head_footer)
+          if (is_error) print "(A)", char(head_footer)
+          print "(A,A,A)", char(prep_string), trim(msg_buffer), &
+               char(app_string)
+          if (present (str_arr)) then
+             do i = 1, size(str_arr)
+                print "(A,A)", char(aux_string), char(trim(str_arr(i)))
+             end do
+          end if
+          if (is_error) print "(A)", char(head_footer)
+          if (severe) print "(A)", char(head_footer)
+          flush (output_unit)
+          if (unit == log_unit)  lu = -1
+       end if
+    else if (level <= msg_level(ar)) then
+       if (severe) print "(A)", char(head_footer)
+       if (is_error) print "(A)", char(head_footer)
+       print "(A,A,A)", char(prep_string), trim(msg_buffer), &
+               char(app_string)
+          if (present (str_arr)) then
+             do i = 1, size(str_arr)
+                print "(A,A)", char(aux_string), char(trim(str_arr(i)))
+             end do
+          end if
+       if (is_error) print "(A)", char(head_footer)
+       if (severe) print "(A)", char(head_footer)
+       flush (output_unit)
+    end if
+    if (present (logfile)) then
+       if (.not. logfile)  lu = -1
+    end if
+    if (logging .and. lu >= 0) then
+       if (severe) write (lu, "(A)") char(head_footer)
+       if (is_error) write (lu, "(A)") char(head_footer)
+       write (lu, "(A,A,A)")  char(prep_string), trim(msg_buffer), &
+               char(app_string)
+       if (present (str_arr)) then
+          do i = 1, size(str_arr)
+             write (lu, "(A,A)") char(aux_string), char(trim(str_arr(i)))
+          end do
+       end if
+       if (is_error) write (lu, "(A)") char(head_footer)
+       if (severe) write (lu, "(A)") char(head_footer)
+       flush (lu)
+    end if
+    call msg_add (level)
+    call buffer_clear
+  end subroutine message_print
+
+@ %def message_print
+@
+The number of non-fatal errors that we allow before stopping the
+program.  We might trade this later for an adjustable number.
+<<System defs: public parameters>>=
+  integer, parameter, public :: MAX_ERRORS = 10
+@ %def MAX_ERRORS
+@ The specific handlers.  In the case of fatal errors, bugs (failed
+assertions) and normal termination execution is stopped.  For
+non-fatal errors a message is printed to standard output if no unit is
+given.  Only if the number of [[MAX_ERRORS]] errors is reached, we
+abort the program.  There are no further actions in the other cases,
+but this may change.
+<<Diagnostics: public>>=
+  public :: msg_terminate
+  public :: msg_bug, msg_fatal, msg_error, msg_warning
+  public :: msg_message, msg_result
+<<Diagnostics: sub interfaces>>=
+  module subroutine msg_terminate (string, unit, quit_code)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    integer, intent(in), optional :: quit_code
+  end subroutine msg_terminate
+
+  module subroutine msg_bug (string, arr, unit)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+  end subroutine msg_bug
+
+  recursive module subroutine msg_fatal (string, arr, unit)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+  end subroutine msg_fatal
+
+  module subroutine msg_error (string, arr, unit)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+  end subroutine msg_error
+
+  module subroutine msg_warning (string, arr, unit, color)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    type(terminal_color_t), intent(in), optional :: color
+  end subroutine msg_warning
+
+  module subroutine msg_message (string, unit, arr, logfile, color)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    logical, intent(in), optional :: logfile
+    type(terminal_color_t), intent(in), optional :: color
+  end subroutine msg_message
+
+  module subroutine msg_result (string, arr, unit, logfile, color)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    logical, intent(in), optional :: logfile
+    type(terminal_color_t), intent(in), optional :: color
+  end subroutine msg_result
+<<Diagnostics: procedures>>=
+  module subroutine msg_terminate (string, unit, quit_code)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    integer, intent(in), optional :: quit_code
+    integer(c_int) :: return_code
+    call release_term_signals ()
+    if (present (quit_code)) then
+       return_code = quit_code
+    else
+       return_code = 0
+    end if
+    if (present (string)) &
+         call message_print (MESSAGE, string, unit=unit)
+    call msg_summary (unit)
+    if (return_code == 0 .and. expect_failures /= 0) then
+       return_code = 5
+       call message_print (MESSAGE, &
+            "WHIZARD run finished with 'expect' failure(s).", unit=unit)
+    else if (return_code == 7) then
+       call message_print (MESSAGE, &
+            "WHIZARD run finished with failed self-test.", unit=unit)
+    else
+       call message_print (MESSAGE, "WHIZARD run finished.", unit=unit)
+    end if
+    call message_print (0, &
+         "|=============================================================================|", unit=unit)
+    call logfile_final ()
+    call msg_list_clear ()
+    if (return_code /= 0) then
+       call exit (return_code)
+    else
+       !!! Should implement WHIZARD exit code (currently only via C)
+       call exit (0)
+    end if
+  end subroutine msg_terminate
+
+  module subroutine msg_bug (string, arr, unit)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    logical, pointer :: crash_ptr
+    call message_print (BUG, string, arr, unit)
+    call msg_summary (unit)
+    select case (handle_fatal_errors)
+    case (TERM_EXIT)
+       call message_print (TERMINATE, "WHIZARD run aborted.", unit=unit)
+       call exit (-1_c_int)
+    case (TERM_CRASH)
+       print *, "*** Intentional crash ***"
+       crash_ptr => null ()
+       print *, crash_ptr
+    end select
+    stop "WHIZARD run aborted."
+  end subroutine msg_bug
+
+  recursive module subroutine msg_fatal (string, arr, unit)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    logical, pointer :: crash_ptr
+    if (mask_fatal_errors) then
+       call msg_error (string, arr, unit)
+    else
+       call message_print (FATAL, string, arr, unit)
+       call msg_summary (unit)
+       select case (handle_fatal_errors)
+       case (TERM_EXIT)
+          call message_print (TERMINATE, "WHIZARD run aborted.", unit=unit)
+          call exit (1_c_int)
+       case (TERM_CRASH)
+          print *, "*** Intentional crash ***"
+          crash_ptr => null ()
+          print *, crash_ptr
+       end select
+       stop "WHIZARD run aborted."
+    end if
+  end subroutine msg_fatal
+
+  module subroutine msg_error (string, arr, unit)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    call message_print (ERROR, string, arr, unit)
+    if (msg_count(ERROR) >= MAX_ERRORS) then
+       mask_fatal_errors = .false.
+       call msg_fatal (" Too many errors encountered.")
+    else if (.not.present(unit) .and. .not.mask_fatal_errors)  then
+       call message_print (MESSAGE, "            (WHIZARD run continues)")
+    end if
+  end subroutine msg_error
+
+  module subroutine msg_warning (string, arr, unit, color)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    type(terminal_color_t), intent(in), optional :: color
+    integer :: cl
+    cl = COL_UNDEFINED; if (present (color)) cl = color%color
+    call message_print (level = WARNING, string = string, &
+       str_arr = arr, unit = unit, color = cl)
+  end subroutine msg_warning
+
+  module subroutine msg_message (string, unit, arr, logfile, color)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    logical, intent(in), optional :: logfile
+    type(terminal_color_t), intent(in), optional :: color
+    integer :: cl
+    cl = COL_UNDEFINED; if (present (color)) cl = color%color
+    call message_print (level = MESSAGE, &
+       string = string, str_arr = arr, unit = unit, &
+       logfile = logfile, color = cl)
+  end subroutine msg_message
+
+  module subroutine msg_result (string, arr, unit, logfile, color)
+    integer, intent(in), optional :: unit
+    character(len=*), intent(in), optional :: string
+    type(string_t), dimension(:), intent(in), optional :: arr
+    logical, intent(in), optional :: logfile
+    type(terminal_color_t), intent(in), optional :: color
+    integer :: cl
+    cl = COL_UNDEFINED; if (present (color)) cl = color%color
+    call message_print (level = RESULT, string = string, &
+       str_arr = arr, unit = unit, logfile = logfile, color = cl)
+  end subroutine msg_result
+
+@ %def msg_warning msg_message msg_result
+@ Debugging aids.  Print messages or values of various kinds.  All
+versions ultimately call [[msg_debug_none]], which in turn uses
+[[message_print]].
+
+Safeguard: force crash if a routine (i.e., a debugging routine below)
+is called while the master switch [[debug_on]] is unset.  Such calls
+should always be hidden behind [[if (debug_on)]], since they can
+significantly slow down the program.
+<<debug guard>>=
+if (.not. debug_on)  call msg_bug ("msg_debug called with debug_on=.false.")
+@
+The [[debug_on]] flag is provided by the [[debug_master]] module, and
+we can assume that it is a compile-time parameter.
+<<Diagnostics: public>>=
+  public :: msg_debug
+<<Diagnostics: interfaces>>=
+  interface msg_debug
+     module procedure msg_debug_none
+     module procedure msg_debug_logical
+     module procedure msg_debug_integer
+     module procedure msg_debug_real
+     module procedure msg_debug_complex
+     module procedure msg_debug_string
+  end interface
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_debug_none (area, string, color)
+      integer, intent(in) :: area
+      character(len=*), intent(in), optional :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug_none
+
+    module subroutine msg_debug_logical (area, string, value, color)
+      logical, intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug_logical
+
+    module subroutine msg_debug_integer (area, string, value, color)
+      integer, intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug_integer
+
+    module subroutine msg_debug_real (area, string, value, color)
+      real(default), intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug_real
+
+    module subroutine msg_debug_complex (area, string, value, color)
+      complex(default), intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug_complex
+
+    module subroutine msg_debug_string (area, string, value, color)
+     type(string_t), intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug_string
+<<Diagnostics: procedures>>=
+  module subroutine msg_debug_none (area, string, color)
+    integer, intent(in) :: area
+    character(len=*), intent(in), optional :: string
+    type(terminal_color_t), intent(in), optional :: color
+    integer :: cl
+    if (debug_active (area)) then
+       cl = COL_BLUE; if (present (color)) cl = color%color
+       call message_print (DEBUG, string, unit = output_unit, &
+            area = area, logfile = .false., color = cl)
+    else
+       <<debug guard>>
+    end if
+  end subroutine msg_debug_none
+
+  module subroutine msg_debug_logical (area, string, value, color)
+    logical, intent(in) :: value
+  <<msg debug implementation>>
+  end subroutine msg_debug_logical
+
+  module subroutine msg_debug_integer (area, string, value, color)
+    integer, intent(in) :: value
+  <<msg debug implementation>>
+  end subroutine msg_debug_integer
+
+  module subroutine msg_debug_real (area, string, value, color)
+    real(default), intent(in) :: value
+  <<msg debug implementation>>
+  end subroutine msg_debug_real
+
+  module subroutine msg_debug_complex (area, string, value, color)
+    complex(default), intent(in) :: value
+  <<msg debug implementation>>
+  end subroutine msg_debug_complex
+
+  module subroutine msg_debug_string (area, string, value, color)
+    type(string_t), intent(in) :: value
+    integer, intent(in) :: area
+    character(len=*), intent(in) :: string
+    type(terminal_color_t), intent(in), optional :: color
+    if (debug_active (area)) then
+       call msg_debug_none (area, string // " = " // char (value), &
+            color = color)
+    else
+       <<debug guard>>
+    end if
+  end subroutine msg_debug_string
+
+@ %def msg_debug
+<<msg debug implementation>>=
+  integer, intent(in) :: area
+  character(len=*), intent(in) :: string
+  type(terminal_color_t), intent(in), optional :: color
+  character(len=64) :: buffer
+  if (debug_active (area)) then
+     write (buffer, *)  value
+     call msg_debug_none (area, string // " = " // trim (buffer), &
+          color = color)
+  else
+     <<debug guard>>
+  end if
+@
+<<Diagnostics: public>>=
+  public :: msg_print_color
+<<Diagnostics: interfaces>>=
+  interface msg_print_color
+     module procedure msg_print_color_none
+     module procedure msg_print_color_logical
+     module procedure msg_print_color_integer
+     module procedure msg_print_color_real
+  end interface
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_print_color_none (string, color)
+      character(len=*), intent(in) :: string
+      !!!type(terminal_color_t), intent(in) :: color
+      integer, intent(in) :: color
+    end subroutine msg_print_color_none
+
+    module subroutine msg_print_color_logical (string, value, color)
+      character(len=*), intent(in) :: string
+      logical, intent(in) :: value
+      integer, intent(in) :: color
+    end subroutine msg_print_color_logical
+
+    module subroutine msg_print_color_integer (string, value, color)
+      character(len=*), intent(in) :: string
+      integer, intent(in) :: value
+      integer, intent(in) :: color
+    end subroutine msg_print_color_integer
+
+    module subroutine msg_print_color_real (string, value, color)
+      character(len=*), intent(in) :: string
+      real(default), intent(in) :: value
+      integer, intent(in) :: color
+    end subroutine msg_print_color_real
+<<Diagnostics: procedures>>=
+  module subroutine msg_print_color_none (string, color)
+    character(len=*), intent(in) :: string
+    !!!type(terminal_color_t), intent(in) :: color
+    integer, intent(in) :: color
+    call message_print (0, string, color = color)
+  end subroutine msg_print_color_none
+
+  module subroutine msg_print_color_logical (string, value, color)
+    character(len=*), intent(in) :: string
+    logical, intent(in) :: value
+    integer, intent(in) :: color
+    call msg_print_color_none (char (string // " = " // str (value)), &
+       color = color)
+  end subroutine msg_print_color_logical
+
+  module subroutine msg_print_color_integer (string, value, color)
+    character(len=*), intent(in) :: string
+    integer, intent(in) :: value
+    integer, intent(in) :: color
+    call msg_print_color_none (char (string // " = " // str (value)), &
+       color = color)
+  end subroutine msg_print_color_integer
+
+  module subroutine msg_print_color_real (string, value, color)
+    character(len=*), intent(in) :: string
+    real(default), intent(in) :: value
+    integer, intent(in) :: color
+    call msg_print_color_none (char (string // " = " // str (value)), &
+       color = color)
+  end subroutine msg_print_color_real
+
+@ %def msg_print_color_none, msg_print_color_logical
+@ %def msg_print_color_integer, msg_print_color_real
+@ Secondary debugging aids which implement more fine-grained debugging.
+Again, there is a safeguard against calling anything while
+[[debug_on=.false.]].
+<<debug2 guard>>=
+if (.not. debug_on)  call msg_bug ("msg_debug2 called with debug_on=.false.")
+<<Diagnostics: public>>=
+  public :: msg_debug2
+<<Diagnostics: interfaces>>=
+  interface msg_debug2
+     module procedure msg_debug2_none
+     module procedure msg_debug2_logical
+     module procedure msg_debug2_integer
+     module procedure msg_debug2_real
+     module procedure msg_debug2_complex
+     module procedure msg_debug2_string
+  end interface
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_debug2_none (area, string, color)
+      integer, intent(in) :: area
+      character(len=*), intent(in), optional :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug2_none
+
+    module subroutine msg_debug2_logical (area, string, value, color)
+      logical, intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug2_logical
+
+    module subroutine msg_debug2_integer (area, string, value, color)
+      integer, intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug2_integer
+
+    module subroutine msg_debug2_real (area, string, value, color)
+      real(default), intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug2_real
+
+    module subroutine msg_debug2_complex (area, string, value, color)
+      complex(default), intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug2_complex
+
+    module subroutine msg_debug2_string (area, string, value, color)
+      type(string_t), intent(in) :: value
+      integer, intent(in) :: area
+      character(len=*), intent(in) :: string
+      type(terminal_color_t), intent(in), optional :: color
+    end subroutine msg_debug2_string
+<<Diagnostics: procedures>>=
+  module subroutine msg_debug2_none (area, string, color)
+    integer, intent(in) :: area
+    character(len=*), intent(in), optional :: string
+    type(terminal_color_t), intent(in), optional :: color
+    integer :: cl
+    if (debug2_active (area)) then
+       cl = COL_BLUE; if (present (color)) cl = color%color
+       call message_print (DEBUG2, string, unit = output_unit, &
+            area = area, logfile = .false., color = cl)
+    else
+       <<debug2 guard>>
+    end if
+  end subroutine msg_debug2_none
+
+  module subroutine msg_debug2_logical (area, string, value, color)
+    logical, intent(in) :: value
+  <<msg debug2 implementation>>
+  end subroutine msg_debug2_logical
+
+  module subroutine msg_debug2_integer (area, string, value, color)
+    integer, intent(in) :: value
+  <<msg debug2 implementation>>
+  end subroutine msg_debug2_integer
+
+  module subroutine msg_debug2_real (area, string, value, color)
+    real(default), intent(in) :: value
+  <<msg debug2 implementation>>
+  end subroutine msg_debug2_real
+
+  module subroutine msg_debug2_complex (area, string, value, color)
+    complex(default), intent(in) :: value
+  <<msg debug2 implementation>>
+  end subroutine msg_debug2_complex
+
+  module subroutine msg_debug2_string (area, string, value, color)
+    type(string_t), intent(in) :: value
+    integer, intent(in) :: area
+    character(len=*), intent(in) :: string
+    type(terminal_color_t), intent(in), optional :: color
+    if (debug2_active (area)) then
+       call msg_debug2_none (area, string // " = " // char (value), &
+            color = color)
+    else
+       <<debug2 guard>>
+    end if
+  end subroutine msg_debug2_string
+
+@ %def msg_debug2
+<<msg debug2 implementation>>=
+  integer, intent(in) :: area
+  character(len=*), intent(in) :: string
+  type(terminal_color_t), intent(in), optional :: color
+  character(len=64) :: buffer
+  if (debug2_active (area)) then
+     write (buffer, *)  value
+     call msg_debug2_none (area, string // " = " // trim (buffer), &
+          color = color)
+  else
+     <<debug2 guard>>
+  end if
+@
+<<Diagnostics: public>>=
+  public :: debug_active
+<<Diagnostics: sub interfaces>>=
+    elemental module function debug_active (area) result (active)
+      logical :: active
+      integer, intent(in) :: area
+    end function debug_active
+<<Diagnostics: procedures>>=
+  elemental module function debug_active (area) result (active)
+    logical :: active
+    integer, intent(in) :: area
+    active = debug_on .and. msg_level(area) >= DEBUG
+  end function debug_active
+
+@ %def debug_active
+@
+<<Diagnostics: public>>=
+  public :: debug2_active
+<<Diagnostics: sub interfaces>>=
+    elemental module function debug2_active (area) result (active)
+      logical :: active
+      integer, intent(in) :: area
+    end function debug2_active
+<<Diagnostics: procedures>>=
+  elemental module function debug2_active (area) result (active)
+    logical :: active
+    integer, intent(in) :: area
+    active = debug_on .and. msg_level(area) >= DEBUG2
+  end function debug2_active
+
+@ %def debug2_active
+@ Show the progress of a loop in steps of 10 \%.  Could be generalized
+to other step sizes with an optional argument.
+<<Diagnostics: public>>=
+  public :: msg_show_progress
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_show_progress (i_call, n_calls)
+      integer, intent(in) :: i_call, n_calls
+    end subroutine msg_show_progress
+<<Diagnostics: procedures>>=
+  module subroutine msg_show_progress (i_call, n_calls)
+    integer, intent(in) :: i_call, n_calls
+    real(default) :: progress
+    integer, save :: next_check
+    if (i_call == 1) next_check = 10
+    progress = (i_call * 100._default) / n_calls
+    if (progress >= next_check) then
+       write (msg_buffer, "(F5.1,A)") progress, "%"
+       call msg_message ()
+       next_check = next_check + 10
+    end if
+  end subroutine msg_show_progress
+
+@ %def msg_show_progress
+@ Interface to the standard clib exit function
+<<Diagnostics: public>>=
+  public :: exit
+<<Diagnostics: interfaces>>=
+  interface
+     subroutine exit (status) bind (C)
+       use iso_c_binding !NODEP!
+       integer(c_int), value :: status
+     end subroutine exit
+  end interface
+
+@ %def exit
+@ Print the WHIZARD banner:
+<<Diagnostics: public>>=
+  public :: msg_banner
+<<Diagnostics: sub interfaces>>=
+    module subroutine msg_banner (unit)
+      integer, intent(in), optional :: unit
+    end subroutine msg_banner
+<<Diagnostics: procedures>>=
+  module subroutine msg_banner (unit)
+    integer, intent(in), optional :: unit
+    call message_print (0, "|=============================================================================|", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|    WW             WW  WW   WW  WW  WWWWWW      WW      WWWWW    WWWW        |", unit=unit)
+    call message_print (0, "|     WW    WW     WW   WW   WW  WW     WW      WWWW     WW  WW   WW  WW      |", unit=unit)
+    call message_print (0, "|      WW  WW WW  WW    WWWWWWW  WW    WW      WW  WW    WWWWW    WW   WW     |", unit=unit)
+    call message_print (0, "|       WWWW   WWWW     WW   WW  WW   WW      WWWWWWWW   WW  WW   WW  WW      |", unit=unit)
+    call message_print (0, "|        WW     WW      WW   WW  WW  WWWWWW  WW      WW  WW   WW  WWWW        |", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|                                        W                                    |", unit=unit)
+    call message_print (0, "|                                       sW                                    |", unit=unit)
+    call message_print (0, "|                                       WW                                    |", unit=unit)
+    call message_print (0, "|                                      sWW                                    |", unit=unit)
+    call message_print (0, "|                                      WWW                                    |", unit=unit)
+    call message_print (0, "|                                     wWWW                                    |", unit=unit)
+    call message_print (0, "|                                    wWWWW                                    |", unit=unit)
+    call message_print (0, "|                                    WW WW                                    |", unit=unit)
+    call message_print (0, "|                                    WW WW                                    |", unit=unit)
+    call message_print (0, "|                                   wWW WW                                    |", unit=unit)
+    call message_print (0, "|                                  wWW  WW                                    |", unit=unit)
+    call message_print (0, "|                                  WW   WW                                    |", unit=unit)
+    call message_print (0, "|                                  WW   WW                                    |", unit=unit)
+    call message_print (0, "|                                 WW    WW                                    |", unit=unit)
+    call message_print (0, "|                                 WW    WW                                    |", unit=unit)
+    call message_print (0, "|                                WW     WW                                    |", unit=unit)
+    call message_print (0, "|                                WW     WW                                    |", unit=unit)
+    call message_print (0, "|           wwwwww              WW      WW                                    |", unit=unit)
+    call message_print (0, "|              WWWWWww          WW      WW                                    |", unit=unit)
+    call message_print (0, "|                 WWWWWwwwww   WW       WW                                    |", unit=unit)
+    call message_print (0, "|                     wWWWwwwwwWW       WW                                    |", unit=unit)
+    call message_print (0, "|                 wWWWWWWWWWWwWWW       WW                                    |", unit=unit)
+    call message_print (0, "|                wWWWWW       wW        WWWWWWW                               |", unit=unit)
+    call message_print (0, "|                  WWWW       wW        WW  wWWWWWWWwww                       |", unit=unit)
+    call message_print (0, "|                   WWWW                      wWWWWWWWwwww                    |", unit=unit)
+    call message_print (0, "|                     WWWW                      WWWW     WWw                  |", unit=unit)
+    call message_print (0, "|                       WWWWww                   WWWW                         |", unit=unit)
+    call message_print (0, "|                           WWWwwww              WWWW                         |", unit=unit)
+    call message_print (0, "|                               wWWWWwww       wWWWWW                         |", unit=unit)
+    call message_print (0, "|                                     WwwwwwwwwWWW                            |", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|  by:   Wolfgang Kilian, Thorsten Ohl, Juergen Reuter                        |", unit=unit)
+    call message_print (0, "|        with contributions from Christian Speckner                           |", unit=unit)
+    call message_print (0, "|        Contact: <whizard@desy.de>                                           |", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|  if you use WHIZARD please cite:                                            |", unit=unit)
+    call message_print (0, "|        W. Kilian, T. Ohl, J. Reuter,  Eur.Phys.J.C71 (2011) 1742            |", unit=unit)
+    call message_print (0, "|                                          [arXiv: 0708.4233 [hep-ph]]        |", unit=unit)
+    call message_print (0, "|        M. Moretti, T. Ohl, J. Reuter, arXiv: hep-ph/0102195                 |", unit=unit)
+    call message_print (0, "|                                                                             |", unit=unit)
+    call message_print (0, "|=============================================================================|", unit=unit)
+    call message_print (0, "|                               WHIZARD " // WHIZARD_VERSION, unit=unit)
+    call message_print (0, "|=============================================================================|", unit=unit)
+  end subroutine msg_banner
+
+@ %def msg_banner
+@
+\subsection{Logfile}
+All screen output should be duplicated in the logfile, unless
+requested otherwise.
+<<Diagnostics: public>>=
+  public :: logging
+<<Diagnostics: variables>>=
+  integer, save :: log_unit = -1
+  logical, target, save :: logging = .false.
+<<Diagnostics: public>>=
+  public :: logfile_init
+<<Diagnostics: sub interfaces>>=
+    module subroutine logfile_init (filename)
+      type(string_t), intent(in) :: filename
+    end subroutine logfile_init
+<<Diagnostics: procedures>>=
+  module subroutine logfile_init (filename)
+    type(string_t), intent(in) :: filename
+    call msg_message ("Writing log to '" // char (filename) // "'")
+    if (.not. logging)  call msg_message ("(Logging turned off.)")
+    log_unit = free_unit ()
+    open (file = char (filename), unit = log_unit, &
+          action = "write", status = "replace")
+  end subroutine logfile_init
+
+@ %def logfile_init
+<<Diagnostics: public>>=
+  public :: logfile_final
+<<Diagnostics: sub interfaces>>=
+    module subroutine logfile_final ()
+    end subroutine logfile_final
+<<Diagnostics: procedures>>=
+  module subroutine logfile_final ()
+    if (log_unit >= 0) then
+       close (log_unit)
+       log_unit = -1
+    end if
+  end subroutine logfile_final
+
+@ %def logfile_final
+@ This returns the valid logfile unit only if the default is write to
+screen, and if [[logfile]] is not set false.
+<<Diagnostics: public>>=
+  public :: logfile_unit
+<<Diagnostics: sub interfaces>>=
+    module function logfile_unit (unit, logfile)
+      integer :: logfile_unit
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: logfile
+    end function logfile_unit
+<<Diagnostics: procedures>>=
+  module function logfile_unit (unit, logfile)
+    integer :: logfile_unit
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: logfile
+    if (logging) then
+       if (present (unit)) then
+          if (unit == output_unit) then
+             logfile_unit = log_unit
+          else
+             logfile_unit = -1
+          end if
+       else if (present (logfile)) then
+          if (logfile) then
+             logfile_unit = log_unit
+          else
+             logfile_unit = -1
+          end if
+       else
+          logfile_unit = log_unit
+       end if
+    else
+       logfile_unit = -1
+    end if
+  end function logfile_unit
+
+@ %def logfile_unit
+@
+\subsection{Checking values}
+The [[expect]] function does not just check a value for correctness
+(actually, it checks if a logical expression is true); it records its
+result here.  If failures are present when the program terminates, the
+exit code is nonzero.
+<<Diagnostics: variables>>=
+  integer, save :: expect_total = 0
+  integer, save :: expect_failures = 0
+
+@ %def expect_total expect_failures
+<<Diagnostics: public>>=
+  public :: expect_record
+<<Diagnostics: sub interfaces>>=
+    module subroutine expect_record (success)
+      logical, intent(in) :: success
+    end subroutine expect_record
+<<Diagnostics: procedures>>=
+  module subroutine expect_record (success)
+    logical, intent(in) :: success
+    expect_total = expect_total + 1
+    if (.not. success)  expect_failures = expect_failures + 1
+  end subroutine expect_record
+
+@ %def expect_record
+<<Diagnostics: public>>=
+  public :: expect_clear
+<<Diagnostics: sub interfaces>>=
+    module subroutine expect_clear ()
+    end subroutine expect_clear
+<<Diagnostics: procedures>>=
+  module subroutine expect_clear ()
+    expect_total = 0
+    expect_failures = 0
+  end subroutine expect_clear
+
+@ %def expect_clear
+<<Diagnostics: public>>=
+  public :: expect_summary
+<<Diagnostics: sub interfaces>>=
+    module subroutine expect_summary (unit, force)
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: force
+    end subroutine expect_summary
+<<Diagnostics: procedures>>=
+  module subroutine expect_summary (unit, force)
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: force
+    logical :: force_output
+    force_output = .false.;  if (present (force))  force_output = force
+    if (expect_total /= 0 .or. force_output) then
+       call msg_message ("Summary of value checks:", unit)
+       write (msg_buffer, "(2x,A,1x,I0,1x,A,1x,A,1x,I0)") &
+            "Failures:", expect_failures, "/", "Total:", expect_total
+       call msg_message (unit=unit)
+    end if
+  end subroutine expect_summary
+
+@ %def expect_summary
+@ Helpers for converting integers into strings with minimal length.
+<<Diagnostics: public>>=
+  public :: int2string
+  public :: int2char
+  public :: int2fixed
+<<Diagnostics: sub interfaces>>=
+    pure module function int2fixed (i) result (c)
+      integer, intent(in) :: i
+      character(200) :: c
+    end function int2fixed
+
+    pure module function int2string (i) result (s)
+      integer, intent(in) :: i
+      type (string_t) :: s
+    end function int2string
+
+    pure module function int2char (i) result (c)
+      integer, intent(in) :: i
+      character(len (trim (int2fixed (i)))) :: c
+    end function int2char
+<<Diagnostics: procedures>>=
+  pure module function int2fixed (i) result (c)
+    integer, intent(in) :: i
+    character(200) :: c
+    c = ""
+    write (c, *) i
+    c = adjustl (c)
+  end function int2fixed
+
+  pure module function int2string (i) result (s)
+    integer, intent(in) :: i
+    type (string_t) :: s
+    s = trim (int2fixed (i))
+  end function int2string
+
+  pure module function int2char (i) result (c)
+    integer, intent(in) :: i
+    character(len (trim (int2fixed (i)))) :: c
+    c = int2fixed (i)
+  end function int2char
+
+@ %def int2fixed int2string int2char
+@ Dito for reals.
+<<Diagnostics: public>>=
+  public :: real2string
+  public :: real2char
+  public :: real2fixed
+<<Diagnostics: interfaces>>=
+  interface real2string
+     module procedure real2string_list, real2string_fmt
+  end interface
+  interface real2char
+     module procedure real2char_list, real2char_fmt
+  end interface
+<<Diagnostics: sub interfaces>>=
+    pure module function real2fixed (x, fmt) result (c)
+      real(default), intent(in) :: x
+      character(*), intent(in), optional :: fmt
+      character(200) :: c
+    end function real2fixed
+
+    pure module function real2fixed_fmt (x, fmt) result (c)
+      real(default), intent(in) :: x
+      character(*), intent(in) :: fmt
+      character(200) :: c
+    end function real2fixed_fmt
+
+    pure module function real2string_list (x) result (s)
+      real(default), intent(in) :: x
+      type(string_t) :: s
+    end function real2string_list
+
+    pure module function real2string_fmt (x, fmt) result (s)
+      real(default), intent(in) :: x
+      character(*), intent(in) :: fmt
+      type(string_t) :: s
+    end function real2string_fmt
+
+    pure module function real2char_list (x) result (c)
+      real(default), intent(in) :: x
+      character(len_trim (real2fixed (x))) :: c
+    end function real2char_list
+
+    pure module function real2char_fmt (x, fmt) result (c)
+      real(default), intent(in) :: x
+      character(*), intent(in) :: fmt
+      character(len_trim (real2fixed_fmt (x, fmt))) :: c
+    end function real2char_fmt
+<<Diagnostics: procedures>>=
+  pure module function real2fixed (x, fmt) result (c)
+    real(default), intent(in) :: x
+    character(*), intent(in), optional :: fmt
+    character(200) :: c
+    c = ""
+    write (c, *) x
+    c = adjustl (c)
+  end function real2fixed
+
+  pure module function real2fixed_fmt (x, fmt) result (c)
+    real(default), intent(in) :: x
+    character(*), intent(in) :: fmt
+    character(200) :: c
+    c = ""
+    write (c, fmt)  x
+    c = adjustl (c)
+  end function real2fixed_fmt
+
+  pure module function real2string_list (x) result (s)
+    real(default), intent(in) :: x
+    type(string_t) :: s
+    s = trim (real2fixed (x))
+  end function real2string_list
+
+  pure module function real2string_fmt (x, fmt) result (s)
+    real(default), intent(in) :: x
+    character(*), intent(in) :: fmt
+    type(string_t) :: s
+    s = trim (real2fixed_fmt (x, fmt))
+  end function real2string_fmt
+
+  pure module function real2char_list (x) result (c)
+    real(default), intent(in) :: x
+    character(len_trim (real2fixed (x))) :: c
+    c = real2fixed (x)
+  end function real2char_list
+
+  pure module function real2char_fmt (x, fmt) result (c)
+    real(default), intent(in) :: x
+    character(*), intent(in) :: fmt
+    character(len_trim (real2fixed_fmt (x, fmt))) :: c
+    c = real2fixed_fmt (x, fmt)
+  end function real2char_fmt
+
+@ %def real2fixed real2string real2char
+@ Dito for complex values; we do not use the slightly ugly FORTRAN output form
+here but instead introduce our own. Ifort and Portland seem to have problems
+with this, therefore temporarily disable it.
+%
+<<CCC Diagnostics: public>>=
+   public :: cmplx2string
+   public :: cmplx2char
+<<CCC Diagnostics: procedures>>=
+   pure function cmplx2string (x) result (s)
+     complex(default), intent(in) :: x
+     type(string_t) :: s
+     s = real2string (real (x, default))
+     if (aimag (x) /= 0) s = s // " + " // real2string (aimag (x)) // " I"
+   end function cmplx2string
+
+   pure function cmplx2char (x) result (c)
+     complex(default), intent(in) :: x
+     character(len (char (cmplx2string (x)))) :: c
+     c = char (cmplx2string (x))
+   end function cmplx2char
+
+@ %def cmplx2string cmplx2char
+@
+\subsection{Signal handling}
+Killing the program by external signals may leave the files written by it in
+an undefined state.  This can be avoided by catching signals and deferring
+program termination.  Instead of masking only critical sections, we choose
+to mask signals globally (done in the main program) and terminate the program
+at predefined checkpoints only.  Checkpoints are after each command, within
+the sampling function (so the program can be terminated after each event),
+and after each iteration in the phase-space generation algorithm.
+
+Signal handling is done via a C interface to the [[sigaction]] system call.
+When a signal is raised that has been masked by the handler, the corresponding
+variable is set to the value of the signal.  The variables are visible from
+the C signal handler.
+
+The signal SIGINT is for keyboard interrupt (ctrl-C), SIGTERM is for system
+interrupt, e.g., at shutdown.  The SIGXCPU and SIGXFSZ signals may be issued
+by batch systems.
+<<Diagnostics: public>>=
+  public :: wo_sigint
+  public :: wo_sigterm
+  public :: wo_sigxcpu
+  public :: wo_sigxfsz
+
+<<Diagnostics: variables>>=
+  integer(c_int), bind(C), volatile :: wo_sigint = 0
+  integer(c_int), bind(C), volatile :: wo_sigterm = 0
+  integer(c_int), bind(C), volatile :: wo_sigxcpu = 0
+  integer(c_int), bind(C), volatile :: wo_sigxfsz = 0
+
+@ %def wo_sigint wo_sigterm wo_sigxcpu wo_sigxfsz
+@ Here are the interfaces to the C functions.  The routine
+[[mask_term_signals]] forces termination signals to be delayed.
+[[release_term_signals]] restores normal behavior.  However, the program can be
+terminated anytime by calling [[terminate_now_if_signal]] which inspects the
+signals and terminates the program if requested..
+<<Diagnostics: public>>=
+  public :: mask_term_signals
+<<Diagnostics: sub interfaces>>=
+    module subroutine mask_term_signals ()
+    end subroutine mask_term_signals
+<<Diagnostics: procedures>>=
+  module subroutine mask_term_signals ()
+    logical :: ok
+    wo_sigint = 0
+    ok = wo_mask_sigint () == 0
+    if (.not. ok)  call msg_error ("Masking SIGINT failed")
+    wo_sigterm = 0
+    ok = wo_mask_sigterm () == 0
+    if (.not. ok)  call msg_error ("Masking SIGTERM failed")
+    wo_sigxcpu = 0
+    ok = wo_mask_sigxcpu () == 0
+    if (.not. ok)  call msg_error ("Masking SIGXCPU failed")
+    wo_sigxfsz = 0
+    ok = wo_mask_sigxfsz () == 0
+    if (.not. ok)  call msg_error ("Masking SIGXFSZ failed")
+  end subroutine mask_term_signals
+
+@ %def mask_term_signals
+<<Diagnostics: interfaces>>=
+  interface
+     integer(c_int) function wo_mask_sigint () bind(C)
+       import
+     end function wo_mask_sigint
+  end interface
+  interface
+     integer(c_int) function wo_mask_sigterm () bind(C)
+       import
+     end function wo_mask_sigterm
+  end interface
+  interface
+     integer(c_int) function wo_mask_sigxcpu () bind(C)
+       import
+     end function wo_mask_sigxcpu
+  end interface
+  interface
+     integer(c_int) function wo_mask_sigxfsz () bind(C)
+       import
+     end function wo_mask_sigxfsz
+  end interface
+
+@ %def wo_mask_sigint wo_mask_sigterm wo_mask_sigxcpu wo_mask_sigxfsz
+<<Diagnostics: public>>=
+  public :: release_term_signals
+<<Diagnostics: sub interfaces>>=
+    module subroutine release_term_signals ()
+    end subroutine release_term_signals
+<<Diagnostics: procedures>>=
+  module subroutine release_term_signals ()
+    logical :: ok
+    ok = wo_release_sigint () == 0
+    if (.not. ok)  call msg_error ("Releasing SIGINT failed")
+    ok = wo_release_sigterm () == 0
+    if (.not. ok)  call msg_error ("Releasing SIGTERM failed")
+    ok = wo_release_sigxcpu () == 0
+    if (.not. ok)  call msg_error ("Releasing SIGXCPU failed")
+    ok = wo_release_sigxfsz () == 0
+    if (.not. ok)  call msg_error ("Releasing SIGXFSZ failed")
+  end subroutine release_term_signals
+
+@ %def release_term_signals
+<<Diagnostics: interfaces>>=
+  interface
+     integer(c_int) function wo_release_sigint () bind(C)
+       import
+     end function wo_release_sigint
+  end interface
+  interface
+     integer(c_int) function wo_release_sigterm () bind(C)
+       import
+     end function wo_release_sigterm
+  end interface
+  interface
+     integer(c_int) function wo_release_sigxcpu () bind(C)
+       import
+     end function wo_release_sigxcpu
+  end interface
+  interface
+     integer(c_int) function wo_release_sigxfsz () bind(C)
+       import
+     end function wo_release_sigxfsz
+  end interface
+
+@ %def wo_release_sigint wo_release_sigterm
+@ %def wo_release_sigxcpu wo_release_sigxfsz
+<<Diagnostics: public>>=
+  public :: signal_is_pending
+<<Diagnostics: sub interfaces>>=
+    module function signal_is_pending () result (flag)
+      logical :: flag
+    end function signal_is_pending
+<<Diagnostics: procedures>>=
+  module function signal_is_pending () result (flag)
+    logical :: flag
+    flag = &
+         wo_sigint /= 0 .or. &
+         wo_sigterm /= 0 .or. &
+         wo_sigxcpu /= 0 .or. &
+         wo_sigxfsz /= 0
+  end function signal_is_pending
+
+@ %def signal_is_pending
+<<Diagnostics: public>>=
+  public :: terminate_now_if_signal
+<<Diagnostics: sub interfaces>>=
+    module subroutine terminate_now_if_signal ()
+    end subroutine terminate_now_if_signal
+<<Diagnostics: procedures>>=
+  module subroutine terminate_now_if_signal ()
+    if (wo_sigint /= 0) then
+       call msg_terminate ("Signal SIGINT (keyboard interrupt) received.", &
+          quit_code=int (wo_sigint))
+    else if (wo_sigterm /= 0) then
+       call msg_terminate ("Signal SIGTERM (termination signal) received.", &
+          quit_code=int (wo_sigterm))
+    else if (wo_sigxcpu /= 0) then
+       call msg_terminate ("Signal SIGXCPU (CPU time limit exceeded) received.", &
+          quit_code=int (wo_sigxcpu))
+    else if (wo_sigxfsz /= 0) then
+       call msg_terminate ("Signal SIGXFSZ (file size limit exceeded) received.", &
+          quit_code=int (wo_sigxfsz))
+    end if
+  end subroutine terminate_now_if_signal
+
+@ %def terminate_now_if_signal
+@
+<<Diagnostics: public>>=
+  public :: single_event
+<<Diagnostics: variables>>=
+  logical :: single_event = .false.
+@
+<<Diagnostics: public>>=
+  public :: terminate_now_if_single_event
+<<Diagnostics: sub interfaces>>=
+    module subroutine terminate_now_if_single_event ()
+    end subroutine terminate_now_if_single_event
+<<Diagnostics: procedures>>=
+  module subroutine terminate_now_if_single_event ()
+    integer, save :: n_calls = 0
+    n_calls = n_calls + 1
+    if (single_event .and. n_calls > 1) then
+       call msg_terminate ("Stopping after one event", quit_code=0)
+    end if
+  end subroutine terminate_now_if_single_event
+
+@ %def terminate_now_if_single_event
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Operating-system interface}
+For specific purposes, we need direct access to the OS (system
+calls).  This is, of course, system dependent.  The current version is
+valid for GNU/Linux; we expect to use a preprocessor for this module
+if different OSs are to be supported.
+
+The current implementation lacks error handling.
+<<[[os_interface.f90]]>>=
+<<File header>>
+
+module os_interface
+
+  use, intrinsic :: iso_c_binding !NODEP!
+
+<<Use strings>>
+
+<<Standard module head>>
+
+<<OS interface: public>>
+
+<<OS interface: types>>
+
+<<OS interface: interfaces>>
+
+  interface
+<<OS interface: sub interfaces>>
+  end interface
+
+end module os_interface
+@ %def os_interface
+@
+<<[[os_interface_sub.f90]]>>=
+<<File header>>
+
+submodule (os_interface) os_interface_s
+
+  use system_defs, only: DLERROR_LEN, ENVVAR_LEN
+  use io_units
+  use diagnostics
+  use system_dependencies
+
+<<Use mpi f08>>
+
+  implicit none
+
+contains
+
+<<OS interface: procedures>>
+
+end submodule os_interface_s
+
+@ %def os_interface_s
+@
+\subsection{Path variables}
+This is a transparent container for storing user-defined path variables.
+<<OS interface: public>>=
+  public :: paths_t
+<<OS interface: types>>=
+  type :: paths_t
+     type(string_t) :: prefix
+     type(string_t) :: exec_prefix
+     type(string_t) :: bindir
+     type(string_t) :: libdir
+     type(string_t) :: includedir
+     type(string_t) :: datarootdir
+     type(string_t) :: localprefix
+     type(string_t) :: libtool
+     type(string_t) :: lhapdfdir
+  end type paths_t
+
+@ %def paths_t
+<<OS interface: public>>=
+  public :: paths_init
+<<OS interface: sub interfaces>>=
+    module subroutine paths_init (paths)
+      type(paths_t), intent(out) :: paths
+    end subroutine paths_init
+<<OS interface: procedures>>=
+  module subroutine paths_init (paths)
+    type(paths_t), intent(out) :: paths
+    paths%prefix = ""
+    paths%exec_prefix = ""
+    paths%bindir = ""
+    paths%libdir = ""
+    paths%includedir = ""
+    paths%datarootdir = ""
+    paths%localprefix = ""
+    paths%libtool = ""
+    paths%lhapdfdir = ""
+  end subroutine paths_init
+
+@ %def paths_init
+@
+\subsection{System dependencies}
+We store all potentially system- and user/run-dependent data in a
+transparent container.  This includes compiler/linker names and flags,
+file extensions, etc. There are actually two different possibilities
+for extensions of shared libraries, depending on whether the Fortran
+compiler or the system linker (usually the C compiler) has been used
+for linking. The default for the Fortran compiler on most systems is
+[[.so]].
+<<OS interface: public>>=
+  public :: os_data_t
+<<OS interface: types>>=
+  type :: os_data_t
+     logical :: use_libtool
+     logical :: use_testfiles
+     type(string_t) :: fc
+     type(string_t) :: fcflags
+     type(string_t) :: fcflags_pic
+     type(string_t) :: fclibs
+     type(string_t) :: fc_src_ext
+     type(string_t) :: cc
+     type(string_t) :: cflags
+     type(string_t) :: cflags_pic
+     type(string_t) :: cxx
+     type(string_t) :: cxxflags
+     type(string_t) :: cxxlibs
+     type(string_t) :: obj_ext
+     type(string_t) :: ld
+     type(string_t) :: ldflags
+     type(string_t) :: ldflags_so
+     type(string_t) :: ldflags_static
+     type(string_t) :: ldflags_hepmc
+     type(string_t) :: ldflags_lcio
+     type(string_t) :: ldflags_hoppet
+     type(string_t) :: ldflags_looptools
+     type(string_t) :: shrlib_ext
+     type(string_t) :: fc_shrlib_ext
+     type(string_t) :: pack_cmd
+     type(string_t) :: unpack_cmd
+     type(string_t) :: pack_ext
+     type(string_t) :: makeflags
+     type(string_t) :: prefix
+     type(string_t) :: exec_prefix
+     type(string_t) :: bindir
+     type(string_t) :: libdir
+     type(string_t) :: includedir
+     type(string_t) :: datarootdir
+     type(string_t) :: whizard_omega_binpath
+     type(string_t) :: whizard_includes
+     type(string_t) :: whizard_ldflags
+     type(string_t) :: whizard_libtool
+     type(string_t) :: whizard_modelpath
+     type(string_t) :: whizard_modelpath_ufo
+     type(string_t) :: whizard_models_libpath
+     type(string_t) :: whizard_susypath
+     type(string_t) :: whizard_gmlpath
+     type(string_t) :: whizard_cutspath
+     type(string_t) :: whizard_texpath
+     type(string_t) :: whizard_sharepath
+     type(string_t) :: whizard_testdatapath
+     type(string_t) :: whizard_modelpath_local
+     type(string_t) :: whizard_models_libpath_local
+     type(string_t) :: whizard_omega_binpath_local
+     type(string_t) :: whizard_circe2path
+     type(string_t) :: whizard_beamsimpath
+     type(string_t) :: whizard_mulipath
+     type(string_t) :: pdf_builtin_datapath
+     logical :: event_analysis = .false.
+     logical :: event_analysis_ps  = .false.
+     logical :: event_analysis_pdf = .false.
+     type(string_t) :: latex
+     type(string_t) :: mpost
+     type(string_t) :: gml
+     type(string_t) :: dvips
+     type(string_t) :: ps2pdf
+     type(string_t) :: gosampath
+     type(string_t) :: golempath
+     type(string_t) :: formpath
+     type(string_t) :: qgrafpath
+     type(string_t) :: ninjapath
+     type(string_t) :: samuraipath
+   contains
+   <<OS interface: os data: TBP>>
+  end type os_data_t
+
+@ %def os_data_t
+@ Since all are allocatable strings, explicit initialization is
+necessary.
+<<System defs: public parameters>>=
+  integer, parameter, public :: ENVVAR_LEN = 1000
+@ %def ENVVAR_LEN
+<<OS interface: os data: TBP>>=
+  procedure :: init => os_data_init
+<<OS interface: sub interfaces>>=
+    module subroutine os_data_init (os_data, paths)
+      class(os_data_t), intent(out) :: os_data
+      type(paths_t), intent(in), optional :: paths
+    end subroutine os_data_init
+<<OS interface: procedures>>=
+  module subroutine os_data_init (os_data, paths)
+    class(os_data_t), intent(out) :: os_data
+    type(paths_t), intent(in), optional :: paths
+    character(len=ENVVAR_LEN) :: home
+    type(string_t) :: localprefix, local_includes
+    os_data%use_libtool = .true.
+    inquire (file = "TESTFLAG", exist = os_data%use_testfiles)
+    call get_environment_variable ("HOME", home)
+    if (present(paths)) then
+       if (paths%localprefix == "") then
+          localprefix = trim (home) // "/.whizard"
+       else
+          localprefix = paths%localprefix
+       end if
+    else
+       localprefix = trim (home) // "/.whizard"
+    end if
+    local_includes = localprefix // "/lib/whizard/mod/models"
+    os_data%whizard_modelpath_local = localprefix // "/share/whizard/models"
+    os_data%whizard_models_libpath_local = localprefix // "/lib/whizard/models"
+    os_data%whizard_omega_binpath_local = localprefix // "/bin"
+    os_data%fc             = DEFAULT_FC
+    os_data%fcflags        = DEFAULT_FCFLAGS
+    os_data%fcflags_pic    = DEFAULT_FCFLAGS_PIC
+    os_data%fclibs         = FCLIBS
+    os_data%fc_src_ext     = DEFAULT_FC_SRC_EXT
+    os_data%cc             = DEFAULT_CC
+    os_data%cflags         = DEFAULT_CFLAGS
+    os_data%cflags_pic     = DEFAULT_CFLAGS_PIC
+    os_data%cxx            = DEFAULT_CXX
+    os_data%cxxflags       = DEFAULT_CXXFLAGS
+    os_data%cxxlibs        = DEFAULT_CXXLIBS
+    os_data%obj_ext        = DEFAULT_OBJ_EXT
+    os_data%ld             = DEFAULT_LD
+    os_data%ldflags        = DEFAULT_LDFLAGS
+    os_data%ldflags_so     = DEFAULT_LDFLAGS_SO
+    os_data%ldflags_static = DEFAULT_LDFLAGS_STATIC
+    os_data%ldflags_hepmc  = DEFAULT_LDFLAGS_HEPMC
+    os_data%ldflags_lcio   = DEFAULT_LDFLAGS_LCIO
+    os_data%ldflags_hoppet = DEFAULT_LDFLAGS_HOPPET
+    os_data%ldflags_looptools = DEFAULT_LDFLAGS_LOOPTOOLS
+    os_data%shrlib_ext     = DEFAULT_SHRLIB_EXT
+    os_data%fc_shrlib_ext  = DEFAULT_FC_SHRLIB_EXT
+    os_data%pack_cmd       = DEFAULT_PACK_CMD
+    os_data%unpack_cmd     = DEFAULT_UNPACK_CMD
+    os_data%pack_ext       = DEFAULT_PACK_EXT
+    os_data%makeflags      = DEFAULT_MAKEFLAGS
+    os_data%prefix      = PREFIX
+    os_data%exec_prefix = EXEC_PREFIX
+    os_data%bindir      = BINDIR
+    os_data%libdir      = LIBDIR
+    os_data%includedir  = INCLUDEDIR
+    os_data%datarootdir = DATAROOTDIR
+    if (present (paths)) then
+       if (paths%prefix      /= "")  os_data%prefix      = paths%prefix
+       if (paths%exec_prefix /= "")  os_data%exec_prefix = paths%exec_prefix
+       if (paths%bindir      /= "")  os_data%bindir      = paths%bindir
+       if (paths%libdir      /= "")  os_data%libdir      = paths%libdir
+       if (paths%includedir  /= "")  os_data%includedir  = paths%includedir
+       if (paths%datarootdir /= "")  os_data%datarootdir = paths%datarootdir
+    end if
+    if (os_data%use_testfiles) then
+       os_data%whizard_omega_binpath  = WHIZARD_TEST_OMEGA_BINPATH
+       os_data%whizard_includes       = WHIZARD_TEST_INCLUDES
+       os_data%whizard_ldflags        = WHIZARD_TEST_LDFLAGS
+       os_data%whizard_libtool        = WHIZARD_LIBTOOL_TEST
+       os_data%whizard_modelpath      = WHIZARD_TEST_MODELPATH
+       os_data%whizard_modelpath_ufo  = WHIZARD_TEST_MODELPATH_UFO
+       os_data%whizard_models_libpath = WHIZARD_TEST_MODELS_LIBPATH
+       os_data%whizard_susypath       = WHIZARD_TEST_SUSYPATH
+       os_data%whizard_gmlpath        = WHIZARD_TEST_GMLPATH
+       os_data%whizard_cutspath       = WHIZARD_TEST_CUTSPATH
+       os_data%whizard_texpath        = WHIZARD_TEST_TEXPATH
+       os_data%whizard_sharepath      = WHIZARD_TEST_SHAREPATH
+       os_data%whizard_testdatapath   = WHIZARD_TEST_TESTDATAPATH
+       os_data%whizard_circe2path     = WHIZARD_TEST_CIRCE2PATH
+       os_data%whizard_beamsimpath    = WHIZARD_TEST_BEAMSIMPATH
+       os_data%whizard_mulipath       = WHIZARD_TEST_MULIPATH
+       os_data%pdf_builtin_datapath   = PDF_BUILTIN_TEST_DATAPATH
+    else
+       if (os_dir_exist (local_includes)) then
+          os_data%whizard_includes = "-I" // local_includes // " "// &
+             WHIZARD_INCLUDES
+       else
+          os_data%whizard_includes = WHIZARD_INCLUDES
+       end if
+       os_data%whizard_omega_binpath  = WHIZARD_OMEGA_BINPATH
+       os_data%whizard_ldflags        = WHIZARD_LDFLAGS
+       os_data%whizard_libtool        = WHIZARD_LIBTOOL
+       if(present(paths)) then
+          if (paths%libtool /= "")  os_data%whizard_libtool = paths%libtool
+       end if
+       os_data%whizard_modelpath      = WHIZARD_MODELPATH
+       os_data%whizard_modelpath_ufo  = WHIZARD_MODELPATH_UFO
+       os_data%whizard_models_libpath = WHIZARD_MODELS_LIBPATH
+       os_data%whizard_susypath       = WHIZARD_SUSYPATH
+       os_data%whizard_gmlpath        = WHIZARD_GMLPATH
+       os_data%whizard_cutspath       = WHIZARD_CUTSPATH
+       os_data%whizard_texpath        = WHIZARD_TEXPATH
+       os_data%whizard_sharepath      = WHIZARD_SHAREPATH
+       os_data%whizard_testdatapath   = WHIZARD_TESTDATAPATH
+       os_data%whizard_circe2path     = WHIZARD_CIRCE2PATH
+       os_data%whizard_beamsimpath    = WHIZARD_BEAMSIMPATH
+       os_data%whizard_mulipath       = WHIZARD_MULIPATH
+       os_data%pdf_builtin_datapath   = PDF_BUILTIN_DATAPATH
+    end if
+    os_data%event_analysis     = EVENT_ANALYSIS     == "yes"
+    os_data%event_analysis_ps  = EVENT_ANALYSIS_PS  == "yes"
+    os_data%event_analysis_pdf = EVENT_ANALYSIS_PDF == "yes"
+    os_data%latex  = PRG_LATEX // " " // OPT_LATEX
+    os_data%mpost  = PRG_MPOST // " " // OPT_MPOST
+    if (os_data%use_testfiles) then
+       os_data%gml    = os_data%whizard_gmlpath // "/whizard-gml" // " " // &
+            OPT_MPOST // " " // "--gmldir " // os_data%whizard_gmlpath
+    else
+       os_data%gml    = os_data%bindir // "/whizard-gml" // " " // OPT_MPOST &
+         // " " // "--gmldir " // os_data%whizard_gmlpath
+    end if
+    os_data%dvips  = PRG_DVIPS
+    os_data%ps2pdf = PRG_PS2PDF
+    call os_data_expand_paths (os_data)
+    os_data%gosampath = GOSAM_DIR
+    os_data%golempath = GOLEM_DIR
+    os_data%formpath = FORM_DIR
+    os_data%qgrafpath = QGRAF_DIR
+    os_data%ninjapath = NINJA_DIR
+    os_data%samuraipath = SAMURAI_DIR
+  end subroutine os_data_init
+
+@ %def os_data_init
+@ Replace occurences of GNU path variables (such as [[${prefix}]]) by their
+values.  Do this for all strings that could depend on them, and do the
+replacement in reverse order, since the path variables may be defined in terms
+of each other.    %% Fooling Noweb Emacs mode: $
+<<OS interface: procedures>>=
+  subroutine os_data_expand_paths (os_data)
+    type(os_data_t), intent(inout) :: os_data
+    integer, parameter :: N_VARIABLES = 6
+    type(string_t), dimension(N_VARIABLES) :: variable, value
+    variable(1) = "${prefix}";       value(1) = os_data%prefix
+    variable(2) = "${exec_prefix}";  value(2) = os_data%exec_prefix
+    variable(3) = "${bindir}";       value(3) = os_data%bindir
+    variable(4) = "${libdir}";       value(4) = os_data%libdir
+    variable(5) = "${includedir}";   value(5) = os_data%includedir
+    variable(6) = "${datarootdir}";  value(6) = os_data%datarootdir
+    call expand_paths (os_data%whizard_omega_binpath)
+    call expand_paths (os_data%whizard_includes)
+    call expand_paths (os_data%whizard_ldflags)
+    call expand_paths (os_data%whizard_libtool)
+    call expand_paths (os_data%whizard_modelpath)
+    call expand_paths (os_data%whizard_modelpath_ufo)
+    call expand_paths (os_data%whizard_models_libpath)
+    call expand_paths (os_data%whizard_susypath)
+    call expand_paths (os_data%whizard_gmlpath)
+    call expand_paths (os_data%whizard_cutspath)
+    call expand_paths (os_data%whizard_texpath)
+    call expand_paths (os_data%whizard_sharepath)
+    call expand_paths (os_data%whizard_testdatapath)
+    call expand_paths (os_data%whizard_circe2path)
+    call expand_paths (os_data%whizard_beamsimpath)
+    call expand_paths (os_data%whizard_mulipath)
+    call expand_paths (os_data%whizard_models_libpath_local)
+    call expand_paths (os_data%whizard_modelpath_local)
+    call expand_paths (os_data%whizard_omega_binpath_local)
+    call expand_paths (os_data%pdf_builtin_datapath)
+    call expand_paths (os_data%latex)
+    call expand_paths (os_data%mpost)
+    call expand_paths (os_data%gml)
+    call expand_paths (os_data%dvips)
+    call expand_paths (os_data%ps2pdf)
+  contains
+    subroutine expand_paths (string)
+      type(string_t), intent(inout) :: string
+      integer :: i
+      do i = N_VARIABLES, 1, -1
+         string = replace (string, variable(i), value(i), every=.true.)
+      end do
+    end subroutine expand_paths
+  end subroutine os_data_expand_paths
+
+@ %def os_data_update_paths
+@ Write contents
+<<OS interface: os data: TBP>>=
+  procedure :: write => os_data_write
+<<OS interface: sub interfaces>>=
+    module subroutine os_data_write (os_data, unit)
+      class(os_data_t), intent(in) :: os_data
+      integer, intent(in), optional :: unit
+    end subroutine os_data_write
+<<OS interface: procedures>>=
+  module subroutine os_data_write (os_data, unit)
+    class(os_data_t), intent(in) :: os_data
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    write (u, "(A)")  "OS data:"
+    write (u, *) "use_libtool    = ", os_data%use_libtool
+    write (u, *) "use_testfiles  = ", os_data%use_testfiles
+    write (u, *) "fc             = ", char (os_data%fc)
+    write (u, *) "fcflags        = ", char (os_data%fcflags)
+    write (u, *) "fcflags_pic    = ", char (os_data%fcflags_pic)
+    write (u, *) "fclibs         = ", char (os_data%fclibs)
+    write (u, *) "fc_src_ext     = ", char (os_data%fc_src_ext)
+    write (u, *) "cc             = ", char (os_data%cc)
+    write (u, *) "cflags         = ", char (os_data%cflags)
+    write (u, *) "cflags_pic     = ", char (os_data%cflags_pic)
+    write (u, *) "cxx            = ", char (os_data%cxx)
+    write (u, *) "cxxflags       = ", char (os_data%cxxflags)
+    write (u, *) "cxxlibs        = ", char (os_data%cxxlibs)
+    write (u, *) "obj_ext        = ", char (os_data%obj_ext)
+    write (u, *) "ld             = ", char (os_data%ld)
+    write (u, *) "ldflags        = ", char (os_data%ldflags)
+    write (u, *) "ldflags_so     = ", char (os_data%ldflags_so)
+    write (u, *) "ldflags_static = ", char (os_data%ldflags_static)
+    write (u, *) "ldflags_hepmc  = ", char (os_data%ldflags_hepmc)
+    write (u, *) "ldflags_lcio   = ", char (os_data%ldflags_lcio)
+    write (u, *) "ldflags_hoppet = ", char (os_data%ldflags_hoppet)
+    write (u, *) "ldflags_looptools = ", char (os_data%ldflags_looptools)
+    write (u, *) "shrlib_ext     = ", char (os_data%shrlib_ext)
+    write (u, *) "fc_shrlib_ext  = ", char (os_data%fc_shrlib_ext)
+    write (u, *) "makeflags      = ", char (os_data%makeflags)
+    write (u, *) "prefix         = ", char (os_data%prefix)
+    write (u, *) "exec_prefix    = ", char (os_data%exec_prefix)
+    write (u, *) "bindir         = ", char (os_data%bindir)
+    write (u, *) "libdir         = ", char (os_data%libdir)
+    write (u, *) "includedir     = ", char (os_data%includedir)
+    write (u, *) "datarootdir    = ", char (os_data%datarootdir)
+    write (u, *) "whizard_omega_binpath  = ", &
+         char (os_data%whizard_omega_binpath)
+    write (u, *) "whizard_includes       = ", char (os_data%whizard_includes)
+    write (u, *) "whizard_ldflags        = ", char (os_data%whizard_ldflags)
+    write (u, *) "whizard_libtool        = ", char (os_data%whizard_libtool)
+    write (u, *) "whizard_modelpath      = ", &
+         char (os_data%whizard_modelpath)
+    write (u, *) "whizard_modelpath_ufo  = ", &
+         char (os_data%whizard_modelpath_ufo)
+    write (u, *) "whizard_models_libpath = ", &
+         char (os_data%whizard_models_libpath)
+    write (u, *) "whizard_susypath       = ", char (os_data%whizard_susypath)
+    write (u, *) "whizard_gmlpath        = ", char (os_data%whizard_gmlpath)
+    write (u, *) "whizard_cutspath       = ", char (os_data%whizard_cutspath)
+    write (u, *) "whizard_texpath        = ", char (os_data%whizard_texpath)
+    write (u, *) "whizard_circe2path     = ", char (os_data%whizard_circe2path)
+    write (u, *) "whizard_beamsimpath    = ", char (os_data%whizard_beamsimpath)
+    write (u, *) "whizard_mulipath    = ", char (os_data%whizard_mulipath)
+    write (u, *) "whizard_sharepath  = ", &
+         char (os_data%whizard_sharepath)
+    write (u, *) "whizard_testdatapath  = ", &
+         char (os_data%whizard_testdatapath)
+    write (u, *) "whizard_modelpath_local      = ", &
+         char (os_data%whizard_modelpath_local)
+    write (u, *) "whizard_models_libpath_local = ", &
+         char (os_data%whizard_models_libpath_local)
+    write (u, *) "whizard_omega_binpath_local  = ", &
+         char (os_data%whizard_omega_binpath_local)
+    write (u, *) "event_analysis     = ", os_data%event_analysis
+    write (u, *) "event_analysis_ps  = ", os_data%event_analysis_ps
+    write (u, *) "event_analysis_pdf = ", os_data%event_analysis_pdf
+    write (u, *) "latex  = ", char (os_data%latex)
+    write (u, *) "mpost  = ", char (os_data%mpost)
+    write (u, *) "gml    = ", char (os_data%gml)
+    write (u, *) "dvips  = ", char (os_data%dvips)
+    write (u, *) "ps2pdf = ", char (os_data%ps2pdf)
+    if (os_data%gosampath /= "") then
+       write (u, *) "gosam   = ", char (os_data%gosampath)
+       write (u, *) "golem   = ", char (os_data%golempath)
+       write (u, *) "form    = ", char (os_data%formpath)
+       write (u, *) "qgraf   = ", char (os_data%qgrafpath)
+       write (u, *) "ninja   = ", char (os_data%ninjapath)
+       write (u, *) "samurai = ", char (os_data%samuraipath)
+    end if
+  end subroutine os_data_write
+
+@ %def os_data_write
+@
+<<OS interface: os data: TBP>>=
+  procedure :: build_latex_file => os_data_build_latex_file
+<<OS interface: sub interfaces>>=
+    module subroutine os_data_build_latex_file (os_data, filename, stat_out)
+      class(os_data_t), intent(in) :: os_data
+      type(string_t), intent(in) :: filename
+      integer, intent(out), optional :: stat_out
+    end subroutine os_data_build_latex_file
+<<OS interface: procedures>>=
+  module subroutine os_data_build_latex_file (os_data, filename, stat_out)
+    class(os_data_t), intent(in) :: os_data
+    type(string_t), intent(in) :: filename
+    integer, intent(out), optional :: stat_out
+    type(string_t) :: setenv_tex, pipe, pipe_dvi
+    integer :: unit_dev, status
+    status = -1
+    if (os_data%event_analysis_ps) then
+       !!! Check if our OS has a /dev/null
+       unit_dev = free_unit ()
+       open (file = "/dev/null", unit = unit_dev, &
+            action = "write", iostat = status)
+       close (unit_dev)
+       if (status /= 0) then
+          pipe = ""
+          pipe_dvi = ""
+       else
+          pipe = " > /dev/null"
+          pipe_dvi = " 2>/dev/null 1>/dev/null"
+       end if
+       if (os_data%whizard_texpath /= "") then
+          setenv_tex = "TEXINPUTS=" // &
+               os_data%whizard_texpath // ":$TEXINPUTS "
+       else
+          setenv_tex = ""
+       end if
+       call os_system_call (setenv_tex // &
+            os_data%latex // " " // filename // ".tex " // pipe, &
+            verbose = .true., status = status)
+       call os_system_call (os_data%dvips // " -o " // filename // &
+            ".ps " // filename // ".dvi" // pipe_dvi, verbose = .true., &
+            status = status)
+       call os_system_call (os_data%ps2pdf // " " // filename // ".ps", &
+            verbose = .true., status = status)
+    end if
+    if (present (stat_out)) stat_out = status
+  end subroutine os_data_build_latex_file
+
+@ %def os_data_build_latex_file
+@
+\subsection{Dynamic linking}
+We define a type that holds the filehandle for a dynamically linked
+library (shared object), together with functions to open and close the
+library, and to access functions in this library.
+<<OS interface: public>>=
+  public :: dlaccess_t
+<<OS interface: types>>=
+  type :: dlaccess_t
+     private
+     type(string_t) :: filename
+     type(c_ptr) :: handle = c_null_ptr
+     logical :: is_open = .false.
+     logical :: has_error = .false.
+     type(string_t) :: error
+   contains
+   <<OS interface: dlaccess: TBP>>
+  end type dlaccess_t
+
+@ %def dlaccess_t
+@ Output.  This is called by the output routine for the process
+library.
+<<OS interface: dlaccess: TBP>>=
+  procedure :: write => dlaccess_write
+<<OS interface: sub interfaces>>=
+    module subroutine dlaccess_write (object, unit)
+      class(dlaccess_t), intent(in) :: object
+      integer, intent(in) :: unit
+    end subroutine dlaccess_write
+<<OS interface: procedures>>=
+  module subroutine dlaccess_write (object, unit)
+    class(dlaccess_t), intent(in) :: object
+    integer, intent(in) :: unit
+    write (unit, "(1x,A)")  "DL access info:"
+    write (unit, "(3x,A,L1)")   "is open   = ", object%is_open
+    if (object%has_error) then
+       write (unit, "(3x,A,A,A)")  "error     = '", char (object%error), "'"
+    else
+       write (unit, "(3x,A)")      "error     = [none]"
+    end if
+  end subroutine dlaccess_write
+
+@ %def dlaccess_write
+@ The interface to the library functions:
+<<OS interface: interfaces>>=
+  interface
+     function dlopen (filename, flag) result (handle) bind(C)
+       import
+       character(c_char), dimension(*) :: filename
+       integer(c_int), value :: flag
+       type(c_ptr) :: handle
+     end function dlopen
+  end interface
+
+  interface
+     function dlclose (handle) result (status) bind(C)
+       import
+       type(c_ptr), value :: handle
+       integer(c_int) :: status
+     end function dlclose
+  end interface
+
+  interface
+     function dlerror () result (str) bind(C)
+       import
+       type(c_ptr) :: str
+     end function dlerror
+  end interface
+
+  interface
+     function dlsym (handle, symbol) result (fptr) bind(C)
+       import
+       type(c_ptr), value :: handle
+       character(c_char), dimension(*) :: symbol
+       type(c_funptr) :: fptr
+     end function dlsym
+  end interface
+
+@ %def dlopen dlclose dlsym
+@ This reads an error string and transforms it into a [[string_t]]
+object, if an error has occured.  If not, set the error flag to false
+and return an empty string.
+<<System defs: public parameters>>=
+  integer, parameter, public :: DLERROR_LEN = 160
+<<OS interface: procedures>>=
+  subroutine read_dlerror (has_error, error)
+    logical, intent(out) :: has_error
+    type(string_t), intent(out) :: error
+    type(c_ptr) :: err_cptr
+    character(len=DLERROR_LEN, kind=c_char), pointer :: err_fptr
+    integer :: str_end
+    err_cptr = dlerror ()
+    if (c_associated (err_cptr)) then
+       call c_f_pointer (err_cptr, err_fptr)
+       has_error = .true.
+       str_end = scan (err_fptr, c_null_char)
+       if (str_end > 0) then
+          error = err_fptr(1:str_end-1)
+       else
+          error = err_fptr
+       end if
+    else
+       has_error = .false.
+       error = ""
+    end if
+  end subroutine read_dlerror
+
+@ %def read_dlerror
+@ This is the Fortran API.  Init/final open and close the file,
+i.e., load and unload the library.
+
+Note that a library can be opened more than once, and that for an
+ultimate close as many [[dlclose]] calls as [[dlopen]] calls are
+necessary.  However, we assume that it is opened and closed only once.
+<<OS interface: public>>=
+  public :: dlaccess_init
+  public :: dlaccess_final
+<<OS interface: dlaccess: TBP>>=
+  procedure :: init => dlaccess_init
+  procedure :: final => dlaccess_final
+<<OS interface: sub interfaces>>=
+    module subroutine dlaccess_init (dlaccess, prefix, libname, os_data)
+      class(dlaccess_t), intent(out) :: dlaccess
+      type(string_t), intent(in) :: prefix, libname
+      type(os_data_t), intent(in), optional :: os_data
+    end subroutine dlaccess_init
+    module subroutine dlaccess_final (dlaccess)
+      class(dlaccess_t), intent(inout) :: dlaccess
+    end subroutine dlaccess_final
+<<OS interface: procedures>>=
+  module subroutine dlaccess_init (dlaccess, prefix, libname, os_data)
+    class(dlaccess_t), intent(out) :: dlaccess
+    type(string_t), intent(in) :: prefix, libname
+    type(os_data_t), intent(in), optional :: os_data
+    type(string_t) :: filename
+    logical :: exist
+    dlaccess%filename = libname
+    filename = prefix // "/" // libname
+    inquire (file=char(filename), exist=exist)
+    if (.not. exist) then
+       filename = prefix // "/.libs/" // libname
+       inquire (file=char(filename), exist=exist)
+       if (.not. exist) then
+          dlaccess%has_error = .true.
+          dlaccess%error = "Library '" // filename // "' not found"
+          return
+       end if
+    end if
+    dlaccess%handle = dlopen (char (filename) // c_null_char, ior ( &
+       RTLD_LAZY, RTLD_LOCAL))
+    dlaccess%is_open = c_associated (dlaccess%handle)
+    call read_dlerror (dlaccess%has_error, dlaccess%error)
+  end subroutine dlaccess_init
+
+  module subroutine dlaccess_final (dlaccess)
+    class(dlaccess_t), intent(inout) :: dlaccess
+    integer(c_int) :: status
+    if (dlaccess%is_open) then
+       status = dlclose (dlaccess%handle)
+       dlaccess%is_open = .false.
+       call read_dlerror (dlaccess%has_error, dlaccess%error)
+    end if
+  end subroutine dlaccess_final
+
+@ %def dlaccess_init dlaccess_final
+@ Return true if an error has occured.
+<<OS interface: public>>=
+  public :: dlaccess_has_error
+<<OS interface: sub interfaces>>=
+   module function dlaccess_has_error (dlaccess) result (flag)
+      logical :: flag
+      type(dlaccess_t), intent(in) :: dlaccess
+    end function dlaccess_has_error
+<<OS interface: procedures>>=
+  module function dlaccess_has_error (dlaccess) result (flag)
+    logical :: flag
+    type(dlaccess_t), intent(in) :: dlaccess
+    flag = dlaccess%has_error
+  end function dlaccess_has_error
+
+@ %def dlaccess_has_error
+@ Return the error string currently stored in the [[dlaccess]] object.
+<<OS interface: public>>=
+  public :: dlaccess_get_error
+<<OS interface: sub interfaces>>=
+    module function dlaccess_get_error (dlaccess) result (error)
+      type(string_t) :: error
+      type(dlaccess_t), intent(in) :: dlaccess
+    end function dlaccess_get_error
+<<OS interface: procedures>>=
+  module function dlaccess_get_error (dlaccess) result (error)
+    type(string_t) :: error
+    type(dlaccess_t), intent(in) :: dlaccess
+    error = dlaccess%error
+  end function dlaccess_get_error
+
+@ %def dlaccess_get_error
+@ The symbol handler returns the C address of the function with the
+given string name.  (It is a good idea to use [[bind(C)]] for all
+functions accessed by this, such that the name string is
+well-defined.)  Call [[c_f_procpointer]] to cast this into a Fortran
+procedure pointer with an appropriate interface.
+<<OS interface: public>>=
+  public :: dlaccess_get_c_funptr
+<<OS interface: sub interfaces>>=
+    module function dlaccess_get_c_funptr (dlaccess, fname) result (fptr)
+      type(c_funptr) :: fptr
+      type(dlaccess_t), intent(inout) :: dlaccess
+      type(string_t), intent(in) :: fname
+    end function dlaccess_get_c_funptr
+<<OS interface: procedures>>=
+  module function dlaccess_get_c_funptr (dlaccess, fname) result (fptr)
+    type(c_funptr) :: fptr
+    type(dlaccess_t), intent(inout) :: dlaccess
+    type(string_t), intent(in) :: fname
+    fptr = dlsym (dlaccess%handle, char (fname) // c_null_char)
+    call read_dlerror (dlaccess%has_error, dlaccess%error)
+  end function dlaccess_get_c_funptr
+
+@ %def dlaccess_get_c_funptr
+@
+\subsection{Predicates}
+Return true if the library is loaded.  In particular, this is false if
+loading was unsuccessful.
+<<OS interface: public>>=
+  public :: dlaccess_is_open
+<<OS interface: sub interfaces>>=
+    module function dlaccess_is_open (dlaccess) result (flag)
+      logical :: flag
+      type(dlaccess_t), intent(in) :: dlaccess
+    end function dlaccess_is_open
+<<OS interface: procedures>>=
+  module function dlaccess_is_open (dlaccess) result (flag)
+    logical :: flag
+    type(dlaccess_t), intent(in) :: dlaccess
+    flag = dlaccess%is_open
+  end function dlaccess_is_open
+
+@ %def dlaccess_is_open
+@
+\subsection{Shell access}
+This is the standard system call for executing a shell command, such
+as invoking a compiler.
+
+In F2008 there will be the equivalent built-in command
+[[execute_command_line]].
+<<OS interface: public>>=
+  public :: os_system_call
+<<OS interface: sub interfaces>>=
+    module subroutine os_system_call (command_string, status, verbose)
+      type(string_t), intent(in) :: command_string
+      integer, intent(out), optional :: status
+      logical, intent(in), optional :: verbose
+    end subroutine os_system_call
+<<OS interface: procedures>>=
+  module subroutine os_system_call (command_string, status, verbose)
+    type(string_t), intent(in) :: command_string
+    integer, intent(out), optional :: status
+    logical, intent(in), optional :: verbose
+    logical :: verb
+    integer :: stat
+    verb = .false.;  if (present (verbose))  verb = verbose
+    if (verb) &
+         call msg_message ("command: " // char (command_string))
+    stat = system (char (command_string) // c_null_char)
+    if (present (status)) then
+       status = stat
+    else if (stat /= 0) then
+       if (.not. verb) &
+            call msg_message ("command: " // char (command_string))
+       write (msg_buffer, "(A,I0)")  "Return code = ", stat
+       call msg_message ()
+       call msg_fatal ("System command returned with nonzero status code")
+    end if
+  end subroutine os_system_call
+
+@ %def os_system_call
+<<OS interface: interfaces>>=
+  interface
+     function system (command) result (status) bind(C)
+       import
+       integer(c_int) :: status
+       character(c_char), dimension(*) :: command
+     end function system
+  end interface
+
+@ %def system
+@
+\subsection{Querying for a directory}
+This queries for the existence of a directory. There is no standard way to
+achieve this in FORTRAN, and if we were to call into [[libc]], we would need access
+to C macros for evaluating the result, so we resort to calling [[test]] as a
+system call.
+<<OS interface: public>>=
+  public :: os_dir_exist
+<<OS interface: sub interfaces>>=
+    module function os_dir_exist (name) result (res)
+      type(string_t), intent(in) :: name
+      logical :: res
+    end function os_dir_exist
+<<OS interface: procedures>>=
+  module function os_dir_exist (name) result (res)
+    type(string_t), intent(in) :: name
+    logical :: res
+    integer :: status
+    call os_system_call ('test -d "' // name // '"', status=status)
+    res = status == 0
+  end function os_dir_exist
+
+@ %def os_dir_exist
+@
+<<OS interface: public>>=
+  public :: os_file_exist
+<<OS interface: sub interfaces>>=
+    module function os_file_exist (name) result (exist)
+      type(string_t), intent(in) :: name
+      logical :: exist
+    end function os_file_exist
+<<OS interface: procedures>>=
+  module function os_file_exist (name) result (exist)
+    type(string_t), intent(in) :: name
+    logical :: exist
+    inquire (file = char (name), exist=exist)
+  end function os_file_exist
+
+@ %def os_file_exist
+@
+\subsection{Pack/unpack}
+The argument to [[pack]] may be a file or a directory.  The name of the packed
+file will get the [[pack_ext]] extension appended.  The argument to [[unpack]]
+must be a file, with the extension already included in the file name.
+<<OS interface: public>>=
+  public :: os_pack_file
+  public :: os_unpack_file
+<<OS interface: sub interfaces>>=
+    module subroutine os_pack_file (file, os_data, status)
+      type(string_t), intent(in) :: file
+      type(os_data_t), intent(in) :: os_data
+      integer, intent(out), optional :: status
+    end subroutine os_pack_file
+    module subroutine os_unpack_file (file, os_data, status)
+      type(string_t), intent(in) :: file
+      type(os_data_t), intent(in) :: os_data
+      integer, intent(out), optional :: status
+    end subroutine os_unpack_file
+<<OS interface: procedures>>=
+  module subroutine os_pack_file (file, os_data, status)
+    type(string_t), intent(in) :: file
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    command_string = os_data%pack_cmd // " " &
+         // file // os_data%pack_ext // " " // file
+    call os_system_call (command_string, status)
+  end subroutine os_pack_file
+
+  module subroutine os_unpack_file (file, os_data, status)
+    type(string_t), intent(in) :: file
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    command_string = os_data%unpack_cmd // " " // file
+    call os_system_call (command_string, status)
+  end subroutine os_unpack_file
+
+@ %def os_pack_file
+@ %def os_unpack_file
+@
+\subsection{Fortran compiler and linker}
+Compile a single module for use in a shared library, but without
+linking.
+<<OS interface: public>>=
+  public :: os_compile_shared
+<<OS interface: sub interfaces>>=
+    module subroutine os_compile_shared (src, os_data, status)
+      type(string_t), intent(in) :: src
+      type(os_data_t), intent(in) :: os_data
+      integer, intent(out), optional :: status
+    end subroutine os_compile_shared
+<<OS interface: procedures>>=
+  module subroutine os_compile_shared (src, os_data, status)
+    type(string_t), intent(in) :: src
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    if (os_data%use_libtool) then
+       command_string = &
+            os_data%whizard_libtool // " --mode=compile " // &
+            os_data%fc // " " // &
+            "-c " // &
+            os_data%whizard_includes // " " // &
+            os_data%fcflags // " " // &
+            "'" // src // os_data%fc_src_ext // "'"
+    else
+       command_string = &
+            os_data%fc // " " // &
+            "-c  " // &
+            os_data%fcflags_pic // " " // &
+            os_data%whizard_includes // " " // &
+            os_data%fcflags // " " // &
+            "'" // src // os_data%fc_src_ext // "'"
+    end if
+    call os_system_call (command_string, status)
+  end subroutine os_compile_shared
+
+@ %def os_compile_shared
+@ Link an array of object files to build a shared object library.  In
+the libtool case, we have to specify a [[-rpath]], otherwise only a
+static library can be built.  However, since the library is never
+installed, this rpath is irrelevant.
+<<OS interface: public>>=
+  public :: os_link_shared
+<<OS interface: sub interfaces>>=
+    module subroutine os_link_shared (objlist, lib, os_data, status)
+      type(string_t), intent(in) :: objlist, lib
+      type(os_data_t), intent(in) :: os_data
+      integer, intent(out), optional :: status
+    end subroutine os_link_shared
+<<OS interface: procedures>>=
+  module subroutine os_link_shared (objlist, lib, os_data, status)
+    type(string_t), intent(in) :: objlist, lib
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    if (os_data%use_libtool) then
+       command_string = &
+            os_data%whizard_libtool // " --mode=link " // &
+            os_data%fc // " " // &
+            "-module " // &
+            "-rpath /usr/local/lib" // " " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            "-o '" // lib // ".la' " // &
+            objlist
+    else
+       command_string = &
+            os_data%ld // " " // &
+            os_data%ldflags_so // " " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            "-o '" // lib // "." // os_data%fc_shrlib_ext // "' " // &
+            objlist
+    end if
+    call os_system_call (command_string, status)
+  end subroutine os_link_shared
+
+@ %def os_link_shared
+@ Link an array of object files / libraries to build a static executable.
+<<OS interface: public>>=
+  public :: os_link_static
+<<OS interface: sub interfaces>>=
+    module subroutine os_link_static (objlist, exec_name, os_data, status)
+      type(string_t), intent(in) :: objlist, exec_name
+      type(os_data_t), intent(in) :: os_data
+      integer, intent(out), optional :: status
+    end subroutine os_link_static
+<<OS interface: procedures>>=
+  module subroutine os_link_static (objlist, exec_name, os_data, status)
+    type(string_t), intent(in) :: objlist, exec_name
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    if (os_data%use_libtool) then
+       command_string = &
+            os_data%whizard_libtool // " --mode=link " // &
+            os_data%fc // " " // &
+            "-static " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            os_data%ldflags_static // " " // &
+            "-o '" // exec_name // "' " // &
+            objlist // " " // &
+            os_data%ldflags_hepmc // " " // &
+            os_data%ldflags_lcio // " " // &
+            os_data%ldflags_hoppet // " " // &
+            os_data%ldflags_looptools
+    else
+       command_string = &
+            os_data%ld // " " // &
+            os_data%ldflags_so // " " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            os_data%ldflags_static // " " // &
+            "-o '" // exec_name // "' " // &
+            objlist // " " // &
+            os_data%ldflags_hepmc // " " // &
+            os_data%ldflags_lcio // " " // &
+            os_data%ldflags_hoppet // " " // &
+            os_data%ldflags_looptools
+    end if
+    call os_system_call (command_string, status)
+  end subroutine os_link_static
+
+@ %def os_link_static
+@ Determine the name of the shared library to link.  If libtool is
+used, this is encoded in the [[.la]] file which resides in place of
+the library itself.
+<<OS interface: public>>=
+  public :: os_get_dlname
+<<OS interface: sub interfaces>>=
+    module function os_get_dlname (lib, os_data, ignore, silent) result (dlname)
+      type(string_t) :: dlname
+      type(string_t), intent(in) :: lib
+      type(os_data_t), intent(in) :: os_data
+      logical, intent(in), optional :: ignore, silent
+    end function os_get_dlname
+<<OS interface: procedures>>=
+  module function os_get_dlname (lib, os_data, ignore, silent) result (dlname)
+    type(string_t) :: dlname
+    type(string_t), intent(in) :: lib
+    type(os_data_t), intent(in) :: os_data
+    logical, intent(in), optional :: ignore, silent
+    type(string_t) :: filename
+    type(string_t) :: buffer
+    logical :: exist, required, quiet
+    integer :: u
+    u = free_unit ()
+    if (present (ignore)) then
+       required = .not. ignore
+    else
+       required = .true.
+    end if
+   if (present (silent)) then
+       quiet = silent
+    else
+       quiet = .false.
+    end if
+    if (os_data%use_libtool) then
+       filename = lib // ".la"
+       inquire (file=char(filename), exist=exist)
+       if (exist) then
+          open (unit=u, file=char(filename), action="read", status="old")
+          SCAN_LTFILE: do
+             call get (u, buffer)
+             if (extract (buffer, 1, 7) == "dlname=") then
+                dlname = extract (buffer, 9)
+                dlname = remove (dlname, len (dlname))
+                exit SCAN_LTFILE
+             end if
+          end do SCAN_LTFILE
+          close (u)
+       else if (required) then
+          if (.not. quiet) call msg_fatal (" Library '" // char (lib) &
+               // "': libtool archive not found")
+          dlname = ""
+       else
+          if (.not. quiet) call msg_message ("[No compiled library '" &
+               // char (lib) // "']")
+          dlname = ""
+       end if
+    else
+       dlname = lib // "." // os_data%fc_shrlib_ext
+       inquire (file=char(dlname), exist=exist)
+       if (.not. exist) then
+          if (required) then
+             if (.not. quiet) call msg_fatal (" Library '" // char (lib) &
+                  // "' not found")
+          else
+             if (.not. quiet) call msg_message &
+                ("[No compiled process library '" // char (lib) // "']")
+             dlname = ""
+          end if
+       end if
+    end if
+  end function os_get_dlname
+
+@ %def os_get_dlname
+@
+\subsection{Controlling OpenMP}
+OpenMP is handled automatically by the library for the most part.  Here
+is a convenience routine for setting the number of threads, with some
+diagnostics.
+<<OS interface: public>>=
+  public :: openmp_set_num_threads_verbose
+<<OS interface: sub interfaces>>=
+    module subroutine openmp_set_num_threads_verbose (num_threads, openmp_logging)
+      integer, intent(in) :: num_threads
+      logical, intent(in), optional :: openmp_logging
+    end subroutine openmp_set_num_threads_verbose
+<<OS interface: procedures>>=
+  module subroutine openmp_set_num_threads_verbose (num_threads, openmp_logging)
+    integer, intent(in) :: num_threads
+    integer :: n_threads
+    logical, intent(in), optional :: openmp_logging
+    logical :: logging
+    if (present (openmp_logging)) then
+       logging = openmp_logging
+    else
+       logging = .true.
+    end if
+    n_threads = num_threads
+    if (openmp_is_active ()) then
+       if (num_threads == 1) then
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: Using ", num_threads, &
+                  " thread"
+             call msg_message
+          end if
+          n_threads = num_threads
+       else if (num_threads > 1) then
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: Using ", num_threads, &
+                  " threads"
+             call msg_message
+          end if
+          n_threads = num_threads
+       else
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: " &
+                  // "Illegal value of openmp_num_threads (", num_threads, &
+               ") ignored"
+             call msg_error
+          end if
+          n_threads = openmp_get_default_max_threads ()
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: Using ", &
+                  n_threads, " threads"
+             call msg_message
+          end if
+       end if
+       if (n_threads > openmp_get_default_max_threads ()) then
+          if (logging) then
+             write (msg_buffer, "(A,I0)")  "OpenMP: " &
+                  // "Number of threads is greater than library default of ", &
+                  openmp_get_default_max_threads ()
+             call msg_warning
+          end if
+       end if
+       call openmp_set_num_threads (n_threads)
+    else if (num_threads /= 1) then
+       if (logging) then
+          write (msg_buffer, "(A,I0,A)")  "openmp_num_threads set to ", &
+               num_threads, ", but OpenMP is not active: ignored"
+          call msg_warning
+       end if
+    end if
+  end subroutine openmp_set_num_threads_verbose
+
+@ %def openmp_set_num_threads_verbose
+@
+\subsection{Controlling MPI}
+The overall MPI handling has to be defined in a context specific way,
+but we can simplify things like logging or receiving [[n_size]] or [[rank]].
+<<OS interface: public>>=
+  public :: mpi_set_logging
+<<OS interface: sub interfaces>>=
+    module subroutine mpi_set_logging (mpi_logging)
+      logical, intent(in) :: mpi_logging
+    end subroutine mpi_set_logging
+<<OS interface: procedures>>=
+  module subroutine mpi_set_logging (mpi_logging)
+    logical, intent(in) :: mpi_logging
+    integer :: n_size, rank
+    call mpi_get_comm_id (n_size, rank)
+    if (mpi_logging .and. n_size > 1) then
+       write (msg_buffer, "(A,I0,A)") "MPI: Using ", n_size, " processes."
+       call msg_message ()
+       if (rank == 0) then
+          call msg_message ("MPI: master worker")
+       else
+          write (msg_buffer, "(A,I0)") "MPI: slave worker #", rank
+          call msg_message ()
+       end if
+    end if
+  end subroutine mpi_set_logging
+
+@ %def mpi_set_logging
+@ Receive communicator size and rank inside communicator. The subroutine is a stub, if not compiled with [[MPI]].
+<<OS interface: public>>=
+  public :: mpi_get_comm_id
+<<OS interface: sub interfaces>>=
+    module subroutine mpi_get_comm_id (n_size, rank)
+      integer, intent(out) :: n_size
+      integer, intent(out) :: rank
+    end subroutine mpi_get_comm_id
+<<OS interface: procedures>>=
+  module subroutine mpi_get_comm_id (n_size, rank)
+    integer, intent(out) :: n_size
+    integer, intent(out) :: rank
+    n_size = 1
+    rank = 0
+  <<OS interface: mpi get comm id>>
+  end subroutine mpi_get_comm_id
+
+@ %def mpi_get_comm_id
+<<OS interface: mpi get comm id>>=
+@
+<<MPI: OS interface: mpi get comm id>>=
+  call MPI_Comm_size (MPI_COMM_WORLD, n_size)
+  call MPI_Comm_rank (MPI_COMM_WORLD, rank)
+@
+<<OS interface: public>>=
+  public :: mpi_is_comm_master
+<<OS interface: sub interfaces>>=
+    module function mpi_is_comm_master () result (flag)
+      logical :: flag
+    end function mpi_is_comm_master
+<<OS interface: procedures>>=
+  module function mpi_is_comm_master () result (flag)
+    integer :: n_size, rank
+    logical :: flag
+    call mpi_get_comm_id (n_size, rank)
+    flag = (rank == 0)
+  end function mpi_is_comm_master
+
+@ %def mpi_is_comm_master
+@
+\subsection{Unit tests}
+Test module, followed by the corresponding implementation module.
+<<[[os_interface_ut.f90]]>>=
+<<File header>>
+
+module os_interface_ut
+  use unit_tests
+  use os_interface_uti
+
+<<Standard module head>>
+
+<<OS interface: public test>>
+
+contains
+
+<<OS interface: test driver>>
+
+end module os_interface_ut
+@ %def os_interface_ut
+@
+<<[[os_interface_uti.f90]]>>=
+<<File header>>
+
+module os_interface_uti
+
+  use, intrinsic :: iso_c_binding !NODEP!
+
+<<Use strings>>
+  use io_units
+
+  use os_interface
+
+<<Standard module head>>
+
+<<OS interface: test declarations>>
+
+contains
+
+<<OS interface: tests>>
+
+end module os_interface_uti
+@ %def os_interface_ut
+@ API: driver for the unit tests below.
+<<OS interface: public test>>=
+  public :: os_interface_test
+<<OS interface: test driver>>=
+  subroutine os_interface_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<OS interface: execute tests>>
+  end subroutine os_interface_test
+
+@ %def os_interface_test
+@ Write a Fortran source file, compile it to a shared library, load
+it, and execute the contained function.
+<<OS interface: execute tests>>=
+  call test (os_interface_1, "os_interface_1", &
+       "check OS interface routines", &
+       u, results)
+<<OS interface: test declarations>>=
+  public :: os_interface_1
+<<OS interface: tests>>=
+  subroutine os_interface_1 (u)
+    integer, intent(in) :: u
+    type(dlaccess_t) :: dlaccess
+    type(string_t) :: fname, libname, ext
+    type(os_data_t) :: os_data
+    type(string_t) :: filename_src, filename_obj
+    abstract interface
+       function so_test_proc (i) result (j) bind(C)
+         import c_int
+         integer(c_int), intent(in) :: i
+         integer(c_int) :: j
+       end function so_test_proc
+    end interface
+    procedure(so_test_proc), pointer :: so_test => null ()
+    type(c_funptr) :: c_fptr
+    integer :: unit
+    integer(c_int) :: i
+    call os_data%init ()
+    fname = "so_test"
+    filename_src = fname // os_data%fc_src_ext
+    if (os_data%use_libtool) then
+       ext = ".lo"
+    else
+       ext = os_data%obj_ext
+    end if
+    filename_obj = fname // ext
+    libname = fname // '.' // os_data%fc_shrlib_ext
+
+    write (u, "(A)")  "* Test output: OS interface"
+    write (u, "(A)")  "*   Purpose: check os_interface routines"
+    write (u, "(A)")
+
+    write (u, "(A)")  "* write source file 'so_test.f90'"
+    write (u, "(A)")
+    unit = free_unit ()
+    open (unit=unit, file=char(filename_src), action="write")
+    write (unit, "(A)")  "function so_test (i) result (j) bind(C)"
+    write (unit, "(A)")  "  use iso_c_binding"
+    write (unit, "(A)")  "  integer(c_int), intent(in) :: i"
+    write (unit, "(A)")  "  integer(c_int) :: j"
+    write (unit, "(A)")  "  j = 2 * i"
+    write (unit, "(A)")  "end function so_test"
+    close (unit)
+    write (u, "(A)")  "* compile and link as 'so_test.so/dylib'"
+    write (u, "(A)")
+    call os_compile_shared (fname, os_data)
+    call os_link_shared (filename_obj, fname, os_data)
+    write (u, "(A)")  "* load library 'so_test.so/dylib'"
+    write (u, "(A)")
+    call dlaccess_init (dlaccess, var_str ("."), libname, os_data)
+    if (dlaccess_is_open (dlaccess)) then
+       write (u, "(A)") "     success"
+    else
+       write (u, "(A)") "     failure"
+    end if
+    write (u, "(A)")  "* load symbol 'so_test'"
+    write (u, "(A)")
+    c_fptr = dlaccess_get_c_funptr (dlaccess, fname)
+    if (c_associated (c_fptr)) then
+       write (u, "(A)") "     success"
+    else
+       write (u, "(A)") "     failure"
+    end if
+    call c_f_procpointer (c_fptr, so_test)
+    write (u, "(A)") "* Execute function from 'so_test.so/dylib'"
+    i = 7
+    write (u, "(A,1x,I1)")  "     input  = ", i
+    write (u, "(A,1x,I1)")  "     result = ", so_test(i)
+    if (so_test(i) / i .ne. 2) then
+       write (u, "(A)")  "* Compiling and linking ISO C functions failed."
+    else
+       write (u, "(A)")  "* Successful."
+    end if
+    write (u, "(A)")
+    write (u, "(A)")  "* Cleanup"
+    call dlaccess_final (dlaccess)
+  end subroutine os_interface_1
+
+@ %def os_interface_1
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Interface for formatted I/O}
+For access to formatted printing (possibly input), we interface the C
+[[printf]] family of functions.  There are two important issues here:
+\begin{enumerate}
+\item
+  [[printf]] takes an arbitrary number of arguments, relying on the C stack.
+  This is not interoperable.  We interface it with C wrappers that output a
+  single integer, real or string and restrict the allowed formats accordingly.
+\item
+  Restricting format strings is essential also for preventing format string
+  attacks.  Allowing arbitrary format string would create a real security hole
+  in a Fortran program.
+\item
+  The string returned by [[sprintf]] must be allocated to the right size.
+\end{enumerate}
+<<[[formats.f90]]>>=
+<<File header>>
+
+module formats
+
+  use, intrinsic :: iso_c_binding
+
+<<Use kinds>>
+<<Use strings>>
+
+<<Standard module head>>
+
+<<Formats: public>>
+
+<<Formats: parameters>>
+
+<<Formats: types>>
+
+<<Formats: interfaces>>
+
+  interface
+<<Formats: sub interfaces>>
+  end interface
+
+end module formats
+@ %def formats
+@
+<<[[formats_sub.f90]]>>=
+<<File header>>
+
+submodule (formats) formats_s
+
+  use io_units
+  use diagnostics
+
+  implicit none
+
+contains
+
+<<Formats: procedures>>
+
+end submodule formats_s
+
+@ %def formats_s
+@
+\subsection{Parsing a C format string}
+The C format string contains characters and format conversion specifications.
+The latter are initiated by a [[%]] sign.  If the next letter is also a [[%]],
+a percent sign is printed and no conversion is done.  Otherwise, a conversion
+is done and applied to the next argument in the argument list.  First comes an
+optional flag ([[#]], [[0]], [[-]], [[+]], or space), an optional field width
+(decimal digits starting not with zero), an optional precision (period, then
+another decimal digit string), a length modifier (irrelevant for us, therefore
+not supported), and a conversion specifier: [[d]] or [[i]] for integer; [[e]],
+[[f]], [[g]] (also upper case) for double-precision real, [[s]] for a string.
+
+We explicitly exclude all other conversion specifiers, and we check the
+specifiers against the actual arguments.
+
+\subsubsection{A type for passing arguments}
+This is a polymorphic type that can hold integer, real (double), and string
+arguments.
+<<Formats: parameters>>=
+  integer, parameter, public :: ARGTYPE_NONE = 0
+  integer, parameter, public :: ARGTYPE_LOG = 1
+  integer, parameter, public :: ARGTYPE_INT = 2
+  integer, parameter, public :: ARGTYPE_REAL = 3
+  integer, parameter, public :: ARGTYPE_STR = 4
+
+@ %def ARGTYPE_NONE ARGTYPE_LOG ARGTYPE_INT ARGTYPE_REAL ARGTYPE_STRING
+@ The integer and real entries are actually scalars, but we avoid relying on
+the allocatable-scalar feature and make them one-entry arrays.  The character
+entry is a real array which is a copy of the string.
+
+Logical values are mapped to strings (true or false), so this type parameter
+value is mostly unused.
+<<Formats: public>>=
+  public :: sprintf_arg_t
+<<Formats: types>>=
+  type :: sprintf_arg_t
+    private
+    integer :: type = ARGTYPE_NONE
+    integer(c_int), dimension(:), allocatable :: ival
+    real(c_double), dimension(:), allocatable :: rval
+    character(c_char), dimension(:), allocatable :: sval
+  end type sprintf_arg_t
+
+@ %def sprintf_arg_t
+<<Formats: public>>=
+  public :: sprintf_arg_init
+<<Formats: interfaces>>=
+  interface sprintf_arg_init
+     module procedure sprintf_arg_init_log
+     module procedure sprintf_arg_init_int
+     module procedure sprintf_arg_init_real
+     module procedure sprintf_arg_init_str
+  end interface
+
+<<Formats: sub interfaces>>=
+    module subroutine sprintf_arg_init_log (arg, lval)
+      type(sprintf_arg_t), intent(out) :: arg
+      logical, intent(in) :: lval
+    end subroutine sprintf_arg_init_log
+    module subroutine sprintf_arg_init_int (arg, ival)
+      type(sprintf_arg_t), intent(out) :: arg
+      integer, intent(in) :: ival
+    end subroutine sprintf_arg_init_int
+    module subroutine sprintf_arg_init_real (arg, rval)
+      type(sprintf_arg_t), intent(out) :: arg
+      real(default), intent(in) :: rval
+    end subroutine sprintf_arg_init_real
+    module subroutine sprintf_arg_init_str (arg, sval)
+      type(sprintf_arg_t), intent(out) :: arg
+      type(string_t), intent(in) :: sval
+    end subroutine sprintf_arg_init_str
+<<Formats: procedures>>=
+  module subroutine sprintf_arg_init_log (arg, lval)
+    type(sprintf_arg_t), intent(out) :: arg
+    logical, intent(in) :: lval
+    arg%type = ARGTYPE_STR
+    if (lval) then
+       allocate (arg%sval (5))
+       arg%sval = ['t', 'r', 'u', 'e', c_null_char]
+    else
+       allocate (arg%sval (6))
+       arg%sval = ['f', 'a', 'l', 's', 'e', c_null_char]
+    end if
+  end subroutine sprintf_arg_init_log
+
+  module subroutine sprintf_arg_init_int (arg, ival)
+    type(sprintf_arg_t), intent(out) :: arg
+    integer, intent(in) :: ival
+    arg%type = ARGTYPE_INT
+    allocate (arg%ival (1))
+    arg%ival = ival
+  end subroutine sprintf_arg_init_int
+
+  module subroutine sprintf_arg_init_real (arg, rval)
+    type(sprintf_arg_t), intent(out) :: arg
+    real(default), intent(in) :: rval
+    arg%type = ARGTYPE_REAL
+    allocate (arg%rval (1))
+    arg%rval = rval
+  end subroutine sprintf_arg_init_real
+
+  module subroutine sprintf_arg_init_str (arg, sval)
+    type(sprintf_arg_t), intent(out) :: arg
+    type(string_t), intent(in) :: sval
+    integer :: i
+    arg%type = ARGTYPE_STR
+    allocate (arg%sval (len (sval) + 1))
+    do i = 1, len (sval)
+       arg%sval(i) = extract (sval, i, i)
+    end do
+    arg%sval(len (sval) + 1) = c_null_char
+  end subroutine sprintf_arg_init_str
+
+@ %def sprintf_arg_init
+<<Formats: procedures>>=
+  subroutine sprintf_arg_write (arg, unit)
+    type(sprintf_arg_t), intent(in) :: arg
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit)
+    select case (arg%type)
+    case (ARGTYPE_NONE)
+      write (u, *) "[none]"
+    case (ARGTYPE_INT)
+      write (u, "(1x,A,1x)", advance = "no")  "[int]"
+      write (u, *)  arg%ival
+    case (ARGTYPE_REAL)
+      write (u, "(1x,A,1x)", advance = "no")  "[real]"
+      write (u, *)  arg%rval
+    case (ARGTYPE_STR)
+      write (u, "(1x,A,1x,A)", advance = "no")  "[string]", '"'
+      write (u, *)  arg%rval, '"'
+    end select
+  end subroutine sprintf_arg_write
+
+@ %def sprintf_arg_write
+@ Return an upper bound for the length of the printed version; in case of
+strings the result is exact.
+<<Formats: procedures>>=
+  elemental function sprintf_arg_get_length (arg) result (length)
+    integer :: length
+    type(sprintf_arg_t), intent(in) :: arg
+    select case (arg%type)
+    case (ARGTYPE_INT)
+       length = log10 (real (huge (arg%ival(1)))) + 2
+    case (ARGTYPE_REAL)
+       length = log10 (real (radix (arg%rval(1))) ** digits (arg%rval(1))) + 8
+    case (ARGTYPE_STR)
+       length = size (arg%sval)
+    case default
+       length = 0
+    end select
+  end function sprintf_arg_get_length
+
+@ %def sprintf_arg_get_length
+<<Formats: procedures>>=
+  subroutine sprintf_arg_apply_sprintf (arg, fmt, result, actual_length)
+    type(sprintf_arg_t), intent(in) :: arg
+    character(c_char), dimension(:), intent(in) :: fmt
+    character(c_char), dimension(:), intent(inout) :: result
+    integer, intent(out) :: actual_length
+    integer(c_int) :: ival
+    real(c_double) :: rval
+    select case (arg%type)
+    case (ARGTYPE_NONE)
+      actual_length = sprintf_none (result, fmt)
+    case (ARGTYPE_INT)
+      ival = arg%ival(1)
+      actual_length = sprintf_int (result, fmt, ival)
+    case (ARGTYPE_REAL)
+      rval = arg%rval(1)
+      actual_length = sprintf_double (result, fmt, rval)
+    case (ARGTYPE_STR)
+      actual_length = sprintf_str (result, fmt, arg%sval)
+    case default
+      call msg_bug ("sprintf_arg_apply_sprintf called with illegal type")
+    end select
+    if (actual_length < 0) then
+       write (msg_buffer, *) "Format: '", fmt, "'"
+       call msg_message ()
+       write (msg_buffer, *) "Output: '", result, "'"
+       call msg_message ()
+       call msg_error ("I/O error in sprintf call")
+       actual_length = 0
+    end if
+  end subroutine sprintf_arg_apply_sprintf
+
+@ %def sprintf_arg_apply_sprintf
+@
+\subsubsection{Container type for the output}
+There is a procedure which chops the format string into pieces that contain at
+most one conversion specifier.  Pairing this with a [[sprintf_arg]] object, we
+get the actual input to the [[sprintf]] interface.  The type below holds this
+input and can allocate the output string.
+<<Formats: types>>=
+  type :: sprintf_interface_t
+    private
+    character(c_char), dimension(:), allocatable :: input_fmt
+    type(sprintf_arg_t) :: arg
+    character(c_char), dimension(:), allocatable :: output_str
+    integer :: output_str_len = 0
+  end type sprintf_interface_t
+
+@ %def sprintf_fmt_t
+<<Formats: procedures>>=
+  subroutine sprintf_interface_init (intf, fmt, arg)
+    type(sprintf_interface_t), intent(out) :: intf
+    type(string_t), intent(in) :: fmt
+    type(sprintf_arg_t), intent(in) :: arg
+    integer :: fmt_len, i
+    fmt_len = len (fmt)
+    allocate (intf%input_fmt (fmt_len + 1))
+    do i = 1, fmt_len
+       intf%input_fmt(i) = extract (fmt, i, i)
+    end do
+    intf%input_fmt(fmt_len+1) = c_null_char
+    intf%arg = arg
+    allocate (intf%output_str (len (fmt) + sprintf_arg_get_length (arg) + 1))
+  end subroutine sprintf_interface_init
+
+@ %def sprintf_interface_init
+<<Formats: procedures>>=
+  subroutine sprintf_interface_write (intf, unit)
+    type(sprintf_interface_t), intent(in) :: intf
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit)
+    write (u, *) "Format string = ", '"', intf%input_fmt, '"'
+    write (u, "(1x,A,1x)", advance = "no") "Argument = "
+    call sprintf_arg_write (intf%arg, unit)
+    if (intf%output_str_len > 0) then
+       write (u, *) "Result string = ", &
+            '"', intf%output_str (1:intf%output_str_len), '"'
+    end if
+  end subroutine sprintf_interface_write
+
+@ %def sprintf_interface_write
+@ Return the output string:
+<<Formats: procedures>>=
+  function sprintf_interface_get_result (intf) result (string)
+    type(string_t) :: string
+    type(sprintf_interface_t), intent(in) :: intf
+    character(kind = c_char, len = max (intf%output_str_len, 0)) :: buffer
+    integer :: i
+    if (intf%output_str_len > 0) then
+       do i = 1, intf%output_str_len
+          buffer(i:i) = intf%output_str(i)
+       end do
+       string = buffer(1:intf%output_str_len)
+    else
+       string = ""
+    end if
+  end function sprintf_interface_get_result
+
+@ %def sprintf_interface_get_result
+<<Formats: procedures>>=
+  subroutine sprintf_interface_apply_sprintf (intf)
+    type(sprintf_interface_t), intent(inout) :: intf
+    call sprintf_arg_apply_sprintf &
+         (intf%arg, intf%input_fmt, intf%output_str, intf%output_str_len)
+  end subroutine sprintf_interface_apply_sprintf
+
+@ %def sprintf_interface_apply_sprintf
+@ Import the interfaces defined in the previous section:
+<<Formats: interfaces>>=
+<<sprintf interfaces>>
+
+@
+\subsubsection{Scan the format string}
+Chop it into pieces that contain one conversion
+specifier each.  The zero-th piece contains the part before the first
+specifier.  Check the specifiers and allow only the subset that we support.
+Also check for an exact match between conversion specifiers and input
+arguments.  The result is an allocated array of [[sprintf_interface]] object;
+each one contains a piece of the format string and the corresponding
+argument.
+<<Formats: procedures>>=
+  subroutine chop_and_check_format_string (fmt, arg, intf)
+    type(string_t), intent(in) :: fmt
+    type(sprintf_arg_t), dimension(:), intent(in) :: arg
+    type(sprintf_interface_t), dimension(:), intent(out), allocatable :: intf
+    integer :: n_args, i
+    type(string_t), dimension(:), allocatable :: split_fmt
+    type(string_t) :: word, buffer, separator
+    integer :: pos, length, l
+    logical :: ok
+    type(sprintf_arg_t) :: arg_null
+    ok = .true.
+    length = 0
+    n_args = size (arg)
+    allocate (split_fmt (0:n_args))
+    split_fmt = ""
+    buffer = fmt
+    SCAN_ARGS: do i = 1, n_args
+       FIND_CONVERSION: do
+          call split (buffer, word, "%", separator=separator)
+          if (separator == "") then
+             call msg_message ('"' // char (fmt) // '"')
+             call msg_error ("C-formatting string: " &
+                  // "too few conversion specifiers in format string")
+             ok = .false.;  exit SCAN_ARGS
+          end if
+          split_fmt(i-1) = split_fmt(i-1) // word
+          if (extract (buffer, 1, 1) /= "%") then
+             split_fmt(i) = "%"
+             exit FIND_CONVERSION
+          else
+             split_fmt(i-1) = split_fmt(i-1) // "%"
+          end if
+       end do FIND_CONVERSION
+       pos = verify (buffer, "#0-+ ")   ! Flag characters (zero or more)
+       split_fmt(i) = split_fmt(i) // extract (buffer, 1, pos-1)
+       buffer = remove (buffer, 1, pos-1)
+       pos = verify (buffer, "123456890")  ! Field width
+       word = extract (buffer, 1, pos-1)
+       if (len (word) /= 0) then
+         call read_int_from_string (word, len (word), l)
+         length = length + l
+       end if
+       split_fmt(i) = split_fmt(i) // word
+       buffer = remove (buffer, 1, pos-1)
+       if (extract (buffer, 1, 1) == ".") then
+          buffer = remove (buffer, 1, 1)
+          pos = verify (buffer, "1234567890")   ! Precision
+          split_fmt(i) = split_fmt(i) // "." // extract (buffer, 1, pos-1)
+          buffer = remove (buffer, 1, pos-1)
+       end if
+       ! Length modifier would come here, but is not allowed
+       select case (char (extract (buffer, 1, 1)))  ! conversion specifier
+       case ("d", "i")
+          if (arg(i)%type /= ARGTYPE_INT) then
+             call msg_message ('"' // char (fmt) // '"')
+             call msg_error ("C-formatting string: " &
+                  // "argument type mismatch: integer value expected")
+             ok = .false.;  exit SCAN_ARGS
+          end if
+       case ("e", "E", "f", "F", "g", "G")
+          if (arg(i)%type /= ARGTYPE_REAL) then
+             call msg_message ('"' // char (fmt) // '"')
+             call msg_error ("C-formatting string: " &
+                  // "argument type mismatch: real value expected")
+             ok = .false.;  exit SCAN_ARGS
+          end if
+       case ("s")
+          if (arg(i)%type /= ARGTYPE_STR) then
+             call msg_message ('"' // char (fmt) // '"')
+             call msg_error ("C-formatting string: " &
+                  // "argument type mismatch: logical or string value expected")
+             ok = .false.;  exit SCAN_ARGS
+          end if
+       case default
+          call msg_message ('"' // char (fmt) // '"')
+          call msg_error ("C-formatting string: " &
+               // "illegal or incomprehensible conversion specifier")
+          ok = .false.;  exit SCAN_ARGS
+       end select
+       split_fmt(i) = split_fmt(i) // extract (buffer, 1, 1)
+       buffer = remove (buffer, 1, 1)
+    end do SCAN_ARGS
+    if (ok) then
+       FIND_EXTRA_CONVERSION: do
+          call split (buffer, word, "%", separator=separator)
+          split_fmt(n_args) = split_fmt(n_args) // word // separator
+          if (separator == "")  exit FIND_EXTRA_CONVERSION
+          if (extract (buffer, 1, 1) == "%") then
+             split_fmt(n_args) = split_fmt(n_args) // "%"
+             buffer = remove (buffer, 1, 1)
+          else
+             call msg_message ('"' // char (fmt) // '"')
+             call msg_error ("C-formatting string: " &
+                  // "too many conversion specifiers in format string")
+             ok = .false.;  exit FIND_EXTRA_CONVERSION
+          end if
+       end do FIND_EXTRA_CONVERSION
+       split_fmt(n_args) = split_fmt(n_args) // buffer
+       allocate (intf (0:n_args))
+       call sprintf_interface_init (intf(0), split_fmt(0), arg_null)
+       do i = 1, n_args
+          call sprintf_interface_init (intf(i), split_fmt(i), arg(i))
+       end do
+    else
+       allocate (intf (0))
+    end if
+  contains
+    subroutine read_int_from_string (word, length, l)
+      type(string_t), intent(in) :: word
+      integer, intent(in) :: length
+      integer, intent(out) :: l
+      character(len=length) :: buffer
+      buffer = word
+      read (buffer, *) l
+    end subroutine read_int_from_string
+  end subroutine chop_and_check_format_string
+
+@ %def chop_and_check_format_string
+@
+\subsection{API}
+<<Formats: public>>=
+  public :: sprintf
+<<Formats: sub interfaces>>=
+    module function sprintf (fmt, arg) result (string)
+      type(string_t) :: string
+      type(string_t), intent(in) :: fmt
+      type(sprintf_arg_t), dimension(:), intent(in) :: arg
+    end function sprintf
+<<Formats: procedures>>=
+  module function sprintf (fmt, arg) result (string)
+    type(string_t) :: string
+    type(string_t), intent(in) :: fmt
+    type(sprintf_arg_t), dimension(:), intent(in) :: arg
+    type(sprintf_interface_t), dimension(:), allocatable :: intf
+    integer :: i
+    string = ""
+    call chop_and_check_format_string (fmt, arg, intf)
+    if (size (intf) > 0) then
+       do i = 0, ubound (intf, 1)
+          call sprintf_interface_apply_sprintf (intf(i))
+          string = string // sprintf_interface_get_result (intf(i))
+       end do
+    end if
+  end function sprintf
+
+@ %def sprintf
+@
+\subsection{Unit tests}
+Test module, followed by the corresponding implementation module.
+<<[[formats_ut.f90]]>>=
+<<File header>>
+
+module formats_ut
+  use unit_tests
+  use formats_uti
+
+<<Standard module head>>
+
+<<Formats: public test>>
+
+contains
+
+<<Formats: test driver>>
+
+end module formats_ut
+@ %def formats_ut
+@
+<<[[formats_uti.f90]]>>=
+<<File header>>
+
+module formats_uti
+
+<<Use kinds>>
+<<Use strings>>
+
+  use formats
+
+<<Standard module head>>
+
+<<Formats: test declarations>>
+
+<<Formats: test types>>
+
+contains
+
+<<Formats: tests>>
+
+end module formats_uti
+@ %def formats_ut
+@ API: driver for the unit tests below.
+<<Formats: public test>>=
+  public :: format_test
+<<Formats: test driver>>=
+  subroutine format_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<Formats: execute tests>>
+  end subroutine format_test
+
+@ %def format_test
+<<Formats: execute tests>>=
+  call test (format_1, "format_1", &
+       "check formatting routines", &
+       u, results)
+<<Formats: test declarations>>=
+  public :: format_1
+<<Formats: tests>>=
+  subroutine format_1 (u)
+    integer, intent(in) :: u
+    write (u, "(A)")  "*** Test 1: a string ***"
+    write (u, "(A)")
+    call test_run (var_str("%s"), 1, [4], ['abcdefghij'], u)
+    write (u, "(A)")  "*** Test 2: two integers ***"
+    write (u, "(A)")
+    call test_run (var_str("%d,%d"), 2, [2, 2], ['42', '13'], u)
+    write (u, "(A)")  "*** Test 3: floating point number ***"
+    write (u, "(A)")
+    call test_run (var_str("%8.4f"), 1, [3], ['42567.12345'], u)
+    write (u, "(A)")  "*** Test 4: general expression ***"
+    call test_run (var_str("%g"), 1, [3], ['3.1415'], u)
+    contains
+      subroutine test_run (fmt, n_args, type, buffer, unit)
+        type(string_t), intent(in) :: fmt
+        integer, intent(in) :: n_args, unit
+        logical :: lval
+        integer :: ival
+        real(default) :: rval
+        integer :: i
+        type(string_t) :: string
+        type(sprintf_arg_t), dimension(:), allocatable :: arg
+        integer, dimension(n_args), intent(in) :: type
+        character(*), dimension(n_args), intent(in) :: buffer
+        write (unit, "(A,A)")   "Format string :", char(fmt)
+        write (unit, "(A,I1)")  "Number of args:", n_args
+        allocate (arg (n_args))
+        do i = 1, n_args
+           write (unit, "(A,I1)")  "Argument (type ) = ", type(i)
+           select case (type(i))
+           case (ARGTYPE_LOG)
+              read (buffer(i), *)  lval
+              call sprintf_arg_init (arg(i), lval)
+           case (ARGTYPE_INT)
+              read (buffer(i), *)  ival
+              call sprintf_arg_init (arg(i), ival)
+           case (ARGTYPE_REAL)
+              read (buffer(i), *)  rval
+              call sprintf_arg_init (arg(i), rval)
+           case (ARGTYPE_STR)
+              call sprintf_arg_init (arg(i), var_str (trim (buffer(i))))
+           end select
+         end do
+         string = sprintf (fmt, arg)
+         write (unit, "(A,A,A)")  "Result: '", char (string), "'"
+         deallocate (arg)
+       end subroutine test_run
+  end subroutine format_1
+
+@ %def format_1
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{CPU timing}
+
+The time is stored in a simple derived type which just holds a
+floating-point number.
+<<[[cputime.f90]]>>=
+<<File header>>
+
+module cputime
+
+<<Use kinds>>
+<<Use strings>>
+
+<<Standard module head>>
+
+<<CPU time: public>>
+
+<<CPU time: types>>
+
+<<CPU time: interfaces>>
+
+  interface
+<<CPU time: sub interfaces>>
+  end interface
+
+end module cputime
+@ %def cputime
+<<[[cputime_sub.f90]]>>=
+<<File header>>
+
+submodule (cputime) cputime_s
+
+  use io_units
+  use diagnostics
+
+  implicit none
+
+contains
+
+<<CPU time: procedures>>
+
+end submodule cputime_s
+
+@ %def cputime_s
+@
+@ The CPU time is a floating-point number with an arbitrary reference time.
+It is single precision (default real, not [[real(default)]]).
+It is measured in seconds.
+<<CPU time: public>>=
+  public :: time_t
+<<CPU time: types>>=
+  type :: time_t
+     private
+     logical :: known = .false.
+     real :: value = 0
+   contains
+   <<CPU time: time: TBP>>
+  end type time_t
+
+@ %def time_t
+<<CPU time: time: TBP>>=
+  procedure :: write => time_write
+<<CPU time: sub interfaces>>=
+    module subroutine time_write (object, unit)
+      class(time_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+    end subroutine time_write
+<<CPU time: procedures>>=
+  module subroutine time_write (object, unit)
+    class(time_t), intent(in) :: object
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit)
+    write (u, "(1x,A)", advance="no")  "Time in seconds ="
+    if (object%known) then
+       write (u, "(1x,ES10.3)")  object%value
+    else
+       write (u, "(1x,A)")  "[unknown]"
+    end if
+  end subroutine time_write
+
+@ %def time_write
+@ Set the current time
+<<CPU time: time: TBP>>=
+  procedure :: set_current => time_set_current
+<<CPU time: sub interfaces>>=
+    module subroutine time_set_current (time)
+      class(time_t), intent(out) :: time
+    end subroutine time_set_current
+<<CPU time: procedures>>=
+  module subroutine time_set_current (time)
+    class(time_t), intent(out) :: time
+    integer :: msecs
+    call system_clock (msecs)
+    time%value = real (msecs) / 1000.
+    time%known = time%value > 0
+  end subroutine time_set_current
+
+@ %def time_set_current
+@ Assign to a [[real(default]] value.  If the time is undefined, return zero.
+<<CPU time: public>>=
+  public :: assignment(=)
+<<CPU time: interfaces>>=
+  interface assignment(=)
+    module procedure real_assign_time
+    module procedure real_default_assign_time
+  end interface
+
+<<CPU time: sub interfaces>>=
+    pure module subroutine real_assign_time (r, time)
+      real, intent(out) :: r
+      class(time_t), intent(in) :: time
+    end subroutine real_assign_time
+    pure module subroutine real_default_assign_time (r, time)
+      real(default), intent(out) :: r
+      class(time_t), intent(in) :: time
+    end subroutine real_default_assign_time
+<<CPU time: procedures>>=
+  pure module subroutine real_assign_time (r, time)
+    real, intent(out) :: r
+    class(time_t), intent(in) :: time
+    if (time%known) then
+       r = time%value
+    else
+       r = 0
+    end if
+  end subroutine real_assign_time
+
+  pure module subroutine real_default_assign_time (r, time)
+    real(default), intent(out) :: r
+    class(time_t), intent(in) :: time
+    if (time%known) then
+       r = time%value
+    else
+       r = 0
+    end if
+  end subroutine real_default_assign_time
+
+@ %def real_assign_time
+@ Assign an integer or (single precision) real value to the time object.
+<<CPU time: time: TBP>>=
+  generic :: assignment(=) => time_assign_from_integer, time_assign_from_real
+  procedure, private :: time_assign_from_integer
+  procedure, private :: time_assign_from_real
+<<CPU time: sub interfaces>>=
+    module subroutine time_assign_from_integer (time, ival)
+      class(time_t), intent(out) :: time
+      integer, intent(in) :: ival
+    end subroutine time_assign_from_integer
+    module subroutine time_assign_from_real (time, rval)
+      class(time_t), intent(out) :: time
+      real, intent(in) :: rval
+    end subroutine time_assign_from_real
+<<CPU time: procedures>>=
+  module subroutine time_assign_from_integer (time, ival)
+    class(time_t), intent(out) :: time
+    integer, intent(in) :: ival
+    time%value = ival
+    time%known = .true.
+  end subroutine time_assign_from_integer
+
+  module subroutine time_assign_from_real (time, rval)
+    class(time_t), intent(out) :: time
+    real, intent(in) :: rval
+    time%value = rval
+    time%known = .true.
+  end subroutine time_assign_from_real
+
+@ %def time_assign_from_real
+@ Add times and compute time differences.  If any input value is undefined,
+the result is undefined.
+<<CPU time: time: TBP>>=
+  generic :: operator(-) => subtract_times
+  generic :: operator(+) => add_times
+  procedure, private :: subtract_times
+  procedure, private :: add_times
+<<CPU time: sub interfaces>>=
+    pure module function subtract_times (t_end, t_begin) result (time)
+      type(time_t) :: time
+      class(time_t), intent(in) :: t_end, t_begin
+    end function subtract_times
+    pure module function add_times (t1, t2) result (time)
+      type(time_t) :: time
+      class(time_t), intent(in) :: t1, t2
+    end function add_times
+<<CPU time: procedures>>=
+  pure module function subtract_times (t_end, t_begin) result (time)
+    type(time_t) :: time
+    class(time_t), intent(in) :: t_end, t_begin
+    if (t_end%known .and. t_begin%known) then
+       time%known = .true.
+       time%value = t_end%value - t_begin%value
+    end if
+  end function subtract_times
+
+  pure module function add_times (t1, t2) result (time)
+    type(time_t) :: time
+    class(time_t), intent(in) :: t1, t2
+    if (t1%known .and. t2%known) then
+       time%known = .true.
+       time%value = t1%value + t2%value
+    end if
+  end function add_times
+
+@ %def subtract_times
+@ %def add_times
+@ Check if a time is known, so we can use it:
+<<CPU time: time: TBP>>=
+  procedure :: is_known => time_is_known
+<<CPU time: sub interfaces>>=
+    module function time_is_known (time) result (flag)
+      class(time_t), intent(in) :: time
+      logical :: flag
+    end function time_is_known
+<<CPU time: procedures>>=
+  module function time_is_known (time) result (flag)
+    class(time_t), intent(in) :: time
+    logical :: flag
+    flag = time%known
+  end function time_is_known
+
+@ %def time_is_known
+@ We define functions for converting the time into ss / mm:ss / hh:mm:ss
+/ dd:mm:hh:ss.
+<<CPU time: time: TBP>>=
+  generic :: expand => time_expand_s, time_expand_ms, &
+       time_expand_hms, time_expand_dhms
+  procedure, private :: time_expand_s
+  procedure, private :: time_expand_ms
+  procedure, private :: time_expand_hms
+  procedure, private :: time_expand_dhms
+<<CPU time: sub interfaces>>=
+    module subroutine time_expand_s (time, sec)
+      class(time_t), intent(in) :: time
+      integer, intent(out) :: sec
+    end subroutine time_expand_s
+    module subroutine time_expand_ms (time, min, sec)
+      class(time_t), intent(in) :: time
+      integer, intent(out) :: min, sec
+    end subroutine time_expand_ms
+    module subroutine time_expand_hms (time, hour, min, sec)
+      class(time_t), intent(in) :: time
+      integer, intent(out) :: hour, min, sec
+    end subroutine time_expand_hms
+    module subroutine time_expand_dhms (time, day, hour, min, sec)
+      class(time_t), intent(in) :: time
+      integer, intent(out) :: day, hour, min, sec
+    end subroutine time_expand_dhms
+<<CPU time: procedures>>=
+  module subroutine time_expand_s (time, sec)
+    class(time_t), intent(in) :: time
+    integer, intent(out) :: sec
+    if (time%known) then
+       sec = time%value
+    else
+       call msg_bug ("Time: attempt to expand undefined value")
+    end if
+  end subroutine time_expand_s
+
+  module subroutine time_expand_ms (time, min, sec)
+    class(time_t), intent(in) :: time
+    integer, intent(out) :: min, sec
+    if (time%known) then
+       if (time%value >= 0) then
+          sec = mod (int (time%value), 60)
+       else
+          sec = - mod (int (- time%value), 60)
+       end if
+       min = time%value / 60
+    else
+       call msg_bug ("Time: attempt to expand undefined value")
+    end if
+  end subroutine time_expand_ms
+
+  module subroutine time_expand_hms (time, hour, min, sec)
+    class(time_t), intent(in) :: time
+    integer, intent(out) :: hour, min, sec
+    call time%expand (min, sec)
+    hour = min / 60
+    if (min >= 0) then
+       min = mod (min, 60)
+    else
+       min = - mod (-min, 60)
+    end if
+  end subroutine time_expand_hms
+
+  module subroutine time_expand_dhms (time, day, hour, min, sec)
+    class(time_t), intent(in) :: time
+    integer, intent(out) :: day, hour, min, sec
+    call time%expand (hour, min, sec)
+    day = hour / 24
+    if (hour >= 0) then
+       hour = mod (hour, 24)
+    else
+       hour = - mod (- hour, 24)
+    end if
+  end subroutine time_expand_dhms
+
+@ %def time_expand
+@ Use the above expansions to generate a time string.
+<<CPU time: time: TBP>>=
+  procedure :: to_string_s => time_to_string_s
+  procedure :: to_string_ms => time_to_string_ms
+  procedure :: to_string_hms => time_to_string_hms
+  procedure :: to_string_dhms => time_to_string_dhms
+<<CPU time: sub interfaces>>=
+    module function time_to_string_s (time) result (str)
+      class(time_t), intent(in) :: time
+      type(string_t) :: str
+    end function time_to_string_s
+    module function time_to_string_ms (time, blank) result (str)
+      class(time_t), intent(in) :: time
+      logical, intent(in), optional :: blank
+      type(string_t) :: str
+    end function time_to_string_ms
+    module function time_to_string_hms (time) result (str)
+      class(time_t), intent(in) :: time
+      type(string_t) :: str
+    end function time_to_string_hms
+    module function time_to_string_dhms (time) result (str)
+      class(time_t), intent(in) :: time
+      type(string_t) :: str
+    end function time_to_string_dhms
+<<CPU time: procedures>>=
+  module function time_to_string_s (time) result (str)
+    class(time_t), intent(in) :: time
+    type(string_t) :: str
+    character(256) :: buffer
+    integer :: s
+    call time%expand (s)
+    write (buffer, "(I0,'s')")  s
+    str = trim (buffer)
+  end function time_to_string_s
+
+  module function time_to_string_ms (time, blank) result (str)
+    class(time_t), intent(in) :: time
+    logical, intent(in), optional :: blank
+    type(string_t) :: str
+    character(256) :: buffer
+    integer :: s, m
+    logical :: x_out
+    x_out = .false.
+    if (present (blank))  x_out = blank
+    call time%expand (m, s)
+    write (buffer, "(I0,'m:',I2.2,'s')")  m, abs (s)
+    str = trim (buffer)
+    if (x_out) then
+       str = replace (str, len(str)-1, "X")
+    end if
+  end function time_to_string_ms
+
+  module function time_to_string_hms (time) result (str)
+    class(time_t), intent(in) :: time
+    type(string_t) :: str
+    character(256) :: buffer
+    integer :: s, m, h
+    call time%expand (h, m, s)
+    write (buffer, "(I0,'h:',I2.2,'m:',I2.2,'s')")  h, abs (m), abs (s)
+    str = trim (buffer)
+  end function time_to_string_hms
+
+  module function time_to_string_dhms (time) result (str)
+    class(time_t), intent(in) :: time
+    type(string_t) :: str
+    character(256) :: buffer
+    integer :: s, m, h, d
+    call time%expand (d, h, m, s)
+    write (buffer, "(I0,'d:',I2.2,'h:',I2.2,'m:',I2.2,'s')")  &
+         d, abs (h), abs (m), abs (s)
+    str = trim (buffer)
+  end function time_to_string_dhms
+
+@ %def time_to_string
+@
+\subsection{Timer}
+A timer can measure real (wallclock) time differences.  The base type
+corresponds to the result, i.e., time difference.  The object contains
+two further times for start and stop time.
+<<CPU time: public>>=
+  public :: timer_t
+<<CPU time: types>>=
+  type, extends (time_t) :: timer_t
+     private
+     logical :: running = .false.
+     type(time_t) :: t1, t2
+   contains
+   <<CPU time: timer: TBP>>
+  end type timer_t
+
+@ %def timer_t
+@ Output.  If the timer is running, we indicate this, otherwise write
+just the result.
+<<CPU time: timer: TBP>>=
+  procedure :: write => timer_write
+<<CPU time: sub interfaces>>=
+    module subroutine timer_write (object, unit)
+      class(timer_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+    end subroutine timer_write
+<<CPU time: procedures>>=
+  module subroutine timer_write (object, unit)
+    class(timer_t), intent(in) :: object
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit)
+    if (object%running) then
+       write (u, "(1x,A)")  "Time in seconds = [running]"
+    else
+       call object%time_t%write (u)
+    end if
+  end subroutine timer_write
+
+@ %def timer_write
+@ Start the timer: store the current time in the first entry and adapt
+the status.  We forget any previous values.
+<<CPU time: timer: TBP>>=
+  procedure :: start => timer_start
+<<CPU time: sub interfaces>>=
+    module subroutine timer_start (timer)
+      class(timer_t), intent(out) :: timer
+    end subroutine timer_start
+<<CPU time: procedures>>=
+  module subroutine timer_start (timer)
+    class(timer_t), intent(out) :: timer
+    call timer%t1%set_current ()
+    timer%running = .true.
+  end subroutine timer_start
+
+@ %def timer_start
+@ Restart the timer: simply adapt the status, keeping the start time.
+<<CPU time: timer: TBP>>=
+  procedure :: restart => timer_restart
+<<CPU time: sub interfaces>>=
+    module subroutine timer_restart (timer)
+      class(timer_t), intent(inout) :: timer
+    end subroutine timer_restart
+<<CPU time: procedures>>=
+  module subroutine timer_restart (timer)
+    class(timer_t), intent(inout) :: timer
+    if (timer%t1%known .and. .not. timer%running) then
+       timer%running = .true.
+    else
+       call msg_bug ("Timer: restart attempt from wrong status")
+    end if
+  end subroutine timer_restart
+
+@ %def timer_start
+@ Stop the timer: store the current time in the second entry, adapt
+the status, and compute the elapsed time.
+<<CPU time: timer: TBP>>=
+  procedure :: stop => timer_stop
+<<CPU time: sub interfaces>>=
+    module subroutine timer_stop (timer)
+      class(timer_t), intent(inout) :: timer
+    end subroutine timer_stop
+<<CPU time: procedures>>=
+  module subroutine timer_stop (timer)
+    class(timer_t), intent(inout) :: timer
+    call timer%t2%set_current ()
+    timer%running = .false.
+    call timer%evaluate ()
+  end subroutine timer_stop
+
+@ %def timer_stop
+@ Manually set the time (for unit test)
+<<CPU time: timer: TBP>>=
+  procedure :: set_test_time1 => timer_set_test_time1
+  procedure :: set_test_time2 => timer_set_test_time2
+<<CPU time: sub interfaces>>=
+    module subroutine timer_set_test_time1 (timer, t)
+      class(timer_t), intent(inout) :: timer
+      integer, intent(in) :: t
+    end subroutine timer_set_test_time1
+    module subroutine timer_set_test_time2 (timer, t)
+      class(timer_t), intent(inout) :: timer
+      integer, intent(in) :: t
+    end subroutine timer_set_test_time2
+<<CPU time: procedures>>=
+  module subroutine timer_set_test_time1 (timer, t)
+    class(timer_t), intent(inout) :: timer
+    integer, intent(in) :: t
+    timer%t1 = t
+  end subroutine timer_set_test_time1
+
+  module subroutine timer_set_test_time2 (timer, t)
+    class(timer_t), intent(inout) :: timer
+    integer, intent(in) :: t
+    timer%t2 = t
+  end subroutine timer_set_test_time2
+
+@ %def timer_set_test_time1
+@ %def timer_set_test_time2
+@ This is separate, available for the unit test.
+<<CPU time: timer: TBP>>=
+  procedure :: evaluate => timer_evaluate
+<<CPU time: sub interfaces>>=
+    module subroutine timer_evaluate (timer)
+      class(timer_t), intent(inout) :: timer
+    end subroutine timer_evaluate
+<<CPU time: procedures>>=
+  module subroutine timer_evaluate (timer)
+    class(timer_t), intent(inout) :: timer
+    timer%time_t = timer%t2 - timer%t1
+  end subroutine timer_evaluate
+
+@ %def timer_evaluate
+@
+\subsection{Unit tests}
+Test module, followed by the corresponding implementation module.
+<<[[cputime_ut.f90]]>>=
+<<File header>>
+
+module cputime_ut
+  use unit_tests
+  use cputime_uti
+
+<<Standard module head>>
+
+<<CPU time: public test>>
+
+contains
+
+<<CPU time: test driver>>
+
+end module cputime_ut
+@ %def cputime_ut
+@
+<<[[cputime_uti.f90]]>>=
+<<File header>>
+
+module cputime_uti
+
+<<Use strings>>
+
+  use cputime
+
+<<Standard module head>>
+
+<<CPU time: test declarations>>
+
+contains
+
+<<CPU time: tests>>
+
+end module cputime_uti
+@ %def cputime_ut
+@ API: driver for the unit tests below.
+<<CPU time: public test>>=
+  public :: cputime_test
+<<CPU time: test driver>>=
+  subroutine cputime_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<CPU time: execute tests>>
+  end subroutine cputime_test
+
+@ %def cputime_test
+@
+\subsubsection{Basic tests}
+Check basic functions of the time object.  The part which we can't
+check is getting the actual time from the system clock, since the
+output will not be reproducible.  However, we can check time formats
+and operations.
+<<CPU time: execute tests>>=
+  call test (cputime_1, "cputime_1", &
+       "time operations", &
+       u, results)
+<<CPU time: test declarations>>=
+  public :: cputime_1
+<<CPU time: tests>>=
+  subroutine cputime_1 (u)
+    integer, intent(in) :: u
+    type(time_t) :: time, time1, time2
+    real :: t
+    integer :: d, h, m, s
+
+    write (u, "(A)")  "* Test output: cputime_1"
+    write (u, "(A)")  "*   Purpose: check time operations"
+    write (u, "(A)")
+
+    write (u, "(A)") "* Undefined time"
+    write (u, *)
+
+    call time%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Set time to zero"
+    write (u, *)
+
+    time = 0
+    call time%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Set time to 1.234 s"
+    write (u, *)
+
+    time = 1.234
+    call time%write (u)
+
+    t = time
+    write (u, "(1x,A,F6.3)")  "Time as real =", t
+
+    write (u, *)
+    write (u, "(A)") "* Compute time difference"
+    write (u, *)
+
+    time1 = 5.33
+    time2 = 7.55
+    time = time2 - time1
+
+    call time1%write (u)
+    call time2%write (u)
+    call time%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Compute time sum"
+    write (u, *)
+
+    time = time2 + time1
+
+    call time1%write (u)
+    call time2%write (u)
+    call time%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Expand time"
+    write (u, *)
+
+    time1 = ((24 + 1) * 60 + 1) * 60 + 1
+    time2 = ((3 * 24 + 23) * 60 + 59) * 60 + 59
+
+    call time1%expand (s)
+    write (u, 1)  "s =", s
+    call time1%expand (m,s)
+    write (u, 1)  "ms =", m, s
+    call time1%expand (h,m,s)
+    write (u, 1)  "hms =", h, m, s
+    call time1%expand (d,h,m,s)
+    write (u, 1)  "dhms =", d, h, m, s
+
+    call time2%expand (s)
+    write (u, 1)  "s =", s
+    call time2%expand (m,s)
+    write (u, 1)  "ms =", m, s
+    call time2%expand (h,m,s)
+    write (u, 1)  "hms =", h, m, s
+    call time2%expand (d,h,m,s)
+    write (u, 1)  "dhms =", d, h, m, s
+
+    write (u, *)
+    write (u, "(A)") "* Expand negative time"
+    write (u, *)
+
+    time1 = - (((24 + 1) * 60 + 1) * 60 + 1)
+    time2 = - (((3 * 24 + 23) * 60 + 59) * 60 + 59)
+
+    call time1%expand (s)
+    write (u, 1)  "s =", s
+    call time1%expand (m,s)
+    write (u, 1)  "ms =", m, s
+    call time1%expand (h,m,s)
+    write (u, 1)  "hms =", h, m, s
+    call time1%expand (d,h,m,s)
+    write (u, 1)  "dhms =", d, h, m, s
+
+    call time2%expand (s)
+    write (u, 1)  "s =", s
+    call time2%expand (m,s)
+    write (u, 1)  "ms =", m, s
+    call time2%expand (h,m,s)
+    write (u, 1)  "hms =", h, m, s
+    call time2%expand (d,h,m,s)
+    write (u, 1)  "dhms =", d, h, m, s
+
+1   format (1x,A,1x,4(I0,:,':'))
+
+    write (u, *)
+    write (u, "(A)") "* String from time"
+    write (u, *)
+
+    time1 = ((24 + 1) * 60 + 1) * 60 + 1
+    time2 = ((3 * 24 + 23) * 60 + 59) * 60 + 59
+
+    write (u, "(A)")  char (time1%to_string_s ())
+    write (u, "(A)")  char (time1%to_string_ms ())
+    write (u, "(A)")  char (time1%to_string_hms ())
+    write (u, "(A)")  char (time1%to_string_dhms ())
+
+    write (u, "(A)")  char (time2%to_string_s ())
+    write (u, "(A)")  char (time2%to_string_ms ())
+    write (u, "(A)")  char (time2%to_string_hms ())
+    write (u, "(A)")  char (time2%to_string_dhms ())
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Blanking out the last second entry"
+    write (u, "(A)")
+
+    write (u, "(A)")  char (time1%to_string_ms ())
+    write (u, "(A)")  char (time1%to_string_ms (.true.))
+
+    write (u, *)
+    write (u, "(A)") "* String from negative time"
+    write (u, *)
+
+    time1 = -(((24 + 1) * 60 + 1) * 60 + 1)
+    time2 = -(((3 * 24 + 23) * 60 + 59) * 60 + 59)
+
+    write (u, "(A)")  char (time1%to_string_s ())
+    write (u, "(A)")  char (time1%to_string_ms ())
+    write (u, "(A)")  char (time1%to_string_hms ())
+    write (u, "(A)")  char (time1%to_string_dhms ())
+
+    write (u, "(A)")  char (time2%to_string_s ())
+    write (u, "(A)")  char (time2%to_string_ms ())
+    write (u, "(A)")  char (time2%to_string_hms ())
+    write (u, "(A)")  char (time2%to_string_dhms ())
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: cputime_1"
+
+  end subroutine cputime_1
+
+@ %def cputime_1
+@
+\subsubsection{Timer tests}
+Check a timer object.
+<<CPU time: execute tests>>=
+  call test (cputime_2, "cputime_2", &
+       "timer", &
+       u, results)
+<<CPU time: test declarations>>=
+  public :: cputime_2
+<<CPU time: tests>>=
+  subroutine cputime_2 (u)
+    integer, intent(in) :: u
+    type(timer_t) :: timer
+
+    write (u, "(A)")  "* Test output: cputime_2"
+    write (u, "(A)")  "*   Purpose: check timer"
+    write (u, "(A)")
+
+    write (u, "(A)") "* Undefined timer"
+    write (u, *)
+
+    call timer%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Start timer"
+    write (u, *)
+
+    call timer%start ()
+    call timer%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Stop timer (injecting fake timings)"
+    write (u, *)
+
+    call timer%stop ()
+    call timer%set_test_time1 (2)
+    call timer%set_test_time2 (5)
+    call timer%evaluate ()
+    call timer%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Restart timer"
+    write (u, *)
+
+    call timer%restart ()
+    call timer%write (u)
+
+    write (u, *)
+    write (u, "(A)") "* Stop timer again (injecting fake timing)"
+    write (u, *)
+
+    call timer%stop ()
+    call timer%set_test_time2 (10)
+    call timer%evaluate ()
+    call timer%write (u)
+
+    write (u, *)
+    write (u, "(A)")  "* Test output end: cputime_2"
+
+  end subroutine cputime_2
+
+@ %def cputime_2

@@ -1,0 +1,44 @@
+* Test output: eio_hepmc_1
+*   Purpose: write a HepMC file
+
+* Initialize test process
+
+* Generate and write an event
+
+ HepMC event stream:
+   Writing to file   = eio_hepmc_1.hepmc
+   Recover beams     = F
+   Alpha_s from file = F
+   Scale from file   = F
+   File extension    = 'hepmc'
+   HepMC3 mode       = 2
+   HepMC3 flows      = F
+   Numerical process IDs:
+     1: 42
+
+* File contents (blanking out last two digits):
+
+HepMC::IO_GenEvent-START_EVENT_LISTING
+E 55 -1 1.0000000000000000e+03 -1.0000000000000000e+00 -1.0000000000000000e+00 42 -1 1 10001 10002 0 0
+U GEV MM
+V -1 0 0 0 0 0 2 2 0
+P 10001 25 0 0 4.84122918275927XXe+02 5.00000000000000XXe+02 1.25000000000000XXe+02 3 0 0 -1 0
+P 10002 25 0 0 -4.84122918275927XXe+02 5.00000000000000XXe+02 1.25000000000000XXe+02 3 0 0 -1 0
+P 10003 25 -1.49602209113655XXe+02 -4.60428256114146XXe+02 0 5.00000000000000XXe+02 1.25000000000000XXe+02 1 0 0 0 0
+P 10004 25 1.49602209113655XXe+02 4.60428256114146XXe+02 0 5.00000000000000XXe+02 1.25000000000000XXe+02 1 0 0 0 0
+HepMC::IO_GenEvent-END_EVENT_LISTING
+
+* Reset data
+
+ HepMC event stream:
+   [closed]
+   Recover beams     = F
+   Alpha_s from file = F
+   Scale from file   = F
+   File extension    = 'hepmc'
+   HepMC3 mode       = 2
+   HepMC3 flows      = F
+
+* Cleanup
+
+* Test output end: eio_hepmc_1

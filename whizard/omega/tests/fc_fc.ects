@@ -1,0 +1,18 @@
+! fc_fs.ects --
+!ects:model QCD
+!ects:scatter
+!ects:process u ubar -> d dbar
+integer, parameter :: NP = 4, NCF = 2
+real(kind=default), parameter :: NC = 3
+integer, dimension(2,NP,NCF), parameter :: cflows = reshape ( &
+  (/  1,  0 ,  0, -1 ,  2,  0 ,  0, -2 , &
+      1,  0 ,  0, -2 ,  1,  0 ,  0, -2   /), (/ 2, NP, NCF /) )
+logical, dimension(NP,NCF), parameter :: gflags = reshape ( &
+  (/ .false., .false., .false., .false.,  &
+     .false., .false., .false., .false.   /), (/ NP, NCF /))
+type(OCF), dimension(4), parameter :: cfactors = &
+  (/ OCF (1, 1, NC**2), &
+     OCF (1, 2, NC), &
+     OCF (2, 1, NC), &
+     OCF (2, 2, NC**2) /)
+

@@ -1,0 +1,104 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP vamp_stat code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Statistics}
+<<[[vamp_stat.f90]]>>=
+! vamp_stat.f90 --
+<<Copyleft notice>>
+module vamp_stat
+  use kinds
+  implicit none
+  private
+  <<Declaration of [[vamp_stat]] procedures>>
+contains
+  <<Implementation of [[vamp_stat]] procedures>>
+end module vamp_stat
+@ %def vamp_stat
+@
+<<Declaration of [[vamp_stat]] procedures>>=
+public :: average, standard_deviation, value_spread
+@
+\begin{equation}
+  \mathop{\textrm{avg}} (X)
+    = \frac{1}{|X|} \sum_{x\in X} x
+\end{equation}
+<<Implementation of [[vamp_stat]] procedures>>=
+pure function average (x) result (a)
+  real(kind=default), dimension(:), intent(in) :: x
+  real(kind=default) :: a
+  integer :: n
+  n = size (x)
+  if (n == 0) then
+     a = 0.0
+  else
+     a = sum (x) / n
+  end if
+end function average
+@ %def average
+@
+\begin{equation}
+  \mathop{\textrm{stddev}} (X)
+    = \frac{1}{|X|-1} \sum_{x\in X} (x - \mathop{\textrm{avg}}(X))^2
+    = \frac{1}{|X|-1} \left( \frac{1}{|X|} \sum_{x\in X} x^2
+                                - \left(\mathop{\textrm{avg}}(X)\right)^2
+                      \right)
+\end{equation}
+<<Implementation of [[vamp_stat]] procedures>>=
+pure function standard_deviation (x) result (s)
+  real(kind=default), dimension(:), intent(in) :: x
+  real(kind=default) :: s
+  integer :: n
+  n = size (x)
+  if (n < 2) then
+     s = huge (s)
+  else
+     s = sqrt (max ((sum (x**2) / n - (average (x))**2) / (n - 1), &
+                    0.0_default))
+  end if
+end function standard_deviation
+@ %def standard_deviation
+@
+\begin{equation}
+  \mathop{\textrm{spread}} (X)
+    = \max_{x\in X}(x) - \min_{x\in X}(x)
+\end{equation}
+<<Implementation of [[vamp_stat]] procedures>>=
+pure function value_spread (x) result (s)
+  real(kind=default), dimension(:), intent(in) :: x
+  real(kind=default) :: s
+  s = maxval(x) - minval(x)
+end function value_spread
+@ %def value_spread
+@
+<<Declaration of [[vamp_stat]] procedures>>=
+public :: standard_deviation_percent, value_spread_percent
+@
+<<Implementation of [[vamp_stat]] procedures>>=
+pure function standard_deviation_percent (x) result (s)
+  real(kind=default), dimension(:), intent(in) :: x
+  real(kind=default) :: s
+  real(kind=default) :: abs_avg
+  abs_avg = abs (average (x))
+  if (abs_avg <= tiny (abs_avg)) then
+     s = huge (s)
+  else
+     s = 100.0 * standard_deviation (x) / abs_avg
+  end if
+end function standard_deviation_percent
+@ %def standard_deviation_percent
+@
+<<Implementation of [[vamp_stat]] procedures>>=
+pure function value_spread_percent (x) result (s)
+  real(kind=default), dimension(:), intent(in) :: x
+  real(kind=default) :: s
+  real(kind=default) :: abs_avg
+  abs_avg = abs (average (x))
+  if (abs_avg <= tiny (abs_avg)) then
+     s = huge (s)
+  else
+     s = 100.0 * value_spread (x) / abs_avg
+  end if
+end function value_spread_percent
+@ %def value_spread_percent
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

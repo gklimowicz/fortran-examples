@@ -1,0 +1,21 @@
+# SINDARIN input for WHIZARD self-test
+
+# Check simulation for Drell-Yan in qq collisions
+# (regression test: check color-flow mismatch during event initialization)
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process qcdtest_4_dy = u, U => e2, E2
+
+sqrts = 1000
+iterations = 1:1000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+simulate (qcdtest_4_dy)
+

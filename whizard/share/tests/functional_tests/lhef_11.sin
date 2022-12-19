@@ -1,0 +1,24 @@
+# SINDARIN input for WHIZARD self test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+
+seed = 0
+
+process lhef_11_p = u, U => g, g
+
+sqrts = 1000
+iterations = 1:100
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (lhef_11_p)
+
+n_events = 1000
+sample_format = lhef
+sample_split_n_kbytes = 200
+simulate (lhef_11_p) { $lhef_version = "2.0" }

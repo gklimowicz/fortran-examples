@@ -1,0 +1,68 @@
+* Test output: prc_omega_2
+*   Purpose: create simple processes with OMega
+*            use the prc_omega wrapper for this
+*            and check OMega options
+
+* Initialize a process library with two entries, different options.
+* (1) e- e+ -> e- e+   (all diagrams, no OpenMP, report progress)
+* (2) e- e+ -> e- e+   (s-channel only, with OpenMP, report progress to file)
+
+* Remove left-over file
+
+ omega2.log exists = F
+
+* Build and load library
+
+* Check extra output of OMega
+
+ omega2.log exists = T
+
+* Probe library API:
+
+ is active                 = T
+ n_processes               = 1
+
+* Set parameters for omega2_a and initialize:
+
+  ee   = 0.3000
+  me   = 0.0000
+  mmu  = 0.0000
+  mtau = 0.0000
+
+* Constants of omega2_a_i1:
+
+ component ID     = omega2_a_i1
+ openmp supported = F
+ model name       = 'QED'
+
+* Constants of omega2_a_i2:
+
+ component ID     = omega2_a_i2
+ openmp supported = T
+ model name       = 'QED'
+
+* Set kinematics:
+
+  p1 =  1.0000  0.0000  0.0000  1.0000
+  p2 =  1.0000  0.0000  0.0000 -1.0000
+  p3 =  1.0000  1.0000  0.0000  0.0000
+  p4 =  1.0000 -1.0000  0.0000  0.0000
+
+* Compute matrix element:
+
+  (1) |amp (1, 6, 1)| =  0.9000E-01
+  (2) |amp (1, 6, 1)| =  0.9000E-01
+
+* Set kinematics:
+
+  p1 =  1.0000  0.0000  0.0000  1.0000
+  p2 =  1.0000  0.0000  0.0000 -1.0000
+  p3 =  1.0000  0.7071  0.0000  0.7071
+  p4 =  1.0000 -0.7071  0.0000 -0.7071
+
+* Compute matrix element:
+
+  (1) |amp (1, 6, 1)| =  0.8955E+00
+  (2) |amp (1, 6, 1)| =  0.1536E+00
+
+* Test output end: prc_omega_2

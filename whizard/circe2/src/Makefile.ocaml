@@ -1,0 +1,77 @@
+# Makefile.ocaml -- O'Caml rules for Circe2 Makefiles
+##
+## Process Makefile.am with automake to include this file in Makefile.in
+##
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+OCAMLC += $(DBG) -safe-string
+OCAMLCI = $(OCAMLC)
+OCAMLDEBUGFLAGS = -g
+OCAMLOPTFLAGS = -inline 64 $(GPROF) -safe-string
+OCAML_NATIVE_EXT = .opt
+OCAML_BYTECODE_EXT = .bin
+
+########################################################################
+
+SUFFIXES = .mll .mly .ml .mli .cmi .cmo .cmx .bin .opt
+
+.cmx$(OCAML_NATIVE_EXT):
+	@if $(AM_V_P); then :; else echo "  OCAMLOPT " $@; fi
+	$(AM_V_at)$(OCAMLOPT) $(OCAMLFLAGS) $(OCAMLOPTFLAGS) -o $@ \
+	  unix.cmxa $(OCAML_BIGARRAY_CMXA) $(CIRCE2_CMX) $<
+
+.cmo$(OCAML_BYTECODE_EXT):
+	@if $(AM_V_P); then :; else echo "  OCAMLC   " $@; fi
+	$(AM_V_at)$(OCAMLC) $(OCAMLDEBUGFLAGS) $(OCAMLFLAGS) -o $@ \
+	  unix.cma $(CIRCE2_CMO) $<
+
+.ml.cmx:
+	@if $(AM_V_P); then :; else echo "  OCAMLOPT " $@; fi
+	$(AM_V_at)$(OCAMLOPT) $(OCAMLFLAGS) $(OCAMLOPTFLAGS) -o $@ -c $<
+
+.mli.cmi:
+	@if $(AM_V_P); then :; else echo "  OCAMLC   " $@; fi
+	$(AM_V_at)$(OCAMLCI) $(OCAMLFLAGS) -o $@ -c $<
+
+.ml.cmo:
+	@if $(AM_V_P); then :; else echo "  OCAMLC   " $@; fi
+	$(AM_V_at)$(OCAMLC) $(OCAMLDEBUGFLAGS) $(OCAMLFLAGS) -o $@ -c $<
+
+.mll.ml:
+	@if $(AM_V_P); then :; else echo "  OCAMLLEX " $@; fi
+	$(AM_V_at)$(OCAMLLEX) -o $@ $<
+
+.mly.mli:
+	@if $(AM_V_P); then :; else echo "  OCAMLYACC" $@; fi
+	$(AM_V_at)$(OCAMLYACC) -b$* $<
+
+.mly.ml:
+	@if $(AM_V_P); then :; else echo "  OCAMLYACC" $@; fi
+	$(AM_V_at)$(OCAMLYACC) -b$* $<
+
+########################################################################
+## The End.
+########################################################################

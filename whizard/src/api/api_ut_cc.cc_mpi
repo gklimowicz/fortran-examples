@@ -1,0 +1,478 @@
+#include <iostream>
+#include <vector>
+#include "whizard.h"
+#include "whizard_ut.h"
+#include "mpi.h"
+
+#ifdef WHIZARD_WITH_HEPMC2
+#include "HepMC/GenEvent.h"
+using namespace HepMC;
+#endif
+#ifdef WHIZARD_WITH_HEPMC3
+#include "HepMC3/GenEvent.h"
+using namespace HepMC3;
+#endif
+
+#ifdef WHIZARD_WITH_LCIO
+#include "lcio.h"
+#include "IMPL/LCEventImpl.h"
+using namespace lcio;
+#endif
+
+
+void api_ut_cc_1( FILE* outfile ) {
+
+  Whizard* whizard;
+
+  fprintf (outfile, "* Test output: api_cc_1\n");
+  fprintf (outfile, "*   Purpose:  call init/final\n");
+  fprintf (outfile, "\n");
+
+  fprintf (outfile, "* Creating WHIZARD object\n");
+  whizard = new Whizard();
+
+  fprintf (outfile, "* Setting options\n");
+  whizard->option( "logfile", "api_cc_1.log" );
+
+  fprintf (outfile, "* Initializing WHIZARD\n");
+  whizard->init ();
+
+  fprintf (outfile, "* Finalizing WHIZARD\n");
+  delete( whizard );
+
+  fprintf (outfile, "\n");
+  fprintf (outfile, "* Test output end: api_cc_1\n");
+
+}
+
+  void api_ut_cc_2( FILE* outfile ) {
+
+    Whizard* whizard;
+
+    int err;
+    string* job_id;
+    double sqrts;
+    int n_events;
+    int unweighted;
+    string* sample;
+
+    fprintf (outfile, "* Test output: api_cc_2\n");
+    fprintf (outfile, "*   Purpose:  access Sindarin variables\n");
+    fprintf (outfile, "\n");
+
+    whizard = new Whizard();
+    whizard->option ("logfile", "api_cc_2_log.out");
+    whizard->option ("job_id", "api_cc_2_ID");
+    whizard->init ();
+
+    err = whizard->get_string ("$job_id", &job_id);
+    if (!err) fprintf (outfile, "$job_id = %s\n", job_id->c_str ());
+    delete job_id;
+
+    err = whizard->get_double ("sqrts", &sqrts);
+    if (!err) {
+      fprintf (outfile, "sqrts = %5.1f\n", sqrts);
+    } else {
+      fprintf (outfile, "sqrts = [unknown]\n", sqrts);
+    }
+
+    fprintf (outfile, "\n");
+
+    whizard->set_double ("sqrts", 100.);
+    whizard->set_int ("n_events", 3);
+    whizard->set_bool ("?unweighted", 0);
+    whizard->set_string ("$sample", "foobar");
+
+    err = whizard->get_double ("sqrts", &sqrts);
+    if (!err) fprintf (outfile, "sqrts = %5.1f\n", sqrts);
+
+    err = whizard->get_int ("n_events", &n_events);
+    if (!err) fprintf (outfile, "n_events = %1d\n", n_events);
+
+    err = whizard->get_bool ("?unweighted", &unweighted);
+    if (!err) fprintf (outfile, "?unweighted = %1d\n", unweighted);
+
+    whizard->get_string ("$sample", &sample);
+    fprintf (outfile, "$sample = %s\n", sample->c_str());
+    delete sample;
+
+    fprintf (outfile, "\n");
+
+    whizard->set_bool ("?unweighted", 1);
+    whizard->get_bool ("?unweighted", &unweighted);
+    fprintf (outfile, "?unweighted = %1d\n", unweighted);
+
+    delete (whizard);
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_cc_2\n");
+
+  }
+  void api_ut_cc_3( FILE* outfile ) {
+
+    Whizard* whizard;
+
+    int err;
+    int f = 11;
+    vector<int> fa(3);
+    fa[0] = 11;
+    fa[1] = 13;
+    fa[2] = 15;
+    string* electron;
+    string* leptons;
+
+    fprintf (outfile, "* Test output: api_cc_3\n");
+    fprintf (outfile, "*   Purpose:  translate PDG code(s) to flavor string\n");
+    fprintf (outfile, "\n");
+
+    whizard = new Whizard();
+    whizard->option( "logfile", "api_c_3_log.out" );
+    whizard->option( "model", "QED" );
+    whizard->init();
+
+    electron = whizard->flv_string( f );
+    fprintf (outfile, "electron = %s\n", electron->c_str ());
+    delete electron;
+
+    leptons = whizard->flv_array_string( fa );
+    fprintf (outfile, "leptons = %s\n", leptons->c_str ());
+    delete leptons;
+
+    delete whizard;
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_cc_3\n");
+
+  }
+  void api_ut_cc_4( FILE* outfile ) {
+
+    Whizard* whizard;
+
+    int err;
+    double sqrts;
+    double integral;
+    double error;
+
+    fprintf( outfile, "* Test output: api_cc_4\n" );
+    fprintf( outfile, "*   Purpose:  integrate and retrieve results\n" );
+    fprintf( outfile, "\n" );
+
+    whizard = new Whizard();
+    whizard->option( "logfile", "api_cc_4_log.out" );
+    whizard->option( "library", "api_cc_4_lib" );
+    whizard->option( "model", "QED" );
+    whizard->option( "rebuild", "true" );
+    whizard->init();
+
+    fprintf( outfile, "* Process setup\n");
+    fprintf( outfile, "\n");
+
+    whizard->command( "process api_cc_4_p = e1, E1 => e2, E2" );
+    whizard->command( "sqrts = 10" );
+    whizard->command( "iterations = 1:100" );
+    whizard->set_int( "seed", 0 );
+    err = whizard->get_integration_result( "api_cc_4_p", &integral, &error );
+    fprintf( outfile, "  integral is unknown = %d\n", err );
+
+    whizard->command( "integrate (api_cc_4_p)" );
+
+    fprintf( outfile, "\n" );
+    fprintf( outfile, "* Integrate\n" );
+    fprintf( outfile, "\n" );
+
+    err = whizard->get_integration_result( "api_cc_4_p", &integral, &error );
+    fprintf( outfile, "  integral is unknown = %d\n", err );
+
+    whizard->get_double( "sqrts", &sqrts );
+    fprintf( outfile, "  sqrt(s)       = %5.1f GeV\n", sqrts );
+    fprintf( outfile, "  cross section = %5.1f pb\n", integral / 1000. );
+    fprintf( outfile, "  error         = %5.1f pb\n", error / 1000. );
+
+    delete whizard;
+
+    fprintf( outfile, "\n" );
+    fprintf( outfile, "* Test output end: api_cc_4\n" );
+
+  }
+  void api_ut_cc_5( FILE* outfile ) {
+
+    Whizard* whizard;
+    WhizardSample* sample;
+
+    int it, it_begin, it_end;
+
+    int i_proc;
+    string* proc_id;
+    int idx;
+    double f_scale;
+    double alpha_s;
+    double weight;
+    double sqme;
+
+    fprintf( outfile, "* Test output: api_cc_5\n" );
+    fprintf( outfile, "*   Purpose:  generate events\n" );
+    fprintf( outfile, "\n" );
+
+    whizard = new Whizard( );
+    whizard->option( "logfile", "api_cc_5_log.out" );
+    whizard->option( "library", "api_cc_5_lib" );
+    whizard->option( "model", "QCD" );
+    whizard->option( "rebuild", "true" );
+    whizard->init();
+
+    whizard->command( "process api_cc_5_p1 = u, U => t, T" );
+    whizard->command( "process api_cc_5_p2 = d, D => t, T" );
+    whizard->command( "process api_cc_5_p3 = s, S => t, T" );
+    whizard->command( "sqrts = 1000" );
+    whizard->command( "beams = p, p => pdf_builtin" );
+    whizard->set_bool( "?alphas_is_fixed", 0 );
+    whizard->set_bool( "?alphas_from_pdf_builtin", 1 );
+    whizard->command( "iterations = 1:100" );
+    whizard->set_int( "seed", 0 );
+    whizard->command( "integrate (api_cc_5_p1)" );
+    whizard->command( "integrate (api_cc_5_p2)" );
+    whizard->command( "integrate (api_cc_5_p3)" );
+
+    whizard->set_bool( "?unweighted", 0 );
+    whizard->set_string( "$sample", "api_cc_5_evt" );
+    whizard->command( "sample_format = dump" );
+    whizard->set_int( "n_events", 10 );
+
+    sample = whizard->new_sample( "api_cc_5_p1, api_cc_5_p2, api_cc_5_p3" );
+    sample->open( &it_begin, &it_end );
+    for (it=it_begin; it<=it_end; it++) {
+       sample->next_event();
+       idx     = sample->get_event_index();
+       i_proc  = sample->get_process_index();
+       proc_id = sample->get_process_id();
+       f_scale = sample->get_fac_scale();
+       alpha_s = sample->get_alpha_s();
+       weight  = sample->get_weight();
+       sqme    = sample->get_sqme();
+       fprintf( outfile, "Event #%d\n", idx );
+       fprintf( outfile, "  process #%d\n", i_proc );
+       fprintf( outfile, "  proc_id = %s\n", proc_id->c_str());
+       fprintf( outfile, "  f_scale = %10.3e\n", f_scale );
+       fprintf( outfile, "  alpha_s = %10.3e\n", alpha_s );
+       fprintf( outfile, "  sqme    = %10.3e\n", sqme );
+       fprintf( outfile, "  weight  = %10.3e\n", weight );
+       delete proc_id;
+    }
+    sample->close ();
+
+    delete whizard;
+
+    fprintf( outfile, "\n" );
+    fprintf( outfile, "* Test output end: api_cc_5\n" );
+
+  }
+#if defined(WHIZARD_WITH_HEPMC3)
+  void api_ut_hepmc3_cc_1( FILE* outfile ) {
+
+    Whizard* whizard;
+    WhizardSample* sample;
+
+    GenEvent* evt;
+    int it, it_begin, it_end;
+    int idx;
+    int npt;
+
+    fprintf( outfile, "* Test output: api_hepmc3_cc_1\n" );
+    fprintf( outfile, "*   Purpose:  generate events\n" );
+    fprintf( outfile, "\n" );
+
+    whizard = new Whizard();
+
+    whizard->option( "logfile", "api_hepmc3_cc_1.log.out" );
+    whizard->option( "library", "api_hepmc3_cc_1_lib" );
+    whizard->option( "model", "QED" );
+    whizard->option( "rebuild", "T" );
+
+    whizard->init ();
+
+    whizard->command( "process api_hepmc3_cc_1_p = e1, E1 => e2, E2" );
+
+    whizard->set_double( "sqrts", 10. );
+    whizard->command( "iterations = 1:100" );
+    whizard->set_int( "seed", 0 );
+    whizard->command( "integrate (api_hepmc3_cc_1_p)" );
+
+    whizard->set_bool( "?unweighted", 0 );
+    whizard->set_string( "$sample", "api_hepmc3_cc_1_evt" );
+    whizard->command( "sample_format = hepmc" );
+    whizard->set_int( "n_events", 2 );
+
+    sample = whizard->new_sample( "api_hepmc3_cc_1_p" );
+
+    sample->open( &it_begin, &it_end );
+    for (it=it_begin; it<=it_end; it++) {
+       sample->next_event( &evt );
+       idx = evt->event_number();
+       npt = evt->particles().size();
+       fprintf( outfile, "Event #%d\n", idx );
+       fprintf( outfile, "  n_particles = %d\n", npt );
+       delete evt;
+    }
+    sample->close ();
+
+    delete whizard;
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_hepmc3_cc_1\n");
+
+  }
+#endif
+#if defined(WHIZARD_WITH_HEPMC2)
+  void api_ut_hepmc2_cc_1( FILE* outfile ) {
+
+    Whizard* whizard;
+    WhizardSample* sample;
+
+    GenEvent* evt;
+    int it, it_begin, it_end;
+    int idx;
+    int npt;
+
+    fprintf( outfile, "* Test output: api_hepmc2_cc_1\n" );
+    fprintf( outfile, "*   Purpose:  generate events\n" );
+    fprintf( outfile, "\n" );
+
+    whizard = new Whizard();
+
+    whizard->option( "logfile", "api_hepmc2_cc_1.log.out" );
+    whizard->option( "library", "api_hepmc2_cc_1_lib" );
+    whizard->option( "model", "QED" );
+    whizard->option( "rebuild", "T" );
+
+    whizard->init ();
+
+    whizard->command( "process api_hepmc2_cc_1_p = e1, E1 => e2, E2" );
+
+    whizard->set_double( "sqrts", 10. );
+    whizard->command( "iterations = 1:100" );
+    whizard->set_int( "seed", 0 );
+    whizard->command( "integrate (api_hepmc2_cc_1_p)" );
+
+    whizard->set_bool( "?unweighted", 0 );
+    whizard->set_string( "$sample", "api_hepmc2_cc_1_evt" );
+    whizard->command( "sample_format = hepmc" );
+    whizard->set_int( "n_events", 2 );
+
+    sample = whizard->new_sample( "api_hepmc2_cc_1_p" );
+
+    sample->open( &it_begin, &it_end );
+    for (it=it_begin; it<=it_end; it++) {
+       npt = 0;
+       sample->next_event( &evt );
+       idx = evt->event_number();
+       for ( GenEvent::particle_iterator it = evt->particles_begin();
+         it != evt->particles_end(); ++it )
+         { npt++;
+         }
+       fprintf( outfile, "Event #%d\n", idx );
+       fprintf( outfile, "  n_particles = %d\n", npt );
+       delete evt;
+    }
+    sample->close ();
+
+    delete whizard;
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_hepmc2_cc_1\n");
+
+  }
+#endif
+
+#ifdef WHIZARD_WITH_LCIO
+  void api_ut_lcio_cc_1( FILE* outfile ) {
+
+    Whizard* whizard;
+    WhizardSample* sample;
+
+    LCEvent* evt;
+    int it, it_begin, it_end;
+    int idx;
+    int npt;
+
+    fprintf( outfile, "* Test output: api_lcio_cc_1\n" );
+    fprintf( outfile, "*   Purpose:  generate events\n" );
+    fprintf( outfile, "\n" );
+
+    whizard = new Whizard();
+
+    whizard->option( "logfile", "api_lcio_cc_1.log.out" );
+    whizard->option( "library", "api_lcio_cc_1_lib" );
+    whizard->option( "model", "QED" );
+    whizard->option( "rebuild", "T" );
+
+    whizard->init ();
+
+    whizard->command( "process api_lcio_cc_1_p = e1, E1 => e2, E2" );
+
+    whizard->set_double( "sqrts", 10. );
+    whizard->command( "iterations = 1:100" );
+    whizard->set_int( "seed", 0 );
+    whizard->command( "integrate (api_lcio_cc_1_p)" );
+
+    whizard->set_bool( "?unweighted", 1 );
+    whizard->set_string( "$sample", "api_lcio_cc_1_evt" );
+    whizard->command( "sample_format = lcio" );
+    whizard->set_int( "n_events", 2 );
+
+    sample = whizard->new_sample( "api_lcio_cc_1_p" );
+
+    sample->open( &it_begin, &it_end );
+    for (it=it_begin; it<=it_end; it++) {
+       sample->next_event( &evt );
+       idx = evt->getEventNumber();
+       npt = evt->getCollection( LCIO::MCPARTICLE )->getNumberOfElements();
+       fprintf( outfile, "Event #%d\n", idx );
+       fprintf( outfile, "  n_particles = %d\n", npt );
+       delete evt;
+    }
+    sample->close ();
+
+    delete whizard;
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_lcio_cc_1\n");
+
+  }
+#endif
+
+int main( int argc, char* argv[] )
+{
+  int n_fail;
+  WhizardCCTest* WTest;
+
+  WTest = new WhizardCCTest("api_cc");
+
+  MPI_Init( &argc, &argv );
+
+  WTest->run_test( &api_ut_cc_1, "api_cc_1", "basic init/final" );
+  WTest->run_test( &api_ut_cc_2, "api_cc_2", "set/get Sindarin values" );
+  WTest->run_test( &api_ut_cc_3, "api_cc_3", "andle flavor string" );
+  WTest->run_test( &api_ut_cc_4, "api_cc_4", "integrate" );
+  WTest->run_test( &api_ut_cc_5, "api_cc_5", "generate events" );
+
+#ifdef WHIZARD_WITH_HEPMC3
+  WTest->run_test( &api_ut_hepmc3_cc_1, "api_hepmc3_cc_1", "HepMC3 interface" );
+#elif WHIZARD_WITH_HEPMC2
+  WTest->run_test( &api_ut_hepmc2_cc_1, "api_hepmc2_cc_1", "HepMC2 interface" );
+#else
+  cout << "Skipping test: api_hepmc_cc_1 (HepMC2/3 unavailable)\n";
+#endif
+
+#ifdef WHIZARD_WITH_LCIO
+  WTest->run_test( &api_ut_lcio_cc_1, "api_lcio_cc_1", "LCIO interface" );
+#else
+  cout << "Skipping test: api_lcio_cc_1 (LCIO unavailable)\n";
+#endif
+
+  MPI_Finalize();
+
+  n_fail = WTest->get_n_fail();
+  delete(WTest);
+
+  return n_fail;
+}

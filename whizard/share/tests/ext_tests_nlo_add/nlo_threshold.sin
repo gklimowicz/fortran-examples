@@ -1,0 +1,108 @@
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+model = SM_tt_threshold
+sqrts = 360 GeV
+sqrtsstepsize = 0.1 GeV
+sqrtsmin = sqrts - sqrtsstepsize
+sqrtsmax = sqrts + sqrtsstepsize
+
+mZ = 91.188
+mW = 80.419
+mb = 4.2
+alphas = 0.118 ! (Z pole, NLL running to mu_h)
+alpha_em_i = 125.924 ! (not running)
+m1S = 172.0
+scale = m1S
+mpole_fixed = 1
+mult_call_real = 30
+
+nrqcd_order  = 1 # NLL
+sh     = 1.
+sf     = 1.
+Vtb    = 1.
+
+me = 0
+int n_iter = 1000
+
+$method = "threshold"
+$born_me_method = "threshold"
+$loop_me_method = "threshold"
+$correlation_me_method = "threshold"
+$real_tree_me_method = "threshold"
+alpha_power = 4
+alphas_power = 0
+real num_diff = 0.001
+iterations = 5:n_iter:"gw", 5:n_iter
+
+! bits for offshell strategy :
+! 1 NLO, 2 factorization, 4 interference, 8 onShellProjection, 16 LOWidthInSignal,
+! 32 helicityApprox, 64 onShellProjectionProductionOnly,
+! 128 onShellDecayProductionOnly, 256 offShellWidthInPropagtor,
+
+!!! signal diagram from Omega
+process nlo_threshold_signal = E1, e1 => Wp, Wm, b, B
+  {$restrictions = "3+5~t && 4+6~tbar"}
+FF = 10       !!! off
+offshell_strategy = 0+0+4+0+0 ! activate interference
+seed = 0
+integrate (nlo_threshold_signal)
+
+!!! tree level result from amp_blob, i.e. with factorized onshell LO decays
+process nlo_threshold_factorized = E1, e1 => Wp, Wm, b, B
+FF = 9        !!! on
+!!! Active factorization. Also, need to force FF - 1 (2048) to have agreement with signal
+offshell_strategy = 0+2+0+0+0+0+0+0+0+0+0+2048
+seed = 0
+integrate (nlo_threshold_factorized)
+
+!!! Differences of O(Gamma/M) are ok
+expect (integral (nlo_threshold_signal) ==
+  integral (nlo_threshold_factorized)) {tolerance =
+  3 * wtop / mtpole * integral (nlo_threshold_signal)}
+
+!!! Now with onshell projection
+process nlo_threshold_onshell = E1, e1 => Wp, Wm, b, B
+FF = 9       !!! on
+!!! Need to force FF - 1 to have agreement with signal
+offshell_strategy = 0+2+0+8+0+0+0+0+0+0+0+2048
+seed = 0
+integrate (nlo_threshold_onshell)
+
+printf "factorized: %g +- %g" (integral(nlo_threshold_factorized),
+      error(nlo_threshold_factorized))
+printf "onshell: %g +- %g" (integral(nlo_threshold_onshell),
+      error(nlo_threshold_onshell))
+printf "signal: %g +- %g" (integral(nlo_threshold_signal),
+      error(nlo_threshold_signal))
+
+!!! On to NLO decays
+!iterations = 5:n_iter:"gw", 5:n_iter
+!FF = 9                   ! FF = 1
+!offshell_strategy = -4
+
+!process nlo_threshold_p5 = E1, e1 => Wp, Wm, b, B { nlo_calculation = full }
+!integrate (nlo_threshold_p5)
+
+!model = SM
+!mZ = 91.188
+!mW = 80.419
+!mb = 4.2
+!alphas = 0.118 ! (Z pole, NLL running to mu_h)
+!GF = 1.2273E-005
+!mtop = 172.0
+!wtop = 1.5385601
+!scale = mtop
+!$method = "omega"
+!seed = 0
+!process nlo_threshold_p6 = E1, e1 => Wp, Wm, b, B {$restrictions = "3+5~t && 4+6~tbar"}
+!integrate (nlo_threshold_p6)
+
+! Differences at permille-level come from the precision of the input parameters
+!expect (integral (nlo_threshold_p1) ==
+  !integral (nlo_threshold_p6)) {tolerance = 0.001 * integral (nlo_threshold_p1)}

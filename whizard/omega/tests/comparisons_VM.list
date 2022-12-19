@@ -1,0 +1,93 @@
+# processes to cross-check the OVM with compiled code
+#
+# For these comparisons, use the relative threshold `thr` except for amplitudes
+# smaller than `abs_thr` with `n` points for a fixed `roots` and decay or
+# scattering `process` in their respective `model`
+#
+# ----------------------------------------------------------------------
+#       thr   abs_thr n     roots  model process
+# ----------------------------------------------------------------------
+
+# Check QCD and color flows
+gggg    0.30  1E-12   100   1000   QCD      scatter gl gl -> gl gl
+ggggg   0.30  1E-12    50   1000   QCD      scatter gl gl -> gl gl gl
+uubddb  0.30  1E-15   100   1000   QCD      scatter u ubar -> d dbar
+udud    0.60  1E-15   100   1000   QCD      scatter u d -> u d
+gguub   0.60  1E-15   100   1000   QCD      scatter gl gl -> u ubar
+uubgg   0.60  1E-15   100   1000   QCD      scatter u ubar -> gl gl
+
+# Check multiple level parallelization with simple QED
+eeaa    0.60  1E-15   100   1000   QED      scatter e+ e- -> A A
+ee4a    0.40  1E-15   100   50     QED      scatter e+ e- -> A A A A
+eeaee   0.60  1E-15   100   500    QED      scatter e+ e- -> A e+ e-
+aeae    0.60  1E-15   100   1000   QED      scatter A e+ -> A e+
+aeaea   0.60  1E-15   100   50     QED      scatter A e+ -> A e+ A
+
+# Check some SM vertices
+aatt    0.60  1E-15   100   1000   SM       scatter t tbar -> A A
+ttaa    0.60  1E-15   100   1000   SM       scatter A A -> t tbar
+tata    0.60  1E-15   100   1000   SM       scatter A t -> A t
+atat    0.60  1E-15   100   1000   SM       scatter A tbar -> A tbar
+
+# Check multi-flavor algorithm
+2uubgg  0.60  1E-12   200   1000   QCD      scatter u:ubar u:ubar -> gl gl
+4qj     0.60  1E-12   100   1000   QCD      scatter u:ubar:d:dbar u:ubar:d:dbar -> u:ubar:d:dbar u:ubar:d:dbar
+eeall   0.60  1E-12   200   50     QED      scatter e+ e- -> e+:e-:m+:m-:A e+:e-:m+:m-:A e+:e-:m+:m-:A
+
+# Check V-A couplings
+DY      0.60  1E-15   200   1000   SM       scatter u ubar -> e+ e-
+DYj     0.60  1E-15   200   1000   SM       scatter u ubar -> e+ e- u:ubar:gl
+
+# Check scalar couplings and 1 -> 2, 2 -> 1
+SSS     0.60  1E-15   100   1000   SM       decay H -> H H
+3Sx     0.60  1E-15   100   1000   SM       scatter H H  -> H
+4H      0.60  1E-15   100   1000   SM       scatter H H -> H H
+5H      0.60  1E-15   100   1000   SM       scatter H H -> H H H
+6H      0.60  1E-15   100   50     SM       scatter H H -> H H H H
+
+# Check scalar-vector couplings
+SVV     0.60  1E-15   100   1000   SM       decay H -> W+ W-
+VSV     0.60  1E-15   100   1000   SM       decay Z -> Z H
+VSSV    0.60  1E-15   100   1000   SM       scatter W+ W- -> H H
+SSVV    0.60  1E-15   100   1000   SM       scatter H H -> W+ W-
+WpWm    0.60  1E-15   100   1000   SM       scatter W+ W- -> W+ W-
+ZZZZ    0.60  1E-15   100   1000   SM       scatter Z Z -> Z Z
+VBF     0.60  1E-12    50   1000   SM       scatter u:ubar:d:dbar u:ubar:d:dbar -> u:ubar:d:dbar u:ubar:d:dbar H
+
+# Check zero amplitude
+#uudd   0.60  1E-12   100   1000   QCD      scatter u u -> d d
+
+# Check SM_CKM
+ttbar   0.60  1E-12    50   50     SM_CKM   scatter u ubar -> e+ nue b bbar mu- numubar
+pidec   0.60  1E-12   100   1000   SM_CKM   scatter u dbar -> mu+ numu
+betdec  0.60  1E-12   100   1000   SM_CKM   decay d -> u e- nuebar
+Bdec    0.60  1E-12   100   1000   SM_CKM   decay b -> c e- nuebar
+scat    0.60  1E-12   100   1000   SM_CKM   scatter u g -> d mu+ numu
+
+# Check SM_Higgs
+ggH     0.60  1E-12   100   1000   SM_Higgs scatter g g -> H
+Hgg     0.60  1E-12   100   1000   SM_Higgs decay H -> g g
+ggAA    0.60  1E-12   100   1000   SM_Higgs scatter g g -> A A
+ZHgg    0.60  1E-12   100   1000   SM_Higgs scatter Z A -> g g
+ggAAH   0.60  1E-12   100   1000   SM_Higgs scatter g g -> A A H
+ggAAHH  0.60  1E-12   100   1000   SM_Higgs scatter g g -> A A H H
+
+# Check Zprime
+eeuu    0.60  1E-15   100   10000  Zprime   scatter e+ e- -> u ubar
+Zhuub   0.60  1E-15   100   10000  Zprime   decay Zh -> u ubar
+ZhddbA  0.60  1E-15   100   10000  Zprime   decay Zh -> d dbar A
+
+# Check THDM
+eeWW    0.60  1E-15   100   10000  THDM     scatter e+ e- -> W+ W-
+eeWWx   0.60  1E-15   100   10000  THDM     scatter e+ W- -> e+ W-
+eeZZ    0.60  1E-15   100   10000  THDM     scatter e+ e- -> Z Z
+eehH    0.60  1E-15   100   10000  THDM     scatter e+ e- -> h0 H0
+eehA    0.60  1E-15   100   10000  THDM     scatter e+ e- -> h0 A0
+WWZZZ   0.30  1E-12   100   10000  THDM     scatter W+ W- -> Z Z Z
+
+# Check THDM_CKM
+utbdbb  0.60  1E-15    50    1000   THDM_CKM scatter u tbar -> d bbar
+
+# Check HSExt
+ttbS    0.60  1E-15    50    1000   HSExt    scatter t tbar -> S
+ttbHS   0.60  1E-15   200    1000   HSExt    scatter t tbar -> S H

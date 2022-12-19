@@ -1,0 +1,275 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+seed = 0
+?resonance_history = true
+resonance_on_shell_limit =  4.00000E+00
+| Process library 'resonances_13_lib': recorded process 'resonances_13_p'
+sqrts =  9.20000E+01
+openmp_num_threads = 1
+| Integrate: current process library needs compilation
+| Process library 'resonances_13_lib': compiling ...
+| Process library 'resonances_13_lib': writing makefile
+| Process library 'resonances_13_lib': removing old files
+| Process library 'resonances_13_lib': writing driver
+| Process library 'resonances_13_lib': creating source code
+| Process library 'resonances_13_lib': compiling sources
+| Process library 'resonances_13_lib': linking
+| Process library 'resonances_13_lib': loading
+| Process library 'resonances_13_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process resonances_13_p:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 9.200000000000E+01 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'resonances_13_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_13_p'
+|   Library name  = 'resonances_13_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'resonances_13_p_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 2 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'resonances_13_p'
+| Integrate: iterations = 3:1000:"gw", 1:1000
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.348E+06   4.37E+04    3.24    1.03     8.9
+   2        999     1.251E+06   1.98E+04    1.58    0.50    45.3
+   3        998     1.227E+06   1.04E+04    0.85    0.27    53.4
+|-----------------------------------------------------------------------------|
+   3       2997     1.237E+06   9.01E+03    0.73    0.40    53.4    3.99   3
+|-----------------------------------------------------------------------------|
+   4        998     1.245E+06   1.02E+04    0.82    0.26    46.0
+|-----------------------------------------------------------------------------|
+   4        998     1.245E+06   1.02E+04    0.82    0.26    46.0
+|=============================================================================|
+n_events = 1
+| Particle mu- declared as polarized
+| Particle mu+ declared as polarized
+?polarized_events = false
+$sample = "resonances_13_a"
+| Starting simulation for process 'resonances_13_p'
+| Simulate: using integration grids from file 'resonances_13_p.m1.vg'
+| Creating library for resonant subprocesses 'resonances_13_p_R'
+| Process library 'resonances_13_p_R': initialized
+| Resonant subprocess #1: 3+4~Z
+| Process library 'resonances_13_p_R': recorded process 'resonances_13_p_R1'
+| Process library 'resonances_13_p_R': compiling ...
+| Process library 'resonances_13_p_R': writing makefile
+| Process library 'resonances_13_p_R': removing old files
+| Process library 'resonances_13_p_R': writing driver
+| Process library 'resonances_13_p_R': creating source code
+| Process library 'resonances_13_p_R': compiling sources
+| Process library 'resonances_13_p_R': linking
+| Process library 'resonances_13_p_R': loading
+| Process library 'resonances_13_p_R': ... success.
+| Simulate: initializing resonant subprocess 'resonances_13_p_R1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process resonances_13_p_R1:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 9.200000000000E+01 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_13_p_R1'
+|   Library name  = 'resonances_13_p_R'
+|   Process index = 1
+|   Process components:
+|     1: 'resonances_13_p_R1_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Simulate: activating resonance insertion
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   8.0313E-07
+| Events: writing to event dump file 'resonances_13_a.pset.dat'
+| Events: writing to raw file 'resonances_13_a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing event dump file 'resonances_13_a.pset.dat'
+| Events: closing raw file 'resonances_13_a.evx'
+?polarized_events = true
+$sample = "resonances_13_b"
+| Starting simulation for process 'resonances_13_p'
+| Simulate: using integration grids from file 'resonances_13_p.m1.vg'
+| Using library for resonant subprocesses 'resonances_13_p_R'
+| Simulate: initializing resonant subprocess 'resonances_13_p_R1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Initializing integration for process resonances_13_p_R1:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 9.200000000000E+01 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'resonances_13_p_R1'
+|   Library name  = 'resonances_13_p_R'
+|   Process index = 1
+|   Process components:
+|     1: 'resonances_13_p_R1_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: none
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Simulate: activating resonance insertion
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   8.0313E-07
+| Events: writing to event dump file 'resonances_13_b.pset.dat'
+| Events: writing to raw file 'resonances_13_b.evx'
+| Events: generating 1 unweighted, polarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  50.00 %
+| Events: closing event dump file 'resonances_13_b.pset.dat'
+| Events: closing raw file 'resonances_13_b.evx'
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Output of resonances_13_a.pset.dat:
+========================================================================
+ Event #1
+========================================================================
+ count  = 1
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(11)
+ E =   4.600000E+01
+ P =   0.000000E+00  0.000000E+00  4.600000E+01
+ T =   2.611179340E-07
+ Children: 3 5
+ Particle 2 [b] f(-11)
+ E =   4.600000E+01
+ P =   0.000000E+00  0.000000E+00 -4.600000E+01
+ T =   2.611179340E-07
+ Children: 4 6
+ Particle 3 [i] f(11)
+ E =   4.600000E+01
+ P =   0.000000E+00  0.000000E+00  4.600000E+01
+ T =   2.611179340E-07
+ Parents:  1
+ Children: 7
+ Particle 4 [i] f(-11)
+ E =   4.599997E+01
+ P =   0.000000E+00  0.000000E+00 -4.599997E+01
+ T =   2.611179340E-07
+ Parents:  2
+ Children: 7
+ Particle 5 [x] f(22*)
+ E =   9.480951E-09
+ P =   0.000000E+00  0.000000E+00  9.480951E-09
+ T =   0.000000000E+00
+ Parents:  1
+ Particle 6 [x] f(22*)
+ E =   3.282689E-05
+ P =   0.000000E+00  0.000000E+00 -3.282689E-05
+ T =   0.000000000E+00
+ Parents:  2
+ Particle 7 [r] f(23)
+ E =   9.199997E+01
+ P =   0.000000E+00  0.000000E+00  3.281741E-05
+ T =   8.463993958E+03
+ Parents:  3 4
+ Children: 8 9
+ Particle 8 [o] f(13)
+ E =   4.599997E+01
+ P =   2.507458E+01  1.750254E+01 -3.436441E+01
+ T =   1.116369517E-02
+ Parents:  7
+ Particle 9 [o] f(-13)
+ E =   4.600000E+01
+ P =  -2.507458E+01 -1.750254E+01  3.436445E+01
+ T =   1.116369517E-02
+ Parents:  7
+Output of resonances_13_b.pset.dat:
+========================================================================
+ Event #1
+========================================================================
+ count  = 1
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(11)
+ E =   4.600000E+01
+ P =   0.000000E+00  0.000000E+00  4.600000E+01
+ T =   2.611179340E-07
+ Children: 3 5
+ Particle 2 [b] f(-11)
+ E =   4.600000E+01
+ P =   0.000000E+00  0.000000E+00 -4.600000E+01
+ T =   2.611179340E-07
+ Children: 4 6
+ Particle 3 [i] f(11)
+ E =   4.600000E+01
+ P =   0.000000E+00  0.000000E+00  4.600000E+01
+ T =   2.611179340E-07
+ Parents:  1
+ Children: 7
+ Particle 4 [i] f(-11)
+ E =   4.421868E+01
+ P =   0.000000E+00  0.000000E+00 -4.421868E+01
+ T =   2.611179340E-07
+ Parents:  2
+ Children: 7
+ Particle 5 [x] f(22*)
+ E =   5.767915E-09
+ P =   0.000000E+00  0.000000E+00  5.767915E-09
+ T =   0.000000000E+00
+ Parents:  1
+ Particle 6 [x] f(22*)
+ E =   1.781323E+00
+ P =   0.000000E+00  0.000000E+00 -1.781323E+00
+ T =   0.000000000E+00
+ Parents:  2
+ Particle 7 [r] f(23)
+ E =   9.021868E+01
+ P =   0.000000E+00  0.000000E+00  1.781323E+00
+ T =   8.136236588E+03
+ Parents:  3 4
+ Children: 8 9
+ Particle 8 [o] f(13)h(-1)
+ E =   4.470301E+01
+ P =   1.872954E+01  3.549524E+01 -1.968859E+01
+ T =   1.116369517E-02
+ Parents:  7
+ Particle 9 [o] f(-13)h(1)
+ E =   4.551567E+01
+ P =  -1.872954E+01 -3.549524E+01  2.146991E+01
+ T =   1.116369517E-02
+ Parents:  7

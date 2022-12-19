@@ -1,0 +1,99 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Process library 'isr_epa_1_lib': recorded process 'isr_epa_1a'
+| Process library 'isr_epa_1_lib': compiling ...
+| Process library 'isr_epa_1_lib': writing makefile
+| Process library 'isr_epa_1_lib': removing old files
+| Process library 'isr_epa_1_lib': writing driver
+| Process library 'isr_epa_1_lib': creating source code
+| Process library 'isr_epa_1_lib': compiling sources
+| Process library 'isr_epa_1_lib': linking
+| Process library 'isr_epa_1_lib': loading
+| Process library 'isr_epa_1_lib': ... success.
+sqrts =  1.00000E+02
+openmp_num_threads = 1
+SM.me =>  0.00000E+00
+isr_mass =  5.11000E-04
+isr_q_max =  2.00000E+00
+?isr_recoil = false
+epa_mass =  5.11000E-04
+epa_x_min =  1.00000E-02
+epa_q_max =  1.00000E+00
+?epa_recoil = false
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process isr_epa_1a:
+| Beam structure: e-, e+ => isr, epa
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'isr_epa_1a.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'isr_epa_1a'
+|   Library name  = 'isr_epa_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'isr_epa_1a_i1':   e-, A => e-, A [omega]
+| ------------------------------------------------------------------------
+| Phase space: 3 channels, 2 dimensions
+| Phase space: found 3 channels, collected in 2 groves.
+| Phase space: Using 3 equivalences between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, epa
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'isr_epa_1a'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 3 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        999     1.363E+04   2.21E+03   16.20    5.12     1.9
+|-----------------------------------------------------------------------------|
+   1        999     1.363E+04   2.21E+03   16.20    5.12     1.9
+|=============================================================================|
+?isr_handler = true
+?epa_handler = true
+$isr_handler_mode = "recoil"
+$epa_handler_mode = "recoil"
+n_events = 100
+| Starting simulation for process 'isr_epa_1a'
+| Simulate: using integration grids from file 'isr_epa_1a.m1.vg'
+| Simulate: activating ISR handler
+| Simulate: activating EPA handler
+| Simulate: ISR/EPA handler mode: pair recoil
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 100
+|             corr. to luminosity [fb-1] =   7.3361E-03
+| Events: writing to raw file 'isr_epa_1a.evx'
+| Events: generating 100 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   2.74 %
+Warning: Encountered events with excess weight: 19 events ( 19.000 %)
+| Maximum excess weight = 7.146E+00
+| Average excess weight = 1.111E-01
+| Events: closing raw file 'isr_epa_1a.evx'
+$out_file = "isr_epa_1a.dat"
+| Opening file 'isr_epa_1a.dat' for output
+| Writing analysis data to file 'isr_epa_1a.dat'
+| Closing file 'isr_epa_1a.dat' for output
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Event breakdown (ISR):
+  Q < Qmax: 100
+  Q > Qmax:   0
+Event breakdown (EPA):
+  Q < Qmax: 100
+  Q > Qmax:   0

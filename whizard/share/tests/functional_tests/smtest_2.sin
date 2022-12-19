@@ -1,0 +1,25 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> u, dbar, mu-, numubar
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+me = 0
+mmu = 0
+
+seed = 0
+
+process smtest_2_cc = e1, E1 => u, D, e2, N2
+
+sqrts = 500
+iterations = 2:10000:"gw", 3:5000
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+integrate (smtest_2_cc)
+n_events = 1
+simulate (smtest_2_cc)

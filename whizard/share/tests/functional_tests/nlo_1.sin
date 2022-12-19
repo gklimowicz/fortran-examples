@@ -1,0 +1,29 @@
+# SINDARIN input for WHIZARD self-test
+# Testing NLO/LO ratio
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+$loop_me_method = "dummy"
+?use_vamp_equivalences = false
+
+process nlo_1_p1 = e1, E1 => u, U { nlo_calculation = real }
+
+seed = 0
+
+iterations = 2:500
+sqrts = 250
+
+scale = sqrts
+integrate (nlo_1_p1)
+
+scale = eval Pt [sort by -Pt [colored]]
+integrate (nlo_1_p1)

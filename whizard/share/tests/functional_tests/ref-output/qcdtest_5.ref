@@ -1,0 +1,143 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "omega"
+| Process library 'qcdtest_5_lib': recorded process 'qcdtest_5_p1'
+| Process library 'qcdtest_5_lib': recorded process 'qcdtest_5_p2'
+| Process library 'qcdtest_5_lib': compiling ...
+| Process library 'qcdtest_5_lib': writing makefile
+| Process library 'qcdtest_5_lib': removing old files
+| Process library 'qcdtest_5_lib': writing driver
+| Process library 'qcdtest_5_lib': creating source code
+| Process library 'qcdtest_5_lib': compiling sources
+| Process library 'qcdtest_5_lib': linking
+| Process library 'qcdtest_5_lib': loading
+| Process library 'qcdtest_5_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process qcdtest_5_p1:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'qcdtest_5_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'qcdtest_5_p1'
+|   Library name  = 'qcdtest_5_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'qcdtest_5_p1_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'qcdtest_5_p1'
+| Integrate: iterations = 1:100
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  9.9985097E+09  7.81E+09   78.11    7.81*   6.59
+|-----------------------------------------------------------------------------|
+   1        100  9.9985097E+09  7.81E+09   78.11    7.81    6.59
+|=============================================================================|
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process qcdtest_5_p2:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'qcdtest_5_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'qcdtest_5_p2'
+|   Library name  = 'qcdtest_5_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'qcdtest_5_p2_i1':   gl, gl => d, dbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'qcdtest_5_p2'
+| Integrate: iterations = 1:100
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  9.9985097E+09  7.81E+09   78.11    7.81*   6.59
+|-----------------------------------------------------------------------------|
+   1        100  9.9985097E+09  7.81E+09   78.11    7.81    6.59
+|=============================================================================|
+n_events = 1
+?unweighted = true
+?read_raw = false
+$sample = "qcdtest_5a"
+seed = 0
+| Starting simulation for process 'qcdtest_5_p1'
+| Simulate: using integration grids from file 'qcdtest_5_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.0001E-10
+| Events: writing to raw file 'qcdtest_5a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   2.13 %
+Warning: Encountered events with excess weight: 1 events (100.000 %)
+| Maximum excess weight = 2.168E+00
+| Average excess weight = 2.168E+00
+| Events: closing raw file 'qcdtest_5a.evx'
+?write_raw = false
+seed = 0
+| Starting simulation for process 'qcdtest_5_p1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.0001E-10
+| Events: reading from raw file 'qcdtest_5a.evx'
+| Rescanning unweighted events ...
+| ... event file terminates after 1 events.
+| Events: closing raw file 'qcdtest_5a.evx'
+seed = 0
+| Starting simulation for process 'qcdtest_5_p2'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.0001E-10
+| Events: reading from raw file 'qcdtest_5a.evx'
+******************************************************************************
+******************************************************************************
+*** FATAL ERROR: Events: parameter mismatch in input, aborting
+******************************************************************************
+******************************************************************************
+| There were no errors and    3 warning(s).
+WHIZARD run aborted.

@@ -1,0 +1,111 @@
+# Validating the helicity selection rule heuristics
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process helicity_ee_mm = e1, E1 =>  e2, E2
+process helicity_aa_ww = A, A =>  Wp, Wm
+compile
+
+me = 0
+mmu = 0
+sqrts = 500 GeV
+beams = e1, E1
+
+iterations = 1:10000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+?helicity_selection_active = false
+seed = 0
+integrate (helicity_ee_mm)
+real without_helicity_selection = integral(helicity_ee_mm)
+
+?helicity_selection_active = true
+helicity_selection_cutoff = 100
+
+helicity_selection_threshold = 1E10
+seed = 0
+integrate (helicity_ee_mm)
+real with____helicity_selection = integral(helicity_ee_mm)
+
+helicity_selection_threshold = 1E17
+seed = 0
+integrate (helicity_ee_mm)
+real crazy___helicity_selection = integral(helicity_ee_mm)
+
+printf ("Comparing results:")
+tolerance = 1E-12
+show(without_helicity_selection) 
+show(with____helicity_selection) 
+expect (with____helicity_selection == without_helicity_selection)
+show(crazy___helicity_selection)
+if (real_precision < 18) then
+  expect (crazy___helicity_selection <> without_helicity_selection)
+endif
+
+! ----------------------------------------------------------------------
+
+printf ("********************************************************")
+printf ("* A A => W+ W- @ 5 TeV, w/o cuts, but w/ higher cutoff *")
+printf ("********************************************************")
+
+sqrts = 5 TeV
+beams = A, A
+
+iterations = 1:10000
+
+?helicity_selection_active = false
+seed = 0
+integrate (helicity_aa_ww)
+without_helicity_selection = integral(helicity_aa_ww)
+
+?helicity_selection_active = true
+helicity_selection_cutoff = 1000
+
+helicity_selection_threshold = 1E10
+seed = 0
+integrate (helicity_aa_ww)
+with____helicity_selection = integral(helicity_aa_ww)
+
+printf ("Comparing results:")
+tolerance = 1E-12
+show(without_helicity_selection) 
+show(with____helicity_selection) 
+expect (with____helicity_selection == without_helicity_selection)
+
+! ----------------------------------------------------------------------
+
+printf ("**************************************************")
+printf ("* A A => W+ W- @ 5 TeV, w/ cuts and lower cutoff *")
+printf ("**************************************************")
+
+sqrts = 5 TeV
+beams = A, A
+cuts = all Pt > 100 GeV [Wp:Wm]
+
+iterations = 1:10000
+
+?helicity_selection_active = false
+seed = 0
+integrate (helicity_aa_ww)
+without_helicity_selection = integral(helicity_aa_ww)
+
+?helicity_selection_active = true
+helicity_selection_cutoff = 100
+
+helicity_selection_threshold = 1E10
+seed = 0
+integrate (helicity_aa_ww)
+with____helicity_selection = integral(helicity_aa_ww)
+
+printf ("Comparing results:")
+tolerance = 1E-10
+show(without_helicity_selection) 
+show(with____helicity_selection) 
+expect (with____helicity_selection == without_helicity_selection)
+

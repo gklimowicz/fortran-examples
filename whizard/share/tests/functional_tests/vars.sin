@@ -1,0 +1,103 @@
+# SINDARIN file for WHIZARD self test
+
+printf ("# Test run for" & " variable and loop handling")
+show ($model_name)
+?logging = true
+?openmp_logging = false
+
+real foo = -7.8%
+int bar = foo + 2
+real a = 20.1 TeV^(-2)
+
+# This would be an error because b is a particle name:
+#real b = 2 keV^(1/2)
+
+int i = 3
+foo = foo + i
+i = 9
+
+show (foo, bar, i)
+
+scan int k = (1, (2 => 3), (4 => 10 /+ 4)) {
+  real k2 = k^2
+  i = -k
+}
+show (i)
+
+# This is an error because MW must be declared:
+real MW = 79.8
+show (MW)
+
+mtau = .8 GeV
+mW = mW - 0.3 GeV
+show (mW, sw)
+
+scan mW = (75 GeV, 
+           (80 GeV => 82 GeV /+ 0.5 GeV), 
+           (83 GeV => 90 GeV /*/ 5)) {
+  show (sw)
+}
+printf "mW is %g and sw is: %8.4f" (mW, sw)
+
+scan seed = (32 => 1 /- 2) { show (seed) }
+
+scan string $str = ("foo", "bar")
+logical ?ok = false
+show (?ok)
+logical ?ok = mZ > mW
+show (logical)
+
+string $str = "foo"
+$str = $str & "bar"
+show (string)
+
+alias q = if ?ok then u else d endif
+
+# This would be an error because u is an intrinsic particle name:
+#alias u = d
+
+alias q = 
+  let alias Q = U:D in (q:d):Q
+
+printf ("Q is only local and hence not not defined")
+
+show (alias u, alias q, alias Q)
+
+scan int i = (1 => 4) {
+  if i == 1 then
+    printf "one = %i" (i)
+  elsif i == 2 then
+     printf ("two")
+  elsif i == 3 then
+     printf ("three")
+  else
+     printf ("four")
+  endif
+}
+
+scan int i = (-1,1,2) {
+  if true then else endif
+  if i > 1 then
+    $str = "i>1"
+  elsif i > 0 then
+    $str = "i>0"
+  endif
+  if i > 0 then
+  else
+    $str = "i<=0"
+  endif
+}
+
+printf ("Testing the complex calculus")
+
+complex ca = 2 + I
+show (ca)
+int ia = ca
+show (ia)
+real ra = ca
+show (ra)
+complex cb = ca**2
+show (cb)
+?pacify = true
+complex cc = exp(2*pi*I)
+show (cc) { ?pacify = true }

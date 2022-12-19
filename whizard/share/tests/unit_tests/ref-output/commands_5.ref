@@ -1,0 +1,222 @@
+* Test output: commands_5
+*   Purpose: define process, iterations, and integrate
+
+*  Initialization
+
+*  Input file
+
+model = "Test"
+process t5 = s, s => s, s
+compile
+iterations = 1:1000
+integrate (t5)
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_model> <cmd_process> <cmd_compile> <cmd_iterations> <cmd_integrate>
+|  +  <cmd_model>  =  model '=' <string_literal>
+|  |  +  model  = [keyword] model
+|  |  +  '='  = [keyword] =
+|  |  +  <string_literal>  = "Test"
+|  +  <cmd_process>  =  process <process_id> '=' <process_prt> '=>' <prt_state_list>
+|  |  +  process  = [keyword] process
+|  |  +  <process_id>  = t5
+|  |  +  '='  = [keyword] =
+|  |  +  <process_prt>  =  <cexpr> <cexpr>
+|  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  +  <variable>  = s
+|  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  +  <variable>  = s
+|  |  +  '=>'  = [keyword] =>
+|  |  +  <prt_state_list>  =  <prt_state_sum> <prt_state_sum>
+|  |  |  +  <prt_state_sum>  =  <cexpr>
+|  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  +  <variable>  = s
+|  |  |  +  <prt_state_sum>  =  <cexpr>
+|  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  +  <variable>  = s
+|  +  <cmd_compile>  =  <compile_cmd>
+|  |  +  <compile_cmd>  =  <compile_clause>
+|  |  |  +  <compile_clause>  =  compile
+|  |  |  |  +  compile  = [keyword] compile
+|  +  <cmd_iterations>  =  iterations '=' <iterations_list>
+|  |  +  iterations  = [keyword] iterations
+|  |  +  '='  = [keyword] =
+|  |  +  <iterations_list>  =  <it_spec>
+|  |  |  +  <it_spec>  =  <expr> <calls_spec>
+|  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  |  |  +  <integer_literal>  = 1
+|  |  |  |  +  <calls_spec>  =  ':' <expr>
+|  |  |  |  |  +  ':'  = [keyword] :
+|  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  |  |  |  +  <integer_literal>  = 1000
+|  +  <cmd_integrate>  =  integrate <proc_arg>
+|  |  +  integrate  = [keyword] integrate
+|  |  +  <proc_arg>  =  <proc_id>
+|  |  |  +  <proc_id>  = t5
+
+* Compile command list
+
+ model = "Test"
+ process: t5 (2 -> X)
+ compile ()
+ iterations: 1 pass
+ integrate (t5)
+
+* Execute command list
+
+iterations = 1:1000
+
+========================================================================
+ Process stack:
+========================================================================
+ Process [scattering]: 't5'
+   Run ID        = ''
+   Library name  = 'lib_cmd5'
+   Process index = 1
+   Process components:
+     1: 't5_i1':   s, s => s, s [unit_test]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 2
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (fixed coupling):
+     alpha =  1.17800E-01
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Expressions (cut, scales, weight): [not shown]
+------------------------------------------------------------------------
+   MD5 sum (config)  = '18D53766C6D12AEE6CD1A21C79B87CC3'
+------------------------------------------------------------------------
+ RNG factory: tao (0,1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = t5_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = '89AB129528453722C5C82B6BF69E65C5'
+   MD5 sum (phs)       = '0552A8743C6E8C64D956DFC7D94128E3'
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration (single-particle):
+   ID        = 't5_i1'
+   n_in      = 2
+   n_out     = 2
+   n_tot     = 4
+   n_state   = 1
+   n_par     = 2
+   n_channel = 1
+   sqrts     =  1.000000000000E+03
+   s_fixed   = T
+   lab_is_cm = T
+   azim.dep. = F
+   flat dim. = 2
+ Flavor combinations:
+   1: s s s s
+ Phase-space / structure-function channels:
+   1: 1
+   MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+   MD5 sum (phs config) = '0552A8743C6E8C64D956DFC7D94128E3'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 1
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Outgoing:
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = T
+   MD5 sum (beams/strf) = '80007D5E30CFD7B9BD09FF0704AAA3A6'
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 2
+   MC parameters (SF)    = 0
+   MC parameters (PHS)   = 2
+   Current pass          = 1
+   Number of iterations  = 1
+   Number of calls       = 1000
+   MD5 sum (components)  = 'D04F1F7300E53E86256542CE62966A70'
+ Single-channel midpoint rule integrator:
+   Integral             =  7.7464622036E+03
+   Efficiency           =  9.6824583655E-01
+   Number of channels   = 1
+   Number of dimensions = 2
+   Flat dimensions      = 2
+   Number of binned dim = 1
+   Number of bins       = 1000 1
+   Number of calls      = 1000
+   Maximum of integrand =  8.0005117617E+03
+   Minimum of integrand =  8.0005117617E+03
+ TAO random-number generator:
+   seed  = 0
+   calls = 0
+ Call statistics (current run):
+   total       = 1000
+   failed kin. = 0
+   failed cuts = 0
+   passed cuts = 0
+   evaluated   = 1000
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00*  96.82
+|-----------------------------------------------------------------------------|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00   96.82
+|=============================================================================|
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_5

@@ -1,0 +1,1780 @@
+
+
+! Whizard test suite.  Do not edit.  Generated automatically from
+! $Id: nmssm_ext-uu1.m4 1758 2010-02-11 13:27:04Z ohl $
+! by the macros in
+! $Id: testsuite.m4 5205 2014-01-30 14:17:39Z jr_reuter $
+! ----------------------------------------------------------------------
+! -------------------------------------------------------------------------
+! ----- Passed 5 checks with different random seeds                   -----
+! -------------------------------------------------------------------------
+model = NMSSM
+read_slha ("nmssm.slha")
+?vis_history = false
+! -------------------------------------------------------------------------
+!helicity_selection_threshold = 1.E7
+!helicity_selection_cutoff = 20000
+!show(real)
+! -------------------------------------------------------------------------
+iterations = 3:50000
+! -------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+! -------------------------------------------------------------------------
+! ----------------------------------------------------------------------
+! Define the process
+! ----------------------------------------------------------------------
+process nmssm_ext_uu1_1 = u,U => n1,N1		
+process nmssm_ext_uu1_2 = u,U => n2,N2		
+process nmssm_ext_uu1_3 = u,U => n3,N3		
+process nmssm_ext_uu1_4 = u,U => t,T		
+process nmssm_ext_uu1_5 = u,U => Wp,Wm		
+process nmssm_ext_uu1_6 = u,U => Z,Z		
+process nmssm_ext_uu1_7 = u,U => se1,SE1	
+process nmssm_ext_uu1_8 = u,U => se2,SE2	
+process nmssm_ext_uu1_9 = u,U => smu1,SMU1	
+process nmssm_ext_uu1_10 = u,U => smu2,SMU2	
+process nmssm_ext_uu1_11 = u,U => stau1,STAU1	
+process nmssm_ext_uu1_12 = u,U => stau2,STAU2	
+process nmssm_ext_uu1_13 = u,U => stau1,STAU2	
+process nmssm_ext_uu1_14 = u,U => sn11,SN11	
+process nmssm_ext_uu1_15 = u,U => sn21,SN21	
+process nmssm_ext_uu1_16 = u,U => sn31,SN31	
+process nmssm_ext_uu1_17 = u,U => su1,su1c	
+process nmssm_ext_uu1_18 = u,U => su2,su2c	
+process nmssm_ext_uu1_19 = u,U => su1,su2c	
+process nmssm_ext_uu1_20 = u,U => sc1,sc1c	
+process nmssm_ext_uu1_21 = u,U => sc2,sc2c	
+process nmssm_ext_uu1_22 = u,U => st1,st1c	
+process nmssm_ext_uu1_23 = u,U => st2,st2c	
+process nmssm_ext_uu1_24 = u,U => st1,st2c	
+process nmssm_ext_uu1_25 = u,U => sd1,sd1c	
+process nmssm_ext_uu1_26 = u,U => sd2,sd2c	
+process nmssm_ext_uu1_27 = u,U => ss1,ss1c	
+process nmssm_ext_uu1_28 = u,U => ss2,ss2c	
+process nmssm_ext_uu1_29 = u,U => sb1,sb1c	
+process nmssm_ext_uu1_30 = u,U => sb2,sb2c	
+process nmssm_ext_uu1_31 = u,U => sb1,sb2c	
+process nmssm_ext_uu1_32 = u,U => neu1,neu1	
+process nmssm_ext_uu1_33 = u,U => neu1,neu2	
+process nmssm_ext_uu1_34 = u,U => neu1,neu3	
+process nmssm_ext_uu1_35 = u,U => neu1,neu4	
+process nmssm_ext_uu1_36 = u,U => neu1,neu5	
+process nmssm_ext_uu1_37 = u,U => neu2,neu2	
+process nmssm_ext_uu1_38 = u,U => neu2,neu3	
+process nmssm_ext_uu1_39 = u,U => neu2,neu4	
+process nmssm_ext_uu1_40 = u,U => neu2,neu5	
+process nmssm_ext_uu1_41 = u,U => neu3,neu3	
+process nmssm_ext_uu1_42 = u,U => neu3,neu4	
+process nmssm_ext_uu1_43 = u,U => neu3,neu5	
+process nmssm_ext_uu1_44 = u,U => neu4,neu4	
+process nmssm_ext_uu1_45 = u,U => neu4,neu5	
+process nmssm_ext_uu1_46 = u,U => neu5,neu5	
+process nmssm_ext_uu1_47 = u,U => "ch1+","ch1-"	
+process nmssm_ext_uu1_48 = u,U => "ch2+","ch2-"	
+process nmssm_ext_uu1_49 = u,U => "ch1+","ch2-"	
+process nmssm_ext_uu1_50 = u,U => sgl,sgl	
+process nmssm_ext_uu1_51 = u,U => Z,h01		
+process nmssm_ext_uu1_52 = u,U => Z,h02		
+process nmssm_ext_uu1_53 = u,U => Z,h03		
+process nmssm_ext_uu1_54 = u,U => A01,h01	
+process nmssm_ext_uu1_55 = u,U => A01,h02	
+process nmssm_ext_uu1_56 = u,U => A01,h03	
+process nmssm_ext_uu1_57 = u,U => A02,h01	
+process nmssm_ext_uu1_58 = u,U => A02,h02	
+process nmssm_ext_uu1_59 = u,U => A02,h03	
+process nmssm_ext_uu1_60 = u,U => Hp,Hm		
+! ----------------------------------------------------------------------
+! Compile the processes
+! ----------------------------------------------------------------------
+compile
+! ----------------------------------------------------------------------
+! Integrate the processes
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Integrating u,U => n1,N1		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_1)
+printf "************************************************************************"
+printf "* Integrating u,U => n2,N2		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_2)
+printf "************************************************************************"
+printf "* Integrating u,U => n3,N3		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_3)
+printf "************************************************************************"
+printf "* Integrating u,U => t,T		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_4)
+printf "************************************************************************"
+printf "* Integrating u,U => Wp,Wm		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_5)
+printf "************************************************************************"
+printf "* Integrating u,U => Z,Z		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_6)
+printf "************************************************************************"
+printf "* Integrating u,U => se1,SE1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_7)
+printf "************************************************************************"
+printf "* Integrating u,U => se2,SE2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_8)
+printf "************************************************************************"
+printf "* Integrating u,U => smu1,SMU1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_9)
+printf "************************************************************************"
+printf "* Integrating u,U => smu2,SMU2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_10)
+printf "************************************************************************"
+printf "* Integrating u,U => stau1,STAU1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_11)
+printf "************************************************************************"
+printf "* Integrating u,U => stau2,STAU2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_12)
+printf "************************************************************************"
+printf "* Integrating u,U => stau1,STAU2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_13)
+printf "************************************************************************"
+printf "* Integrating u,U => sn11,SN11	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_14)
+printf "************************************************************************"
+printf "* Integrating u,U => sn21,SN21	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_15)
+printf "************************************************************************"
+printf "* Integrating u,U => sn31,SN31	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_16)
+printf "************************************************************************"
+printf "* Integrating u,U => su1,su1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_17)
+printf "************************************************************************"
+printf "* Integrating u,U => su2,su2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_18)
+printf "************************************************************************"
+printf "* Integrating u,U => su1,su2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_19)
+printf "************************************************************************"
+printf "* Integrating u,U => sc1,sc1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_20)
+printf "************************************************************************"
+printf "* Integrating u,U => sc2,sc2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_21)
+printf "************************************************************************"
+printf "* Integrating u,U => st1,st1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_22)
+printf "************************************************************************"
+printf "* Integrating u,U => st2,st2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_23)
+printf "************************************************************************"
+printf "* Integrating u,U => st1,st2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_24)
+printf "************************************************************************"
+printf "* Integrating u,U => sd1,sd1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_25)
+printf "************************************************************************"
+printf "* Integrating u,U => sd2,sd2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_26)
+printf "************************************************************************"
+printf "* Integrating u,U => ss1,ss1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_27)
+printf "************************************************************************"
+printf "* Integrating u,U => ss2,ss2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_28)
+printf "************************************************************************"
+printf "* Integrating u,U => sb1,sb1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_29)
+printf "************************************************************************"
+printf "* Integrating u,U => sb2,sb2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_30)
+printf "************************************************************************"
+printf "* Integrating u,U => sb1,sb2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_31)
+printf "************************************************************************"
+printf "* Integrating u,U => neu1,neu1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_32)
+printf "************************************************************************"
+printf "* Integrating u,U => neu1,neu2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_33)
+printf "************************************************************************"
+printf "* Integrating u,U => neu1,neu3	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_34)
+printf "************************************************************************"
+printf "* Integrating u,U => neu1,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_35)
+printf "************************************************************************"
+printf "* Integrating u,U => neu1,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_36)
+printf "************************************************************************"
+printf "* Integrating u,U => neu2,neu2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_37)
+printf "************************************************************************"
+printf "* Integrating u,U => neu2,neu3	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_38)
+printf "************************************************************************"
+printf "* Integrating u,U => neu2,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_39)
+printf "************************************************************************"
+printf "* Integrating u,U => neu2,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_40)
+printf "************************************************************************"
+printf "* Integrating u,U => neu3,neu3	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_41)
+printf "************************************************************************"
+printf "* Integrating u,U => neu3,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_42)
+printf "************************************************************************"
+printf "* Integrating u,U => neu3,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_43)
+printf "************************************************************************"
+printf "* Integrating u,U => neu4,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_44)
+printf "************************************************************************"
+printf "* Integrating u,U => neu4,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_45)
+printf "************************************************************************"
+printf "* Integrating u,U => neu5,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_46)
+printf "************************************************************************"
+printf "* Integrating u,U => ch1+,ch1-	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_47)
+printf "************************************************************************"
+printf "* Integrating u,U => ch2+,ch2-	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_48)
+printf "************************************************************************"
+printf "* Integrating u,U => ch1+,ch2-	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_49)
+printf "************************************************************************"
+printf "* Integrating u,U => sgl,sgl	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_50)
+printf "************************************************************************"
+printf "* Integrating u,U => Z,h01		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_51)
+printf "************************************************************************"
+printf "* Integrating u,U => Z,h02		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_52)
+printf "************************************************************************"
+printf "* Integrating u,U => Z,h03		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_53)
+printf "************************************************************************"
+printf "* Integrating u,U => A01,h01	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_54)
+printf "************************************************************************"
+printf "* Integrating u,U => A01,h02	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_55)
+printf "************************************************************************"
+printf "* Integrating u,U => A01,h03	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_56)
+printf "************************************************************************"
+printf "* Integrating u,U => A02,h01	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_57)
+printf "************************************************************************"
+printf "* Integrating u,U => A02,h02	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_58)
+printf "************************************************************************"
+printf "* Integrating u,U => A02,h03	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_59)
+printf "************************************************************************"
+printf "* Integrating u,U => Hp,Hm		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+sqrts = 3000 GeV
+beams = u,U
+seed = 0
+integrate (nmssm_ext_uu1_60)
+! ----------------------------------------------------------------------
+! Check the processes
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Checking u,U => n1,N1		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.79E-04) ** 2 + error(nmssm_ext_uu1_1) ** 2)
+printf "Expecting 1.0295549E+00"
+show(integral(nmssm_ext_uu1_1))
+real pull = abs (integral (nmssm_ext_uu1_1) - 1.0295549E+00) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => n1,N1		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => n1,N1		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => n1,N1		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => n1,N1		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => n1,N1		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_1) == 1.0295549E+00)
+printf "************************************************************************"
+printf "* Checking u,U => n2,N2		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.81E-04) ** 2 + error(nmssm_ext_uu1_2) ** 2)
+printf "Expecting 1.0296720E+00"
+show(integral(nmssm_ext_uu1_2))
+real pull = abs (integral (nmssm_ext_uu1_2) - 1.0296720E+00) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => n2,N2		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => n2,N2		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => n2,N2		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => n2,N2		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => n2,N2		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_2) == 1.0296720E+00)
+printf "************************************************************************"
+printf "* Checking u,U => n3,N3		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.79E-04) ** 2 + error(nmssm_ext_uu1_3) ** 2)
+printf "Expecting 1.0294710E+00"
+show(integral(nmssm_ext_uu1_3))
+real pull = abs (integral (nmssm_ext_uu1_3) - 1.0294710E+00) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => n3,N3		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => n3,N3		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => n3,N3		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => n3,N3		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => n3,N3		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_3) == 1.0294710E+00)
+printf "************************************************************************"
+printf "* Checking u,U => t,T		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((9.40E-02) ** 2 + error(nmssm_ext_uu1_4) ** 2)
+printf "Expecting 5.5736643E+02"
+show(integral(nmssm_ext_uu1_4))
+real pull = abs (integral (nmssm_ext_uu1_4) - 5.5736643E+02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => t,T		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => t,T		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => t,T		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => t,T		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => t,T		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_4) == 5.5736643E+02)
+printf "************************************************************************"
+printf "* Checking u,U => Wp,Wm		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.08E-01) ** 2 + error(nmssm_ext_uu1_5) ** 2)
+printf "Expecting 1.5109945E+02"
+show(integral(nmssm_ext_uu1_5))
+real pull = abs (integral (nmssm_ext_uu1_5) - 1.5109945E+02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => Wp,Wm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => Wp,Wm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => Wp,Wm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => Wp,Wm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => Wp,Wm		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_5) == 1.5109945E+02)
+printf "************************************************************************"
+printf "* Checking u,U => Z,Z		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((6.37E-03) ** 2 + error(nmssm_ext_uu1_6) ** 2)
+printf "Expecting 1.5163758E+01"
+show(integral(nmssm_ext_uu1_6))
+real pull = abs (integral (nmssm_ext_uu1_6) - 1.5163758E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => Z,Z		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => Z,Z		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => Z,Z		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => Z,Z		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => Z,Z		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_6) == 1.5163758E+01)
+printf "************************************************************************"
+printf "* Checking u,U => se1,SE1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((6.06E-04) ** 2 + error(nmssm_ext_uu1_7) ** 2)
+printf "Expecting 7.0902694E-01"
+show(integral(nmssm_ext_uu1_7))
+real pull = abs (integral (nmssm_ext_uu1_7) - 7.0902694E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => se1,SE1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => se1,SE1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => se1,SE1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => se1,SE1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => se1,SE1	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_7) == 7.0902694E-01)
+printf "************************************************************************"
+printf "* Checking u,U => se2,SE2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.07E-04) ** 2 + error(nmssm_ext_uu1_8) ** 2)
+printf "Expecting 3.6118292E-01"
+show(integral(nmssm_ext_uu1_8))
+real pull = abs (integral (nmssm_ext_uu1_8) - 3.6118292E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => se2,SE2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => se2,SE2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => se2,SE2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => se2,SE2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => se2,SE2	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_8) == 3.6118292E-01)
+printf "************************************************************************"
+printf "* Checking u,U => smu1,SMU1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((6.02E-04) ** 2 + error(nmssm_ext_uu1_9) ** 2)
+printf "Expecting 7.0889908E-01"
+show(integral(nmssm_ext_uu1_9))
+real pull = abs (integral (nmssm_ext_uu1_9) - 7.0889908E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => smu1,SMU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => smu1,SMU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => smu1,SMU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => smu1,SMU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => smu1,SMU1	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_9) == 7.0889908E-01)
+printf "************************************************************************"
+printf "* Checking u,U => smu2,SMU2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.12E-04) ** 2 + error(nmssm_ext_uu1_10) ** 2)
+printf "Expecting 3.6049419E-01"
+show(integral(nmssm_ext_uu1_10))
+real pull = abs (integral (nmssm_ext_uu1_10) - 3.6049419E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => smu2,SMU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => smu2,SMU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => smu2,SMU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => smu2,SMU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => smu2,SMU2	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_10) == 3.6049419E-01)
+printf "************************************************************************"
+printf "* Checking u,U => stau1,STAU1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.44E-04) ** 2 + error(nmssm_ext_uu1_11) ** 2)
+printf "Expecting 4.0963673E-01"
+show(integral(nmssm_ext_uu1_11))
+real pull = abs (integral (nmssm_ext_uu1_11) - 4.0963673E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => stau1,STAU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => stau1,STAU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => stau1,STAU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => stau1,STAU1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => stau1,STAU1	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_11) == 4.0963673E-01)
+printf "************************************************************************"
+printf "* Checking u,U => stau2,STAU2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.57E-04) ** 2 + error(nmssm_ext_uu1_12) ** 2)
+printf "Expecting 4.0964995E-01"
+show(integral(nmssm_ext_uu1_12))
+real pull = abs (integral (nmssm_ext_uu1_12) - 4.0964995E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => stau2,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => stau2,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => stau2,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => stau2,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => stau2,STAU2	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_12) == 4.0964995E-01)
+printf "************************************************************************"
+printf "* Checking u,U => stau1,STAU2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.05E-04) ** 2 + error(nmssm_ext_uu1_13) ** 2)
+printf "Expecting 1.2520584E-01"
+show(integral(nmssm_ext_uu1_13))
+real pull = abs (integral (nmssm_ext_uu1_13) - 1.2520584E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => stau1,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => stau1,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => stau1,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => stau1,STAU2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => stau1,STAU2	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_13) == 1.2520584E-01)
+printf "************************************************************************"
+printf "* Checking u,U => sn11,SN11	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.28E-04) ** 2 + error(nmssm_ext_uu1_14) ** 2)
+printf "Expecting 5.0157143E-01"
+show(integral(nmssm_ext_uu1_14))
+real pull = abs (integral (nmssm_ext_uu1_14) - 5.0157143E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sn11,SN11	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sn11,SN11	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sn11,SN11	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sn11,SN11	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sn11,SN11	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_14) == 5.0157143E-01)
+printf "************************************************************************"
+printf "* Checking u,U => sn21,SN21	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.39E-04) ** 2 + error(nmssm_ext_uu1_15) ** 2)
+printf "Expecting 5.0092094E-01"
+show(integral(nmssm_ext_uu1_15))
+real pull = abs (integral (nmssm_ext_uu1_15) - 5.0092094E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sn21,SN21	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sn21,SN21	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sn21,SN21	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sn21,SN21	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sn21,SN21	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_15) == 5.0092094E-01)
+printf "************************************************************************"
+printf "* Checking u,U => sn31,SN31	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.31E-04) ** 2 + error(nmssm_ext_uu1_16) ** 2)
+printf "Expecting 5.0127891E-01"
+show(integral(nmssm_ext_uu1_16))
+real pull = abs (integral (nmssm_ext_uu1_16) - 5.0127891E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sn31,SN31	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sn31,SN31	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sn31,SN31	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sn31,SN31	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sn31,SN31	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_16) == 5.0127891E-01)
+printf "************************************************************************"
+printf "* Checking u,U => su1,su1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.19E-01) ** 2 + error(nmssm_ext_uu1_17) ** 2)
+printf "Expecting 3.8744139E+02"
+show(integral(nmssm_ext_uu1_17))
+real pull = abs (integral (nmssm_ext_uu1_17) - 3.8744139E+02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => su1,su1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => su1,su1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => su1,su1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => su1,su1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => su1,su1c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_17) == 3.8744139E+02)
+printf "************************************************************************"
+printf "* Checking u,U => su2,su2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.39E-01) ** 2 + error(nmssm_ext_uu1_18) ** 2)
+printf "Expecting 4.0183903E+02"
+show(integral(nmssm_ext_uu1_18))
+real pull = abs (integral (nmssm_ext_uu1_18) - 4.0183903E+02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => su2,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => su2,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => su2,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => su2,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => su2,su2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_18) == 4.0183903E+02)
+printf "************************************************************************"
+printf "* Checking u,U => su1,su2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.79E-01) ** 2 + error(nmssm_ext_uu1_19) ** 2)
+printf "Expecting 2.6821989E+02"
+show(integral(nmssm_ext_uu1_19))
+real pull = abs (integral (nmssm_ext_uu1_19) - 2.6821989E+02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => su1,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => su1,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => su1,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => su1,su2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => su1,su2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_19) == 2.6821989E+02)
+printf "************************************************************************"
+printf "* Checking u,U => sc1,sc1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.78E-02) ** 2 + error(nmssm_ext_uu1_20) ** 2)
+printf "Expecting 5.5842665E+01"
+show(integral(nmssm_ext_uu1_20))
+real pull = abs (integral (nmssm_ext_uu1_20) - 5.5842665E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sc1,sc1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sc1,sc1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sc1,sc1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sc1,sc1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sc1,sc1c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_20) == 5.5842665E+01)
+printf "************************************************************************"
+printf "* Checking u,U => sc2,sc2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.73E-02) ** 2 + error(nmssm_ext_uu1_21) ** 2)
+printf "Expecting 5.5327820E+01"
+show(integral(nmssm_ext_uu1_21))
+real pull = abs (integral (nmssm_ext_uu1_21) - 5.5327820E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sc2,sc2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sc2,sc2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sc2,sc2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sc2,sc2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sc2,sc2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_21) == 5.5327820E+01)
+printf "************************************************************************"
+printf "* Checking u,U => st1,st1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((7.09E-02) ** 2 + error(nmssm_ext_uu1_22) ** 2)
+printf "Expecting 8.4683885E+01"
+show(integral(nmssm_ext_uu1_22))
+real pull = abs (integral (nmssm_ext_uu1_22) - 8.4683885E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => st1,st1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => st1,st1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => st1,st1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => st1,st1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => st1,st1c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_22) == 8.4683885E+01)
+printf "************************************************************************"
+printf "* Checking u,U => st2,st2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.43E-02) ** 2 + error(nmssm_ext_uu1_23) ** 2)
+printf "Expecting 2.8244460E+01"
+show(integral(nmssm_ext_uu1_23))
+real pull = abs (integral (nmssm_ext_uu1_23) - 2.8244460E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => st2,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => st2,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => st2,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => st2,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => st2,st2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_23) == 2.8244460E+01)
+printf "************************************************************************"
+printf "* Checking u,U => st1,st2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.31E-04) ** 2 + error(nmssm_ext_uu1_24) ** 2)
+printf "Expecting 1.5337503E-01"
+show(integral(nmssm_ext_uu1_24))
+real pull = abs (integral (nmssm_ext_uu1_24) - 1.5337503E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => st1,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => st1,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => st1,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => st1,st2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => st1,st2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_24) == 1.5337503E-01)
+printf "************************************************************************"
+printf "* Checking u,U => sd1,sd1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((6.60E-02) ** 2 + error(nmssm_ext_uu1_25) ** 2)
+printf "Expecting 5.4688073E+01"
+show(integral(nmssm_ext_uu1_25))
+real pull = abs (integral (nmssm_ext_uu1_25) - 5.4688073E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sd1,sd1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sd1,sd1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sd1,sd1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sd1,sd1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sd1,sd1c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_25) == 5.4688073E+01)
+printf "************************************************************************"
+printf "* Checking u,U => sd2,sd2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((7.69E-02) ** 2 + error(nmssm_ext_uu1_26) ** 2)
+printf "Expecting 5.5149023E+01"
+show(integral(nmssm_ext_uu1_26))
+real pull = abs (integral (nmssm_ext_uu1_26) - 5.5149023E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sd2,sd2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sd2,sd2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sd2,sd2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sd2,sd2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sd2,sd2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_26) == 5.5149023E+01)
+printf "************************************************************************"
+printf "* Checking u,U => ss1,ss1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.81E-02) ** 2 + error(nmssm_ext_uu1_27) ** 2)
+printf "Expecting 5.5478563E+01"
+show(integral(nmssm_ext_uu1_27))
+real pull = abs (integral (nmssm_ext_uu1_27) - 5.5478563E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => ss1,ss1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => ss1,ss1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => ss1,ss1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => ss1,ss1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => ss1,ss1c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_27) == 5.5478563E+01)
+printf "************************************************************************"
+printf "* Checking u,U => ss2,ss2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.72E-02) ** 2 + error(nmssm_ext_uu1_28) ** 2)
+printf "Expecting 5.5051000E+01"
+show(integral(nmssm_ext_uu1_28))
+real pull = abs (integral (nmssm_ext_uu1_28) - 5.5051000E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => ss2,ss2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => ss2,ss2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => ss2,ss2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => ss2,ss2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => ss2,ss2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_28) == 5.5051000E+01)
+printf "************************************************************************"
+printf "* Checking u,U => sb1,sb1c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.79E-02) ** 2 + error(nmssm_ext_uu1_29) ** 2)
+printf "Expecting 5.5706205E+01"
+show(integral(nmssm_ext_uu1_29))
+real pull = abs (integral (nmssm_ext_uu1_29) - 5.5706205E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sb1,sb1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sb1,sb1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sb1,sb1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sb1,sb1c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sb1,sb1c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_29) == 5.5706205E+01)
+printf "************************************************************************"
+printf "* Checking u,U => sb2,sb2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.70E-02) ** 2 + error(nmssm_ext_uu1_30) ** 2)
+printf "Expecting 5.4500326E+01"
+show(integral(nmssm_ext_uu1_30))
+real pull = abs (integral (nmssm_ext_uu1_30) - 5.4500326E+01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sb2,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sb2,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sb2,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sb2,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sb2,sb2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_30) == 5.4500326E+01)
+printf "************************************************************************"
+printf "* Checking u,U => sb1,sb2c	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.29E-04) ** 2 + error(nmssm_ext_uu1_31) ** 2)
+printf "Expecting 1.5216858E-01"
+show(integral(nmssm_ext_uu1_31))
+real pull = abs (integral (nmssm_ext_uu1_31) - 1.5216858E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sb1,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sb1,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sb1,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sb1,sb2c	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sb1,sb2c	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_31) == 1.5216858E-01)
+printf "************************************************************************"
+printf "* Checking u,U => neu1,neu1	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.65E-04) ** 2 + error(nmssm_ext_uu1_32) ** 2)
+printf "Expecting 4.6905088E-01"
+show(integral(nmssm_ext_uu1_32))
+real pull = abs (integral (nmssm_ext_uu1_32) - 4.6905088E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu1,neu1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu1,neu1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu1,neu1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu1,neu1	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu1,neu1	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_32) == 4.6905088E-01)
+printf "************************************************************************"
+printf "* Checking u,U => neu1,neu2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.42E-05) ** 2 + error(nmssm_ext_uu1_33) ** 2)
+printf "Expecting 6.4045330E-02"
+show(integral(nmssm_ext_uu1_33))
+real pull = abs (integral (nmssm_ext_uu1_33) - 6.4045330E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu1,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu1,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu1,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu1,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu1,neu2	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_33) == 6.4045330E-02)
+printf "************************************************************************"
+printf "* Checking u,U => neu1,neu3	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.01E-05) ** 2 + error(nmssm_ext_uu1_34) ** 2)
+printf "Expecting 1.6539942E-02"
+show(integral(nmssm_ext_uu1_34))
+real pull = abs (integral (nmssm_ext_uu1_34) - 1.6539942E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu1,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu1,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu1,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu1,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu1,neu3	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_34) == 1.6539942E-02)
+printf "************************************************************************"
+printf "* Checking u,U => neu1,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.25E-06) ** 2 + error(nmssm_ext_uu1_35) ** 2)
+printf "Expecting 7.8552408E-03"
+show(integral(nmssm_ext_uu1_35))
+real pull = abs (integral (nmssm_ext_uu1_35) - 7.8552408E-03) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu1,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu1,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu1,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu1,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu1,neu4	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_35) == 7.8552408E-03)
+printf "************************************************************************"
+printf "* Checking u,U => neu1,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((6.64E-06) ** 2 + error(nmssm_ext_uu1_36) ** 2)
+printf "Expecting 2.5230575E-02"
+show(integral(nmssm_ext_uu1_36))
+real pull = abs (integral (nmssm_ext_uu1_36) - 2.5230575E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu1,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu1,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu1,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu1,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu1,neu5	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_36) == 2.5230575E-02)
+printf "************************************************************************"
+printf "* Checking u,U => neu2,neu2	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((5.51E-06) ** 2 + error(nmssm_ext_uu1_37) ** 2)
+printf "Expecting 7.2574068E-03"
+show(integral(nmssm_ext_uu1_37))
+real pull = abs (integral (nmssm_ext_uu1_37) - 7.2574068E-03) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu2,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu2,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu2,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu2,neu2	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu2,neu2	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_37) == 7.2574068E-03)
+printf "************************************************************************"
+printf "* Checking u,U => neu2,neu3	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.47E-04) ** 2 + error(nmssm_ext_uu1_38) ** 2)
+printf "Expecting 2.5140902E-01"
+show(integral(nmssm_ext_uu1_38))
+real pull = abs (integral (nmssm_ext_uu1_38) - 2.5140902E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu2,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu2,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu2,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu2,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu2,neu3	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_38) == 2.5140902E-01)
+printf "************************************************************************"
+printf "* Checking u,U => neu2,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.81E-05) ** 2 + error(nmssm_ext_uu1_39) ** 2)
+printf "Expecting 8.9064573E-02"
+show(integral(nmssm_ext_uu1_39))
+real pull = abs (integral (nmssm_ext_uu1_39) - 8.9064573E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu2,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu2,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu2,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu2,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu2,neu4	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_39) == 8.9064573E-02)
+printf "************************************************************************"
+printf "* Checking u,U => neu2,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.96E-06) ** 2 + error(nmssm_ext_uu1_40) ** 2)
+printf "Expecting 1.5866250E-02"
+show(integral(nmssm_ext_uu1_40))
+real pull = abs (integral (nmssm_ext_uu1_40) - 1.5866250E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu2,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu2,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu2,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu2,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu2,neu5	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_40) == 1.5866250E-02)
+printf "************************************************************************"
+printf "* Checking u,U => neu3,neu3	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((9.04E-04) ** 2 + error(nmssm_ext_uu1_41) ** 2)
+printf "Expecting 1.6021020E+00"
+show(integral(nmssm_ext_uu1_41))
+real pull = abs (integral (nmssm_ext_uu1_41) - 1.6021020E+00) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu3,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu3,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu3,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu3,neu3	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu3,neu3	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_41) == 1.6021020E+00)
+printf "************************************************************************"
+printf "* Checking u,U => neu3,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.76E-05) ** 2 + error(nmssm_ext_uu1_42) ** 2)
+printf "Expecting 4.7601740E-02"
+show(integral(nmssm_ext_uu1_42))
+real pull = abs (integral (nmssm_ext_uu1_42) - 4.7601740E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu3,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu3,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu3,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu3,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu3,neu4	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_42) == 4.7601740E-02)
+printf "************************************************************************"
+printf "* Checking u,U => neu3,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((5.60E-06) ** 2 + error(nmssm_ext_uu1_43) ** 2)
+printf "Expecting 2.4267001E-02"
+show(integral(nmssm_ext_uu1_43))
+real pull = abs (integral (nmssm_ext_uu1_43) - 2.4267001E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu3,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu3,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu3,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu3,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu3,neu5	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_43) == 2.4267001E-02)
+printf "************************************************************************"
+printf "* Checking u,U => neu4,neu4	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.06E-06) ** 2 + error(nmssm_ext_uu1_44) ** 2)
+printf "Expecting 1.5711764E-03"
+show(integral(nmssm_ext_uu1_44))
+real pull = abs (integral (nmssm_ext_uu1_44) - 1.5711764E-03) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu4,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu4,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu4,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu4,neu4	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu4,neu4	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_44) == 1.5711764E-03)
+printf "************************************************************************"
+printf "* Checking u,U => neu4,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((5.37E-04) ** 2 + error(nmssm_ext_uu1_45) ** 2)
+printf "Expecting 1.9131520E+00"
+show(integral(nmssm_ext_uu1_45))
+real pull = abs (integral (nmssm_ext_uu1_45) - 1.9131520E+00) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu4,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu4,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu4,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu4,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu4,neu5	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_45) == 1.9131520E+00)
+printf "************************************************************************"
+printf "* Checking u,U => neu5,neu5	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.38E-08) ** 2 + error(nmssm_ext_uu1_46) ** 2)
+printf "Expecting 4.4289624E-05"
+show(integral(nmssm_ext_uu1_46))
+real pull = abs (integral (nmssm_ext_uu1_46) - 4.4289624E-05) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => neu5,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => neu5,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => neu5,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => neu5,neu5	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => neu5,neu5	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_46) == 4.4289624E-05)
+printf "************************************************************************"
+printf "* Checking u,U => ch1+,ch1-	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.98E-03) ** 2 + error(nmssm_ext_uu1_47) ** 2)
+printf "Expecting 5.0006803E+00"
+show(integral(nmssm_ext_uu1_47))
+real pull = abs (integral (nmssm_ext_uu1_47) - 5.0006803E+00) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => ch1+,ch1-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => ch1+,ch1-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => ch1+,ch1-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => ch1+,ch1-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => ch1+,ch1-	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_47) == 5.0006803E+00)
+printf "************************************************************************"
+printf "* Checking u,U => ch2+,ch2-	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((5.82E-04) ** 2 + error(nmssm_ext_uu1_48) ** 2)
+printf "Expecting 2.7003611E+00"
+show(integral(nmssm_ext_uu1_48))
+real pull = abs (integral (nmssm_ext_uu1_48) - 2.7003611E+00) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => ch2+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => ch2+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => ch2+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => ch2+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => ch2+,ch2-	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_48) == 2.7003611E+00)
+printf "************************************************************************"
+printf "* Checking u,U => ch1+,ch2-	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.28E-04) ** 2 + error(nmssm_ext_uu1_49) ** 2)
+printf "Expecting 1.9853248E-01"
+show(integral(nmssm_ext_uu1_49))
+real pull = abs (integral (nmssm_ext_uu1_49) - 1.9853248E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => ch1+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => ch1+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => ch1+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => ch1+,ch2-	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => ch1+,ch2-	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_49) == 1.9853248E-01)
+printf "************************************************************************"
+printf "* Checking u,U => sgl,sgl	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((3.48E-01) ** 2 + error(nmssm_ext_uu1_50) ** 2)
+printf "Expecting 6.5039937E+02"
+show(integral(nmssm_ext_uu1_50))
+real pull = abs (integral (nmssm_ext_uu1_50) - 6.5039937E+02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => sgl,sgl	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => sgl,sgl	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => sgl,sgl	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => sgl,sgl	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => sgl,sgl	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_50) == 6.5039937E+02)
+printf "************************************************************************"
+printf "* Checking u,U => Z,h01		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((4.27E-04) ** 2 + error(nmssm_ext_uu1_51) ** 2)
+printf "Expecting 5.0433542E-01"
+show(integral(nmssm_ext_uu1_51))
+real pull = abs (integral (nmssm_ext_uu1_51) - 5.0433542E-01) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => Z,h01		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => Z,h01		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => Z,h01		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => Z,h01		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => Z,h01		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_51) == 5.0433542E-01)
+printf "************************************************************************"
+printf "* Checking u,U => Z,h02		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((9.05E-06) ** 2 + error(nmssm_ext_uu1_52) ** 2)
+printf "Expecting 1.0812240E-02"
+show(integral(nmssm_ext_uu1_52))
+real pull = abs (integral (nmssm_ext_uu1_52) - 1.0812240E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => Z,h02		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => Z,h02		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => Z,h02		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => Z,h02		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => Z,h02		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_52) == 1.0812240E-02)
+printf "************************************************************************"
+printf "* Checking u,U => Z,h03		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.22E-10) ** 2 + error(nmssm_ext_uu1_53) ** 2)
+printf "Expecting 1.4609808E-07"
+show(integral(nmssm_ext_uu1_53))
+real pull = abs (integral (nmssm_ext_uu1_53) - 1.4609808E-07) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => Z,h03		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => Z,h03		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => Z,h03		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => Z,h03		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => Z,h03		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_53) == 1.4609808E-07)
+printf "************************************************************************"
+printf "* Checking u,U => A01,h01	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((2.51E-10) ** 2 + error(nmssm_ext_uu1_54) ** 2)
+printf "Expecting 2.9261777E-07"
+show(integral(nmssm_ext_uu1_54))
+real pull = abs (integral (nmssm_ext_uu1_54) - 2.9261777E-07) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => A01,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => A01,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => A01,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => A01,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => A01,h01	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_54) == 2.9261777E-07)
+printf "************************************************************************"
+printf "* Checking u,U => A01,h02	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((9.82E-09) ** 2 + error(nmssm_ext_uu1_55) ** 2)
+printf "Expecting 1.1518655E-05"
+show(integral(nmssm_ext_uu1_55))
+real pull = abs (integral (nmssm_ext_uu1_55) - 1.1518655E-05) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => A01,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => A01,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => A01,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => A01,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => A01,h02	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_55) == 1.1518655E-05)
+printf "************************************************************************"
+printf "* Checking u,U => A01,h03	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.64E-06) ** 2 + error(nmssm_ext_uu1_56) ** 2)
+printf "Expecting 1.9252619E-03"
+show(integral(nmssm_ext_uu1_56))
+real pull = abs (integral (nmssm_ext_uu1_56) - 1.9252619E-03) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => A01,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => A01,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => A01,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => A01,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => A01,h03	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_56) == 1.9252619E-03)
+printf "************************************************************************"
+printf "* Checking u,U => A02,h01	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((1.86E-08) ** 2 + error(nmssm_ext_uu1_57) ** 2)
+printf "Expecting 2.1873214E-05"
+show(integral(nmssm_ext_uu1_57))
+real pull = abs (integral (nmssm_ext_uu1_57) - 2.1873214E-05) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => A02,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => A02,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => A02,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => A02,h01	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => A02,h01	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_57) == 2.1873214E-05)
+printf "************************************************************************"
+printf "* Checking u,U => A02,h02	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((7.31E-07) ** 2 + error(nmssm_ext_uu1_58) ** 2)
+printf "Expecting 8.5942209E-04"
+show(integral(nmssm_ext_uu1_58))
+real pull = abs (integral (nmssm_ext_uu1_58) - 8.5942209E-04) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => A02,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => A02,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => A02,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => A02,h02	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => A02,h02	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_58) == 8.5942209E-04)
+printf "************************************************************************"
+printf "* Checking u,U => A02,h03	 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((5.23E-05) ** 2 + error(nmssm_ext_uu1_59) ** 2)
+printf "Expecting 6.1103851E-02"
+show(integral(nmssm_ext_uu1_59))
+real pull = abs (integral (nmssm_ext_uu1_59) - 6.1103851E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => A02,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => A02,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => A02,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => A02,h03	 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => A02,h03	 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_59) == 6.1103851E-02)
+printf "************************************************************************"
+printf "* Checking u,U => Hp,Hm		 @ sqrt(s) = 3000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((7.59E-05) ** 2 + error(nmssm_ext_uu1_60) ** 2)
+printf "Expecting 8.7753658E-02"
+show(integral(nmssm_ext_uu1_60))
+real pull = abs (integral (nmssm_ext_uu1_60) - 8.7753658E-02) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in u,U => Hp,Hm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in u,U => Hp,Hm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in u,U => Hp,Hm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in u,U => Hp,Hm		 @ sqrt(s) = 3000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in u,U => Hp,Hm		 @ sqrt(s) = 3000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (nmssm_ext_uu1_60) == 8.7753658E-02)
+! ----------------------------------------------------------------------
+! Done
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Done."
+printf "************************************************************************"

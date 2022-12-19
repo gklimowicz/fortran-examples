@@ -1,0 +1,105 @@
+########################################################################
+# QCD with six quarks
+model "QCD"
+schemes = "default", "massive"
+
+# Independent parameters
+### DO NOT CHANGE THE ORDER OF THESE PARAMETERS
+parameter alphas = 0.1178    # Strong coupling (at Z pole)
+
+select scheme
+scheme "massive"
+  parameter md = 0           # d-quark mass
+  parameter mu = 0           # u-quark mass
+scheme other
+  derived md = 0           # d-quark mass fixed to zero
+  derived mu = 0           # u-quark mass fixed to zero
+end select
+
+parameter ms     = 0.12      # s-quark mass                         
+parameter mc     = 1.25      # c-quark mass                         
+parameter mb     = 4.2       # b-quark mass                         
+parameter mtop   = 173.1     # t-quark mass                         
+parameter wtop   = 1.523     # t-quark width
+	
+########################################################################
+# Particle content
+
+# The quarks
+particle D_QUARK 1  parton
+  spin 1/2  charge -1/3  isospin -1/2  color 3
+  name d down
+  anti dbar D "d~" 
+  tex_anti "\bar{d}"
+  mass md
+particle U_QUARK 2  parton
+  spin 1/2  charge  2/3  isospin 1/2  color 3
+  name u up
+  anti ubar U "u~" 
+  tex_anti "\bar{u}"
+  mass mu
+particle S_QUARK 3  like D_QUARK
+  name s strange
+  anti sbar S "s~" 
+  tex_anti "\bar{s}"
+  mass ms
+particle C_QUARK 4  like U_QUARK
+  name c charm
+  anti cbar C "c~"	
+  tex_anti "\bar{c}"
+  mass mc
+particle B_QUARK 5  like D_QUARK
+  name b bottom
+  anti bbar B "b~" 
+  tex_anti "\bar{b}"
+  mass mb
+particle T_QUARK 6  like U_QUARK
+  name t top
+  anti tbar T "t~" 
+  tex_anti "\bar{t}"
+  mass mtop  width wtop
+
+# The vector bosons
+particle GLUON 21  parton gauge
+  spin 1  color 8
+  name gl g G gluon
+
+# Hadrons
+particle PROTON 2212
+  spin 1/2  charge 1
+  name p "p+"
+  anti pbar "p-"
+
+# Beam remnants for proton colliders
+particle HADRON_REMNANT 90
+  name hr
+  tex_name "had_r"
+particle HADRON_REMNANT_SINGLET 91
+  name hr1
+  tex_name "had_r^{(1)}"
+particle HADRON_REMNANT_TRIPLET 92
+  color 3
+  name hr3
+  tex_name "had_r^{(3)}"
+  anti hr3bar
+  tex_anti "had_r^{(\bar 3)}"
+particle HADRON_REMNANT_OCTET 93
+  color 8
+  name hr8
+  tex_name "had_r^{(8)}"
+
+########################################################################
+# Vertices (QCD)
+# In graphs with identical structure, the first vertex is kept for phase space,
+# therefore, lighter particles come before heavier ones.
+
+# QCD
+vertex G G G 
+vertex G G G G
+
+vertex D d G 
+vertex U u G 
+vertex S s G 
+vertex C c G 
+vertex B b G 
+vertex T t G 

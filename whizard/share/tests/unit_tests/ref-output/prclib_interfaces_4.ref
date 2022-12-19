@@ -1,0 +1,81 @@
+* Test output: prclib_interfaces_4
+*   Purpose: compile, link, and load process library
+*            with (fake) matrix-element code as a Fortran module
+
+* Create a prclib driver object (1 process)
+
+ External matrix-element code library: prclib4
+   static    = F
+   loaded    = F
+   MD5 sum   = 'prclib_interfaces_4_md5sum      '
+   Mdl flags = ''
+
+ DL access info:
+   is open   = F
+   error     = [none]
+
+ Matrix-element code entries:
+   test4  [Test_model]
+     test_4: proc1
+
+* Write Makefile
+
+* Recall MD5 sum from Makefile
+
+ MD5 sum = 'prclib_interfaces_4_md5sum      '
+
+* Write driver source code
+
+* Recall MD5 sum from driver source
+
+ MD5 sum = 'prclib_interfaces_4_md5sum      '
+
+* Write matrix-element source code
+
+* Recall MD5 sum from matrix-element source
+
+ MD5 sum = '1234567890abcdef1234567890abcdef'
+
+* Compile source code
+* Link library
+* Load library
+
+ External matrix-element code library: prclib4
+   static    = F
+   loaded    = T
+   MD5 sum   = 'prclib_interfaces_4_md5sum      '
+   Mdl flags = ''
+
+ DL access info:
+   is open   = T
+   error     = [none]
+
+ Matrix-element code entries:
+   test4  [Test_model]
+     test_4: proc1
+
+* Call library functions:
+
+ n_processes   = 1
+ process_id    = 'test4'
+ model_name    = 'Test_model'
+ md5sum (lib)  = 'prclib_interfaces_4_md5sum      '
+ md5sum (proc) = '1234567890abcdef1234567890abcdef'
+ openmp_status = F
+ n_in  = 1
+ n_out = 2
+ n_flv = 1
+ n_hel = 1
+ n_col = 1
+ n_cin = 2
+ n_cf  = 1
+ flv_state = 1 2 3
+ hel_state = 0 0 0
+ col_state = 0 0 0 0 0 0
+ ghost_flag = F F F
+ color_factors = 1.000 0.000
+ cf_index = 1 1
+
+ proc1(1) = 42
+
+* Test output end: prclib_interfaces_4

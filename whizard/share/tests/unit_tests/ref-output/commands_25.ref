@@ -1,0 +1,59 @@
+* Test output: commands_25
+*   Purpose: declare local environment for process
+
+* Input file
+
+library = "commands_25_lib"
+model = "Test"
+process commands_25_p1 = g, g => g, g { model = "QCD" }
+
+* Parse file
+
+* Compile command list
+
+ library = "commands_25_lib"
+ model = "Test"
+ process: commands_25_p1 (2 -> X)
+    model = "QCD"
+
+* Execute command list
+
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: commands_25_lib
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = o
+
+ Process #1:
+ ID = 'commands_25_p1'
+ Scattering
+ Model = QCD
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = commands_25_p1_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = gl, gl => gl, gl
+   Method              = omega
+   Process variant     = omega
+     Model name        = "QCD"
+     Mode string       = " -scatter"
+     Process string    = " 'gl gl -> gl gl'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = T
+     Extra options     = " "
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_25

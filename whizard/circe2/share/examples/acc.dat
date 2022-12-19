@@ -1,0 +1,45 @@
+$ACCELERATOR:: ilc200
+{energy=100.0;f_rep=5.0;particles=2;n_b=1312;
+sigma_z=300;emitt_x=10;emitt_y=0.035;sigma_x=904;sigma_y=7.8;
+offset_x=0.0;offset_y=0.0;dist_z=0;dist_x=0;charge_sign=-1.0;}
+
+$ACCELERATOR:: ilc230
+{energy=115.0;f_rep=5.0;particles=2;n_b=1312;
+sigma_z=300;emitt_x=10;emitt_y=0.035;sigma_x=789;sigma_y=7.7;
+offset_x=0.0;offset_y=0.0;dist_z=0;dist_x=0;charge_sign=-1.0;}
+
+$ACCELERATOR:: ilc250
+{energy=125.0;f_rep=5.0;particles=2;n_b=1312;
+sigma_z=300;emitt_x=10;emitt_y=0.035;sigma_x=729;sigma_y=7.7;
+offset_x=0.0;offset_y=0.0;dist_z=0;dist_x=0;charge_sign=-1.0;}
+
+$ACCELERATOR:: ilc350
+{energy=175.0;f_rep=5.0;particles=2;n_b=1312;
+sigma_z=300;emitt_x=10;emitt_y=0.035;sigma_x=684;sigma_y=5.9;
+offset_x=0.0;offset_y=0.0;dist_z=0;dist_x=0;charge_sign=-1.0;}
+
+$ACCELERATOR:: ilc500
+{energy=250.0;f_rep=5.0;particles=2;n_b=1312;
+sigma_z=300;emitt_x=10;emitt_y=0.035;sigma_x=474;sigma_y=5.9;
+offset_x=0.0;offset_y=0.0;dist_z=0;dist_x=0;charge_sign=-1.0;}
+
+$PARAMETERS:: circe2
+{n_x=128;n_y=256;n_z=96;n_t=5;n_m=300000;cut_x=3.0*sigma_x.1;
+cut_y=6.0*sigma_y.1;cut_z=3.0*sigma_z.1;
+force_symmetric=0;electron_ratio=0.3;do_photons=1;store_photons=1;
+ecm_min=0.95*2.0*energy.1;photon_ratio=0.3;do_hadrons=0;store_hadrons=0;
+do_coherent=0;grids=0;rndm_load=0;rndm_save=0;
+do_pairs=0;track_pairs=0;store_pairs=0;do_compt=0;load_beam=0;
+hist_ee_bins=1010;hist_ee_max=2.02*energy.1;charge_sign=-1.0;
+do_lumi=7;num_lumi=100000000;num_lumi_eg=100000000;num_lumi_gg=100000000;}
+
+$PARAMETERS:: default
+{n_x=128;n_y=256;n_z=40;
+n_t=1;n_m=68000;cut_x=400;
+cut_y=35;cut_z=3.0*sigma_z.1;
+force_symmetric=0;electron_ratio=0.2;do_photons=0;store_photons=0;
+ecm_min=2970.0;photon_ratio=0.2;do_hadrons=0;store_hadrons=0;
+do_coherent=0;grids=0;rndm_load=0;rndm_save=0;
+do_pairs=0;track_pairs=0;store_pairs=0;do_compt=0;load_beam=3;
+hist_ee_bins=1010;hist_ee_max=2.02*energy.1;charge_sign=-1.0;
+do_lumi=0;num_lumi=100000;}

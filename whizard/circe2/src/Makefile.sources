@@ -1,0 +1,75 @@
+# Makefile.sources -- Makefile component for O'Mega
+##
+## Process Makefile.am with automake to include this file in Makefile.in
+##
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+##
+## We define the source files in a separate file so that they can be
+## include by Makefiles in multiple directories.
+##
+########################################################################
+
+########################################################################
+#
+# O'Caml sources
+#
+########################################################################
+
+CIRCE2_ML_SRC_1 = \
+	OUnit.ml OUnitDiff.ml thoArray.ml thoMatrix.ml \
+	float.ml diffmap.ml diffmaps.ml filter.ml division.ml grid.ml \
+	syntax.ml
+CIRCE2_LEXER = lexer.mll events_lexer.mll
+CIRCE2_PARSER = parser.mly
+CIRCE2_ML_SRC_2 = events.ml commands.ml histogram.ml
+
+CIRCE2_ML_SRC = $(CIRCE2_ML_SRC_1) $(CIRCE2_ML_SRC_2)
+CIRCE2_MLI_SRC = $(CIRCE2_ML_SRC:.ml=.mli)
+
+CIRCE2_ML_DERIVED = $(CIRCE2_LEXER:.mll=.ml) $(CIRCE2_PARSER:.mly=.ml)
+CIRCE2_MLI_DERIVED = $(CIRCE2_ML_DERIVED:.ml=.mli)
+
+CIRCE2_SRC = $(CIRCE2_ML_SRC) $(CIRCE2_MLI_SRC) $(CIRCE2_LEXER) $(CIRCE2_PARSER)
+CIRCE2_DERIVED = $(CIRCE2_ML_DERIVED) $(CIRCE2_MLI_DERIVED)
+
+CIRCE2_ML = $(CIRCE2_ML_SRC_1) $(CIRCE2_ML_DERIVED) $(CIRCE2_ML_SRC_2)
+CIRCE2_MLI = $(CIRCE2_ML:.ml=.mli)
+CIRCE2_CMO = bigarray_compat.cmo $(CIRCE2_ML:.ml=.cmo)
+CIRCE2_CMX = bigarray_compat.cmx $(CIRCE2_ML:.ml=.cmx)
+CIRCE2_CMI = bigarray_compat.cmi $(CIRCE2_ML:.ml=.cmi)
+CIRCE2_INTERFACE = $(CIRCE2_ML:.ml=.interface)
+CIRCE2_IMPLEMENTATION = $(CIRCE2_ML:.ml=.implementation)
+
+CIRCE2TOOL_ML = circe2_tool.ml
+CIRCE2TOOL_SRC = $(CIRCE2TOOL_ML)
+CIRCE2TOOL_CMO = $(CIRCE2TOOL_ML:.ml=.cmo)
+CIRCE2TOOL_CMX = $(CIRCE2TOOL_ML:.ml=.cmx)
+CIRCE2TOOL_IMPLEMENTATION = $(CIRCE2TOOL_ML:.ml=.implementation)
+
+CIRCE2_BYTECODE = $(CIRCE2TOOL_ML:.ml=$(OCAML_BYTECODE_EXT))
+CIRCE2_NATIVE = $(CIRCE2TOOL_ML:.ml=$(OCAML_NATIVE_EXT))
+
+CIRCE2_CAML = $(CIRCE2_SRC) $(CIRCE2_DERIVED) $(CIRCE2TOOL_SRC)

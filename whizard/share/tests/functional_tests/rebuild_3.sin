@@ -1,0 +1,21 @@
+# SINDARIN input for WHIZARD self-test
+
+model = QED
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+process rebuild_3_p = e1, E1 => e2, E2
+compile
+seed = 0
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (rebuild_3_p) { accuracy_goal = 1  iterations = 3:1000, 1:10000}
+simulate (rebuild_3_p) { n_events = 1 }

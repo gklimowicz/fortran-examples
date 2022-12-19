@@ -1,0 +1,36 @@
+# SINDARIN input for WHIZARD self-test
+# Testing application of a real-partition factor (a.k.a damping)
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+$loop_me_method = "dummy"
+?use_vamp_equivalences = false
+
+sqrts = 250
+scale = sqrts
+
+seed = 0
+iterations = 1:100
+process real_partition_1_p1 = e1, E1 => u, U { nlo_calculation = real }
+integrate (real_partition_1_p1)
+
+seed = 1
+$real_partition_mode = "on"
+# Large scale to reduce required statistics
+real_partition_scale = 100 GeV
+
+iterations = 1:1000
+process real_partition_1_p2 = e1, E1 => u, U { nlo_calculation = real }
+integrate (real_partition_1_p2)
+
+tolerance = 2 * sqrt (error (real_partition_1_p1)**2 + error (real_partition_1_p2)**2)
+expect (integral (real_partition_1_p1) == integral (real_partition_1_p2))

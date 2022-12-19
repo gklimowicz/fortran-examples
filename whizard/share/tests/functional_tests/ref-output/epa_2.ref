@@ -1,0 +1,90 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Process library 'epa_2_lib': recorded process 'epa_2a'
+| Process library 'epa_2_lib': compiling ...
+| Process library 'epa_2_lib': writing makefile
+| Process library 'epa_2_lib': removing old files
+| Process library 'epa_2_lib': writing driver
+| Process library 'epa_2_lib': creating source code
+| Process library 'epa_2_lib': compiling sources
+| Process library 'epa_2_lib': linking
+| Process library 'epa_2_lib': loading
+| Process library 'epa_2_lib': ... success.
+sqrts =  1.00000E+02
+openmp_num_threads = 1
+SM.me =>  0.00000E+00
+epa_mass =  5.11000E-04
+epa_x_min =  1.00000E-02
+epa_q_max =  2.00000E+00
+?epa_recoil = false
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process epa_2a:
+| Beam structure: e-, e+ => epa
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'epa_2a.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'epa_2a'
+|   Library name  = 'epa_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'epa_2a_i1':   A, A => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 8 equivalences between channels.
+| Phase space: wood
+| Beam structure: epa, none => none, epa
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'epa_2a'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 4 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.097E+05   2.99E+04   27.25    8.62     1.2
+|-----------------------------------------------------------------------------|
+   1       1000     1.097E+05   2.99E+04   27.25    8.62     1.2
+|=============================================================================|
+?epa_handler = true
+$epa_handler_mode = "recoil"
+n_events = 100
+| Starting simulation for process 'epa_2a'
+| Simulate: using integration grids from file 'epa_2a.m1.vg'
+| Simulate: activating EPA handler
+| Simulate: ISR/EPA handler mode: pair recoil
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 100
+|             corr. to luminosity [fb-1] =   9.1189E-04
+| Events: writing to raw file 'epa_2a.evx'
+| Events: generating 100 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.84 %
+Warning: Encountered events with excess weight: 12 events ( 12.000 %)
+| Maximum excess weight = 1.215E+01
+| Average excess weight = 3.097E-01
+| Events: closing raw file 'epa_2a.evx'
+$out_file = "epa_2a.dat"
+| Opening file 'epa_2a.dat' for output
+| Writing analysis data to file 'epa_2a.dat'
+| Closing file 'epa_2a.dat' for output
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Event breakdown:
+  Q < Qmax: 100
+  Q > Qmax:   0

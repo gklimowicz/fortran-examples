@@ -1,0 +1,67 @@
+* Test output: mci_vamp_4
+*   Purpose: integrate function in two dimensions (single channel)
+*            and adapt grid
+
+* Initialize integrator, sampler, instance
+
+ Test sampler: f(x) = 11 x^10 * 2 * cos^2 (2 pi y)
+
+* Integrate with n_it = 3 and n_calls = 1000
+
+ VAMP integrator:
+   Integral             =  1.0086863629E+00
+   Error                =  5.9593416490E-03
+   Efficiency           =  3.6023402152E-01
+   Number of channels   = 1
+   Number of dimensions = 2
+ Grid parameters:
+   threshold_calls       = 0
+   min_calls_per_channel = 10
+   min_calls_per_bin     = 10
+   min_bins              = 3
+   max_bins              = 20
+   stratified            = T
+   use_vamp_equivalences = F
+   channel_weights_power =  0.2500000
+   min_calls             = 10
+   negative weights      = F
+   verbose               = F
+ Integration pass:
+   n_it          = 3
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = T
+   adapt weights = F
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 800 800  9.9073543392E-01  1.9337902105E-02  4.9428586942E-02
+     2 800 800  1.0060931793E+00  6.3069080972E-03  2.1889298013E-01
+     3 800 800  1.0086863629E+00  5.9593416490E-03  3.6023402152E-01
+ MD5 sum (including results) = '9580554E35391599EB809C8143EE6071'
+
+* Contents of mci_instance:
+
+   Integrand =  2.065867280923E+01
+   Weight    =  1.000000000000E+00
+   adapt grids   = T
+   adapt weights = F
+   VAMP grids: defined
+   n_it          = 3
+   it            = 3
+   pass complete = T
+   n_calls       = 1000
+   calls         = 800
+   calls_valid   = 800
+   it complete   = T
+   n adapt.(g)   = 2
+   n adapt.(w)   = 0
+   gen. events   = F
+   neg. weights  = F
+   integral =  1.0086863629E+00
+   error    =  5.9593416490E-03
+   eff.     =  3.6023402152E-01
+   weights:
+     1  1.00000E+00
+
+* Cleanup
+
+* Test output end: mci_vamp_4

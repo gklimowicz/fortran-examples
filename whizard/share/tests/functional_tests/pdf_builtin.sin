@@ -1,0 +1,127 @@
+# SINDARIN input for WHIZARD self-test
+# Process p, p -> e2, E2
+
+library = "pdf_builtin_1_lib"
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?phs_s_mapping = false
+
+alias q = u:d:s
+alias Q = U:D:S
+alias lepton = e1:e2:e3:E1:E2:E3
+
+seed = 0
+
+$method = "omega"
+
+process pdf_builtin_1_p = q, Q => e2, E2
+process pdf_builtin_2_p = A, A => e1, E1
+
+compile ()
+
+ms = 0
+me = 0
+mmu = 0
+
+$phs_method = "wood"
+
+$integration_method = "vamp"
+
+cuts = all Pt > 100 GeV [lepton]
+   and all M > 10 GeV [lepton, lepton]
+
+sqrts = 1000
+iterations = 4:500, 2:500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+beams = u, U
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin 
+$pdf_builtin_set = "cteq6l"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin 
+$pdf_builtin_set = "mstw2008lo"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin 
+$pdf_builtin_set = "mstw2008nlo"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin 
+$pdf_builtin_set = "mstw2008nnlo"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin 
+$pdf_builtin_set = "ct10"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CJ12_max"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CJ12_mid"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CJ12_min"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "mmht2014lo"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "mmht2014nlo"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "mmht2014nnlo"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CT14LL"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CT14L"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CT14N"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CT14NN"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CJ15LO"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CJ15NLO"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CT18N"
+integrate (pdf_builtin_1_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "CT18NN"
+integrate (pdf_builtin_1_p)
+
+beams = A, A
+integrate (pdf_builtin_2_p)
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "mrst2004qedp"
+integrate (pdf_builtin_2_p)

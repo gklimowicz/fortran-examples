@@ -1,0 +1,18 @@
+# SINDARIN input for WHIZARD self test
+
+model = "Test"
+?logging = true
+
+seed = 0
+
+# Should cause an ordinary error (variable is locked)
+alias u = d
+
+# Should cause a fatal error (sqrts is zero)
+#sqrts = 0  # is default value
+
+$method = "unit_test"
+process errors_p = s, s => s, s 
+integrate (errors_p)
+
+

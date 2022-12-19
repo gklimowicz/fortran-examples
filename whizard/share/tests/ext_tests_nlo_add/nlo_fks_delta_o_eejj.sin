@@ -1,0 +1,96 @@
+!!! Process: ee -> jj
+!!! Reported by: PS on 2019-03-04
+!!! Purpose: Test fks_delta_o independence of real+virtual component
+!!! time ~20min
+?use_vamp_equivalences = false
+
+openmp_num_threads = 1
+
+ms = 0
+mc = 0
+me = 0
+
+alias jet = u:U:d:D:s:S:c:C:gl
+
+$method = "openloops"
+
+sqrts = 1 TeV
+
+jet_algorithm = antikt_algorithm
+jet_r = 0.5
+
+?virtual_collinear_resonance_aware = false ! For some strange reason, this is not default. delta_o is only implemented in the non-RA-FKS terms.
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 30 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4 [@pt_selected] in
+       count [@eta_selected] >= 2
+
+scale = eval Ht/2 [jet]
+
+alpha_power = 2
+alphas_power = 0
+
+process nlo_eejj_p1_real = e1, E1 => jet, jet { nlo_calculation = real }
+process nlo_eejj_p2_real = e1, E1 => jet, jet { nlo_calculation = real }
+process nlo_eejj_p3_real = e1, E1 => jet, jet { nlo_calculation = real }
+process nlo_eejj_p4_real = e1, E1 => jet, jet { nlo_calculation = real }
+process nlo_eejj_p1_virt = e1, E1 => jet, jet { nlo_calculation = virtual }
+process nlo_eejj_p2_virt = e1, E1 => jet, jet { nlo_calculation = virtual }
+process nlo_eejj_p3_virt = e1, E1 => jet, jet { nlo_calculation = virtual }
+process nlo_eejj_p4_virt = e1, E1 => jet, jet { nlo_calculation = virtual }
+
+mult_call_real = 2
+
+fks_delta_o = 0.5
+seed = 12
+integrate (nlo_eejj_p1_real) { iterations = 6:30000:"gw", 3:75000}
+seed = 12
+integrate (nlo_eejj_p1_virt) { iterations = 4:20000:"gw", 3:40000}
+
+fks_delta_o = 1.0
+seed = 12
+integrate (nlo_eejj_p2_real) { iterations = 6:30000:"gw", 3:75000}
+seed = 12
+integrate (nlo_eejj_p2_virt) { iterations = 4:20000:"gw", 3:40000}
+
+fks_delta_o = 1.5
+seed = 12
+integrate (nlo_eejj_p3_real) { iterations = 6:30000:"gw", 3:75000}
+seed = 12
+integrate (nlo_eejj_p3_virt) { iterations = 4:20000:"gw", 3:40000}
+
+fks_delta_o = 2.0
+seed = 12
+integrate (nlo_eejj_p4_real) { iterations = 6:30000:"gw", 3:75000}
+seed = 12
+integrate (nlo_eejj_p4_virt) { iterations = 4:20000:"gw", 3:40000}
+
+! Output the results
+printf "delta_o      total        unc          real         unc          virtual        unc"
+printf "%E %E %E %E %E %E %E" (0.5, integral (nlo_eejj_p1_real) + integral (nlo_eejj_p1_virt), sqrt (error (nlo_eejj_p1_real)**2 + error (nlo_eejj_p1_virt)**2), integral (nlo_eejj_p1_real), error (nlo_eejj_p1_real), integral (nlo_eejj_p1_virt), error (nlo_eejj_p1_virt))
+printf "%E %E %E %E %E %E %E" (1.0, integral (nlo_eejj_p2_real) + integral (nlo_eejj_p2_virt), sqrt (error (nlo_eejj_p2_real)**2 + error (nlo_eejj_p2_virt)**2), integral (nlo_eejj_p2_real), error (nlo_eejj_p2_real), integral (nlo_eejj_p2_virt), error (nlo_eejj_p2_virt))
+printf "%E %E %E %E %E %E %E" (1.5, integral (nlo_eejj_p3_real) + integral (nlo_eejj_p3_virt), sqrt (error (nlo_eejj_p3_real)**2 + error (nlo_eejj_p3_virt)**2), integral (nlo_eejj_p3_real), error (nlo_eejj_p3_real), integral (nlo_eejj_p3_virt), error (nlo_eejj_p3_virt))
+printf "%E %E %E %E %E %E %E" (2.0, integral (nlo_eejj_p4_real) + integral (nlo_eejj_p4_virt), sqrt (error (nlo_eejj_p4_real)**2 + error (nlo_eejj_p4_virt)**2), integral (nlo_eejj_p4_real), error (nlo_eejj_p4_real), integral (nlo_eejj_p4_virt), error (nlo_eejj_p4_virt))
+
+! Check if result is constant within 2 sigma.
+expect (
+	integral(nlo_eejj_p1_real) + integral(nlo_eejj_p1_virt) == integral(nlo_eejj_p2_real) + integral(nlo_eejj_p2_virt)
+) {
+	tolerance = 2 * sqrt (error(nlo_eejj_p1_real)**2 + error(nlo_eejj_p1_virt)**2 + error(nlo_eejj_p2_real)**2 + error(nlo_eejj_p2_virt)**2)
+}
+expect (
+	integral(nlo_eejj_p2_real) + integral(nlo_eejj_p2_virt) == integral(nlo_eejj_p3_real) + integral(nlo_eejj_p3_virt)
+) {
+	tolerance = 2 * sqrt (error(nlo_eejj_p2_real)**2 + error(nlo_eejj_p2_virt)**2 + error(nlo_eejj_p3_real)**2 + error(nlo_eejj_p3_virt)**2)
+}
+expect (
+	integral(nlo_eejj_p3_real) + integral(nlo_eejj_p3_virt) == integral(nlo_eejj_p4_real) + integral(nlo_eejj_p4_virt)
+) {
+	tolerance = 2 * sqrt (error(nlo_eejj_p3_real)**2 + error(nlo_eejj_p3_virt)**2 + error(nlo_eejj_p4_real)**2 + error(nlo_eejj_p4_virt)**2)
+}
+expect (
+	integral(nlo_eejj_p4_real) + integral(nlo_eejj_p4_virt) == integral(nlo_eejj_p1_real) + integral(nlo_eejj_p1_virt)
+) {
+	tolerance = 2 * sqrt (error(nlo_eejj_p4_real)**2 + error(nlo_eejj_p4_virt)**2 + error(nlo_eejj_p1_real)**2 + error(nlo_eejj_p1_virt)**2)
+}

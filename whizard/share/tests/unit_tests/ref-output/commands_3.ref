@@ -1,0 +1,82 @@
+* Test output: commands_3
+*   Purpose: define process
+
+*  Initialization
+
+*  Input file
+
+model = "Test"
+process t3 = s, s => s, s
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_model> <cmd_process>
+|  +  <cmd_model>  =  model '=' <string_literal>
+|  |  +  model  = [keyword] model
+|  |  +  '='  = [keyword] =
+|  |  +  <string_literal>  = "Test"
+|  +  <cmd_process>  =  process <process_id> '=' <process_prt> '=>' <prt_state_list>
+|  |  +  process  = [keyword] process
+|  |  +  <process_id>  = t3
+|  |  +  '='  = [keyword] =
+|  |  +  <process_prt>  =  <cexpr> <cexpr>
+|  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  +  <variable>  = s
+|  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  +  <variable>  = s
+|  |  +  '=>'  = [keyword] =>
+|  |  +  <prt_state_list>  =  <prt_state_sum> <prt_state_sum>
+|  |  |  +  <prt_state_sum>  =  <cexpr>
+|  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  +  <variable>  = s
+|  |  |  +  <prt_state_sum>  =  <cexpr>
+|  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  +  <variable>  = s
+
+* Compile command list
+
+ model = "Test"
+ process: t3 (2 -> X)
+
+* Execute command list
+
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: lib_cmd3
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = o
+
+ Process #1:
+ ID = 't3'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = t3_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = omega
+   Process variant     = omega
+     Model name        = "Test"
+     Mode string       = " -scatter"
+     Process string    = " 's s -> s s'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = T
+     Extra options     = " "
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_3

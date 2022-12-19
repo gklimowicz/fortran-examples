@@ -1,0 +1,49 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process epa_3_a = A, E1 => Wp, N1
+process epa_3_b = A, E1 => Wp, N1
+
+sqrts = 1.5 TeV
+
+# using EPA in e+e- collisions at 1.5 TeV CLIC:
+
+# $circe2_file = "1.5TeVeeMapPB0.67E0.0Mi0.15.circe"
+# $circe2_design = "CLIC"
+# ?circe2_polarized = false
+
+### Full process: result 9.22E+03 fb
+# beams = e1, E1
+# seed = 1
+# process epa_3_f = e1, E1 => e1, Wp, N1
+# integrate (epa_3_f) { iterations = 20:20000, 3:100000
+#   cuts = all E < 740 [e1]
+# }
+
+### EPA approximation: result 8.2E+03 fb
+beams = e1, E1 => epa, none
+epa_x_min = 0.013333333 # 10 GeV from 750 GeV beam
+epa_mass = me
+
+seed = 0
+integrate (epa_3_a) { iterations = 1:1000 }
+
+beams_pol_density = @(-1), @(+1)
+beams_pol_fraction = 0.00001%, 0.00001%
+beams = e1, E1 => epa, none
+
+seed = 0
+integrate (epa_3_b) { iterations = 1:1000 }
+
+n_events = 1
+sample_format = debug
+?debug_process = true
+?debug_verbose = true
+
+simulate (epa_3_a)
+simulate (epa_3_b)

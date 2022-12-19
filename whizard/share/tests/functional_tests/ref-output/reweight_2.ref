@@ -1,0 +1,95 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+| Process library 'reweight_2_lib': recorded process 'reweight_2_p1'
+sqrts =  1.000000000000E+03
+n_events = 2
+?unweighted = false
+?read_raw = false
+?write_raw = true
+$sample = "reweight_2a"
+| Starting simulation for process 'reweight_2_p1'
+| Simulate: process 'reweight_2_p1' needs integration
+| Integrate: current process library needs compilation
+| Process library 'reweight_2_lib': compiling ...
+| Process library 'reweight_2_lib': writing makefile
+| Process library 'reweight_2_lib': removing old files
+| Process library 'reweight_2_lib': writing driver
+| Process library 'reweight_2_lib': creating source code
+| Process library 'reweight_2_lib': compiling sources
+| Process library 'reweight_2_lib': linking
+| Process library 'reweight_2_lib': loading
+| Process library 'reweight_2_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process reweight_2_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'reweight_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'reweight_2_p1'
+|   Library name  = 'reweight_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'reweight_2_p1_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'reweight_2_p1'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  8.6803424E+01  7.69E-02    0.09    0.03*  66.65
+|-----------------------------------------------------------------------------|
+   1        800  8.6803424E+01  7.69E-02    0.09    0.03   66.65
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'reweight_2_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Events: writing to raw file 'reweight_2a.evx'
+| Events: generating 2 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing raw file 'reweight_2a.evx'
+?write_raw = false
+$sample = "reweight_2b"
+QED.ee =>  6.057200000000E-01
+| Starting simulation for process 'reweight_2_p1'
+| Simulate: initializing alternate process setup ...
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'reweight_2_p1.i1.phs'
+| ...  alternate process setup complete.
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Events: reading from raw file 'reweight_2a.evx'
+| Events: writing to weight stream file 'reweight_2b.weights.dat'
+| Rescanning weighted events ...
+| ... event file terminates after 2 events.
+| Events: closing weight stream file 'reweight_2b.weights.dat'
+| Events: closing raw file 'reweight_2a.evx'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of reweight_2b.weights.dat
+0  6.6074231114E+01  8.5296009168E-03  8.5296009168E-03 1
+1  1.0571876978E+03  1.3647361467E-01
+0  8.7749394982E+01  1.1327673546E-02  1.1327673546E-02 1
+1  1.4039903197E+03  1.8124277674E-01

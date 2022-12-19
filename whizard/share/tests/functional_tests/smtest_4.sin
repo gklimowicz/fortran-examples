@@ -1,0 +1,31 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+mmu = 0
+mtau = 0
+process smtest_4_ww = e1, E1 => Wp, Wm
+process smtest_4_wp = Wp => u, D
+process smtest_4_wm2 = Wm => e2, N2
+process smtest_4_wm3 = Wm => e3, N3
+
+seed = 0
+error_threshold = 1E-8
+
+unstable Wp (smtest_4_wp)
+unstable Wm (smtest_4_wm2, smtest_4_wm3)
+
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (smtest_4_ww)
+
+n_events = 1
+sample_format = lha
+simulate (smtest_4_ww)

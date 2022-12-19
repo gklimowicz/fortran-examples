@@ -1,0 +1,143 @@
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+
+
+$loop_me_method = "openloops"
+iterations = 1:100
+?vis_history = false
+wtop = 0.0
+mtop = 172.0
+wW = 0.0
+mb = 4.2
+mZ = 91.188
+mW = 80.419
+real alpha = 1.0 / 125.924
+GF = pi * alpha / sqrt(2.0) / mW**2 / sw**2
+show(model)
+?alphas_is_fixed = false
+alpha_power = 1
+?alphas_from_mz = true
+alphas_order = 1
+alphas_nf = 5.0
+alphas = 0.118
+scale = mtop
+openloops_verbosity = 3
+?use_vamp_equivalences = false
+
+# Born
+
+$born_me_method = "omega"
+process nlo_decay_born_omega = t => Wp, b { nlo_calculation = born }
+integrate (nlo_decay_born_omega)
+real integral_nlo_decay_born_omega = integral (nlo_decay_born_omega)
+real error_nlo_decay_born_omega = error (nlo_decay_born_omega)
+
+$born_me_method = "openloops"
+process nlo_decay_born_openloops = t => Wp, b { nlo_calculation = born }
+integrate (nlo_decay_born_openloops)
+real integral_nlo_decay_born_openloops = integral (nlo_decay_born_openloops)
+real error_nlo_decay_born_openloops = error (nlo_decay_born_openloops)
+
+printf "nlo_decay_born_omega:     %g +- %g" (integral_nlo_decay_born_omega, error_nlo_decay_born_omega)
+printf "nlo_decay_born_openloops: %g +- %g" (integral_nlo_decay_born_openloops, error_nlo_decay_born_openloops)
+expect (integral(nlo_decay_born_omega) ==
+  integral(nlo_decay_born_openloops)) {tolerance = 0.001}
+
+# Real
+
+iterations = 3:500:"gw",3:500
+
+$real_tree_me_method = "omega"
+$correlation_me_method = "omega"
+seed = 0
+process nlo_decay_real_omega = t => Wp, b { nlo_calculation = real }
+integrate (nlo_decay_real_omega)
+real integral_nlo_decay_real_omega = integral (nlo_decay_real_omega)
+real error_nlo_decay_real_omega = error (nlo_decay_real_omega)
+
+$correlation_me_method = "openloops"
+process nlo_decay_real_OL = t => Wp, b { nlo_calculation = real }
+seed = 0
+integrate (nlo_decay_real_OL)
+real integral_nlo_decay_real_OL = integral (nlo_decay_real_OL)
+real error_nlo_decay_real_OL = error (nlo_decay_real_OL)
+
+printf "nlo_decay_real_omega: %g +- %g" (integral_nlo_decay_real_omega, error_nlo_decay_real_omega)
+printf "nlo_decay_real_OL:    %g +- %g" (integral_nlo_decay_real_OL, error_nlo_decay_real_OL)
+expect (integral(nlo_decay_real_omega) ==
+  integral(nlo_decay_real_OL)) {tolerance = 3 * sqrt (error_nlo_decay_real_omega**2 + error_nlo_decay_real_OL**2)}
+
+$real_tree_me_method = "openloops"
+process nlo_decay_real_OLOL = t => Wp, b { nlo_calculation = real }
+seed = 0
+integrate (nlo_decay_real_OLOL)
+real integral_nlo_decay_real_OLOL = integral (nlo_decay_real_OLOL)
+real error_nlo_decay_real_OLOL = error (nlo_decay_real_OLOL)
+
+printf "nlo_decay_real_omega: %g +- %g" (integral_nlo_decay_real_omega, error_nlo_decay_real_omega)
+printf "nlo_decay_real_OLOL:  %g +- %g" (integral_nlo_decay_real_OLOL, error_nlo_decay_real_OLOL)
+expect (integral(nlo_decay_real_omega) ==
+  integral(nlo_decay_real_OLOL)) {tolerance = 0.001}
+
+# Full
+
+mult_call_real = 1000
+iterations = 3:500:"gw",3:500
+process nlo_decay_OLOL = t => Wp, b { nlo_calculation = full }
+integrate (nlo_decay_OLOL)
+real integral_nlo_decay_OLOL = integral (nlo_decay_OLOL)
+real error_nlo_decay_OLOL = error (nlo_decay_OLOL)
+
+printf "nlo_decay_OLOL: %g +- %g" (integral_nlo_decay_OLOL, error_nlo_decay_OLOL)
+printf "expect:         %g" (1.40787091)
+expect (integral(nlo_decay_OLOL) == 1.40787091) {tolerance = 0.001}
+
+$born_me_method = "omega"
+$real_tree_me_method = "omega"
+$correlation_me_method = "omega"
+process nlo_decay_OM = t => Wp, b { nlo_calculation = full }
+integrate (nlo_decay_OM)
+real integral_nlo_decay_OM = integral (nlo_decay_OM)
+real error_nlo_decay_OM = error (nlo_decay_OM)
+
+
+printf "nlo_decay_OM: %g +- %g" (integral_nlo_decay_OM, error_nlo_decay_OM)
+printf "expect:       %g" (1.40787091)
+expect (integral(nlo_decay_OM) == 1.40787091) {tolerance = 0.001}
+
+mb = 0
+mtop = 172.0
+mW = 80.399
+mZ = 91.1876
+mb = 0.00001
+GF = 1.16637E-5
+
+integrate (nlo_decay_born_omega)
+real integral_nlo_decay_born_omega = integral (nlo_decay_born_omega)
+real error_nlo_decay_born_omega = error (nlo_decay_born_omega)
+
+printf "nlo_decay_born_omega: %g +- %g" (integral_nlo_decay_born_omega, error_nlo_decay_born_omega)
+printf "expect:               %g" (1.4655)
+expect (integral(nlo_decay_born_omega) == 1.4655) {tolerance = 0.001}
+
+!integrate (nlo_decay)
+!expect (integral(nlo_decay) == 1.40958905) {tolerance = 0.001}
+
+!process nlo_decay = t => Wp, b { nlo_calculation = full }
+!integrate (nlo_decay) { beams_pol_fraction = 1.0 beams_pol_density = @(1) beams = t}
+!process nlo_decay = t => Wp, b { nlo_calculation = full }
+!integrate (nlo_decay) { beams_pol_fraction = 1.0 beams_pol_density = @(-1) beams = t}
+
+!process tbar_decay_p = T => Wm, B { nlo_calculation = full }
+!integrate (tbar_decay_p) { beams_pol_fraction = 1.0 beams_pol_density = @(1) beams = T}
+!process tbar_decay_m = T => Wm, B { nlo_calculation = full }
+!integrate (tbar_decay_m) { beams_pol_fraction = 1.0 beams_pol_density = @(-1) beams = T}

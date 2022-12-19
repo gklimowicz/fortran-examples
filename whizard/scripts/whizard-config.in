@@ -1,0 +1,79 @@
+#!/bin/sh
+
+# Give information on the build-time WHIZARD 3 configuration.
+#
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+prefix="@prefix@"
+
+usage() {
+cat <<EOI
+usage: whizard-config [options]
+
+Gives information on the build-time WHIZARD 2 configuration.
+
+Available options:
+   --prefix        : WHIZARD installation prefix
+   --libdir        : directory containing the WHIZARD libraries
+   --datadir       : WHIZARD data directory
+   --version       : WHIZARD version
+   --fc            : FORTRAN 2003 compiler
+   --fcflags       : FORTRAN 2003 compiler flags
+   --fcmodext      : FORTRAN 2003 module file extension
+EOI
+exit
+}
+
+test -z "$1" && usage
+
+while test -n "$1"; do
+   case "$1" in
+      "--prefix")
+         echo ${prefix}
+         ;;
+      "--libdir")
+         echo "@PKGLIBDIR@"
+         ;;
+      "--datadir")
+         echo "@PKGDATADIR@"
+         ;;
+      "--version")
+         echo "@PACKAGE_VERSION@"
+         ;;
+      "--fc")
+         echo "@FC@"
+         ;;
+      "--fcflags")
+         echo "@FCFLAGS_PIC@ @FCFLAGS@ @FCFLAGS_OPENMP@"
+         ;;
+      "--fcmodext")
+         echo "@FCMOD@"
+         ;;
+      *)
+         usage
+   esac
+   shift
+done

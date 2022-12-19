@@ -1,0 +1,38 @@
+* Test output: prc_omega_6
+*   Purpose: create simple process with OMega / UFO file
+
+* Create process library entry
+
+ ID = 'omega_6_a'
+ Scattering
+ Model = SM
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = omega_6_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = e-, e+ => e-, e+
+   Method              = omega
+   Process variant     = omega
+     Model name        = "SM"
+     Mode string       = " -scatter"
+     Process string    = " 'e- e+ -> e- e+'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = T
+     Extra options     = ""
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+
+* Build and load library
+
+* Probe library API:
+
+ is active                 = T
+ n_processes               = 1
+
+* Test output end: prc_omega_6

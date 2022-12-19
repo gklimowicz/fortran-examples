@@ -1,0 +1,395 @@
+
+
+! Whizard test suite.  Do not edit.  Generated automatically from
+! $Id: mssm_ext-ga.m4 -1   $
+! by the macros in
+! $Id: testsuite.m4 5205 2014-01-30 14:17:39Z jr_reuter $
+! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------
+! ----- Passed 5 checks with different random seeds                    -----
+! --------------------------------------------------------------------------
+model = MSSM
+read_slha ("sps1a.slha")
+?vis_history = false
+! --------------------------------------------------------------------------
+me = 0
+mW = 80.419 
+wW = 2.048
+mZ = 91.1880
+wZ = 2.446
+mtop = 178.0
+mb = 4.6
+GF = 1.16639e-5
+alphas = 0.118
+show (al_h,mu_h,tanb_h)
+! --------------------------------------------------------------------------
+iterations = 3:200000
+! --------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+! --------------------------------------------------------------------------
+! ----------------------------------------------------------------------
+! Define the process
+! ----------------------------------------------------------------------
+process mssm_ext_ga_1 = g,A => su1,su1c       
+process mssm_ext_ga_2 = g,A => su2,su2c       
+process mssm_ext_ga_3 = g,A => sc1,sc1c       
+process mssm_ext_ga_4 = g,A => sc2,sc2c       
+process mssm_ext_ga_5 = g,A => st1,st1c       
+process mssm_ext_ga_6 = g,A => st2,st2c       
+process mssm_ext_ga_7 = g,A => sd1,sd1c       
+process mssm_ext_ga_8 = g,A => sd2,sd2c       
+process mssm_ext_ga_9 = g,A => ss1,ss1c       
+process mssm_ext_ga_10 = g,A => ss2,ss2c       
+process mssm_ext_ga_11 = g,A => sb1,sb1c       
+process mssm_ext_ga_12 = g,A => sb2,sb2c       
+! ----------------------------------------------------------------------
+! Compile the processes
+! ----------------------------------------------------------------------
+compile
+! ----------------------------------------------------------------------
+! Integrate the processes
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Integrating g,A => su1,su1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_1)
+printf "************************************************************************"
+printf "* Integrating g,A => su2,su2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_2)
+printf "************************************************************************"
+printf "* Integrating g,A => sc1,sc1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_3)
+printf "************************************************************************"
+printf "* Integrating g,A => sc2,sc2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_4)
+printf "************************************************************************"
+printf "* Integrating g,A => st1,st1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_5)
+printf "************************************************************************"
+printf "* Integrating g,A => st2,st2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_6)
+printf "************************************************************************"
+printf "* Integrating g,A => sd1,sd1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_7)
+printf "************************************************************************"
+printf "* Integrating g,A => sd2,sd2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_8)
+printf "************************************************************************"
+printf "* Integrating g,A => ss1,ss1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_9)
+printf "************************************************************************"
+printf "* Integrating g,A => ss2,ss2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_10)
+printf "************************************************************************"
+printf "* Integrating g,A => sb1,sb1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_11)
+printf "************************************************************************"
+printf "* Integrating g,A => sb2,sb2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+sqrts = 2000 GeV
+beams = g,A
+seed = 0
+integrate (mssm_ext_ga_12)
+! ----------------------------------------------------------------------
+! Check the processes
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Checking g,A => su1,su1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0008    ) ** 2 + error(mssm_ext_ga_1) ** 2)
+printf "Expecting 55.4290     "
+show(integral(mssm_ext_ga_1))
+real pull = abs (integral (mssm_ext_ga_1) - 55.4290     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => su1,su1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => su1,su1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => su1,su1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => su1,su1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => su1,su1c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_1) == 55.4290     )
+printf "************************************************************************"
+printf "* Checking g,A => su2,su2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0009    ) ** 2 + error(mssm_ext_ga_2) ** 2)
+printf "Expecting 57.0184     "
+show(integral(mssm_ext_ga_2))
+real pull = abs (integral (mssm_ext_ga_2) - 57.0184     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => su2,su2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => su2,su2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => su2,su2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => su2,su2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => su2,su2c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_2) == 57.0184     )
+printf "************************************************************************"
+printf "* Checking g,A => sc1,sc1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0008    ) ** 2 + error(mssm_ext_ga_3) ** 2)
+printf "Expecting 55.4288     "
+show(integral(mssm_ext_ga_3))
+real pull = abs (integral (mssm_ext_ga_3) - 55.4288     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => sc1,sc1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => sc1,sc1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => sc1,sc1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => sc1,sc1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => sc1,sc1c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_3) == 55.4288     )
+printf "************************************************************************"
+printf "* Checking g,A => sc2,sc2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0009    ) ** 2 + error(mssm_ext_ga_4) ** 2)
+printf "Expecting 57.0175     "
+show(integral(mssm_ext_ga_4))
+real pull = abs (integral (mssm_ext_ga_4) - 57.0175     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => sc2,sc2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => sc2,sc2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => sc2,sc2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => sc2,sc2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => sc2,sc2c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_4) == 57.0175     )
+printf "************************************************************************"
+printf "* Checking g,A => st1,st1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.002     ) ** 2 + error(mssm_ext_ga_5) ** 2)
+printf "Expecting 73.382      "
+show(integral(mssm_ext_ga_5))
+real pull = abs (integral (mssm_ext_ga_5) - 73.382      ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => st1,st1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => st1,st1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => st1,st1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => st1,st1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => st1,st1c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_5) == 73.382      )
+printf "************************************************************************"
+printf "* Checking g,A => st2,st2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0008    ) ** 2 + error(mssm_ext_ga_6) ** 2)
+printf "Expecting 54.1136     "
+show(integral(mssm_ext_ga_6))
+real pull = abs (integral (mssm_ext_ga_6) - 54.1136     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => st2,st2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => st2,st2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => st2,st2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => st2,st2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => st2,st2c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_6) == 54.1136     )
+printf "************************************************************************"
+printf "* Checking g,A => sd1,sd1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0002    ) ** 2 + error(mssm_ext_ga_7) ** 2)
+printf "Expecting 13.7569     "
+show(integral(mssm_ext_ga_7))
+real pull = abs (integral (mssm_ext_ga_7) - 13.7569     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => sd1,sd1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => sd1,sd1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => sd1,sd1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => sd1,sd1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => sd1,sd1c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_7) == 13.7569     )
+printf "************************************************************************"
+printf "* Checking g,A => sd2,sd2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0002    ) ** 2 + error(mssm_ext_ga_8) ** 2)
+printf "Expecting 14.2737     "
+show(integral(mssm_ext_ga_8))
+real pull = abs (integral (mssm_ext_ga_8) - 14.2737     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => sd2,sd2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => sd2,sd2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => sd2,sd2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => sd2,sd2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => sd2,sd2c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 4 * error_sum
+expect (integral (mssm_ext_ga_8) == 14.2737     )
+printf "************************************************************************"
+printf "* Checking g,A => ss1,ss1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0002    ) ** 2 + error(mssm_ext_ga_9) ** 2)
+printf "Expecting 13.7568     "
+show(integral(mssm_ext_ga_9))
+real pull = abs (integral (mssm_ext_ga_9) - 13.7568     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => ss1,ss1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => ss1,ss1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => ss1,ss1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => ss1,ss1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => ss1,ss1c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_9) == 13.7568     )
+printf "************************************************************************"
+printf "* Checking g,A => ss2,ss2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0002    ) ** 2 + error(mssm_ext_ga_10) ** 2)
+printf "Expecting 14.2735     "
+show(integral(mssm_ext_ga_10))
+real pull = abs (integral (mssm_ext_ga_10) - 14.2735     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => ss2,ss2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => ss2,ss2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => ss2,ss2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => ss2,ss2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => ss2,ss2c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_10) == 14.2735     )
+printf "************************************************************************"
+printf "* Checking g,A => sb1,sb1c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0003    ) ** 2 + error(mssm_ext_ga_11) ** 2)
+printf "Expecting 14.9546     "
+show(integral(mssm_ext_ga_11))
+real pull = abs (integral (mssm_ext_ga_11) - 14.9546     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => sb1,sb1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => sb1,sb1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => sb1,sb1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => sb1,sb1c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => sb1,sb1c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_11) == 14.9546     )
+printf "************************************************************************"
+printf "* Checking g,A => sb2,sb2c        @ sqrt(s) = 2000 GeV"
+printf "************************************************************************"
+real error_sum = sqrt ((0.0002    ) ** 2 + error(mssm_ext_ga_12) ** 2)
+printf "Expecting 14.3171     "
+show(integral(mssm_ext_ga_12))
+real pull = abs (integral (mssm_ext_ga_12) - 14.3171     ) / error_sum
+if (pull > 6) then
+  printf "SEVERE:  pull > 6 in g,A => sb2,sb2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 5) then
+  printf "SEVERE:  pull > 5 in g,A => sb2,sb2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 4) then
+  printf "ERROR:   pull > 4 in g,A => sb2,sb2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 3) then
+  printf "WARNING: pull > 3 in g,A => sb2,sb2c        @ sqrt(s) = 2000 GeV"
+elsif (pull > 2) then
+  printf "NOTICE:  pull > 2 in g,A => sb2,sb2c        @ sqrt(s) = 2000 GeV"
+endif
+tolerance = 3 * error_sum
+expect (integral (mssm_ext_ga_12) == 14.3171     )
+! ----------------------------------------------------------------------
+! Done
+! ----------------------------------------------------------------------
+printf "************************************************************************"
+printf "* Done."
+printf "************************************************************************" 

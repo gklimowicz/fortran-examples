@@ -1,0 +1,41 @@
+# Sindarin input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+
+model = "QED"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process hepmc_8_p = "e1", "E1" => "e2", "E2"
+
+sqrts = 100
+beams = e1, E1 => isr
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+
+?read_raw = false
+?write_raw = false
+
+simulate (hepmc_8_p) {
+  sample_format = hepmc, ascii
+  $sample = "hepmc_8a"
+  ?keep_beams = true
+  iterations = 1:1000
+}
+
+rescan "hepmc_8a" (hepmc_8_p) {
+  $rescan_input_format = "hepmc"
+  $sample = "hepmc_8b"
+  sample_format = ascii
+  ?recover_beams = false
+}

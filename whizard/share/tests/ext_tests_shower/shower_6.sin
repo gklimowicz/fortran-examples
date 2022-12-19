@@ -1,0 +1,68 @@
+!!! Process: Electron-induced ZH production in the NMSSM
+!!! Reported by: Mo Xin on 2015-12-18
+!!! Purpose: This tests more complex decay chains that introduce
+!!!          multiple cmshowers in pythias event record
+
+model = NMSSM
+?slha_read_decays = true
+read_slha("nmssm.slha")
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+seed = 42
+
+# Set the input parameters
+# Running b mass
+mb = 2.9 GeV
+ms = 0
+mc = 0
+mneu1 = 15
+mneu2 = 85
+# Lepton mass
+me = 0
+mmu = 0
+mtau = 0
+# higgs parameters
+mh0_2 = 60
+
+alias q   = u:d:s:c
+alias Q   = U:D:S:C
+alias l   = e1:e2:E1:E2
+
+process shower_6 = e1, E1 => l,l,h1
+
+?vis_history = false
+?vis_channels = false
+
+sqrts = 250 GeV
+
+process hdec  = h1 => neu1,neu2
+process k2dec = neu2 => h2,neu1
+process h2dec = h2 => b,B
+
+?ps_fsr_active = true
+?ps_isr_active = false
+?hadronization_active = true
+$shower_method = "PYTHIA6"
+ps_max_n_flavors = 5
+ps_mass_cutoff = 1
+cuts = all M >= 10 GeV [q,Q]
+$ps_PYTHIA_PYGIVE = "MSTP(125)=2; MSTU(21)=1; MDCY(310,1)=0"
+integrate(shower_6) {beams = e1, E1 => isr isr_mass = 0.000511}
+
+integrate(hdec)
+unstable h1(hdec)
+integrate(k2dec)
+unstable neu2(k2dec)
+integrate(h2dec)
+unstable h2(h2dec)
+stable(neu1)
+
+simulate (shower_6) {n_events = 10000 sample_format = debug}

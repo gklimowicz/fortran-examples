@@ -1,0 +1,53 @@
+# SINDARIN input for WHIZARD self-test
+# Testing polarized OpenLoops Decays
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$loop_me_method = "openloops"
+
+### Tests should be run single-threaded
+openmp_num_threads = 1
+
+wtop = 0.0
+wW = 0.0
+mb = 4.2
+alpha_power = 1
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+error_threshold = 1e-8
+
+
+iterations = 1:100
+
+### First integrate unpolarized
+seed = 1111
+process openloops_6_p0 = t => Wp, b { nlo_calculation = full }
+integrate (openloops_6_p0)
+real res_0 = integral (openloops_6_p0)
+
+beams = t
+beams_pol_fraction = 1.0
+beams_pol_density = @(1)
+seed = 2222
+process openloops_6_p1 = t => Wp, b { nlo_calculation = full }
+integrate (openloops_6_p1)
+real res_1 = integral (openloops_6_p1)
+
+beams_pol_density = @(-1)
+seed = 3333
+process openloops_6_p2 = t => Wp, b { nlo_calculation = full }
+integrate (openloops_6_p2)
+real res_2 = integral (openloops_6_p2)
+
+expect (res_0 == (res_1 + res_2) / 2) {tolerance = 0.1}
+

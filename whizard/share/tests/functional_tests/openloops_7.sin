@@ -1,0 +1,36 @@
+# SINDARIN input for WHIZARD self-test
+# Testing the integration of the real-subtracted matrix element
+# using beam polarization.
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+beams = e1, E1
+beams_pol_density = @(-1), @(+1)
+beams_pol_fraction = 0.8, 0.3
+
+$method = "openloops"
+
+
+### Tests should be run single-threaded
+openmp_num_threads = 1
+
+mtop = 173.2
+wtop = 0.0
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+sqrts = 500 GeV
+iterations = 1:100
+seed = 0
+
+process openloops_7_p1 = e1, E1 => t, T { nlo_calculation = real }
+integrate (openloops_7_p1)

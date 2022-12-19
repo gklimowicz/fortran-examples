@@ -1,0 +1,305 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+?sample_pacify = true
+| Switching to model 'SM', scheme 'default'
+SM.alphas =>  0.00000E+00
+| Process library 'colors_2_lib': recorded process 'colors_2_p1'
+| Process library 'colors_2_lib': recorded process 'colors_2_p2'
+sqrts =  1.00000E+01
+seed = 0
+| Integrate: current process library needs compilation
+| Process library 'colors_2_lib': compiling ...
+| Process library 'colors_2_lib': writing makefile
+| Process library 'colors_2_lib': removing old files
+| Process library 'colors_2_lib': writing driver
+| Process library 'colors_2_lib': creating source code
+| Process library 'colors_2_lib': compiling sources
+| Process library 'colors_2_lib': linking
+| Process library 'colors_2_lib': loading
+| Process library 'colors_2_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process colors_2_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   u  (mass = 0.0000000E+00 GeV)
+|   u  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+01 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'colors_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'colors_2_p1'
+|   Library name  = 'colors_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'colors_2_p1_i1':   u, u => u, u [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 16 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'colors_2_p1'
+| Integrate: iterations = 3:1000:"g"
+| Integrator: 1 chains, 4 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     5.657E+07   5.99E+06   10.58    2.99     3.5
+   2        800     4.994E+07   2.97E+06    5.95    1.68     7.6
+   3        800     5.215E+07   1.71E+06    3.28    0.93    18.2
+|-----------------------------------------------------------------------------|
+   3       2400     5.189E+07   1.44E+06    2.77    1.36    18.2    0.53   3
+|=============================================================================|
+$sample = "colors_2_fix"
+n_events = 2
+| Starting simulation for process 'colors_2_p1'
+| Simulate: using integration grids from file 'colors_2_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 2
+|             corr. to luminosity [fb-1] =   3.8544E-08
+| Events: writing to event dump file 'colors_2_fix.pset.dat'
+| Events: writing to ASCII file 'colors_2_fix.debug'
+| Events: writing to raw file 'colors_2_fix.evx'
+| Events: generating 2 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  16.67 %
+| Events: closing event dump file 'colors_2_fix.pset.dat'
+| Events: closing ASCII file 'colors_2_fix.debug'
+| Events: closing raw file 'colors_2_fix.evx'
+sqrts =  1.00000E+02
+seed = 6
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 6
+| Initializing integration for process colors_2_p2:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'colors_2_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'colors_2_p2'
+|   Library name  = 'colors_2_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'colors_2_p2_i1':   u, u => u, u [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 16 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'colors_2_p2'
+| Integrate: iterations = 5:1000:"g"
+| Integrator: 1 chains, 4 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     2.196E+08   5.45E+07   24.84    7.86     1.3
+   2       1000     2.270E+08   1.82E+07    8.03    2.54     5.4
+   3       1000     2.523E+08   1.72E+07    6.80    2.15     5.2
+   4       1000     2.526E+08   1.51E+07    5.98    1.89     7.1
+   5       1000     2.305E+08   1.54E+07    6.68    2.11     5.4
+|-----------------------------------------------------------------------------|
+   5       5000     2.407E+08   8.08E+06    3.35    2.37     5.4    0.56   5
+|=============================================================================|
+$sample = "colors_2_pdf"
+n_events = 2
+| Starting simulation for process 'colors_2_p2'
+| Simulate: using integration grids from file 'colors_2_p2.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 7
+| Simulation: requested number of events = 2
+|             corr. to luminosity [fb-1] =   8.3085E-09
+| Events: writing to event dump file 'colors_2_pdf.pset.dat'
+| Events: writing to ASCII file 'colors_2_pdf.debug'
+| Events: writing to raw file 'colors_2_pdf.evx'
+| Events: generating 2 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   3.17 %
+| Events: closing event dump file 'colors_2_pdf.pset.dat'
+| Events: closing ASCII file 'colors_2_pdf.debug'
+| Events: closing raw file 'colors_2_pdf.evx'
+| WHIZARD run finished.
+|=============================================================================|
+Events for fixed-energy beams:
+========================================================================
+ Event #1
+========================================================================
+ count  = 1
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(2)c(1 )
+ E =   5.000000E+00
+ P =   0.000000E+00  0.000000E+00  5.000000E+00
+ T =   0.000000000E+00
+ Children: 3 4
+ Particle 2 [i] f(2)c(2 )
+ E =   5.000000E+00
+ P =   0.000000E+00  0.000000E+00 -5.000000E+00
+ T =   0.000000000E+00
+ Children: 3 4
+ Particle 3 [o] f(2)c(1 )
+ E =   5.000000E+00
+ P =   1.071863E+00  2.074484E-02  4.883716E+00
+ T =   0.000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(2)c(2 )
+ E =   5.000000E+00
+ P =  -1.071863E+00 -2.074484E-02 -4.883716E+00
+ T =   0.000000000E+00
+ Parents:  1 2
+========================================================================
+ Event #2
+========================================================================
+ count  = 2
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(2)c(1 )
+ E =   5.000000E+00
+ P =   0.000000E+00  0.000000E+00  5.000000E+00
+ T =   0.000000000E+00
+ Children: 3 4
+ Particle 2 [i] f(2)c(2 )
+ E =   5.000000E+00
+ P =   0.000000E+00  0.000000E+00 -5.000000E+00
+ T =   0.000000000E+00
+ Children: 3 4
+ Particle 3 [o] f(2)c(2 )
+ E =   5.000000E+00
+ P =  -1.554099E+00  1.049181E+00 -4.635083E+00
+ T =   0.000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(2)c(1 )
+ E =   5.000000E+00
+ P =   1.554099E+00 -1.049181E+00  4.635083E+00
+ T =   0.000000000E+00
+ Parents:  1 2
+Events for beams with PDF:
+========================================================================
+ Event #1
+========================================================================
+ count  = 1
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(2212)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00  5.000000E+01
+ T =   0.000000000E+00
+ Children: 3 5
+ Particle 2 [b] f(2212)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00 -5.000000E+01
+ T =   0.000000000E+00
+ Children: 4 6
+ Particle 3 [i] f(2)c(1 )
+ E =   4.963747E+00
+ P =   0.000000E+00  0.000000E+00  4.963747E+00
+ T =   0.000000000E+00
+ Parents:  1
+ Children: 7 8
+ Particle 4 [i] f(2)c(2 )
+ E =   5.944530E+00
+ P =   0.000000E+00  0.000000E+00 -5.944530E+00
+ T =   0.000000000E+00
+ Parents:  2
+ Children: 7 8
+ Particle 5 [x] f(-92*)c(-1 )
+ E =   4.503625E+01
+ P =   0.000000E+00  0.000000E+00  4.503625E+01
+ T =   0.000000000E+00
+ Parents:  1
+ Particle 6 [x] f(-92*)c(-2 )
+ E =   4.405547E+01
+ P =   0.000000E+00  0.000000E+00 -4.405547E+01
+ T =   0.000000000E+00
+ Parents:  2
+ Particle 7 [o] f(2)c(2 )
+ E =   5.872852E+00
+ P =   1.616866E+00  2.319745E+00 -5.147322E+00
+ T =   0.000000000E+00
+ Parents:  3 4
+ Particle 8 [o] f(2)c(1 )
+ E =   5.035426E+00
+ P =  -1.616866E+00 -2.319745E+00  4.166538E+00
+ T =   0.000000000E+00
+ Parents:  3 4
+========================================================================
+ Event #2
+========================================================================
+ count  = 2
+ passed = T
+ prc id = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(2212)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00  5.000000E+01
+ T =   0.000000000E+00
+ Children: 3 5
+ Particle 2 [b] f(2212)
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00 -5.000000E+01
+ T =   0.000000000E+00
+ Children: 4 6
+ Particle 3 [i] f(2)c(1 )
+ E =   2.069671E+01
+ P =   0.000000E+00  0.000000E+00  2.069671E+01
+ T =   0.000000000E+00
+ Parents:  1
+ Children: 7 8
+ Particle 4 [i] f(2)c(2 )
+ E =   4.129311E+00
+ P =   0.000000E+00  0.000000E+00 -4.129311E+00
+ T =   0.000000000E+00
+ Parents:  2
+ Children: 7 8
+ Particle 5 [x] f(-92*)c(-1 )
+ E =   2.930329E+01
+ P =   0.000000E+00  0.000000E+00  2.930329E+01
+ T =   0.000000000E+00
+ Parents:  1
+ Particle 6 [x] f(-92*)c(-2 )
+ E =   4.587069E+01
+ P =   0.000000E+00  0.000000E+00 -4.587069E+01
+ T =   0.000000000E+00
+ Parents:  2
+ Particle 7 [o] f(2)c(1 )
+ E =   2.045144E+01
+ P =   2.102361E+00 -7.523878E-01  2.032918E+01
+ T =   0.000000000E+00
+ Parents:  3 4
+ Particle 8 [o] f(2)c(2 )
+ E =   4.374582E+00
+ P =  -2.102361E+00  7.523878E-01 -3.761776E+00
+ T =   0.000000000E+00
+ Parents:  3 4

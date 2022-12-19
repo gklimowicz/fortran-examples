@@ -1,0 +1,175 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD code as NOWEB source: Header, intro and generic stuff
+
+\documentclass[a4paper]{report}
+
+\usepackage{amsmath,amssymb,dsfont}
+
+\usepackage
+  [bookmarks,bookmarksopen=true,bookmarksopenlevel=1,bookmarksnumbered=true]
+  {hyperref}
+
+\usepackage{noweb}
+\usepackage{graphics,graphicx}
+\usepackage{url}
+\usepackage[T1]{fontenc}
+\setlength{\nwmarginglue}{1em}
+\noweboptions{smallcode,noidentxref}
+%%% Saving paper:
+\def\nwendcode{\endtrivlist\endgroup}
+\nwcodepenalty=0
+\let\nwdocspar\relax
+
+%\makeindex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Macros
+
+\def\tsum{{\textstyle\sum}}
+
+\newcommand{\circeone}{\texttt{CIRCE1}}
+\newcommand{\circetwo}{\texttt{CIRCE2}}
+\newcommand{\whizard}{\texttt{WHIZARD}}
+% Noweb emacs mode: single ' below
+\newcommand{\oMega}{\texttt{O'MEGA}}
+\newcommand{\vamp}{\texttt{VAMP}}
+\newcommand{\vamptwo}{\texttt{VAMP2}}
+\newcommand{\pythia}{\texttt{PYTHIA}}
+\newcommand{\gosam}{\texttt{GoSam}}
+\newcommand{\includemodulegraph}{\begingroup
+  \catcode`_=12 \doincludemodulegraph}
+\newcommand{\doincludemodulegraph}[1]{%
+  \begin{figure}
+  \includegraphics[width=\textwidth]{#1}%
+  \caption{Module dependencies in \texttt{src/#1}.}
+  \end{figure}
+  \endgroup
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\WhizardVersion{3.1.0}
+\def\WhizardDate{Dec 14 2022}
+<<Version>>=
+3.1.0
+<<Date>>=
+Dec 14 2022
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{%
+  \whizard\footnote{The original meaning of the acronym is \emph{$W$,
+  Higgs, $Z$, And Respective Decays}.  The current program is much more
+  than that, however.}
+}
+\author{%
+  Wolfgang Kilian,%
+    \thanks{e-mail: \texttt{kilian@physik.uni-siegen.de}}
+  Thorsten Ohl,%
+    \thanks{e-mail: \texttt{ohl@physik.uni-wuerzburg.de}}
+  J\"urgen Reuter%
+    \thanks{e-mail: \texttt{juergen.reuter@desy.de}}}
+\date{Version \WhizardVersion, \WhizardDate \\
+ \mbox{}
+ with contributions from:
+ Fabian Bach, Tim Barklow, Vincent Bettaque, Mikael Berggren,
+ Hans-Werner Boschmann, Felix Braam, Simon Brass, Pia Bredt,
+ Bijan Chokouf\'{e} Nejad, Oliver Fischer, Christian Fleper,
+ David Gordo Gomez, Uta Klein, Nils Kreher, Krzysztof~M\k{e}ka{\l}a,
+ Akiya Miyamoto, Moritz Prei{\ss}er, Vincent Rothe, Sebastian Schmidt,
+ Marco Sekulla, So Young Shim, Christian Speckner, Pascal Stienemeier,
+ Tobias Striegl, Manuel Utsch, Christian Weiss, Daniel Wiesler, Zhijie Zhao
+ \vspace{1cm}
+ \begin{center}
+ \includegraphics[width=4cm]{Whizard-Logo}
+ \end{center}
+ \mbox{} \\
+ \vspace{.2cm}}
+\maketitle
+
+
+\begin{abstract}
+\texttt{WHIZARD} is an application of the \texttt{VAMP} algorithm:
+Adaptive multi-channel integration and event generation. The bare
+\texttt{VAMP} library is augmented by modules for Lorentz algebra,
+particles, phase space, etc., such that physical processes with
+arbitrary complex final states [well, in principle\ldots] can be
+integrated and \emph{unweighted} events be generated.
+\end{abstract}
+
+
+\newpage
+
+\begin{figure}
+\centering
+\includegraphics[angle=90,width=\textwidth,height=\textheight,keepaspectratio]{overview}
+\caption{Overall folder structure}
+\end{figure}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Changes}
+
+  {\bf For a comprehensive list of changes confer the
+    ChangeLog file or the subversion log.}
+
+\chapter{Preliminaries}
+The WHIZARD file header:
+<<File header>>=
+! WHIZARD <<Version>> <<Date>>
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+@
+We are strict with our names:
+<<Standard module head>>=
+  implicit none
+  private
+@ This is the way to envoke the kinds module (not contained in this source)
+<<Use kinds>>=
+  use kinds, only: default
+<<Use kinds with double>>=
+  use kinds, only: default, double
+@ %def default
+@ And we make heavy use of variable-length strings
+<<Use strings>>=
+  use iso_varying_string, string_t => varying_string
+@ %def string_t
+@ Access to the [[debug_on]] master switch
+<<Use debug>>=
+  use debug_master, only: debug_on
+@ %def debug_on
+@ And we need the Fortran 2008 MPI module, if compiled with [[MPI]].
+<<Use mpi f08>>=
+@
+<<MPI: Use mpi f08>>=
+  use mpi_f08 !NODEP!
+@ %def mpi_f08

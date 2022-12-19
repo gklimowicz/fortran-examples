@@ -1,0 +1,192 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD multiple interactions code as NOWEB source
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Multiple Interactions (MPI) Code}
+\includemodulegraph{muli}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Multiple Interactions main module}
+
+This file contains the module [[muli]] which is the multiple parton
+interactions interface module to \whizard. [[muli]] is supposed to run
+together with initial state radiation. Both share a momentum evolution
+variable and compete for beam momentum, so the generation of this
+scale variable must be fully transparent to \whizard. This here is a stub
+as long as there is no working \whizard\ implementation for multiple
+interactions. It gives an interface for the necessary routines.
+
+<<[[muli.f90]]>>=
+<<File header>>
+
+module muli
+  use, intrinsic :: iso_fortran_env
+<<Use kinds>>
+
+<<Standard module head>>
+
+<<Muli: variables>>
+
+<<Muli: public>>
+
+<<Muli: types>>
+
+contains
+
+<<Muli: procedures>>
+
+end module muli
+@ %def muli
+@
+\subsection{The main Multiple Interactions type}
+<<Muli: public>>=
+  public :: muli_t
+<<Muli: types>>=
+  type :: muli_t     
+     real(default) :: GeV2_scale_cutoff
+     logical :: initialized = .false.
+     integer, dimension(4) :: flow
+   contains
+   <<Muli: muli: TBP>>
+  end type muli_t
+
+@ %def muli_t
+@
+<<Muli: muli: TBP>>=
+  generic :: initialize => muli_initialize
+  procedure :: muli_initialize
+<<Muli: procedures>>=
+  subroutine muli_initialize (this, GeV2_scale_cutoff, gev2_s, &
+       muli_dir, random_seed)
+    class(muli_t), intent(out) :: this
+    real(kind=default), intent(in) :: gev2_s, GeV2_scale_cutoff
+    character(*), intent(in) :: muli_dir
+    integer, intent(in), optional :: random_seed
+    this%initialized = .true.
+  end subroutine muli_initialize
+
+@ %def muli_initialize
+@
+<<Muli: muli: TBP>>=
+  procedure :: apply_initial_interaction => muli_apply_initial_interaction
+<<Muli: procedures>>=
+  subroutine muli_apply_initial_interaction (this, GeV2_s, &
+       x1, x2, pdg_f1, pdg_f2, n1, n2)
+    class(muli_t), intent(inout) :: this
+    real(default), intent(in) :: Gev2_s, x1, x2
+    integer, intent(in):: pdg_f1, pdg_f2, n1, n2
+  end subroutine muli_apply_initial_interaction
+
+@ %def muli_apply_initial_interaction
+@
+<<Muli: muli: TBP>>=
+  procedure :: restart => muli_restart
+<<Muli: procedures>>=
+  subroutine muli_restart (this)
+    class(muli_t), intent(inout) :: this
+  end subroutine muli_restart
+
+@ %def muli_restart
+@
+<<Muli: muli: TBP>>=
+  procedure :: is_initialized => muli_is_initialized
+<<Muli: procedures>>=
+  elemental function muli_is_initialized (this) result (res)
+    logical :: res
+    class(muli_t), intent(in) :: this
+    res = this%initialized
+  end function muli_is_initialized
+
+@ %def muli_is_initialized
+@
+<<Muli: muli: TBP>>=
+  procedure :: generate_gev2_pt2 => muli_generate_gev2_pt2
+<<Muli: procedures>>=
+  subroutine muli_generate_gev2_pt2 (this, gev2_start_scale, gev2_new_scale)
+    class(muli_t), intent(inout) :: this
+    real(kind=default), intent(in) :: gev2_start_scale
+    real(kind=default), intent(out) :: gev2_new_scale
+    call this%generate_next_scale ()
+    gev2_new_scale = 1
+  end subroutine muli_generate_gev2_pt2
+
+@ %def muli_generate_gev2_pt2
+@
+<<Muli: muli: TBP>>=
+  procedure :: generate_partons => muli_generate_partons
+<<Muli: procedures>>=
+  subroutine muli_generate_partons (this, n1, n2, x_proton_1, x_proton_2, &
+       pdg_f1, pdg_f2, pdg_f3, pdg_f4)
+    class(muli_t), intent(inout) :: this
+    integer, intent(in) :: n1, n2
+    real(kind=default), intent(out) :: x_proton_1, x_proton_2
+    integer, intent(out) :: pdg_f1, pdg_f2, pdg_f3, pdg_f4
+    integer, dimension(4) :: pdg_f
+    call this%generate_color_flows ()
+    pdg_f = 0
+    pdg_f1 = 0
+    pdg_f2 = 0
+    pdg_f3 = 0
+    pdg_f4 = 0
+  end subroutine muli_generate_partons
+
+@  %def muli_generate_partons
+@
+<<Muli: muli: TBP>>=
+  procedure :: generate_color_flows => muli_generate_color_flows
+<<Muli: procedures>>=
+  subroutine muli_generate_color_flows (this)
+    class(muli_t), intent(inout) :: this
+    integer, dimension(4) :: flow
+  end subroutine muli_generate_color_flows
+
+@ %def muli_generate_color_flows
+@
+<<Muli: muli: TBP>>=
+  procedure :: get_color_flow => muli_get_color_flow
+<<Muli: procedures>>=
+  pure function muli_get_color_flow (this) result (flow)
+    class(muli_t), intent(in) :: this
+    integer, dimension(4) :: flow
+    flow = this%flow
+  end function muli_get_color_flow
+
+@ %def muli_get_color_flow
+@
+<<Muli: muli: TBP>>=
+  procedure :: get_color_correlations => muli_get_color_correlations
+<<Muli: procedures>>=
+  subroutine muli_get_color_correlations &
+       (this, start_index, final_index, flow)
+    class(muli_t), intent(in) :: this
+    integer, intent(in) :: start_index
+    integer, intent(out) :: final_index
+    integer, dimension(2,4), intent(out) :: flow
+    integer :: pos, f_end, f_beginning
+    final_index = start_index
+    flow = reshape([0,0,0,0,0,0,0,0],[2,4])
+  end subroutine muli_get_color_correlations
+
+@ %def muli_get_color_correlations
+@
+<<Muli: muli: TBP>>=
+  procedure :: replace_parton => muli_replace_parton
+<<Muli: procedures>>=
+  subroutine muli_replace_parton &
+       (this, proton_id, old_id, new_id, pdg_f, x_proton, gev_scale)
+    class(muli_t), intent(inout) :: this
+    integer, intent(in) :: proton_id, old_id, new_id, pdg_f
+    real(kind=default), intent(in) :: x_proton, gev_scale
+  end subroutine muli_replace_parton
+
+@ %def muli_replace_parton
+@
+<<Muli: muli: TBP>>=
+  procedure :: generate_next_scale => muli_generate_next_scale
+<<Muli: procedures>>=
+  subroutine muli_generate_next_scale (this, integrand_kind)
+    class(muli_t), intent(inout) :: this
+    integer, intent(in), optional :: integrand_kind
+  end subroutine muli_generate_next_scale
+
+@ %def muli_generate_next_scale
+@

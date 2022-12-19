@@ -1,0 +1,29 @@
+# SINDARIN input for WHIZARD self-test
+# Compare results from $integration_method = "vamp" and "vamp2"
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+error_threshold = 1E-5
+
+$method = "unit_test"
+process testproc_11_p1 = s, s => s, s
+process testproc_11_p2 = s, s => s, s
+
+compile ()
+
+$phs_method = "wood"
+sqrts = 1000
+iterations = 1:1000
+
+seed = 0
+$integration_method = "vamp"
+integrate (testproc_11_p1)
+
+$integration_method = "vamp2"
+integrate (testproc_11_p2)
+
+expect (integral(testproc_11_p1) == integral(testproc_11_p2)) { tolerance = 0.0001 }

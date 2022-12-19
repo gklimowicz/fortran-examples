@@ -1,0 +1,58 @@
+* Test output: process_libraries_5
+* Purpose: build a process library with an external (pseudo) matrix element
+
+* Initialize a process library with one entry
+
+* Configure library
+
+* Compute MD5 sum
+
+* Write makefile
+
+* Write driver source code
+
+* Write process source code
+
+* Compile
+
+* Link
+
+ Process library: proclibs5
+   external        = T
+   makefile exists = T
+   driver exists   = T
+   code status     = l
+
+ Process library entries: 1
+ Entry #1: [l] proclibs5_a.1 = ext:1 (test_file)
+
+ External matrix-element code library: proclibs5
+   static    = F
+   loaded    = F
+   MD5 sum   = 'F91FB16D062F621B1D819C4D4E453492'
+
+ DL access info:
+   is open   = F
+   error     = [none]
+
+ Matrix-element code entries:
+   proclibs5_a_i1  [Test_Model]
+     test_4: proc1
+
+ Process #1:
+ ID = 'proclibs5_a'
+ Decay
+ Model = Test_Model
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = 'B7EBAFFD98A3BCC760A64CA1E20D5D33'
+ Component #1
+   Component ID        = proclibs5_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test_file
+   MD5 sum (def)       = '9A117C5001BDE5482CA77D187A043D52'
+
+* Test output end: process_libraries_5

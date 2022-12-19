@@ -1,0 +1,48 @@
+* Test output: event_streams_4
+*   Purpose: handle in/out switching
+
+* Generate test process event
+
+* Allocate raw eio stream for writing
+
+ Event stream array:
+ Raw event stream:
+   Check MD5 sum     = T
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Writing to file   = event_streams_4.evx
+
+* Reallocate raw eio stream for reading
+
+ Event stream array:
+ Input stream:
+ Raw event stream:
+   Check MD5 sum     = T
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Reading from file = event_streams_4.evx
+
+* Reallocate modified raw eio stream for reading (fail)
+
+ Event stream array:
+ Raw event stream:
+   Check MD5 sum     = T
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Writing to file   = event_streams_4.evx
+
+* Repeat ignoring checksum
+
+ Event stream array:
+ Input stream:
+ Raw event stream:
+   Check MD5 sum     = F
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Reading from file = event_streams_4.evx
+
+* Test output end: event_streams_4

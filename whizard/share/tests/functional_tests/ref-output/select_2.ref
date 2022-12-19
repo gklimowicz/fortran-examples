@@ -1,0 +1,147 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+| Process library 'select_2_lib': recorded process 'select_2_p'
+| Process library 'select_2_lib': recorded process 'select_2_d'
+sqrts =  1.000000000000E+03
+| Integrate: current process library needs compilation
+| Process library 'select_2_lib': compiling ...
+| Process library 'select_2_lib': writing makefile
+| Process library 'select_2_lib': removing old files
+| Process library 'select_2_lib': writing driver
+| Process library 'select_2_lib': creating source code
+| Process library 'select_2_lib': compiling sources
+| Process library 'select_2_lib': linking
+| Process library 'select_2_lib': loading
+| Process library 'select_2_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process select_2_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'select_2_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'select_2_p'
+|   Library name  = 'select_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'select_2_p_i1':   e-, e+ => W+, W- [omega]
+| ------------------------------------------------------------------------
+| Phase space: 3 channels, 2 dimensions
+| Phase space: found 3 channels, collected in 2 groves.
+| Phase space: Using 3 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'select_2_p'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 3 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        864  2.7213322E+03  1.94E+01    0.71    0.21*  28.91
+|-----------------------------------------------------------------------------|
+   1        864  2.7213322E+03  1.94E+01    0.71    0.21   28.91
+|=============================================================================|
+?allow_decays = true
+n_events = 20
+?unweighted = false
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process select_2_d:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   W+  (mass = 8.0419000E+01 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'select_2_d.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'select_2_d'
+|   Library name  = 'select_2_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'select_2_d_i1':   W+ => u, dbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'select_2_d'
+| Integrate: iterations not specified, using default
+| Integrate: iterations = 1:100:""
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  6.8269218E-01  0.00E+00    0.00    0.00* 100.00
+|-----------------------------------------------------------------------------|
+   1        100  6.8269218E-01  0.00E+00    0.00    0.00  100.00
+|=============================================================================|
+| Unstable particle W+: computed branching ratios:
+|   select_2_d: 1.0000000E+00   u, dbar
+|   Total width = 6.8269218E-01 GeV (computed)
+|               = 2.0490000E+00 GeV (preset)
+|   Decay options: helicity treated exactly
+$sample = "select_2a"
+| Starting simulation for process 'select_2_p'
+| Simulate: using integration grids from file 'select_2_p.m1.vg'
+| Simulate: activating decays
+| Simulate: using integration grids from file 'select_2_d.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Events: writing to raw file 'select_2a.evx'
+| Events: generating 20 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing raw file 'select_2a.evx'
+decay_helicity = 0
+| Unstable particle W+: computed branching ratios:
+|   select_2_d: 1.0000000E+00   u, dbar
+|   Total width = 6.8269218E-01 GeV (computed)
+|               = 2.0490000E+00 GeV (preset)
+|   Decay options: projection onto helicity = 0
+$sample = "select_2b"
+| Starting simulation for process 'select_2_p'
+| Simulate: using integration grids from file 'select_2_p.m1.vg'
+| Simulate: activating decays
+| Simulate: using integration grids from file 'select_2_d.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Events: writing to raw file 'select_2b.evx'
+| Events: generating 20 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing raw file 'select_2b.evx'
+$out_file = "select_2.dat"
+| Opening file 'select_2.dat' for output
+| Writing analysis data to file 'select_2.dat'
+| Closing file 'select_2.dat' for output
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of select_2.dat:
+###############################################################################
+# Observable: ct_a
+average     = -5.3291241247XXE-01
+error[abs]  =  7.8610069974XXE-02
+error[rel]  =  1.4751030025XXE-01
+n_entries   = 20
+###############################################################################
+# Observable: ct_b
+average     = -9.2692574305XXE-02
+error[abs]  =  1.0355940317XXE-01
+error[rel]  =  1.1172351609XXE+00
+n_entries   = 20

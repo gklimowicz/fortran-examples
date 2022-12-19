@@ -1,0 +1,105 @@
+* Test output: subevt_expr_2
+*   Purpose: Set up a subevt and associated process-specific expressions
+
+* Expression texts
+
+selection = all Pt > 100 [s]
+reweight = n_tot - n_in - n_out
+analysis = true
+
+* Initialize process expr
+
+------------------------------------------------------------------------
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.000000000000E+03
+sqrts_hat* => [unknown real]
+n_in* => [unknown integer]
+n_out* => [unknown integer]
+n_tot* => [unknown integer]
+$process_id* => [unknown string]
+process_num_id* => [unknown integer]
+sqme* => [unknown real]
+sqme_ref* => [unknown real]
+event_index* => [unknown integer]
+event_weight* => [unknown real]
+event_weight_ref* => [unknown real]
+event_excess* => [unknown real]
+[user variable] tolerance =  0.000000000000E+00
+@evt* => [unknown subevent]
+------------------------------------------------------------------------
+ subevt: [undefined]
+------------------------------------------------------------------------
+
+* Fill subevt and evaluate expressions
+
+Event has passed      = T
+Reweighting factor    =  0.00000E+00
+Analysis flag         = T
+
+------------------------------------------------------------------------
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.000000000000E+03
+sqrts_hat* =>  8.000000000000E+02
+n_in* => 2
+n_out* => 2
+n_tot* => 4
+$process_id* => [unknown string]
+process_num_id* => [unknown integer]
+sqme* => [unknown real]
+sqme_ref* => [unknown real]
+event_index* => [unknown integer]
+event_weight* => [unknown real]
+event_weight_ref* => [unknown real]
+event_excess* => [unknown real]
+[user variable] tolerance =  0.000000000000E+00
+@evt* =>  subevent:
+        1 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.8412292E+02| 1.562500000000E+04| 1)
+        2 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.8412292E+02| 1.562500000000E+04| 2)
+        3 prt(i:25|-4.0000000E+02; 0.0000000E+00, 0.0000000E+00,-3.7996710E+02| 1.562500000000E+04| 3)
+        4 prt(i:25|-4.0000000E+02; 0.0000000E+00, 0.0000000E+00, 3.7996710E+02| 1.562500000000E+04| 4)
+        5 prt(o:25| 4.0000000E+02; 3.7996710E+02, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 5)
+        6 prt(o:25| 4.0000000E+02;-3.7996710E+02, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 6)
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.8412292E+02| 1.562500000000E+04| 1)
+ 2 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.8412292E+02| 1.562500000000E+04| 2)
+ 3 prt(i:25|-4.0000000E+02; 0.0000000E+00, 0.0000000E+00,-3.7996710E+02| 1.562500000000E+04| 3)
+ 4 prt(i:25|-4.0000000E+02; 0.0000000E+00, 0.0000000E+00, 3.7996710E+02| 1.562500000000E+04| 4)
+ 5 prt(o:25| 4.0000000E+02; 3.7996710E+02, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 5)
+ 6 prt(o:25| 4.0000000E+02;-3.7996710E+02, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 6)
+------------------------------------------------------------------------
+ Selection expression:
+------------------------------------------------------------------------
+ Evaluation tree:
+o [all] = true
+|  o [>] = true
+|  |  o Pt =  3.799671038393E+02
+|  |        prt1 = prt(o:25| 4.0000000E+02;-3.7996710E+02, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 6)
+|  |  o [const] = 100
+|  o [prt_selection] = subevent:
+|  |   1 prt(o:25| 4.0000000E+02; 3.7996710E+02, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 5)
+|  |   2 prt(o:25| 4.0000000E+02;-3.7996710E+02, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 6)
+|  |  o [const] = 2
+|  |  o s => PDG(25)
+|  |  o @evt => [event subevent]
+------------------------------------------------------------------------
+ Reweighting expression:
+------------------------------------------------------------------------
+ Evaluation tree:
+o [-] = 0
+|  o [-] = 2
+|  |  o n_tot => 4
+|  |  o n_in => 2
+|  o n_out => 2
+------------------------------------------------------------------------
+ Analysis expression:
+------------------------------------------------------------------------
+ Evaluation tree:
+o [const] = true
+------------------------------------------------------------------------
+
+* Cleanup
+
+* Test output end: subevt_expr_2

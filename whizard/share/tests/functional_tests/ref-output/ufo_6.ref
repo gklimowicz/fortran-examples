@@ -1,0 +1,83 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+| Switching to model 'ufo_6_MSSM' (generated from UFO source)
+seed = 0
+?resonance_history = true
+resonance_on_shell_limit =  4.000000000000E+00
+phs_off_shell = 1
+phs_t_channel = 2
+| Process library 'ufo_6_lib': recorded process 'ufo_6_nn'
+sqrts =  5.000000000000E+02
+openmp_num_threads = 1
+| Integrate: current process library needs compilation
+| Process library 'ufo_6_lib': compiling ...
+| Process library 'ufo_6_lib': writing makefile
+| Process library 'ufo_6_lib': removing old files
+| Process library 'ufo_6_lib': writing driver
+| Process library 'ufo_6_lib': creating source code
+| Process library 'ufo_6_lib': compiling sources
+| Process library 'ufo_6_lib': linking
+| Process library 'ufo_6_lib': loading
+| Process library 'ufo_6_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process ufo_6_nn:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'ufo_6_nn.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'ufo_6_nn'
+|   Library name  = 'ufo_6_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'ufo_6_nn_i1':   e-, e+ => n1, n1 [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 18 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'ufo_6_nn'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 5 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  2.6886277E+02  6.74E-01    0.25    0.08*  83.22
+|-----------------------------------------------------------------------------|
+   1       1000  2.6886277E+02  6.74E-01    0.25    0.08   83.22
+|=============================================================================|
+| Restoring model 'ufo_6_MSSM'
+n_events = 1
+| Starting simulation for process 'ufo_6_nn'
+| Simulate: using integration grids from file 'ufo_6_nn.m1.vg'
+| Creating library for resonant subprocesses 'ufo_6_nn_R'
+| Process library 'ufo_6_nn_R': initialized
+| Process library 'ufo_6_nn_R': compiling ...
+| Process library 'ufo_6_nn_R': ... success.
+| Simulate: activating resonance insertion
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   3.7194E-03
+| Events: writing to LHEF file 'ufo_6_nn.lhe'
+| Events: writing to raw file 'ufo_6_nn.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing LHEF file 'ufo_6_nn.lhe'
+| Events: closing raw file 'ufo_6_nn.evx'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

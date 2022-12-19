@@ -1,0 +1,22 @@
+########################################################################
+# Test model for Scheme-dependent parameter configuration
+model "Test_schemes"
+schemes = "std", "alt", "three"
+
+# Independent parameters
+select scheme
+scheme "std", "three"
+  parameter  a = 1
+  derived    b = 2 * a
+scheme "alt"
+  parameter  b = 3
+  derived    a = b / 3
+end select
+
+select scheme
+scheme "three"
+  derived  c = a + b
+scheme other
+  unused   c
+end select
+

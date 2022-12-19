@@ -1,0 +1,85 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+model = SM
+
+process mlm_matching_fsr_eeuu = e1, E1 => u, U
+alias j = u:d:U:D:g
+
+compile
+
+seed = 0
+
+!!! Avoiding numerical noise
+me = 1 GeV
+
+sqrts = 91 GeV
+beams = e1, E1
+
+?allow_shower = true
+?ps_fsr_active = true
+$shower_method = "WHIZARD"
+
+ps_max_n_flavors = 5
+ps_mass_cutoff = 1
+ps_fsr_lambda = 0.29
+
+?mlm_matching = false
+
+cuts = all M > 80 GeV [combine [u,U]]
+       and all M < 100 GeV [combine [u,U]]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (mlm_matching_fsr_eeuu) { iterations = 2:5000 }
+
+n_events = 1
+
+?rebuild_events = true
+$sample = "mlm_matching_fsr_1"
+?sample_pacify = true
+sample_format = ascii
+
+simulate (mlm_matching_fsr_eeuu)
+
+show (results)
+
+ms = 0
+mc = 0
+
+sqrts = 91 GeV
+beams = e1, E1
+
+?ps_fsr_active = true
+$shower_method = "WHIZARD"
+
+ps_max_n_flavors = 5
+ps_mass_cutoff = 1
+ps_fsr_lambda = 0.29
+
+?mlm_matching = true
+mlm_nmaxMEjets = 2
+mlm_Rmin = 1
+mlm_ETclusminE = 10 GeV
+real ycut = mlm_ETclusminE**2
+
+cuts = all kT > ycut [j, j]
+
+integrate (mlm_matching_fsr_eeuu) { iterations = 2:5000 }
+
+n_events = 1
+
+?rebuild_events=true
+$sample = "mlm_matching_fsr_2"
+?sample_pacify = true
+sample_format = ascii
+
+simulate (mlm_matching_fsr_eeuu)
+
+show (results)

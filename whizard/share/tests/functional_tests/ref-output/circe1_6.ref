@@ -1,0 +1,125 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$method = "omega"
+| Process library 'circe1_6_lib': recorded process 'circe1_6_p2'
+| Process library 'circe1_6_lib': recorded process 'circe1_6_p3'
+| Process library 'circe1_6_lib': compiling ...
+| Process library 'circe1_6_lib': writing makefile
+| Process library 'circe1_6_lib': removing old files
+| Process library 'circe1_6_lib': writing driver
+| Process library 'circe1_6_lib': creating source code
+| Process library 'circe1_6_lib': compiling sources
+| Process library 'circe1_6_lib': linking
+| Process library 'circe1_6_lib': loading
+| Process library 'circe1_6_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  5.00000E+02
+openmp_num_threads = 1
+[user variable] n = 1000
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process circe1_6_p2:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'circe1_6_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'circe1_6_p2'
+|   Library name  = 'circe1_6_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'circe1_6_p2_i1':   e-, e+ => Z [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 0 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'circe1_6_p2'
+| Integrate: iterations = 1:1000:"g", 3:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     1.234E+04   1.01E+01    0.08    0.02    83.8
+|-----------------------------------------------------------------------------|
+   1        800     1.234E+04   1.01E+01    0.08    0.02    83.8
+|-----------------------------------------------------------------------------|
+   2        800     1.235E+04   9.13E+00    0.07    0.02    83.9
+   3        800     1.235E+04   1.26E+01    0.10    0.03    83.1
+   4        800     1.236E+04   1.21E+01    0.10    0.03    83.2
+|-----------------------------------------------------------------------------|
+   4       2400     1.235E+04   6.31E+00    0.05    0.03    83.2    0.40   3
+|=============================================================================|
+$circe1_acc = "TESLA"
+circe1_chat = 2
+circe1_eps =  1.00000E-05
+?circe1_generate = false
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process circe1_6_p3:
+| Beam structure: e-, e+ => circe1 => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'circe1_6_p3.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'circe1_6_p3'
+|   Library name  = 'circe1_6_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'circe1_6_p3_i1':   e-, e+ => Z [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 0 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: circe1 => isr, none => none, isr
+| Beam structure: 1 channels, 4 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'circe1_6_p3'
+| Integrate: iterations = 8:1000:"gw", 3:1000
+| Integrator: 1 chains, 1 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.167E+04   3.65E+03   31.31    9.90     0.4
+   2       1000     1.666E+04   3.66E+03   21.95    6.94     0.6
+   3       1000     1.444E+04   1.51E+03   10.45    3.31     1.3
+   4       1000     1.229E+04   1.02E+03    8.28    2.62     2.0
+   5       1000     1.378E+04   8.11E+02    5.89    1.86     3.7
+   6       1000     1.298E+04   7.71E+02    5.94    1.88     2.7
+   7       1000     1.326E+04   7.10E+02    5.36    1.69     3.8
+   8       1000     1.301E+04   5.06E+02    3.89    1.23     8.8
+|-----------------------------------------------------------------------------|
+   8       8000     1.317E+04   3.07E+02    2.33    2.08     8.8    0.47   8
+|-----------------------------------------------------------------------------|
+   9       1000     1.289E+04   5.06E+02    3.93    1.24     8.7
+  10       1000     1.240E+04   4.69E+02    3.78    1.20     8.4
+  11       1000     1.286E+04   4.99E+02    3.88    1.23     8.7
+|-----------------------------------------------------------------------------|
+  11       3000     1.270E+04   2.83E+02    2.23    1.22     8.7    0.32   3
+|=============================================================================|
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

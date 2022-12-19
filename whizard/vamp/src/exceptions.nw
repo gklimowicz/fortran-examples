@@ -1,0 +1,144 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP exceptions code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Errors and Exceptions}
+\label{sec:exceptions}
+Fortran95 does not allow \emph{any} I/O in [[pure]] and [[elemental]]
+procedures, not even output to the unit~[[*]].  A [[stop]] statement
+is verboten as well.  Therefore we have to use condition codes
+<<[[exceptions.f90]]>>=
+! exceptions.f90 --
+<<Copyleft notice>>
+module exceptions
+  use kinds
+  implicit none
+  private
+  <<Declaration of [[exceptions]] procedures>>
+  <<Interfaces of [[exceptions]] procedures>>
+  <<Variables in [[exceptions]]>>
+  <<Declaration of [[exceptions]] types>>
+contains
+  <<Implementation of [[exceptions]] procedures>>
+end module exceptions
+@ %def exceptions
+@
+<<Declaration of [[exceptions]] types>>=
+type, public :: exception
+   integer :: level = EXC_NONE
+   character(len=NAME_LENGTH) :: message = ""
+   character(len=NAME_LENGTH) :: origin = ""
+end type exception
+@ %def exception
+@ 
+<<Variables in [[exceptions]]>>=
+integer, public, parameter :: &
+     EXC_NONE = 0, &
+     EXC_INFO = 1, &
+     EXC_WARN = 2, &
+     EXC_ERROR = 3, &
+     EXC_FATAL = 4
+@ %def EXC_NONE EXC_INFO EXC_WARN EXC_ERROR EXC_FATAL
+@ 
+<<Variables in [[exceptions]]>>=
+integer, private, parameter :: EXC_DEFAULT = EXC_ERROR
+integer, private, parameter :: NAME_LENGTH = 64
+@ %def EXC_DEFAULT NAME_LENGTH
+@
+<<Declaration of [[exceptions]] procedures>>=
+public :: handle_exception
+@
+<<Implementation of [[exceptions]] procedures>>=
+subroutine handle_exception (exc)
+  type(exception), intent(inout) :: exc
+  character(len=10) :: name
+  if (exc%level > 0) then
+     select case (exc%level)
+        case (EXC_NONE)
+           name = "(none)"
+        case (EXC_INFO)
+           name = "info"
+        case (EXC_WARN)
+           name = "warning"
+        case (EXC_ERROR)
+           name = "error"
+        case (EXC_FATAL)
+           name = "fatal"
+        case default
+           name = "invalid"
+     end select
+     print *, trim (exc%origin), ": ", trim(name), ": ", trim (exc%message)
+     if (exc%level >= EXC_FATAL) then
+        print *, "terminated."
+        stop
+     end if
+  end if
+end subroutine handle_exception
+@ %def handle_exception
+@
+<<Declaration of [[exceptions]] procedures>>=
+public :: raise_exception, clear_exception, gather_exceptions
+@ Raise an exception, but don't overwrite the messages in [[exc]] if
+it holds a more severe exception.  This way we can accumulate error
+codes across procedure calls.  We have [[exc]] optional to simplify
+life for the cslling procedures, which might have it optional
+themselves.
+<<Implementation of [[exceptions]] procedures>>=
+elemental subroutine raise_exception (exc, level, origin, message)
+  type(exception), intent(inout), optional :: exc
+  integer, intent(in), optional :: level
+  character(len=*), intent(in), optional :: origin, message
+  integer :: local_level
+  if (present (exc)) then
+     if (present (level)) then
+        local_level = level
+     else
+        local_level = EXC_DEFAULT
+     end if
+     if (exc%level < local_level) then
+        exc%level = local_level
+        if (present (origin)) then
+           exc%origin = origin
+        else
+           exc%origin = "[vamp]"
+        end if
+        if (present (message)) then
+           exc%message = message
+        else
+           exc%message = "[vamp]"
+        end if
+     end if
+  end if
+end subroutine raise_exception
+@ %def raise_exception
+@
+<<Implementation of [[exceptions]] procedures>>=
+elemental subroutine clear_exception (exc)
+  type(exception), intent(inout) :: exc
+  exc%level = 0
+  exc%message = ""
+  exc%origin = ""
+end subroutine clear_exception
+@ %def clear_exception
+@
+<<Implementation of [[exceptions]] procedures>>=
+pure subroutine gather_exceptions (exc, excs)
+  type(exception), intent(inout) :: exc
+  type(exception), dimension(:), intent(in) :: excs
+  integer :: i
+  i = sum (maxloc (excs%level))
+  if (exc%level < excs(i)%level) then
+     call raise_exception (exc, excs(i)%level, excs(i)%origin, &
+                           excs(i)%message)
+  end if
+end subroutine gather_exceptions
+@ %def gather_exceptions
+@ Here's how to use [[gather_exceptions]].  [[elemental_procedure]]
+<<Idioms>>=
+call clear_exception (excs)
+call elemental_procedure_1 (y, x, excs)
+call elemental_procedure_2 (b, a, excs)
+if (any (excs%level > 0)) then
+   call gather_exceptions (exc, excs)
+   return
+end if
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

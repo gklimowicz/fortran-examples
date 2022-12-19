@@ -1,0 +1,30 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$method = "omega"
+
+process beam_events_4_p1 = e1, E1 => e2, E2
+process beam_events_4_p2 = e1, E1 => e3, E3
+
+sqrts = 500 GeV
+
+beams = e1, E1 => beam_events 
+$beam_events_file = "uniform_spread_2.5%.dat"
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+seed = 0
+
+integrate(beam_events_4_p1) {iterations = 1:1000}
+integrate(beam_events_4_p2) {iterations = 1:1000}
+
+n_events = 10
+simulate (beam_events_4_p1, beam_events_4_p2)

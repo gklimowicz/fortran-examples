@@ -1,0 +1,134 @@
+* Test output: mci_vamp_6
+*   Purpose: integrate function in one dimension (two channels)
+*            and adapt weights
+
+* Initialize integrator, sampler, instance
+
+ Two-channel test sampler 3
+   a =  0.90
+   b =  0.10
+
+* Integrate with n_it = 3 and n_calls = 1000
+
+ VAMP integrator:
+   Integral             =  9.9900035217E-01
+   Error                =  3.1422731077E-03
+   Efficiency           =  8.5249627461E-01
+   Number of channels   = 2
+   Number of dimensions = 1
+ Grid parameters:
+   threshold_calls       = 0
+   min_calls_per_channel = 10
+   min_calls_per_bin     = 10
+   min_bins              = 3
+   max_bins              = 20
+   stratified            = F
+   use_vamp_equivalences = F
+   channel_weights_power =  0.2500000
+   min_calls             = 20
+   negative weights      = F
+   verbose               = F
+ Integration pass:
+   n_it          = 3
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = F
+   adapt weights = T
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  1.0177061925E+00  6.8751470140E-03  5.6613058481E-01
+     2 999 999  9.9606993307E-01  4.5105166991E-03  7.6079094764E-01
+     3 998 998  9.9900035217E-01  3.1422731077E-03  8.5249627461E-01
+ MD5 sum (including results) = '54A4E02FEC41FF52C85D6FF0FF97C412'
+
+* Contents of mci_instance:
+
+   Integrand =  1.922451184345E-01
+   Weight    =  2.236759812068E+00
+   adapt grids   = F
+   adapt weights = T
+   VAMP grids: defined
+   n_it          = 3
+   it            = 3
+   pass complete = T
+   n_calls       = 1000
+   calls         = 998
+   calls_valid   = 998
+   it complete   = T
+   n adapt.(g)   = 0
+   n adapt.(w)   = 2
+   gen. events   = F
+   neg. weights  = F
+   integral =  9.9900035217E-01
+   error    =  3.1422731077E-03
+   eff.     =  8.5249627461E-01
+   weights:
+     1  7.58062E-01
+     2  2.41938E-01
+
+* Cleanup
+
+* Re-initialize with chained channels
+
+* Integrate with n_it = 3 and n_calls = 1000
+
+ VAMP integrator:
+   Integral             =  9.9192591793E-01
+   Error                =  6.9449035134E-03
+   Efficiency           =  5.5271493712E-01
+   Number of channels   = 2
+   Number of dimensions = 1
+   Number of chains     = 1
+   Chains:
+     1: 1 2
+ Grid parameters:
+   threshold_calls       = 0
+   min_calls_per_channel = 10
+   min_calls_per_bin     = 10
+   min_bins              = 3
+   max_bins              = 20
+   stratified            = F
+   use_vamp_equivalences = F
+   channel_weights_power =  0.2500000
+   min_calls             = 20
+   negative weights      = F
+   verbose               = F
+ Integration pass:
+   n_it          = 3
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = F
+   adapt weights = T
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  1.0177061925E+00  6.8751470140E-03  5.6613058481E-01
+     2 1000 1000  9.9837452897E-01  7.5171713359E-03  5.5477954562E-01
+     3 1000 1000  9.9192591793E-01  6.9449035134E-03  5.5271493712E-01
+ MD5 sum (including results) = '431249C8A79F9F23E666F02D8898D809'
+
+* Contents of mci_instance:
+
+   Integrand =  2.069962212715E-01
+   Weight    =  1.000897217658E+00
+   adapt grids   = F
+   adapt weights = T
+   VAMP grids: defined
+   n_it          = 3
+   it            = 3
+   pass complete = T
+   n_calls       = 1000
+   calls         = 1000
+   calls_valid   = 1000
+   it complete   = T
+   n adapt.(g)   = 0
+   n adapt.(w)   = 2
+   gen. events   = F
+   neg. weights  = F
+   integral =  9.9192591793E-01
+   error    =  6.9449035134E-03
+   eff.     =  5.5271493712E-01
+   weights:
+     1  5.00000E-01
+     2  5.00000E-01
+
+* Cleanup
+
+* Test output end: mci_vamp_6

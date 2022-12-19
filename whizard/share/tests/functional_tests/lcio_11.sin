@@ -1,0 +1,28 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+
+seed = 0
+
+process lcio_11_p = e1, E1 => e2, E2 { process_num_id = 25 }
+
+sqrts = 1000
+
+iterations = 1:100
+integrate (lcio_11_p)
+
+lcio_run_id = 27
+
+?proc_as_run_id = false
+
+event_index_offset = 345
+
+n_events = 2
+sample_format = lcio
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+simulate (lcio_11_p)

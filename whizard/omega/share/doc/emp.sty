@@ -1,0 +1,239 @@
+%%
+%% This is file `emp.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% emp.dtx  (with options: `style')
+%% 
+%% Copyright (C) 1997-1999 Thorsten Ohl <ohl@hep.tu-darmstadt.de>
+%% 
+%% This file is NOT the source for emp, because almost all comments
+%% have been stripped from it.  It is NOT the preferred form of emp
+%% for making modifications to it.
+%% 
+%% Therefore you can NOT redistribute and/or modify THIS file.  You can
+%% however redistribute the complete source (emp.dtx and emp.ins)
+%% and/or modify it under the terms of the GNU General Public License as
+%% published by  the Free Software Foundation; either version 2, or (at
+%% your option) any later version.
+%% 
+%% As a special exception, you can redistribute parts of this file for
+%% the electronic distribution of scientific papers, provided that you
+%% include a short note pointing to the complete source.
+%% 
+%% Emp is distributed in the hope that it will be useful, but
+%% WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program; if not, write to the Free Software
+%% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \CheckSum{353}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fileversion{v1.02}
+\NeedsTeXFormat{LaTeX2e}
+{\def\RCS#1#2\endRCS{%
+  \ifx$#1%
+    \@RCS $#2 \endRCS
+  \else
+    \@RCS $*: #1#2$ \endRCS
+  \fi}%
+ \def\@RCS $#1: #2,v #3 #4 #5 #6 #7$ \endRCS{%
+   \gdef\filename{#2}%
+   \gdef\filerevision{#3}%
+   \gdef\filedate{#4}%
+   \gdef\filemaintainer{#6}}%
+\RCS $Id: emp.dtx,v 1.16 1999/11/12 10:43:19 ohl Exp $ \endRCS}%
+\ProvidesPackage{emp}[\filedate\space\fileversion\space
+  Encapsulated MetaPost LaTeX Package (\filemaintainer)]
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{graphics}}
+\ProcessOptions
+\RequirePackage{graphics}[1994/12/15]
+\RequirePackage{verbatim}
+{\catcode`\%=11\gdef\p@rcent{%}}
+\def\empwrite#1{%
+  \if@empio
+    \immediate\write\@outemp{#1}%
+  \fi
+  \ignorespaces}
+\newif\if@empio
+\@empiotrue
+\newwrite\@outemp
+\def\empcmd#1{%
+  \empbuf@={#1}%
+  \empwrite{\the\empbuf@}}
+\newtoks\empbuf@
+\newcommand{\empfile}[1][\jobname]{%
+  \def\theempfile{#1}%
+  \if@empio
+    \@ifundefined{ifmeasuring@}%
+      {}%
+      {\def\if@empio{\ifmeasuring@\else}}%
+    \immediate\openout\@outemp=\theempfile.mp\relax
+    \empwrite{\p@rcent\p@rcent\p@rcent\space \theempfile.mp -- %
+              do not edit, generated automatically by \jobname.tex}%
+    \expandafter\ifx\expandafter*\the\emp@TeX*\else
+      \emp@TeX=\expandafter{\the\emp@TeX^^J\begin{document}}%
+      \empwrite{verbatimtex^^J\the\emp@TeX^^Jetex;}%
+    \fi
+    \expandafter\ifx\expandafter*\the\emp@prelude*\else
+      \empwrite{\the\emp@prelude;}%
+    \fi
+  \fi
+  \setcounter{empfig}{0}}
+\let\theempfile\relax
+\newcounter{empfig}
+\newtoks\emp@TeX
+\newtoks\emp@prelude
+\@ifundefined{@ptsize}%
+  {\emp@TeX={\documentclass{article}}}%
+  {\ifcase\@ptsize
+     \emp@TeX={\documentclass[10pt]{article}}%
+   \or
+     \emp@TeX={\documentclass[11pt]{article}}%
+   \or
+     \emp@TeX={\documentclass[12pt]{article}}%
+   \else
+     \emp@TeX={\documentclass{article}}%
+   \fi}
+\def\empTeX#1{\emp@TeX={#1}}
+\def\empaddtoTeX#1{\emp@TeX=\expandafter{\the\emp@TeX^^J#1}}
+\def\empprelude#1{\emp@prelude={#1}}
+\def\empaddtoprelude#1{\emp@prelude=\expandafter{\the\emp@prelude^^J#1}}
+\def\endempfile{%
+  \expandafter\ifx\expandafter*\the\emp@TeX*\else
+    \empwrite{verbatimtex^^J\string\end{document}^^Jetex;}%
+  \fi
+  \empwrite{\p@rcent\p@rcent\p@rcent\space the end.^^J%
+            end.^^J%
+            endinput;}%
+  \let\theempfile\relax
+  \if@empio
+    \immediate\closeout\@outemp
+  \fi}
+\newcommand{\emp}[1][*]{%
+  \def\emp@@name{#1}%
+  \emp@}
+\newcommand{\empx}[1][*]{%
+  \def\emp@@name{#1}%
+  \empx@}
+\def\emp@(#1,#2){%
+  \emp@start{#1}{#2}%
+  \emp@includegraphics{\theempfile}{\theempfig}%
+  \empcmds}
+\def\empx@(#1,#2){%
+  \emp@start{#1}{#2}%
+  \emp@includegraphics{\theempfile}{\theempfig}%
+  \begingroup
+    \@bsphack}
+\def\emp@start#1#2{%
+  \emp@checkfile
+  \global\expandafter\advance\csname c@empfig\endcsname \@ne
+  \emp@@def{\emp@@name}%
+  \empwrite{beginfig(\theempfig);^^J%
+                     LaTeX_unitlength := \the\unitlength;^^J%
+                     w := #1*LaTeX_unitlength;^^J%
+                     h := #2*LaTeX_unitlength;}}
+\def\emp@checkfile{%
+  \ifx\theempfile\relax
+    \errhelp={Outside a empfile environment, I have no clue as to where^^J%
+              the MetaPost commands should go.   I will use empdefault.mp^^J%
+              for this graph, but you'd better fix your code!}%
+    \errmessage{I detected a emp environment outside of empfile}%
+    \empfile[empdefault]
+  \fi}
+\def\emp@includegraphics#1#2{%
+  \leavevmode
+  \IfFileExists{#1.#2}%
+    {\includegraphics{#1.#2}}%
+    {\typeout{%
+      emp: File #1.#2\space not found:^^J%
+      emp: Process #1.mp with MetaPost and then %
+           reprocess this file.}}}
+\def\empcmds{%
+  \begingroup
+    \@bsphack
+    \let\do\@makeother\dospecials
+    \catcode`\^^M\active
+    \def\verbatim@processline{\empwrite{\the\verbatim@line}}%
+    \verbatim@start}%
+\def\endempcmds{%
+    \@esphack
+  \endgroup}
+\def\endemp{%
+  \endempcmds
+  \empwrite{endfig;}}
+\def\endempx{%
+    \@esphack
+  \endgroup
+  \empwrite{endfig;}}
+\newcommand{\empdef}[1][\relax]{%
+  \def\emp@@name{#1}%
+  \emp@def}
+\newcommand{\empxdef}[1][\relax]{%
+  \def\emp@@name{#1}%
+  \empx@def}
+\def\emp@def(#1,#2){%
+  \emp@start{#1}{#2}%
+  \empcmds}
+\def\empx@def(#1,#2){%
+  \emp@start{#1}{#2}%
+  \begingroup
+    \@bsphack}
+\def\endempdef{\endemp}
+\def\endempdef{\endempx}
+\def\emp@@def#1{%
+  \global\e@namedef{emp@k:f:#1}{\theempfile}%
+  \global\e@namedef{emp@k:c:#1}{\theempfig}}
+\def\e@namedef#1{\expandafter\edef\csname #1\endcsname}
+\newcommand{\empgraph}[1][*]{%
+  \def\emp@@name{#1}%
+  \emp@graph}
+\newcommand{\empxgraph}[1][*]{%
+  \def\emp@@name{#1}%
+  \empx@graph}
+\def\emp@graph(#1,#2){%
+  \emp@start{#1}{#2}%
+  \empwrite{draw begingraph (w, h);}%
+  \emp@includegraphics{\theempfile}{\theempfig}%
+  \empcmds}
+\def\empx@graph(#1,#2){%
+  \emp@start{#1}{#2}%
+  \empwrite{draw begingraph (w, h);}%
+  \emp@includegraphics{\theempfile}{\theempfig}%
+  \begingroup
+    \@bsphack}
+\def\endempgraph{%
+  \endempcmds
+  \empwrite{endgraph;^^Jendfig;}}
+\def\endempxgraph{%
+    \@esphack
+  \endgroup
+  \empwrite{endgraph;^^Jendfig;}}
+\def\empuse#1{%
+  \@ifundefined{emp@k:f:#1}%
+   {\typeout{emp: \string\empuse: `#1' undefined!}}%
+   {\emp@includegraphics{\@nameuse{emp@k:f:#1}}{\@nameuse{emp@k:c:#1}}}}
+\endinput
+%%
+%% End of file `emp.sty'.

@@ -1,0 +1,235 @@
+* Test output: rt_data_6
+*   Purpose: apply and keep local modifications to model
+
+* Original model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+s is stable    = T
+f is polarized = F
+
+Global model variable: ff =>  1.500000000000E+00
+
+* Apply local modifications: unstable
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_decay f1 isotropic
+     a_decay f2 f3 diagonal
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Further modifications
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_decay f1 diagonal
+     a_decay f2 f3 isotropic
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Further modifications: f stable but polarized
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Global model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+s is stable    = T
+f is polarized = F
+
+* Local model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+s is stable    = F
+f is polarized = T
+
+Global model variable: ff =>  1.500000000000E+00
+Local model variable: ff =>  4.000000000000E-01
+
+* Restore global
+
+* Global model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+s is stable    = T
+f is polarized = F
+
+* Local model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+s is stable    = F
+f is polarized = T
+
+Global model variable: ff =>  1.500000000000E+00
+Local model variable: ff =>  4.000000000000E-01
+
+* Cleanup
+
+* Test output end: rt_data_6

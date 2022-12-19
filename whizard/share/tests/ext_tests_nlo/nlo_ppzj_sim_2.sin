@@ -1,0 +1,67 @@
+# SINDARIN input for WHIZARD self-test
+# Testing NLO calculation of the virtual component of
+# of pp -> Zj and the simulation of events.
+
+model = "SM"
+
+$openloops_allowed_libs = "ppvj"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+mZ = 91.188
+wZ = 0.0
+ms = 0
+
+alias pr = u:U:d:D:s:S:gl
+alias jet = u:U:d:D:s:S:gl
+alias elec = e1:E1
+$exclude_gauge_splittings = "c:b:t"
+
+jet_algorithm = antikt_algorithm
+jet_r = 0.5
+
+$method = "openloops"
+alpha_power = 1
+alphas_power = 1
+
+$rng_method = "rng_stream"
+$integration_method = "vamp2"
+
+beams = p, p => pdf_builtin
+sqrts = 13000 GeV
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 350 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4 [@pt_selected] in
+       count [@eta_selected] >= 1
+
+scale = eval Ht/2 [Z:jet]
+
+?combined_nlo_integration = false
+
+seed = 3991
+
+process nlo_ppzj_sim_2_p1 = pr, pr => Z, jet { nlo_calculation = virtual $restrictions="!W+:W-" }
+integrate (nlo_ppzj_sim_2_p1) { iterations = 1:100 }
+
+n_events = 2
+$sample_normalization = "sigma"
+?unweighted = false
+?negative_weights = true
+?keep_failed_events = true
+?fixed_order_nlo_events = true
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+simulate(nlo_ppzj_sim_2_p1)

@@ -1,0 +1,108 @@
+# HERA_DIS.sin
+# Simple complete physics example: Deep inelastic scattering at HERA
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+# This model has V_CKM = 1, for simplicity.
+model = SM
+
+# No fermion masses
+me = 0
+ms = 0
+mc = 0
+
+# The HERA collider
+# (Builtin structure functions for the proton beam)
+beams_momentum = 27.5 GeV, 920 GeV
+beams = e, p => none, pdf_builtin
+
+# Charged-current and neutral-current processes
+alias q = u:d:s:c:U:D:S:C
+process dis_cc = e, q => n1, q
+process dis_nc = e, q => e, q
+
+# Declare histograms:
+# Bins of 10 GeV for the momentum transfer |Q|
+histogram sigma_cc (0, 250 GeV, 10 GeV) { ?normalize_bins = true }
+histogram sigma_nc (0, 250 GeV, 10 GeV) { ?normalize_bins = true }
+
+# Compute total cross sections
+integrate (dis_cc, dis_nc) {
+  iterations = 5:10000, 3:20000
+  cuts = all 20 GeV < abs (M) [q, incoming q]
+}
+
+# Event generation:
+# Weighted events are suitable for plotting 'smooth' distributions
+# with proper normalization
+?unweighted = false
+$sample_normalization = "sigma/n"
+
+# Generate events and record them
+simulate (dis_cc) { n_events = 200000 
+  analysis = record sigma_cc (eval abs (M) [q, incoming q])
+}
+simulate (dis_nc) { n_events = 100000 
+  analysis = record sigma_nc (eval abs (M) [q, incoming q])
+}
+
+# Combine both histograms (drawn as curves) in a single plot
+# with decorations
+graph sigma_both { 
+  $title = "Deep inelastic scattering at HERA"
+  $description = "Differential cross section for the processes "
+               & "$e^- q \to \nu q$ (red) and "
+               & "$e^- q \to e^- q$ (blue). "
+               & "\\[\baselineskip]"
+	       & "HERA: $ep$ collisions with $27.5/920\;\mathrm{GeV}$. "
+               & "\\[\baselineskip]"
+               & "Cut: $|Q| > 20\;\textrm{GeV}$. "
+               & "\\[\baselineskip]"
+  ?y_log = true
+  y_min = 0.999
+  y_max = 1.000e5
+  ?draw_histogram = false 
+  ?draw_curve = true 
+  $x_label = "$Q\;[\mathrm{GeV}]$"
+  $y_label = "$\displaystyle\frac{d\sigma}{dQ}\;"
+           & "\left[\displaystyle\frac{\mathrm{fb}}{\mathrm{GeV}}\right]$"
+  $gmlcode_fg = "standardgrid.lr(5); standardgrid.bt(4,20);"
+} = 
+  sigma_cc { $draw_options = "withcolor red"
+    & " withlabel.urt (<<CC $(W)$>> colored red, 
+                       on curve at (#150, ??))"
+  }
+& sigma_nc { $draw_options = "withcolor blue " 
+    & " withlabel.llft (<<NC $(Z/\gamma)$>> colored blue, 
+                        on curve at (#150, ??))"
+  }
+
+# Process the plot and create PS and PDF files
+compile_analysis (sigma_both) { $out_file = "HERA_DIS.dat" }
+
+
+
+
+

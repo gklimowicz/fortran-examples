@@ -1,0 +1,60 @@
+* Test output: commands_7
+*   Purpose: declare process libraries
+
+*  Initialization
+
+
+*  Input file
+
+library = "lib_cmd7_1"
+library = "lib_cmd7_2"
+library = "lib_cmd7_1"
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_library> <cmd_library> <cmd_library>
+|  +  <cmd_library>  =  library '=' <string_literal>
+|  |  +  library  = [keyword] library
+|  |  +  '='  = [keyword] =
+|  |  +  <string_literal>  = "lib_cmd7_1"
+|  +  <cmd_library>  =  library '=' <string_literal>
+|  |  +  library  = [keyword] library
+|  |  +  '='  = [keyword] =
+|  |  +  <string_literal>  = "lib_cmd7_2"
+|  +  <cmd_library>  =  library '=' <string_literal>
+|  |  +  library  = [keyword] library
+|  |  +  '='  = [keyword] =
+|  |  +  <string_literal>  = "lib_cmd7_1"
+
+* Compile command list
+
+ library = "lib_cmd7_1"
+ library = "lib_cmd7_2"
+ library = "lib_cmd7_1"
+
+* Execute command list
+
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: lib_cmd7_2
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = o
+
+ Process definition list: [empty]
+------------------------------------------------------------------------
+ Process library: lib_cmd7_1
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = o
+
+ Process definition list: [empty]
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_7

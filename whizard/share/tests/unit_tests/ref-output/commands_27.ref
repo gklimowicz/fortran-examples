@@ -1,0 +1,174 @@
+* Test output: commands_27
+*   Purpose: modify particle properties
+
+* Input file
+
+model = "Test"
+ff = 0.4
+process d1 = s => f, fbar
+unstable s (d1)
+polarized f, fbar
+
+* Parse file
+
+* Compile command list
+
+ model = "Test"
+ var: ff (real, model)
+ process: d1 (1 -> X)
+ unstable: 1 (d1)
+ polarized: 2
+
+* Execute command list
+
+* Show model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+     a_polarized
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Extra Input
+
+?diagonal_decay = true
+unstable s (d1)
+
+* Parse file
+
+* Compile command list
+
+ var: ?diagonal_decay (logical, intrinsic)
+ unstable: 1 (d1)
+
+* Execute command list
+
+* Show model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1 diagonal
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+     a_polarized
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Extra Input
+
+?isotropic_decay = true
+unstable s (d1)
+
+* Parse file
+
+* Compile command list
+
+ var: ?isotropic_decay (logical, intrinsic)
+ unstable: 1 (d1)
+
+* Execute command list
+
+* Show model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+     p_decay d1 isotropic
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     p_polarized
+     a_polarized
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Extra Input
+
+stable s
+unpolarized f
+
+* Parse file
+
+* Compile command list
+
+ stable: 1
+ unpolarized: 1
+
+* Execute command list
+
+* Show model
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  4.000000000000E-01
+   external mf =  5.000000000000E+01
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+     a_polarized
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Cleanup
+
+* Test output end: commands_27

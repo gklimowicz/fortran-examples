@@ -1,0 +1,87 @@
+!!! Process: ttbar production at ILC
+!!! Reported by: BACN on 2015-07-15
+!!! Purpose: Tests massive FSR Powheg
+!!!
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+!seed = 0
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.16637E-005
+wZ = 2.4952
+wW = 2.124
+
+# => alpha = 132.16066
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+$loop_me_method = "openloops"
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+?combined_nlo_integration = true
+
+?powheg_matching = true
+powheg_grid_size_xi = 5
+powheg_grid_size_y = 5
+powheg_pt_min = 1
+?powheg_use_singular_jacobian = false
+
+jet_algorithm = antikt_algorithm
+jet_r = 1
+
+!?powheg_test_sudakov = true
+
+scale = 2 * mtop
+
+# Needs OpenLoops library eett
+process nlo_tt_powheg = E1, e1 => t, T { nlo_calculation = full }
+
+sqrts = 500 GeV
+
+iterations = 5:50000:"gw", 5:50000:""
+integrate (nlo_tt_powheg)
+show (integral(nlo_tt_powheg))
+show (error(nlo_tt_powheg))
+
+n_events = 200
+sample_format = hepmc
+?hepmc_output_cross_section = true
+
+$x_label = "$p_T$/GeV"
+$y_label = "$N_{\textrm{events}}$"
+?x_log = false
+?y_log = false
+y_min = 1
+y_max = n_events
+histogram Pt_j1 (0 GeV, 200 GeV, 10 GeV)
+histogram E_g (0 GeV, 30 GeV, 1 GeV)
+
+analysis = let subevt @clustered_jets = cluster [colored] in
+           let subevt @Eselected_jets = select if (E > 1 GeV) [@clustered_jets] in
+           let subevt @jetsbypt = sort by -Pt [@Eselected_jets] in
+           record Pt_j1 (eval Pt [extract index 1 [@jetsbypt]])
+      and  record E_g (eval E [g])
+
+$sample = "nlo_tt_powheg"
+
+simulate (nlo_tt_powheg)
+
+compile_analysis { $out_file = "nlo_tt_powheg_hist.dat" }

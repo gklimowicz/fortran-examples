@@ -1,0 +1,60 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process observables_2a = e1, E1 => e1, E1
+
+compile
+
+sqrts = 100 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 1:1000
+
+!!! Keep me nonzero for this test
+!!! me = 0
+
+isr_mass = 511 keV
+?isr_recoil = false
+
+beams = e1, E1 => isr
+
+cuts =
+  all 10 degree < Theta < 170 degree [e1:E1]
+and
+  all E > 20 GeV [e1:E1]
+
+seed = 3   ! event with significant radiated energy
+integrate (observables_2a)
+
+?keep_beams = true
+?keep_remnants = true
+
+?isr_handler = false
+
+observable e_beam
+observable e_incoming
+observable e_outgoing
+observable e_unspecified
+analysis =
+  record e_beam (eval E [beam E1])
+and
+  record e_incoming (eval E [incoming E1])
+and
+  record e_outgoing (eval E [outgoing E1])
+and
+  record e_unspecified (eval E [E1])
+
+$sample = "observables_2a"
+sample_format = dump
+simulate (observables_2a) { n_events = 1 }
+
+$out_file = "observables_2.obs.dat"
+write_analysis
+

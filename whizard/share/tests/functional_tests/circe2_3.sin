@@ -1,0 +1,29 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+mmu = 0
+
+seed = 0
+
+process muonmuon  = e1,E1 => e2,E2
+
+sqrts = 500 GeV
+beams = e1,E1 => circe2 
+beams_pol_density = @(1),@(-1)
+beams_pol_fraction = 1.0,1.0
+
+$circe2_file = "ilc500.circe"
+$circe2_design = "ILC"
+?circe2_polarized = false
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate(muonmuon) {iterations = 1:100}

@@ -1,0 +1,36 @@
+% fit.mp --
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+include(`circemacs.mp4')
+include(`output/Slices.mp4')
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+string gpmode;
+gpmode = "slow";
+% gpmode = "fast";
+
+efit (11, "sband",     gpmode, "ee", 10);
+efit (12, "tesla",     gpmode, "ee", 10);
+efit (13, "nlc_a",     gpmode, "ee", 10);
+efit (14, "sband1000", gpmode, "ee", 10);
+efit (15, "tesla1000", gpmode, "ee", 10);
+efit (16, "nlc1000_a", gpmode, "ee", 10);
+efit (17, "tesla350",  gpmode, "ee", 10);
+efit (18, "tesla800",  gpmode, "ee", 10);
+			       
+gfit (21, "sband",     gpmode, "gg", 10);
+gfit (22, "tesla",     gpmode, "gg", 10);
+gfit (23, "nlc_a",     gpmode, "gg", 10);
+gfit (24, "sband1000", gpmode, "gg", 10);
+gfit (25, "tesla1000", gpmode, "gg", 10);
+gfit (26, "nlc1000_a", gpmode, "gg", 10);
+gfit (27, "tesla350",  gpmode, "gg", 10);
+gfit (28, "tesla800",  gpmode, "gg", 10);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+postlude
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Local Variables:
+% mode:indented-text
+% End:
+
+

@@ -1,0 +1,51 @@
+* Test output: resonances_7
+*   Purpose: test tree format
+
+* Read model file
+
+* Initialize, fill and freeze resonance history set
+
+Resonance history set:
+ 1 Resonance history with 2 resonances:
+   1 2 f(-24)
+   1 2 3 f(23)
+   contained in ()
+   Resonance tree:
+     r1: f(23) => r2 3
+     r2: f(-24) => 1 2
+ 2 Resonance history with 1 resonances:
+   1 2 3 f(23)
+   contained in (1)
+   Resonance tree:
+     r1: f(23) => 1 2 3
+ 3 Resonance history with 1 resonances:
+   1 2 f(-24)
+   contained in (1,4)
+   Resonance tree:
+     r1: f(-24) => 1 2
+ 4 Resonance history with 2 resonances:
+   1 2 f(-24)
+   1 2 3 f(25)
+   contained in ()
+   Resonance tree:
+     r1: f(25) => r2 3
+     r2: f(-24) => 1 2
+
+* Extract tree #1
+
+Resonance tree:
+  r1: f(23) => r2 3
+  r2: f(-24) => 1 2
+
+ n_resonances = 2
+
+ flv(r1) = f(23)
+ flv(r2) = f(-24)
+
+ [offset = 2, 4]
+ children(r1) = 4 7
+ children(r2) = 5 6
+
+* Cleanup
+
+* Test output end: resonances_7

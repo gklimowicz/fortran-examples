@@ -1,0 +1,66 @@
+* Test output: process_configurations_2
+*   Purpose: configure test processes with options
+
+* Configure processes as omega, model QED
+
+$model_name = "QED"
+$method = "omega"
+?report_progress = false
+$restrictions = "3+4~A"
+$omega_flags = "-fusion:progress_file omega_prc_config.log"
+
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: prc_config_lib_2
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = o
+
+ Process #1:
+ ID = 'prc_config_c'
+ Scattering
+ Model = QED
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = prc_config_c_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = e+, e- => m+, m-
+   Method              = omega
+   Process variant     = omega
+     Model name        = "QED"
+     Mode string       = " -scatter"
+     Process string    = " 'e+ e- -> m+ m-'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = T
+     Extra options     = " "
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+ Component #2
+   Component ID        = prc_config_c_i2
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = e+, e- => m+, m-
+   Method              = omega
+   Process variant     = omega
+     Model name        = "QED"
+     Mode string       = " -scatter"
+     Process string    = " 'e+ e- -> m+ m-'"
+     Restrictions      = "3+4~A"
+     OpenMP support    = T
+     Report progress   = F
+     Extra options     = " -fusion:progress_file omega_prc_config.log"
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+========================================================================
+
+* Test output end: process_configurations_2

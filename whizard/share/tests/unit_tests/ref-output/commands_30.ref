@@ -1,0 +1,135 @@
+* Test output: commands_30
+*   Purpose: define scales
+
+*  Initialization
+
+*  Input file
+
+scale = 200 GeV
+factorization_scale = eval Pt [particle]
+renormalization_scale = eval E [particle]
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_scale> <cmd_fac_scale> <cmd_ren_scale>
+|  +  <cmd_scale>  =  scale '=' <expr>
+|  |  +  scale  = [keyword] scale
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  +  <integer_value>  =  <integer_literal> <unit_expr>
+|  |  |  |  |  |  +  <integer_literal>  = 200
+|  |  |  |  |  |  +  <unit_expr>  =  GeV
+|  |  |  |  |  |  |  +  GeV  = [keyword] GeV
+|  +  <cmd_fac_scale>  =  factorization_scale '=' <expr>
+|  |  +  factorization_scale  = [keyword] factorization_scale
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <eval_fun>
+|  |  |  |  |  +  <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  |  |  |  +  eval  = [keyword] eval
+|  |  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  |  +  <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  <variable>  = Pt
+|  |  |  |  |  |  +  <pargs1>  =  <pexpr>
+|  |  |  |  |  |  |  +  <pexpr>  =  <pterm>
+|  |  |  |  |  |  |  |  +  <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  |  |  |  +  <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  |  |  |  +  <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  +  <variable>  = particle
+|  +  <cmd_ren_scale>  =  renormalization_scale '=' <expr>
+|  |  +  renormalization_scale  = [keyword] renormalization_scale
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <eval_fun>
+|  |  |  |  |  +  <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  |  |  |  +  eval  = [keyword] eval
+|  |  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  |  +  <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  <variable>  = E
+|  |  |  |  |  |  +  <pargs1>  =  <pexpr>
+|  |  |  |  |  |  |  +  <pexpr>  =  <pterm>
+|  |  |  |  |  |  |  |  +  <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  |  |  |  +  <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  |  |  |  +  <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  +  <variable>  = particle
+
+* Compile command list
+
+ scale: [defined]
+ factorization scale: [defined]
+ renormalization scale: [defined]
+
+* Execute command list
+
+========================================================================
+ Cuts: [undefined]
+------------------------------------------------------------------------
+ Scale:
+------------------------------------------------------------------------
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  +  SEQUENCE    <integer_value>  =  <integer_literal> <unit_expr>
+|  |  |  +  INTEGER     <integer_literal>  = 200
+|  |  |  +  SEQUENCE    <unit_expr>  =  GeV
+|  |  |  |  +  KEYWORD     GeV  = [keyword] GeV
+------------------------------------------------------------------------
+ Factorization scale:
+------------------------------------------------------------------------
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <eval_fun>
+|  |  +  SEQUENCE    <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  +  KEYWORD     eval  = [keyword] eval
+|  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  +  IDENTIFIER  <variable>  = Pt
+|  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = particle
+------------------------------------------------------------------------
+ Renormalization scale:
+------------------------------------------------------------------------
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <eval_fun>
+|  |  +  SEQUENCE    <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  +  KEYWORD     eval  = [keyword] eval
+|  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  +  IDENTIFIER  <variable>  = E
+|  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = particle
+------------------------------------------------------------------------
+ Weight: [undefined]
+========================================================================
+ Event selection: [undefined]
+------------------------------------------------------------------------
+ Event reweighting factor: [undefined]
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_30

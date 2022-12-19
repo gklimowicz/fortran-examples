@@ -1,0 +1,36 @@
+# SINDARIN input for WHIZARD self-test
+# Testing real-subtracted contribution to NLO decays
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+seed = 1234
+
+#Dummy center of mass energy
+sqrts = 250 GeV
+
+$loop_me_method = "dummy"
+?use_vamp_equivalences = false
+
+wZ = 0
+wW = 0
+wtop = 0
+mZ = 91.1876
+mW = 80.385
+mtop = 173.2
+
+process nlo_decay_1_p1 = Wp => u, D { nlo_calculation = real }
+scale = mW
+integrate (nlo_decay_1_p1) { iterations = 2:500:"gw" }
+
+process nlo_decay_1_p2 = t => b, Wp { nlo_calculation = real }
+scale = wtop
+integrate (nlo_decay_1_p2) { iterations = 2:500:"gw" }

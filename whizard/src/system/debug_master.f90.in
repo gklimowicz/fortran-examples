@@ -1,0 +1,41 @@
+! WHIZARD <<Version>> <<Date>>
+! 
+! Copyright (C) 1999-2022 by 
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by 
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This module defines a master switch for the debugging facility
+!   which is implemented in diagnostics.f90.
+! In all modules which use this facility, calls to debug routines should be
+!   hidden behind a conditional
+!      if (debug_on) ...
+! The flag debug_on is defined here, and it is a parameter fixed at compile time.
+! The setting is determined by configure, option --enable-fc-debug
+
+module debug_master
+
+  implicit none
+  public
+
+  logical, parameter :: debug_on = @FC_DEBUG_ON@
+
+end module debug_master
+

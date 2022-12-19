@@ -1,0 +1,44 @@
+# SINDARIN input for WHIZARD self-test
+# Process u, D -> E1, n1 (full/factorized)
+
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+process smtest_9_res = u, D => E1, n1
+process smtest_9_pro = u, D => Wp
+process smtest_9_dec = Wp => E1, n1
+
+sqrts = 1000
+beams = p, p => pdf_builtin
+
+?rebuild_phase_space = true
+?phs_keep_nonresonant = false
+?phs_s_mapping = true
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+# Artificially make the W very narrow
+wW = wW / 100
+
+# Resonant production in mass window
+seed = 1
+integrate (smtest_9_res) { iterations = 3:5000:"gw", 3:10000
+  cuts = all mW - 20 * wW < M < mW + 20 * wW [E1, n1]
+ }
+
+# On-shell production and decay
+integrate (smtest_9_pro) { iterations = 3:1000 }
+
+clear (beams)
+integrate (smtest_9_dec) { iterations = 1:100 error_threshold = 5E-10 }
+
+# Compare resonant and factorized
+real sigma_res = integral (smtest_9_res)
+real sigma_fac = integral (smtest_9_pro) * integral (smtest_9_dec) / wW
+

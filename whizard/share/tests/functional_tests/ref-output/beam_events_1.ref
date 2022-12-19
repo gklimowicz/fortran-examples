@@ -1,0 +1,116 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "omega"
+| Process library 'beam_events_1_lib': recorded process 'beam_events_1_p1'
+| Process library 'beam_events_1_lib': recorded process 'beam_events_1_p2'
+seed = 0
+| Process library 'beam_events_1_lib': compiling ...
+| Process library 'beam_events_1_lib': writing makefile
+| Process library 'beam_events_1_lib': removing old files
+| Process library 'beam_events_1_lib': writing driver
+| Process library 'beam_events_1_lib': creating source code
+| Process library 'beam_events_1_lib': compiling sources
+| Process library 'beam_events_1_lib': linking
+| Process library 'beam_events_1_lib': loading
+| Process library 'beam_events_1_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  5.000000000000E+02
+openmp_num_threads = 1
+[user variable] n = 1000
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process beam_events_1_p1:
+| Beam structure: e-, e+
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'beam_events_1_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'beam_events_1_p1'
+|   Library name  = 'beam_events_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'beam_events_1_p1_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'beam_events_1_p1'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784  4.2838228E+02  7.48E-01    0.17    0.05*  40.64
+   2        784  4.2735349E+02  5.88E-01    0.14    0.04*  71.60
+   3        784  4.2902357E+02  5.58E-01    0.13    0.04*  54.33
+|-----------------------------------------------------------------------------|
+   3       2352  4.2826659E+02  3.56E-01    0.08    0.04   54.33    2.14   3
+|-----------------------------------------------------------------------------|
+   4        784  4.2832122E+02  5.68E-01    0.13    0.04   54.24
+   5        784  4.2857830E+02  5.56E-01    0.13    0.04*  54.26
+   6        784  4.2827201E+02  5.70E-01    0.13    0.04   54.22
+|-----------------------------------------------------------------------------|
+   6       2352  4.2839349E+02  3.26E-01    0.08    0.04   54.22    0.09   3
+|=============================================================================|
+$beam_events_file = "uniform_spread_2.5%.dat"
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process beam_events_1_p2:
+| Beam structure: e-, e+ => beam_events
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'beam_events_1_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'beam_events_1_p2'
+|   Library name  = 'beam_events_1_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'beam_events_1_p2_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: beam_events
+| Beam structure: 2 channels, 0 dimensions
+| Applying user-defined cuts.
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Starting integration for process 'beam_events_1_p2'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784  4.2838157E+02  8.29E-01    0.19    0.05*  39.92
+   2        784  4.2765294E+02  6.37E-01    0.15    0.04*  76.42
+   3        784  4.2889251E+02  6.18E-01    0.14    0.04*  64.73
+|-----------------------------------------------------------------------------|
+   3       2352  4.2831148E+02  3.91E-01    0.09    0.04   64.73    0.98   3
+|-----------------------------------------------------------------------------|
+   4        784  4.2890168E+02  6.17E-01    0.14    0.04*  64.64
+   5        784  4.2806626E+02  6.08E-01    0.14    0.04*  64.51
+   6        784  4.2767912E+02  5.83E-01    0.14    0.04*  64.46
+|-----------------------------------------------------------------------------|
+   6       2352  4.2819406E+02  3.48E-01    0.08    0.04   64.46    1.07   3
+|=============================================================================|
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+| WHIZARD run finished.
+|=============================================================================|

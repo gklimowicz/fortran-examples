@@ -1,0 +1,222 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+SM.me =>  0.00000E+00
+$method = "omega"
+| Process library 'pythia8_2_lib': recorded process 'pythia8_2_p1'
+| Process library 'pythia8_2_lib': recorded process 'pythia8_2_p2'
+| Process library 'pythia8_2_lib': recorded process 'pythia8_2_p3'
+| Process library 'pythia8_2_lib': compiling ...
+| Process library 'pythia8_2_lib': writing makefile
+| Process library 'pythia8_2_lib': removing old files
+| Process library 'pythia8_2_lib': writing driver
+| Process library 'pythia8_2_lib': creating source code
+| Process library 'pythia8_2_lib': compiling sources
+| Process library 'pythia8_2_lib': linking
+| Process library 'pythia8_2_lib': loading
+| Process library 'pythia8_2_lib': ... success.
+seed = 0
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.00000E+03
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process pythia8_2_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pythia8_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'pythia8_2_p1'
+|   Library name  = 'pythia8_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'pythia8_2_p1_i1':   e-, e+ => Z, H [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'pythia8_2_p1'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     1.286E+01   2.06E-02    0.16    0.05    69.0
+|-----------------------------------------------------------------------------|
+   1        800     1.286E+01   2.06E-02    0.16    0.05    69.0
+|=============================================================================|
+error_threshold =  1.00000E-08
+n_events = 1
+?rebuild_events = true
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?allow_shower = true
+?ps_fsr_active = true
+$shower_method = "PYTHIA8"
+$hadronization_method = "PYTHIA8"
+?unweighted = false
+$sample = "pythia8_2a"
+| Starting simulation for process 'pythia8_2_p1'
+| Simulate: using integration grids from file 'pythia8_2_p1.m1.vg'
+| Simulate: activating parton shower
+| Shower: Using PYTHIA8 shower
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Events: writing to ASCII file 'pythia8_2a.debug'
+| Events: writing to raw file 'pythia8_2a.evx'
+| Events: generating 1 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing ASCII file 'pythia8_2a.debug'
+| Events: closing raw file 'pythia8_2a.evx'
+$sample = "pythia8_2b"
+?hadronization_active = true
+| Starting simulation for process 'pythia8_2_p1'
+| Simulate: using integration grids from file 'pythia8_2_p1.m1.vg'
+| Simulate: activating parton shower
+| Shower: Using PYTHIA8 shower
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA8 interface for hadronization and decays.
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Events: writing to ASCII file 'pythia8_2b.debug'
+| Events: writing to raw file 'pythia8_2b.evx'
+| Events: generating 1 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing ASCII file 'pythia8_2b.debug'
+| Events: closing raw file 'pythia8_2b.evx'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Initializing integration for process pythia8_2_p2:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   Z  (mass = 9.1188200E+01 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pythia8_2_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'pythia8_2_p2'
+|   Library name  = 'pythia8_2_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'pythia8_2_p2_i1':   Z => e-, e+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'pythia8_2_p2'
+| Integrate: iterations not specified, using default
+| Integrate: iterations = 1:100:""
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     8.397E-02   0.00E+00    0.00    0.00   100.0
+|-----------------------------------------------------------------------------|
+   1        100     8.397E-02   0.00E+00    0.00    0.00   100.0
+|=============================================================================|
+| Unstable particle Z: computed branching ratios:
+|   pythia8_2_p2: 1.0000000E+00   e-, e+
+|   Total width = 8.3965692E-02 GeV (computed)
+|               = 2.4430000E+00 GeV (preset)
+|   Decay options: helicity treated exactly
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+| Initializing integration for process pythia8_2_p3:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   H  (mass = 1.2500000E+02 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pythia8_2_p3.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'pythia8_2_p3'
+|   Library name  = 'pythia8_2_lib'
+|   Process index = 3
+|   Process components:
+|     1: 'pythia8_2_p3_i1':   H => b, bbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'pythia8_2_p3'
+| Integrate: iterations not specified, using default
+| Integrate: iterations = 1:100:""
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     4.312E-03   0.00E+00    0.00    0.00   100.0
+|-----------------------------------------------------------------------------|
+   1        100     4.312E-03   0.00E+00    0.00    0.00   100.0
+|=============================================================================|
+| Unstable particle H: computed branching ratios:
+|   pythia8_2_p3: 1.0000000E+00   b, bbar
+|   Total width = 4.3122140E-03 GeV (computed)
+|               = 4.1430000E-03 GeV (preset)
+|   Decay options: helicity treated exactly
+$sample = "pythia8_2c"
+| Starting simulation for process 'pythia8_2_p1'
+| Simulate: using integration grids from file 'pythia8_2_p1.m1.vg'
+| Simulate: activating decays
+| Simulate: activating parton shower
+| Shower: Using PYTHIA8 shower
+| Simulate: using integration grids from file 'pythia8_2_p2.m1.vg'
+| Simulate: using integration grids from file 'pythia8_2_p3.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Events: writing to ASCII file 'pythia8_2c.debug'
+| Events: writing to raw file 'pythia8_2c.evx'
+| Events: generating 1 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing ASCII file 'pythia8_2c.debug'
+| Events: closing raw file 'pythia8_2c.evx'
+$sample = "pythia8_2d"
+?hadronization_active = true
+| Starting simulation for process 'pythia8_2_p1'
+| Simulate: using integration grids from file 'pythia8_2_p1.m1.vg'
+| Simulate: activating decays
+| Simulate: activating parton shower
+| Shower: Using PYTHIA8 shower
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA8 interface for hadronization and decays.
+| Simulate: using integration grids from file 'pythia8_2_p2.m1.vg'
+| Simulate: using integration grids from file 'pythia8_2_p3.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 6
+| Events: writing to ASCII file 'pythia8_2d.debug'
+| Events: writing to raw file 'pythia8_2d.evx'
+| Events: generating 1 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing ASCII file 'pythia8_2d.debug'
+| Events: closing raw file 'pythia8_2d.evx'
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

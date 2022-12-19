@@ -1,0 +1,67 @@
+* Test output: phs_wood_6
+*   Purpose: generate and check  phase-space file
+
+* Initialize a process and phase-space parameters
+
+* Remove previous phs file, if any
+
+* Check phase-space file (should fail)
+
+ exist = F
+ found = F
+ match = F
+
+* Generate a phase-space file
+
+ MD5 sum (process)    = '1234567890abcdef1234567890abcdef'
+ MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+ MD5 sum (phs config) = 'FF6B2FB63939E2E8E5EA04456FE82258'
+
+* Check MD5 sum
+
+ MD5 sum (process)    = '1234567890abcdef1234567890abcdef'
+ MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+ MD5 sum (phs config) = 'FF6B2FB63939E2E8E5EA04456FE82258'
+ exist = T
+ found = T
+ match = T
+
+* Modify sqrts and check MD5 sum
+
+ MD5 sum (process)    = '1234567890abcdef1234567890abcdef'
+ MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+ MD5 sum (phs config) = '2AA0E44B3A7A630ECEEB78E5EBE3568C'
+ exist = T
+ found = T
+ match = F
+
+* Modify process and check MD5 sum
+
+ MD5 sum (process)    = '77777777777777777777777777777777'
+ MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+ MD5 sum (phs config) = 'D845D930E438DF04CAA370304C8932CE'
+ exist = T
+ found = T
+ match = F
+
+* Modify phs parameter and check MD5 sum
+
+ MD5 sum (process)    = '1234567890abcdef1234567890abcdef'
+ MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+ MD5 sum (phs config) = 'B72F495C2326EDD2CD3FE0D9EB1B9A3C'
+ exist = T
+ found = T
+ match = F
+
+* Modify model parameter and check MD5 sum
+
+ MD5 sum (process)    = '1234567890abcdef1234567890abcdef'
+ MD5 sum (model par)  = '0607E53E39F805915025CAFFAF57245A'
+ MD5 sum (phs config) = '8CE235592EEC93B24C7BE33144BFACE6'
+ exist = T
+ found = T
+ match = F
+
+* Cleanup
+
+* Test output end: phs_wood_6

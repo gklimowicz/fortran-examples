@@ -1,0 +1,96 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+QED.me =>  0.000000000000E+00
+QED.mmu =>  0.000000000000E+00
+seed = 0
+process_num_id = 42
+| Process library 'analyze_2_lib': recorded process 'analyze_2_p' (42)
+sqrts =  1.000000000000E+03
+?unweighted = true
+n_events = 20
+| Starting simulation for process 'analyze_2_p'
+| Simulate: process 'analyze_2_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'analyze_2_lib': compiling ...
+| Process library 'analyze_2_lib': writing makefile
+| Process library 'analyze_2_lib': removing old files
+| Process library 'analyze_2_lib': writing driver
+| Process library 'analyze_2_lib': creating source code
+| Process library 'analyze_2_lib': compiling sources
+| Process library 'analyze_2_lib': linking
+| Process library 'analyze_2_lib': loading
+| Process library 'analyze_2_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process analyze_2_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'analyze_2_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'analyze_2_p'
+|   ID (num)      = 42
+|   Library name  = 'analyze_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'analyze_2_p_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'analyze_2_p'
+| Integrate: iterations = 1:10
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 10 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1         10  8.6742360E+01  5.58E+00    6.43    0.20*  76.27
+|-----------------------------------------------------------------------------|
+   1         10  8.6742360E+01  5.58E+00    6.43    0.20   76.27
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'analyze_2_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 20
+|             corr. to luminosity [fb-1] =   2.3057E-01
+| Events: writing to raw file 'analyze_2_p.evx'
+| Events: generating 20 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  68.97 %
+Warning: Encountered events with excess weight: 3 events ( 15.000 %)
+| Maximum excess weight = 1.157E-01
+| Average excess weight = 1.100E-02
+| Events: closing raw file 'analyze_2_p.evx'
+$out_file = "analyze_2.dat"
+| Opening file 'analyze_2.dat' for output
+| Writing analysis data to file 'analyze_2.dat'
+| Closing file 'analyze_2.dat' for output
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of analyze_2.dat
+###############################################################################
+# Observable: event_weight
+average     =  1.000000000000E+00
+error[abs]  =  0.000000000000E+00
+error[rel]  =  0.000000000000E+00
+n_entries   = 20
+###############################################################################
+# Observable: event_excess
+average     =  1.100343050682E-02
+error[abs]  =  6.766319932407E-03
+error[rel]  =  6.149282197233E-01
+n_entries   = 20

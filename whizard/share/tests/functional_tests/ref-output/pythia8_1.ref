@@ -1,0 +1,116 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+SM.me =>  0.00000E+00
+$method = "omega"
+| Process library 'pythia8_1_lib': recorded process 'pythia8_1_p1'
+| Process library 'pythia8_1_lib': compiling ...
+| Process library 'pythia8_1_lib': writing makefile
+| Process library 'pythia8_1_lib': removing old files
+| Process library 'pythia8_1_lib': writing driver
+| Process library 'pythia8_1_lib': creating source code
+| Process library 'pythia8_1_lib': compiling sources
+| Process library 'pythia8_1_lib': linking
+| Process library 'pythia8_1_lib': loading
+| Process library 'pythia8_1_lib': ... success.
+seed = 1234
+$phs_method = "wood"
+$integration_method = "vamp2"
+$rng_method = "rng_stream"
+sqrts =  1.00000E+03
+openmp_num_threads = 1
+| RNG: Initializing RNG Stream random-number generator
+| RNG: Setting seed for random-number generator to 1234
+| Initializing integration for process pythia8_1_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pythia8_1_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'pythia8_1_p1'
+|   Library name  = 'pythia8_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'pythia8_1_p1_i1':   e-, e+ => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'pythia8_1_p1'
+| Integrate: iterations = 3:1000:"g", 3:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pythia8_1_p1.m1.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pythia8_1_p1.m1.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        900     1.680E+02   1.39E+00    0.83    0.25    36.5
+   2        900     1.694E+02   7.07E-01    0.42    0.13    35.5
+   3        900     1.683E+02   6.62E-01    0.39    0.12    60.8
+|-----------------------------------------------------------------------------|
+   3       2700     1.687E+02   4.57E-01    0.27    0.14    60.8    0.73   3
+|-----------------------------------------------------------------------------|
+   4        900     1.687E+02   6.72E-01    0.40    0.12    36.6
+   5        900     1.690E+02   7.30E-01    0.43    0.13    36.7
+   6        900     1.687E+02   7.57E-01    0.45    0.13    36.5
+|-----------------------------------------------------------------------------|
+   6       2700     1.688E+02   4.14E-01    0.25    0.13    36.5    0.05   3
+|=============================================================================|
+n_events = 1
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?allow_shower = true
+?ps_fsr_active = true
+$shower_method = "PYTHIA8"
+$sample = "pythia8_1a"
+| Starting simulation for process 'pythia8_1_p1'
+| Simulate: activating parton shower
+| Shower: Using PYTHIA8 shower
+| RNG: Initializing RNG Stream random-number generator
+| RNG: Setting seed for random-number generator to 1235
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.9239E-03
+| Events: writing to ASCII file 'pythia8_1a.debug'
+| Events: writing to raw file 'pythia8_1a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  50.00 %
+| Events: closing ASCII file 'pythia8_1a.debug'
+| Events: closing raw file 'pythia8_1a.evx'
+?hadronization_active = true
+$hadronization_method = "PYTHIA8"
+$sample = "pythia8_1b"
+| Starting simulation for process 'pythia8_1_p1'
+| Simulate: activating parton shower
+| Shower: Using PYTHIA8 shower
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA8 interface for hadronization and decays.
+| RNG: Initializing RNG Stream random-number generator
+| RNG: Setting seed for random-number generator to 1236
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.9239E-03
+| Events: writing to ASCII file 'pythia8_1b.debug'
+| Events: writing to raw file 'pythia8_1b.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing ASCII file 'pythia8_1b.debug'
+| Events: closing raw file 'pythia8_1b.evx'
+| WHIZARD run finished.
+|=============================================================================|

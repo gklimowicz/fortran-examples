@@ -1,0 +1,96 @@
+!!! Process: pp -> ee
+!!! Reported by: PS on 2019-03-05
+!!! Purpose: Test fks_delta_i independence of real+dglap component
+!!! time ~1h
+?use_vamp_equivalences = false
+openmp_num_threads = 1
+
+$method = "openloops"
+alpha_power = 2
+alphas_power = 0
+
+beams = p, p => lhapdf
+
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+?alphas_from_lhapdf = false
+alphas_order = 0
+
+ms = 0
+mc = 0
+mb = 0
+me = 0
+
+alias pr = d:D:u:U:s:S:c:C:b:B:g
+alias elec = e1:E1
+
+sqrts = 8000 GeV
+scale = mZ
+
+process ppee_1_real = pr, pr => elec, elec { nlo_calculation = real }
+process ppee_2_real = pr, pr => elec, elec { nlo_calculation = real }
+process ppee_3_real = pr, pr => elec, elec { nlo_calculation = real }
+process ppee_4_real = pr, pr => elec, elec { nlo_calculation = real }
+process ppee_1_dglap = pr, pr => elec, elec { nlo_calculation = dglap }
+process ppee_2_dglap = pr, pr => elec, elec { nlo_calculation = dglap }
+process ppee_3_dglap = pr, pr => elec, elec { nlo_calculation = dglap }
+process ppee_4_dglap = pr, pr => elec, elec { nlo_calculation = dglap }
+
+cuts = all M > 50 GeV [elec, elec]
+
+mult_call_real = 3
+
+! delta_i shifts the initial state collinear singularities between the DGLAP component and the real subtraction term.
+fks_delta_i = 0.5
+seed = 11
+integrate (ppee_1_real) { iterations = 4:15000:"gw", 2:30000}
+seed = 11
+integrate (ppee_1_dglap) { iterations = 4:15000:"gw", 2:30000}
+
+fks_delta_i = 1.0
+seed = 11
+integrate (ppee_2_real) { iterations = 4:15000:"gw", 2:30000}
+seed = 11
+integrate (ppee_2_dglap) { iterations = 4:15000:"gw", 2:30000}
+
+fks_delta_i = 1.5
+seed = 11
+integrate (ppee_3_real) { iterations = 4:15000:"gw", 2:30000}
+seed = 11
+integrate (ppee_3_dglap) { iterations = 4:15000:"gw", 2:30000}
+
+fks_delta_i = 2.0
+seed = 11
+integrate (ppee_4_real) { iterations = 4:15000:"gw", 2:30000}
+seed = 11
+integrate (ppee_4_dglap) { iterations = 4:15000:"gw", 2:30000}
+
+! Output the results
+printf "delta_i      total        unc          real         unc          dglap        unc"
+printf "%E %E %E %E %E %E %E" (0.5, integral (ppee_1_real) + integral (ppee_1_dglap), sqrt (error (ppee_1_real)**2 + error (ppee_1_dglap)**2), integral (ppee_1_real), error (ppee_1_real), integral (ppee_1_dglap), error (ppee_1_dglap))
+printf "%E %E %E %E %E %E %E" (1.0, integral (ppee_2_real) + integral (ppee_2_dglap), sqrt (error (ppee_2_real)**2 + error (ppee_2_dglap)**2), integral (ppee_2_real), error (ppee_2_real), integral (ppee_2_dglap), error (ppee_2_dglap))
+printf "%E %E %E %E %E %E %E" (1.5, integral (ppee_3_real) + integral (ppee_3_dglap), sqrt (error (ppee_3_real)**2 + error (ppee_3_dglap)**2), integral (ppee_3_real), error (ppee_3_real), integral (ppee_3_dglap), error (ppee_3_dglap))
+printf "%E %E %E %E %E %E %E" (2.0, integral (ppee_4_real) + integral (ppee_4_dglap), sqrt (error (ppee_4_real)**2 + error (ppee_4_dglap)**2), integral (ppee_4_real), error (ppee_4_real), integral (ppee_4_dglap), error (ppee_4_dglap))
+
+! Check if result is constant within 1 sigma.
+expect (
+	integral(ppee_1_real) + integral(ppee_1_dglap) == integral(ppee_2_real) + integral(ppee_2_dglap)
+) {
+	tolerance = sqrt (error(ppee_1_real)**2 + error(ppee_1_dglap)**2 + error(ppee_2_real)**2 + error(ppee_2_dglap)**2)
+}
+expect (
+	integral(ppee_2_real) + integral(ppee_2_dglap) == integral(ppee_3_real) + integral(ppee_3_dglap)
+) {
+	tolerance = sqrt (error(ppee_2_real)**2 + error(ppee_2_dglap)**2 + error(ppee_3_real)**2 + error(ppee_3_dglap)**2)
+}
+expect (
+	integral(ppee_3_real) + integral(ppee_3_dglap) == integral(ppee_4_real) + integral(ppee_4_dglap)
+) {
+	tolerance = sqrt (error(ppee_3_real)**2 + error(ppee_3_dglap)**2 + error(ppee_4_real)**2 + error(ppee_4_dglap)**2)
+}
+expect (
+	integral(ppee_4_real) + integral(ppee_4_dglap) == integral(ppee_1_real) + integral(ppee_1_dglap)
+) {
+	tolerance = sqrt (error(ppee_4_real)**2 + error(ppee_4_dglap)**2 + error(ppee_1_real)**2 + error(ppee_1_dglap)**2)
+}

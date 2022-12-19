@@ -1,0 +1,39 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$method = "omega"
+process circe1_10_p1 = "e-", "e+" => "mu-", "mu+" 
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+int n = 1000
+    
+beams = "e-", "e+" => circe1
+seed = 0
+
+?circe1_with_radiation = false
+$sample="circe1_10_p1_1"
+integrate (circe1_10_p1) { iterations = 1:n:"g", 3:n }
+simulate (circe1_10_p1) { sample_format = ascii  n_events = 1 }
+
+seed = 0
+
+?circe1_with_radiation = true
+$sample="circe1_10_p1_2"
+integrate (circe1_10_p1) { iterations = 1:n:"g", 3:n }
+simulate (circe1_10_p1) { sample_format = ascii  n_events = 1 }

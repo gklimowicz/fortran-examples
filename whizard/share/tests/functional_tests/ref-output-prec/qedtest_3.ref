@@ -1,0 +1,65 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+$method = "omega"
+| Process library 'qedtest_3_lib': recorded process 'qedtest_3_p1'
+| Process library 'qedtest_3_lib': compiling ...
+| Process library 'qedtest_3_lib': writing makefile
+| Process library 'qedtest_3_lib': removing old files
+| Process library 'qedtest_3_lib': writing driver
+| Process library 'qedtest_3_lib': creating source code
+| Process library 'qedtest_3_lib': compiling sources
+| Process library 'qedtest_3_lib': linking
+| Process library 'qedtest_3_lib': loading
+| Process library 'qedtest_3_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process qedtest_3_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e-  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'qedtest_3_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'qedtest_3_p1'
+|   Library name  = 'qedtest_3_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'qedtest_3_p1_i1':   e-, e- => e-, e- [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 16 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'qedtest_3_p1'
+| Integrate: iterations = 3:2000:"gw", 3:2000
+| Integrator: 1 chains, 4 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 2000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1568  2.6084221E+04  5.68E+02    2.18    0.86*  11.15
+   2       1568  2.6001099E+04  3.39E+02    1.30    0.52*  23.51
+   3       1568  2.5275640E+04  2.21E+02    0.88    0.35*  40.19
+|-----------------------------------------------------------------------------|
+   3       4704  2.5549834E+04  1.76E+02    0.69    0.47   40.19    2.10   3
+|-----------------------------------------------------------------------------|
+   4       1568  2.5436265E+04  2.36E+02    0.93    0.37   40.37
+   5       1568  2.5724855E+04  2.38E+02    0.92    0.37*  40.82
+   6       1568  2.5919145E+04  2.45E+02    0.95    0.37   41.13
+|-----------------------------------------------------------------------------|
+   6       4704  2.5687369E+04  1.38E+02    0.54    0.37   41.13    1.03   3
+|=============================================================================|
+| WHIZARD run finished.
+|=============================================================================|

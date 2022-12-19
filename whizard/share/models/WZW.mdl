@@ -1,0 +1,256 @@
+########################################################################
+# Standard Model with additional Z' boson
+model "WZW"
+
+# Independent parameters
+### DO NOT CHANGE THE ORDER OF THESE PARAMETERS
+parameter GF     = 1.16639E-5   # Fermi constant
+parameter mZ     = 91.1882      # Z-boson mass  
+parameter mW     = 80.419       # W-boson mass  
+parameter mH     = 125          # Higgs mass
+parameter mPsi   = 2000 	# Psi mass
+parameter mEta   = 750		# Eta mass
+parameter alphas = 0.1178       # Strong coupling constant (Z point)
+parameter fpsi   = 1000		# Psi decay constant
+parameter feta   = 375          # Eta decay constant
+parameter kpsig  = 1		# psi g g coupling
+parameter kpsiw  = 1		# psi W W coupling
+parameter kpsib  = 1		# psi B B coupling
+parameter ketag  = 0            # eta g g coupling
+parameter ketaw  = 1            # eta W W coupling 
+parameter ketab  = 1		# eta B B coupling
+parameter lambda = 1000		# trilinear eta 
+parameter me     = 0.0005109997 # electron mass                       
+parameter mmu    = 0.105658389  # muon mass                         
+parameter mtau   = 1.77705      # tau-lepton mass                               
+parameter ms     = 0.095        # s-quark mass                         
+parameter mc     = 1.2          # c-quark mass                         
+parameter mb     = 4.2          # b-quark mass                         
+parameter mtop   = 173.1        # t-quark mass                         
+parameter wtop   = 1.523        # t-quark width
+parameter wZ     = 2.443        # Z-boson width
+parameter wW     = 2.049        # W-boson width
+parameter wH     = 0.004143     # Higgs width
+parameter wPsi   = 1.0		# Psi width
+parameter wEta   = 0.1		# Eta width
+
+	
+# Dependent parameters
+derived v     = 1 / sqrt (sqrt (2.) * GF)     # v (Higgs vev)
+derived cw    = mW / mZ                       # cos(theta-W)
+derived sw    = sqrt (1-cw**2)                # sin(theta-W)
+derived ee    = 2 * sw * mW / v               # em-coupling (GF scheme)
+derived alpha_em_i = 4 * pi / ee**2           # inverse fine structure const
+
+########################################################################
+# Particle content
+
+
+# The quarks
+particle D_QUARK 1  parton
+  spin 1/2  charge -1/3	  isospin -1/2  color 3
+  name d down
+  anti dbar D "d~" 
+  tex_anti "\bar{d}"
+particle U_QUARK 2  parton
+  spin 1/2  charge  2/3  isospin  1/2  color 3
+  name u up
+  anti ubar U "u~" 
+  tex_anti "\bar{u}"
+particle S_QUARK 3  like D_QUARK
+  name s strange
+  anti sbar S "s~" 
+  tex_anti "\bar{s}"
+  mass ms
+particle C_QUARK 4  like U_QUARK
+  name c charm
+  anti cbar C "c~" 
+  tex_anti "\bar{c}"
+  mass mc
+particle B_QUARK 5  like D_QUARK
+  name b bottom
+  anti bbar B "b~" 
+  tex_anti "\bar{b}"
+  mass mb
+particle T_QUARK 6  like U_QUARK
+  name t top
+  anti tbar T "t~" 
+  tex_anti "\bar{t}"
+  mass mtop  width wtop
+
+# The leptons
+particle E_LEPTON 11
+  spin 1/2  charge  -1   isospin -1/2  
+  name "e-" e1 electron e 
+  anti "e+" E1 positron 
+  mass me
+  tex_name "e^-"
+  tex_anti "e^+"
+particle E_NEUTRINO 12 left
+  spin 1/2  isospin  1/2
+  name nue n1 "nu_e" ve "e-neutrino" 
+  anti nuebar N1 "ve~"             
+  tex_name "\nu_e"
+  tex_anti "\bar\nu_e"
+particle MU_LEPTON 13  like E_LEPTON
+  name "mu-" e2 mu muon 
+  anti "mu+" E2       
+  tex_name "\mu^-"
+  tex_anti "\mu^+"
+  mass mmu
+particle MU_NEUTRINO 14  like E_NEUTRINO
+  name "nu_mu" numu n2 vm "mu-neutrino" 
+  anti numubar N2 "vm~"              
+  tex_name "\nu_\mu"
+  tex_anti "\bar\nu_\mu"
+particle TAU_LEPTON 15  like E_LEPTON
+  name "tau-" e3 tau "ta-" tauon 
+  anti "tau+" E3 "ta+"        
+  tex_name "\tau^-"
+  tex_anti "\tau^+"
+  mass mtau
+particle TAU_NEUTRINO 16  like E_NEUTRINO
+  name nutau "nu_tau" n3 vt "tau_neutrino" 
+  anti nutaubar N3 "vt~"               
+  tex_name "\nu_\tau"
+  tex_anti "\bar\nu_\tau"
+
+# The vector bosons
+particle GLUON 21  parton gauge
+  spin 1  color 8
+  name gl g G gluon
+particle PHOTON 22  gauge
+  spin 1
+  name A gamma photon 
+  tex_name "\gamma"
+particle Z_BOSON 23  gauge
+  spin 1
+  name Z
+  mass mZ  width wZ
+particle W_BOSON 24  gauge
+  spin 1  charge 1
+  name "W+" Wp
+  anti "W-" Wm
+  tex_name "W^+"
+  tex_anti "W^-"
+  mass mW  width wW
+
+# The Higgs
+particle HIGGS 25
+  spin 0
+  name H h Higgs
+  mass mH  width wH
+particle PSI 28 like HIGGS
+  name Psi psi
+  mass mPsi  width mPsi
+particle ETA 29 like HIGGS
+  name Eta eta
+  mass mEta  width wEta
+
+# Hadrons
+particle PROTON 2212
+  spin 1/2  charge 1
+  name p "p+"
+  anti pbar "p-"
+
+# Beam remnants for proton colliders
+particle HADRON_REMNANT 90
+  name hr
+  tex_name "had_r"
+particle HADRON_REMNANT_SINGLET 91
+  name hr1
+  tex_name "had_r^{(1)}"
+particle HADRON_REMNANT_TRIPLET 92
+  color 3
+  name hr3
+  tex_name "had_r^{(3)}"
+  anti hr3bar
+  tex_anti "had_r^{(\bar 3)}"
+particle HADRON_REMNANT_OCTET 93
+  color 8
+  name hr8
+  tex_name "had_r^{(8)}"
+
+########################################################################
+# Trilinear vertices of the Standard model
+# In graphs with identical structure, the first vertex is kept for phase space,
+# therefore, lighter particles come before heavier ones.
+
+# QED
+vertex d D A
+vertex u U A
+vertex s S A
+vertex c C A
+vertex b B A
+vertex t T A
+vertex e1 E1 A
+vertex e2 E2 A
+vertex e3 E3 A
+
+
+# QCD
+vertex g g g 
+
+vertex d D g
+vertex u U g
+vertex s S g
+vertex c C g
+vertex b B g
+vertex t T g
+
+
+# Neutral currents
+vertex d D Z
+vertex u U Z
+vertex s S Z
+vertex c C Z
+vertex b B Z
+vertex t T Z
+vertex e1 E1 Z
+vertex e2 E2 Z
+vertex e3 E3 Z
+vertex n1 N1 Z
+vertex n2 N2 Z
+vertex n3 N3 Z
+
+
+# Charged currents
+vertex u D Wm
+vertex c S Wm
+vertex t B Wm
+vertex n1 E1 Wm
+vertex n2 E2 Wm
+vertex n3 E3 Wm
+vertex d U Wp
+vertex s C Wp
+vertex b T Wp
+vertex e1 N1 Wp
+vertex e2 N2 Wp
+vertex e3 N3 Wp
+
+
+# Yukawa
+vertex e3 E3 H
+vertex b B H
+vertex t T H
+
+
+# Three-boson
+vertex Wp Wm A
+vertex Wp Wm Z
+vertex Wp Wm H
+vertex Z Z H
+vertex H H H
+vertex Psi g g
+vertex Psi Wp Wm
+vertex Psi Z Z
+vertex Psi A A
+vertex Psi A Z
+vertex Eta g g
+vertex Eta Wp Wm
+vertex Eta Z Z
+vertex Eta A A
+vertex Eta A Z
+
+
+

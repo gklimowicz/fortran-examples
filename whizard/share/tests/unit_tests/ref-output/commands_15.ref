@@ -1,0 +1,50 @@
+* Test output: commands_15
+*   Purpose: define process and compile library
+
+* Initialization
+
+* Input file
+
+model = "Test"
+process t15 = s, s => s, s
+iterations = 1:1000
+integrate (t15)
+
+* Parse file
+
+* Compile command list
+
+* Execute command list
+
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: lib_cmd15
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = a
+
+ Process library entries: 1
+ Entry #1: [a] t15.1 = int (test_me)
+
+ Process #1:
+ ID = 't15'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = 'EC70E2B54F0AD7DA858E05F34C1724F8'
+ Component #1
+   Component ID        = t15_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = '2AD9710C37A13576E7EA7A4F69012000'
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_15

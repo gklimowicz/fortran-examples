@@ -1,0 +1,39 @@
+# SINDARIN input for WHIZARD self-test
+# Process g g -> t tbar
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+model = QCD (default)
+alphas = 0.1178 
+
+$method = "omega"
+process qcdtest_6_p1 = "g", "g" => "t", "tbar"
+process qcdtest_6_p2 = "g", "g" => "u", "ubar"
+
+compile ()
+
+iterations = 1:1000
+sqrts = 1000
+
+seed = 0
+model = QCD (default)
+wtop = 0
+show (model)
+integrate (qcdtest_6_p1)
+
+seed = 0
+model = QCD (massive)
+mu = mtop
+wtop = 0
+show (model)
+integrate (qcdtest_6_p2)
+
+seed = 0
+integrate (qcdtest_6_p1)
+

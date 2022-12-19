@@ -1,0 +1,52 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "SM"
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process show_5_a = "e-", "e+" => "mu-", "mu+"
+process show_5_b = "e-", "e+" => "W+", "W-"
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+?pacify = true
+?sample_pacify = true
+
+iterations = 1:1000
+
+# Results to be exported
+scan sqrts = (200 GeV, 300 GeV) {
+  export (results)
+  $run_id = sprintf "a%d" (int (sqrts))
+  integrate (show_5_a)
+  $run_id = sprintf "b%d" (int (sqrts))
+  integrate (show_5_b)
+  show (results)
+}
+show (integral (show_5_a))
+show (integral (show_5_b))
+
+# Results not to be exported
+scan sqrts = (500 GeV) {
+  $run_id = sprintf "a%d" (int (sqrts))
+  integrate (show_5_a)
+  show (results)
+}
+show (integral (show_5_a))
+show (integral (show_5_b))
+
+# Results should also go there
+$out_file = "show_5.results.dat"
+open_out ($out_file)
+
+# Now show (only) results that were exported
+show (results)
+
+close_out ($out_file)

@@ -1,0 +1,32 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM
+me = 0
+mmu = 0
+
+?logging = true
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+$method = "omega"
+process beam_setup_3p = "e-", "mu+" => nue, numubar
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?phs_only = true
+sqrts = 1000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+scan int h1 = (-1, 1) {
+  scan int h2 = (-1, 1) {
+     beams_pol_density = @(h1), @(h2)
+     integrate (beam_setup_3p)
+  }
+}

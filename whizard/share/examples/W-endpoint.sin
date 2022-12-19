@@ -1,0 +1,85 @@
+# W-endpoint.sin
+# Simple complete physics example: W endpoint in the Standard Model
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = SM
+
+# Set up the process
+alias parton = u:U:d:D:g
+alias jet = parton
+### We could have added strange and charm jets:
+# alias jet = parton:s:S:c:C
+alias lepton = e1:e2
+alias neutrino = n1:N1:n2:N2
+
+process enj = parton, parton => lepton, neutrino, jet
+compile
+
+ms = 0
+mc = 0
+me = 0
+mmu = 0
+
+# LHC design energy
+sqrts = 14 TeV
+beams = p, p => pdf_builtin 
+$pdf_builtin_set = "cteq6l" 
+
+# Define reasonable cuts and integrate the cross section(s)
+# in order to initialize the phase space grids for similation
+cuts = all Pt >= 10 GeV [jet:lepton]
+integrate (enj) { iterations = 5:20000:"gw", 3:10000 }
+ 
+# Define title etc. as global variables, that will be used by PLOT
+$description =
+  "A WHIZARD 3.0 Example. Cuts $p_T($visible$)\ge10 \textrm{ GeV}$."
+$y_label = "$N_{\textrm{events}}$"
+
+# Allocate plots
+$title = "$W$ Endpoint (``Jacobian Peak'') in $pp\to \ell\bar\nu j$"
+$x_label = "$p_T^\ell$/GeV"
+histogram pt_lepton (0 GeV, 80 GeV, 2 GeV)
+
+$title = "Jet-$p_T$ in $pp\to \ell\bar\nu j$"
+$x_label = "$p_T^j$/GeV"
+histogram pt_jet (0 GeV, 80 GeV, 2 GeV)
+
+$title = "Lepton Energy in $pp\to \ell\bar\nu j$"
+$x_label = "$E^\ell$/GeV"
+histogram e_lepton (0 GeV, 160 GeV, 4 GeV)
+
+$title = "Jet Energy in $pp\to \ell\bar\nu j$"
+$x_label = "$E^j$/GeV"
+histogram e_jet (0 GeV, 80 GeV, 2 GeV)
+
+analysis = record pt_lepton (eval Pt [extract index 1 [sort by Pt [lepton]]]);
+           record pt_jet (eval Pt [extract index 1 [sort by Pt [jet]]]);
+           record e_lepton (eval E [extract index 1 [sort by Pt [lepton]]]);
+           record e_jet (eval E [extract index 1 [sort by Pt [jet]]])
+
+simulate (enj) { n_events = 2000 }
+
+compile_analysis { $out_file = "W-endpoint.dat" }

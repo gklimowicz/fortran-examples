@@ -1,0 +1,87 @@
+# SINDARIN input for WHIZARD self-test
+
+# Verify that grids are rebuilt when beam parameters are modified.
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+model = SM
+
+process beam_setup_5p  = e1, E1 => t, T
+
+iterations = 1:100
+
+#-----------------------------------------------------------------
+# Monoenergetic beam
+
+beams = e1, E1
+
+sqrts = 500 GeV
+
+seed = 1
+
+?rebuild_grids = true
+integrate (beam_setup_5p)
+
+# Loop over e+ / e- helicity
+?rebuild_grids = false
+scan int hel_em = (-1, 1) {
+  scan int hel_ep = (-1, 1) {
+
+     beams_pol_density = @(hel_em), @(hel_ep)
+
+    integrate (beam_setup_5p)
+  }
+}
+
+
+
+
+#-----------------------------------------------------------------
+# ILC spectra from CIRCE1 + ISR
+
+beams = e1, E1 => circe1  => isr
+
+sqrts = 500 GeV
+circe1_ver = 10
+$circe1_acc = "ILC"
+
+seed = 1
+
+integrate (beam_setup_5p)
+
+# Loop over e+ / e- helicity
+scan int hel_em = (-1, 1) {
+  scan int hel_ep = (-1, 1) {
+
+    beams_pol_density = @(hel_em), @(hel_ep)
+
+    integrate (beam_setup_5p)
+  }
+}
+
+#-----------------------------------------------------------------
+# Test spectra file
+
+beams = e1, E1 => beam_events => isr
+$beam_events_file = "uniform_spread_2.5%.dat"
+
+sqrts = 500 GeV
+
+seed = 1
+
+integrate (beam_setup_5p)
+
+# Loop over e+ / e- helicity
+scan int hel_em = (-1, 1) {
+  scan int hel_ep = (-1, 1) {
+
+    beams_pol_density = @(hel_em), @(hel_ep)
+
+    integrate (beam_setup_5p)
+  }
+}
+
