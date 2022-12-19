@@ -1,0 +1,45 @@
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+process spincor_1p = e1, E1 => Wp, Wm
+
+process spincor_1d = Wp => u, D
+
+seed = 0
+sqrts = 500
+integrate (spincor_1p) { iterations = 1:1000 }
+integrate (spincor_1d)
+
+# ! Histograms for display commented out
+#histogram h_ct_cor (-1, 1) { n_bins = 40 }
+#histogram h_ct_iso (-1, 1) { n_bins = 40 }
+
+observable o_ct_cor
+observable o_ct_iso
+
+unstable Wp (spincor_1d) { ?isotropic_decay = false }
+
+simulate (spincor_1p) { 
+  n_events = 100
+  analysis = 
+#    record h_ct_cor (eval cos (Theta_star) [u, D]); 
+    record o_ct_cor (eval cos (Theta_star) [u, D])
+}
+
+unstable Wp (spincor_1d) { ?isotropic_decay = true }
+
+simulate (spincor_1p) { 
+  n_events = 100
+  analysis = 
+#    record h_ct_iso (eval cos (Theta_star) [u, D]); 
+    record o_ct_iso (eval cos (Theta_star) [u, D])
+}
+
+show (o_ct_cor)   ! negative (backward emission)
+show (o_ct_iso)   ! compatible w/ zero (uniform)
+
+#compile_analysis { $out_file = "spincor_1.dat" }

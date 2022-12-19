@@ -1,0 +1,115 @@
+* Test output: commands_31
+*   Purpose: define weight/reweight
+
+*  Initialization
+
+*  Input file
+
+weight = eval Pz [particle]
+reweight = eval M2 [particle]
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_weight> <cmd_reweight>
+|  +  <cmd_weight>  =  weight '=' <expr>
+|  |  +  weight  = [keyword] weight
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <eval_fun>
+|  |  |  |  |  +  <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  |  |  |  +  eval  = [keyword] eval
+|  |  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  |  +  <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  <variable>  = Pz
+|  |  |  |  |  |  +  <pargs1>  =  <pexpr>
+|  |  |  |  |  |  |  +  <pexpr>  =  <pterm>
+|  |  |  |  |  |  |  |  +  <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  |  |  |  +  <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  |  |  |  +  <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  +  <variable>  = particle
+|  +  <cmd_reweight>  =  reweight '=' <expr>
+|  |  +  reweight  = [keyword] reweight
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <eval_fun>
+|  |  |  |  |  +  <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  |  |  |  +  eval  = [keyword] eval
+|  |  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  |  +  <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  <variable>  = M2
+|  |  |  |  |  |  +  <pargs1>  =  <pexpr>
+|  |  |  |  |  |  |  +  <pexpr>  =  <pterm>
+|  |  |  |  |  |  |  |  +  <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  |  |  |  +  <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  |  |  |  +  <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  +  <variable>  = particle
+
+* Compile command list
+
+ weight expression: [defined]
+ reweight expression: [defined]
+
+* Execute command list
+
+========================================================================
+ Cuts: [undefined]
+------------------------------------------------------------------------
+ Scale: [undefined]
+------------------------------------------------------------------------
+ Factorization scale: [undefined]
+------------------------------------------------------------------------
+ Renormalization scale: [undefined]
+------------------------------------------------------------------------
+ Weight:
+------------------------------------------------------------------------
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <eval_fun>
+|  |  +  SEQUENCE    <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  +  KEYWORD     eval  = [keyword] eval
+|  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  +  IDENTIFIER  <variable>  = Pz
+|  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = particle
+========================================================================
+ Event selection: [undefined]
+------------------------------------------------------------------------
+ Event reweighting factor:
+------------------------------------------------------------------------
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <eval_fun>
+|  |  +  SEQUENCE    <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  +  KEYWORD     eval  = [keyword] eval
+|  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  +  IDENTIFIER  <variable>  = M2
+|  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = particle
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_31

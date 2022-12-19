@@ -1,0 +1,41 @@
+# SINDARIN input for WHIZARD self-test
+# Testing LO event generation for external/OpenLoops matrix elements
+# with structure functions
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+alpha_power = 2
+alphas_power = 0
+
+alias jet = u:d:U:D
+
+?openloops_use_cms = false
+$method = "openloops"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+process openloops_11_p1 = e1, E1 => jet, jet
+beams = e1, E1 => isr
+seed = 42
+
+sqrts = 200 GeV
+
+integrate (openloops_11_p1) { iterations = 1:100:"gw" }
+
+n_events = 2
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+simulate (openloops_11_p1)

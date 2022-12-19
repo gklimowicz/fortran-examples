@@ -1,0 +1,47 @@
+# SINDARIN input for WHIZARD self-test
+# Testing an isolated real-subtraction component in the context
+# of resonance-aware FKS subtraction for ee -> bbmumu
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+!!! We use a ficticious muon mass to avoid infrared divergencies
+!!! and thus do not have to apply cuts
+mb = 4.2 GeV
+mmu = 5 GeV
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+$fks_mapping_type = "resonances"
+
+process fks_res_1_p1 = E1, e1 => b, B, e2, E2 { nlo_calculation = real }
+
+seed = 2222
+
+sqrts = 500 GeV
+
+integrate (fks_res_1_p1) { iterations = 2:1000:"gw" }
+
+n_events = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+?fixed_order_nlo_events = true
+?negative_weights = true
+?unweighted = false
+
+simulate (fks_res_1_p1) 

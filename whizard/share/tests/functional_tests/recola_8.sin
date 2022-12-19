@@ -1,0 +1,25 @@
+# SINDARIN input for WHIZARD self-test
+# Testing integration LO RECOLA with decay
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$method = "recola"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+# RECOLA needs to know the alpha_s power of the process
+alphas_power = 0
+
+process recola_8_p1 = t => Wp, b
+
+seed = 1
+
+iterations = 1:100
+integrate (recola_8_p1)

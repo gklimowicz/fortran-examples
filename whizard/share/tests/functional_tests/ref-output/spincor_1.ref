@@ -1,0 +1,152 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+| Process library 'spincor_1_lib': recorded process 'spincor_1p'
+| Process library 'spincor_1_lib': recorded process 'spincor_1d'
+seed = 0
+sqrts =  5.000000000000E+02
+| Integrate: current process library needs compilation
+| Process library 'spincor_1_lib': compiling ...
+| Process library 'spincor_1_lib': writing makefile
+| Process library 'spincor_1_lib': removing old files
+| Process library 'spincor_1_lib': writing driver
+| Process library 'spincor_1_lib': creating source code
+| Process library 'spincor_1_lib': compiling sources
+| Process library 'spincor_1_lib': linking
+| Process library 'spincor_1_lib': loading
+| Process library 'spincor_1_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process spincor_1p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'spincor_1p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'spincor_1p'
+|   Library name  = 'spincor_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'spincor_1p_i1':   e-, e+ => W+, W- [omega]
+| ------------------------------------------------------------------------
+| Phase space: 3 channels, 2 dimensions
+| Phase space: found 3 channels, collected in 2 groves.
+| Phase space: Using 3 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'spincor_1p'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 3 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        864  7.2372290E+03  6.01E+01    0.83    0.24*  25.96
+|-----------------------------------------------------------------------------|
+   1        864  7.2372290E+03  6.01E+01    0.83    0.24   25.96
+|=============================================================================|
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process spincor_1d:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   W+  (mass = 8.0419000E+01 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'spincor_1d.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'spincor_1d'
+|   Library name  = 'spincor_1_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'spincor_1d_i1':   W+ => u, dbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'spincor_1d'
+| Integrate: iterations not specified, using default
+| Integrate: iterations = 1:100:""
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  6.8269218E-01  0.00E+00    0.00    0.00* 100.00
+|-----------------------------------------------------------------------------|
+   1        100  6.8269218E-01  0.00E+00    0.00    0.00  100.00
+|=============================================================================|
+?isotropic_decay = false
+| Unstable particle W+: computed branching ratios:
+|   spincor_1d: 1.0000000E+00   u, dbar
+|   Total width = 6.8269218E-01 GeV (computed)
+|               = 2.0490000E+00 GeV (preset)
+|   Decay options: helicity treated exactly
+n_events = 100
+| Starting simulation for process 'spincor_1p'
+| Simulate: using integration grids from file 'spincor_1p.m1.vg'
+| Simulate: activating decays
+| Simulate: using integration grids from file 'spincor_1d.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 100
+|             corr. to luminosity [fb-1] =   1.3817E-02
+| Events: writing to raw file 'spincor_1p.evx'
+| Events: generating 100 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  22.22 %
+Warning: Encountered events with excess weight: 1 events (  1.000 %)
+| Maximum excess weight = 1.897E-03
+| Average excess weight = 1.897E-05
+| Events: closing raw file 'spincor_1p.evx'
+?isotropic_decay = true
+| Unstable particle W+: computed branching ratios:
+|   spincor_1d: 1.0000000E+00   u, dbar
+|   Total width = 6.8269218E-01 GeV (computed)
+|               = 2.0490000E+00 GeV (preset)
+|   Decay options: isotropic
+n_events = 100
+| Starting simulation for process 'spincor_1p'
+| Simulate: using integration grids from file 'spincor_1p.m1.vg'
+| Simulate: activating decays
+| Simulate: using integration grids from file 'spincor_1d.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 100
+|             corr. to luminosity [fb-1] =   1.3817E-02
+| Events: writing to raw file 'spincor_1p.evx'
+| Events: generating 100 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  26.04 %
+Warning: Encountered events with excess weight: 2 events (  2.000 %)
+| Maximum excess weight = 1.722E-04
+| Average excess weight = 3.208E-06
+| Events: closing raw file 'spincor_1p.evx'
+###############################################################################
+# Observable: o_ct_cor
+average     = -4.192564000752E-01
+error[abs]  =  4.595583209263E-02
+error[rel]  =  1.096127145212E-01
+n_entries   = 100
+###############################################################################
+# Observable: o_ct_iso
+average     =  3.224040814195E-02
+error[abs]  =  5.945084536899E-02
+error[rel]  =  1.843985507480E+00
+n_entries   = 100
+| There were no errors and    4 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

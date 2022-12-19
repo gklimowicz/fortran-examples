@@ -1,0 +1,43 @@
+# Seed change to clean numerical noise between LHAPDF 6.2.3 and 6.3.0/6.4.0
+
+$openloops_allowed_libs = "ppvj"
+
+include("nlo_settings.sin")
+?pacify = true
+
+alias pr = u:U:d:D:s:S:gl
+alias jet = u:U:d:D:s:S:gl
+$exclude_gauge_splittings = "c:b:t"
+
+?alphas_from_mz = false
+?alphas_from_lhapdf = true
+alphas_nf = 5
+alphas_order = 2
+
+alpha_power = 1
+alphas_power = 1
+
+beams = p, p => lhapdf
+$lhapdf_file = "MSTW2008nlo68cl"
+
+sqrts = 13 TeV
+
+seed = 31415
+
+# Settings for MPI
+$rng_method = "rng_stream"
+$integration_method = "vamp2"
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 30 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4 [@pt_selected] in
+       count [@eta_selected] >= 1
+
+scale = eval Ht/2 [Z:jet]
+
+$real_partition_mode = "on"
+real_partition_scale = 10 GeV
+
+process ppzj_wp = pr, pr => Z, jet { nlo_calculation = real $restrictions="!W+:W-" }
+
+integrate (ppzj_wp) { iterations = 2:1000:"gw",2:1000 }

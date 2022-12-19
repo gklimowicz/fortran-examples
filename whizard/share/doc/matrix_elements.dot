@@ -1,0 +1,18 @@
+
+digraph G {
+concentrate=true
+splines=true
+node[shape=record,style=filled,fillcolor=white]
+edge[color=gray50]
+process_libraries -> process_constants
+process_libraries -> prclib_interfaces
+prclib_stacks -> process_libraries
+process_libraries -> prc_core_def
+prc_core_def -> process_constants
+prc_test -> process_constants
+prc_test -> prc_core_def
+prc_test -> process_libraries
+prc_core_def -> prclib_interfaces
+prc_test -> prclib_interfaces
+ }
+

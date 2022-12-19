@@ -1,0 +1,46 @@
+########################################################################
+# QED with three generations
+model "QED"
+
+# Independent parameters
+### DO NOT CHANGE THE ORDER OF THESE PARAMETERS
+parameter  ee	= 0.30286  	# Positron charge
+parameter  me	= 511   keV	# Electron mass
+parameter  mmu	= 105.7 MeV 	# Muon mass
+parameter  mtau	= 1.777 GeV	# Tau mass 
+	
+########################################################################
+# Particle content
+# The leptons
+particle E_LEPTON 11
+  spin 1/2  isospin -1/2  charge  -1
+  name "e-" e1
+  anti "e+" E1
+  tex_name "e^-"
+  tex_anti "e^+"
+  mass me
+particle MU_LEPTON 13  like E_LEPTON
+  name "m-" e2 "mu-"
+  anti "m+" E2 "mu+"
+  tex_name "\mu^-"
+  tex_anti "\mu^+"
+  mass mmu
+particle TAU_LEPTON 15  like E_LEPTON
+  name "t-" e3 "ta-" "tau-"
+  anti "t+" E3 "ta+" "tau+"
+  tex_name "\tau^-"
+  tex_anti "\tau^+"
+  mass mtau
+
+# The bosons
+particle PHOTON  22
+  spin 1
+  name A gamma photon
+  tex_name "\gamma"
+
+########################################################################
+# Vertices
+
+vertex E1 e1 A
+vertex E2 e2 A
+vertex E3 e3 A

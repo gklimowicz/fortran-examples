@@ -1,0 +1,317 @@
+#include <stdio.h>
+#include "whizard.h"
+#include "whizard_ut.h"
+
+
+  void api_ut_c_1( int u_log, void* results ) {
+
+    void* wh;
+
+    whizard_ut_start (u_log, "api_c_1");
+    FILE *outfile;
+    outfile = fopen( "api_c_1.out", "w" );
+
+    fprintf (outfile, "* Test output: api_c_1\n");
+    fprintf (outfile, "*   Purpose:  call init/final\n");
+    fprintf (outfile, "\n");
+
+    fprintf (outfile, "* Creating WHIZARD object handle\n");
+    whizard_create (&wh);
+
+    fprintf (outfile, "* Setting options\n");
+    whizard_option (&wh, "logfile", "api_c_1.log");
+
+    fprintf (outfile, "* Initializing WHIZARD\n");
+    whizard_init (&wh);
+
+    fprintf (outfile, "* Finalizing WHIZARD\n");
+    whizard_final (&wh);
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_c_1\n");
+
+    fclose (outfile);
+    whizard_ut_end (u_log, "api_c_1", "basic init/final", &results);
+
+  }
+  void api_ut_c_2( int u_log, void* results ) {
+
+    void* wh;
+
+    int err;
+    char job_id[16];
+    double sqrts;
+    int n_events;
+    int unweighted;
+    char sample[16];
+
+    whizard_ut_start (u_log, "api_c_2");
+    FILE *outfile;
+    outfile = fopen( "api_c_2.out", "w" );
+
+    fprintf (outfile, "* Test output: api_c_2\n");
+    fprintf (outfile, "*   Purpose:  access Sindarin variables\n");
+    fprintf (outfile, "\n");
+
+    whizard_create (&wh);
+    whizard_option (&wh, "logfile", "api_c_2_log.out");
+    whizard_option (&wh, "job_id", "api_c_2_ID");
+    whizard_init (&wh);
+
+    err = whizard_get_char (&wh, "$job_id", job_id, 16);
+    if (!err) fprintf (outfile, "$job_id = %s\n", job_id);
+
+    err = whizard_get_double (&wh, "sqrts", &sqrts);
+    if (!err) {
+      fprintf (outfile, "sqrts = %5.1f\n", sqrts);
+    } else {
+      fprintf (outfile, "sqrts = [unknown]\n", sqrts);
+    }
+
+    fprintf (outfile, "\n");
+
+    whizard_set_double (&wh, "sqrts", 100.);
+    whizard_set_int (&wh, "n_events", 3);
+    whizard_set_bool (&wh, "?unweighted", 0);
+    whizard_set_char (&wh, "$sample", "foobar");
+
+    err = whizard_get_double (&wh, "sqrts", &sqrts);
+    if (!err) fprintf (outfile, "sqrts = %5.1f\n", sqrts);
+
+    err = whizard_get_int (&wh, "n_events", &n_events);
+    if (!err) fprintf (outfile, "n_events = %1d\n", n_events);
+
+    err = whizard_get_bool (&wh, "?unweighted", &unweighted);
+    if (!err) fprintf (outfile, "?unweighted = %1d\n", unweighted);
+
+    err = whizard_get_char (&wh, "$sample", sample, 16);
+    if (!err) fprintf (outfile, "$sample = %s\n", sample);
+
+    fprintf (outfile, "\n");
+
+    whizard_set_bool (&wh, "?unweighted", 1);
+    whizard_get_bool (&wh, "?unweighted", &unweighted);
+    fprintf (outfile, "?unweighted = %1d\n", unweighted);
+    whizard_get_char (&wh, "$sample", sample, 4);
+    fprintf (outfile, "$sample = %s\n", sample);
+
+    whizard_final (&wh);
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_c_2\n");
+
+    fclose (outfile);
+    whizard_ut_end (u_log, "api_c_2", "set/get Sindarin values", &results);
+
+  }
+  void api_ut_c_3( int u_log, void* results ) {
+
+    void* wh;
+
+    #define NF 3
+    #define CLEN 16
+
+    int err;
+    int f = 11;
+    int fa[NF] = {11, 13, 15};
+    char electron[CLEN];
+    char leptons[CLEN];
+
+    whizard_ut_start (u_log, "api_c_3");
+    FILE *outfile;
+    outfile = fopen( "api_c_3.out", "w" );
+
+    fprintf (outfile, "* Test output: api_c_3\n");
+    fprintf (outfile, "*   Purpose:  translate PDG code(s) to flavor string\n");
+    fprintf (outfile, "\n");
+
+    whizard_create (&wh);
+    whizard_option (&wh, "logfile", "api_c_3_log.out");
+    whizard_option (&wh, "model", "QED");
+    whizard_init (&wh);
+
+    err = whizard_flv_string (&wh, f, electron, CLEN);
+    if (!err) fprintf (outfile, "electron = %s\n", electron);
+
+    err = whizard_flv_array_string (&wh, fa, NF, leptons, CLEN);
+    if (!err) fprintf (outfile, "leptons = %s\n", leptons);
+
+    whizard_final (&wh);
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_c_3\n");
+
+    fclose (outfile);
+    whizard_ut_end (u_log, "api_c_3", "handle flavor string", &results);
+
+  }
+  void api_ut_c_4( int u_log, void* results ) {
+
+    void* wh;
+
+    int err;
+    double sqrts;
+    double integral;
+    double error;
+
+    whizard_ut_start (u_log, "api_c_4");
+    FILE *outfile;
+    outfile = fopen( "api_c_4.out", "w" );
+
+    fprintf (outfile, "* Test output: api_c_4\n");
+    fprintf (outfile, "*   Purpose:  integrate and retrieve results\n");
+    fprintf (outfile, "\n");
+
+    whizard_create (&wh);
+    whizard_option (&wh, "logfile", "api_c_4_log.out");
+    whizard_option (&wh, "library", "api_c_4_lib");
+    whizard_option (&wh, "model", "QED");
+    whizard_option (&wh, "rebuild", "true");
+    whizard_init (&wh);
+
+    fprintf (outfile, "* Process setup\n");
+    fprintf (outfile, "\n");
+
+    whizard_command (&wh, "process api_c_4_p = e1, E1 => e2, E2");
+    whizard_command (&wh, "sqrts = 10");
+    whizard_command (&wh, "iterations = 1:100");
+    whizard_set_int (&wh, "seed", 0);
+    err = whizard_get_integration_result (&wh, "api_c_4_p", &integral, &error);
+    fprintf (outfile, "  integral is unknown = %d\n", err);
+
+    whizard_command (&wh, "integrate (api_c_4_p)");
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Integrate\n");
+    fprintf (outfile, "\n");
+
+    err = whizard_get_integration_result (&wh, "api_c_4_p", &integral, &error);
+    fprintf (outfile, "  integral is unknown = %d\n", err);
+
+    whizard_get_double (&wh, "sqrts", &sqrts);
+    fprintf (outfile, "  sqrt(s)       = %5.1f GeV\n", sqrts);
+    fprintf (outfile, "  cross section = %5.1f pb\n", integral / 1000.);
+    fprintf (outfile, "  error         = %5.1f pb\n", error / 1000.);
+
+    whizard_final (&wh);
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_c_4\n");
+
+    fclose (outfile);
+    whizard_ut_end (u_log, "api_c_4", "integrate", &results);
+
+  }
+  void api_ut_c_5( int u_log, void* results ) {
+
+    void* wh;
+    void* sample;
+
+    #define CLEN 16
+
+    int it, it_begin, it_end;
+
+    int i_proc;
+    char proc_id[CLEN];
+    int idx;
+    double f_scale;
+    double alpha_s;
+    double weight;
+    double sqme;
+
+    whizard_ut_start (u_log, "api_c_5");
+    FILE *outfile;
+    outfile = fopen( "api_c_5.out", "w" );
+
+    fprintf (outfile, "* Test output: api_c_5\n");
+    fprintf (outfile, "*   Purpose:  generate events\n");
+    fprintf (outfile, "\n");
+
+    whizard_create (&wh);
+    whizard_option (&wh, "logfile", "api_c_5_log.out");
+    whizard_option (&wh, "library", "api_c_5_lib");
+    whizard_option (&wh, "model", "QCD");
+    whizard_option (&wh, "rebuild", "true");
+    whizard_init (&wh);
+
+    whizard_command (&wh, "process api_c_5_p1 = u, U => t, T");
+    whizard_command (&wh, "process api_c_5_p2 = d, D => t, T");
+    whizard_command (&wh, "process api_c_5_p3 = s, S => t, T");
+    whizard_command (&wh, "sqrts = 1000");
+    whizard_command (&wh, "beams = p, p => pdf_builtin");
+    whizard_set_bool (&wh, "?alphas_is_fixed", 0);
+    whizard_set_bool (&wh, "?alphas_from_pdf_builtin", 1);
+    whizard_command (&wh, "iterations = 1:100");
+    whizard_set_int (&wh, "seed", 0);
+    whizard_command (&wh, "integrate (api_c_5_p1)");
+    whizard_command (&wh, "integrate (api_c_5_p2)");
+    whizard_command (&wh, "integrate (api_c_5_p3)");
+
+    whizard_set_bool (&wh, "?unweighted", 0);
+    whizard_set_char (&wh, "$sample", "api_c_5_evt");
+    whizard_command (&wh, "sample_format = dump");
+    whizard_set_int (&wh, "n_events", 10);
+
+    whizard_new_sample (&wh, "api_c_5_p1, api_c_5_p2, api_c_5_p3", &sample);
+    whizard_sample_open (&sample, &it_begin, &it_end);
+    for (it=it_begin; it<=it_end; it++) {
+       whizard_sample_next_event (&sample);
+       whizard_sample_get_event_index (&sample, &idx);
+       whizard_sample_get_process_index (&sample, &i_proc);
+       whizard_sample_get_process_id (&sample, proc_id, CLEN);
+       whizard_sample_get_fac_scale (&sample, &f_scale);
+       whizard_sample_get_alpha_s (&sample, &alpha_s);
+       whizard_sample_get_weight (&sample, &weight);
+       whizard_sample_get_sqme (&sample, &sqme);
+       fprintf (outfile, "Event #%d\n", idx);
+       fprintf (outfile, "  process #%d\n", i_proc);
+       fprintf (outfile, "  proc_id = %s\n", proc_id);
+       fprintf (outfile, "  f_scale = %10.3e\n", f_scale);
+       fprintf (outfile, "  alpha_s = %10.3e\n", alpha_s);
+       fprintf (outfile, "  sqme    = %10.3e\n", sqme);
+       fprintf (outfile, "  weight  = %10.3e\n", weight);
+    }
+    whizard_sample_close (&sample);
+
+    whizard_final (&wh);
+
+    fprintf (outfile, "\n");
+    fprintf (outfile, "* Test output end: api_c_5\n");
+
+    fclose (outfile);
+    whizard_ut_end (u_log, "api_c_5", "generate events", &results);
+
+  }
+
+int main( int argc, char* argv[] )
+{
+  int u_log;
+  void* results;
+  int n_fail;
+
+  printf( "| ============================================================================\n" );
+  printf( "| Running WHIZARD self-test: api_c with C driver program\n" );
+  printf( "| ----------------------------------------------------------------------------\n" );
+
+  whizard_ut_setup( "api_c", &u_log, &results );
+
+
+
+  api_ut_c_1( u_log, results );
+  api_ut_c_2( u_log, results );
+  api_ut_c_3( u_log, results );
+  api_ut_c_4( u_log, results );
+  api_ut_c_5( u_log, results );
+
+
+
+  n_fail = whizard_ut_get_n_fail( &results );
+
+  whizard_ut_wrapup( u_log, &results );
+
+  printf( "| ----------------------------------------------------------------------------\n" );
+  printf( "| Finished WHIZARD self-test: api_c with C driver program\n" );
+  printf( "| ============================================================================\n" );
+
+  return n_fail;
+}

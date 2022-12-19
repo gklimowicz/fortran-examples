@@ -1,0 +1,111 @@
+* Test output: prclib_interfaces_3
+*   Purpose: check the generated Makefile
+
+* Create a prclib driver object (2 processes)
+
+ External matrix-element code library: prclib3
+   static    = F
+   loaded    = F
+   MD5 sum   = 'prclib_interfaces_3_md5sum      '
+   Mdl flags = ''
+
+ DL access info:
+   is open   = F
+   error     = [none]
+
+ Matrix-element code entries:
+   test1  [Test_model]
+     test_1: proc1
+   test2  [Test_model]
+     test_2: proc1 proc2
+
+* Write Makefile
+* File contents:
+
+# WHIZARD: Makefile for process library 'prclib3'
+# Automatically generated file, do not edit
+
+# Integrity check (don't modify the following line!)
+MD5SUM = 'prclib_interfaces_3_md5sum      '
+
+# Library name
+BASE = prclib3
+
+# Compiler
+FC = fortran-compiler
+CC = c-compiler
+
+# Included libraries
+FCINCL = -I module-dir
+
+# Compiler flags
+FCFLAGS = -C=all
+FCFLAGS_PIC = -PIC
+CFLAGS = -I include-dir
+CFLAGS_PIC = -PIC
+LDFLAGS =
+
+# LaTeX setup
+LATEX = latex -halt-on-error
+MPOST = mpost --math=scaled -halt-on-error
+DVIPS = dvips
+PS2PDF = ps2pdf14
+TEX_FLAGS = "$$TEXINPUTS:"
+MP_FLAGS  = "$$MPINPUTS:"
+
+# Libtool
+LIBTOOL = my-libtool
+FCOMPILE = $(LIBTOOL) --tag=FC --mode=compile
+CCOMPILE = $(LIBTOOL) --tag=CC --mode=compile
+LINK = $(LIBTOOL) --tag=FC --mode=link
+
+# Compile commands (default)
+LTFCOMPILE = $(FCOMPILE) $(FC) -c $(FCINCL) $(FCFLAGS) $(FCFLAGS_PIC)
+LTCCOMPILE = $(CCOMPILE) $(CC) -c $(CFLAGS) $(CFLAGS_PIC)
+
+# Default target
+all: link diags
+
+# Matrix-element code files
+# Makefile code for process test1 goes here.
+# Makefile code for process test2 goes here.
+
+# Library driver
+$(BASE).lo: $(BASE).f90 $(OBJECTS)
+	$(LTFCOMPILE) $<
+
+# Library
+$(BASE).la: $(BASE).lo $(OBJECTS)
+	$(LINK) $(FC) -module -rpath /dev/null $(FCFLAGS) $(LDFLAGS) -o $(BASE).la $^
+
+# Main targets
+link: compile $(BASE).la
+compile: source $(OBJECTS) $(TEX_OBJECTS) $(BASE).lo
+compile_tex: $(TEX_OBJECTS)
+source: $(SOURCES) $(BASE).f90 $(TEX_SOURCES)
+.PHONY: link diags compile compile_tex source
+
+# Specific cleanup targets
+clean-test1:
+.PHONY: clean-test1
+clean-test2:
+.PHONY: clean-test2
+
+# Generic cleanup targets
+clean-library:
+	rm -f $(BASE).la
+clean-objects:
+	rm -f $(BASE).lo $(BASE)_driver.mod $(CLEAN_OBJECTS)
+clean-source:
+	rm -f $(CLEAN_SOURCES)
+clean-driver:
+	rm -f $(BASE).f90
+clean-makefile:
+	rm -f $(BASE).makefile
+.PHONY: clean-library clean-objects clean-source clean-driver clean-makefile
+
+clean: clean-library clean-objects clean-source
+distclean: clean clean-driver clean-makefile
+.PHONY: clean distclean
+
+* Test output end: prclib_interfaces_3

@@ -1,0 +1,25 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM
+me = 0
+mtop = 175
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+n_events = 1
+error_threshold = 1e-8
+process decay_err_3_d = t => b, Wp
+
+integrate (decay_err_3_d) { iterations = 1:100 }
+
+process decay_err_3_p = e1, E1 => t, T
+
+unstable t (decay_err_3_d)
+sqrts = 450 GeV
+
+# Decay process call after library recompilation is invalid 
+simulate (decay_err_3_p) { iterations = 1:100 }

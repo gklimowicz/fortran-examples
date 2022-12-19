@@ -1,0 +1,59 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process circe1_photons_4_p1 = A, "e-" => A, "e-"
+process circe1_photons_4_p2 = A, "e-" => A, "e-"
+process circe1_photons_4_p3 = A, "e-" => A, "e-"
+process circe1_photons_4_p4 = A, "e-" => A, "e-"
+
+process circe1_photons_4_q1 = "e+", A => "e+", A
+process circe1_photons_4_q2 = "e+", A => "e+", A
+process circe1_photons_4_q3 = "e+", A => "e+", A
+process circe1_photons_4_q4 = "e+", A => "e+", A
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+int n = 1000
+
+cuts = sqrts_hat > 50 and all Pt > 10 ["e-":"e+"]
+integrate (circe1_photons_4_p1) { iterations = 3:n:"g", 3:n }
+integrate (circe1_photons_4_q1) { iterations = 3:n:"g", 3:n }
+
+beams = A, "e-" => none, isr
+integrate (circe1_photons_4_p2) { iterations = 5:n:"g", 3:n }
+beams = "e+", A => isr, none
+integrate (circe1_photons_4_q2) { iterations = 5:n:"g", 3:n }
+
+epa_x_min = 0.1
+epa_mass = me
+
+beams = "e+", "e-" => epa, none
+cuts = sqrts_hat > 50 and all Pt > 10 ["e-"]
+integrate (circe1_photons_4_p3) { iterations = 3:n:"g", 3:n }
+beams = "e+", "e-" => none, epa
+cuts = sqrts_hat > 50 and all Pt > 10 ["e+"]
+integrate (circe1_photons_4_q3) { iterations = 5:n:"g", 3:n }
+
+beams = "e+", "e-" => epa, isr
+cuts = sqrts_hat > 50 and all Pt > 10 ["e-"]
+integrate (circe1_photons_4_p4) { iterations = 5:n:"g", 3:n }
+beams = "e+", "e-" => isr, epa
+cuts = sqrts_hat > 50 and all Pt > 10 ["e+"]
+integrate (circe1_photons_4_q4) { iterations = 5:n:"g", 3:n }

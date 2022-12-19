@@ -1,0 +1,35 @@
+
+digraph G {
+concentrate=true
+splines=true
+node[shape=record,style=filled,fillcolor=white]
+edge[color=gray50]
+instances -> pcm
+instances -> process
+pcm_base -> process_mci
+process -> process_counter
+instances -> process_mci
+instances -> process_counter
+process_mci -> process_counter
+pcm_base -> process_config
+kinematics -> process_config
+pcm -> pcm_base
+process -> process_config
+pcm -> process_config
+kinematics -> process_mci
+kinematics -> pcm
+process_mci -> process_config
+kinematics -> pcm_base
+process -> parton_states
+instances -> parton_states
+pcm -> process_mci
+instances -> pcm_base
+process -> process_mci
+instances -> process_config
+instances -> kinematics
+process -> pcm_base
+process_stacks -> process
+process -> pcm
+parton_states -> subevt_expr
+ }
+

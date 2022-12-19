@@ -1,0 +1,47 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process isr_5 = e1, E1 => u, U
+
+compile
+
+sqrts = 100 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 1:1000
+
+!!! Keep me nonzero for this test
+!!! me = 0
+
+beams = e1, E1 => isr
+
+seed = 0
+integrate (isr_5)
+
+?keep_beams = true
+?keep_remnants = true
+
+isr_mass = 511 keV
+?isr_handler = true
+$isr_handler_mode = "recoil"
+?isr_handler_keep_mass = false
+
+?ps_fsr_active = true
+$shower_method = "PYTHIA6"
+?hadronization_active = true
+
+$sample = "isr_5"
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?debug_transforms = false
+?sample_pacify = true
+simulate (isr_5) { n_events = 1 }

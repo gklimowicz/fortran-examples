@@ -1,0 +1,48 @@
+# Sindarin input for WHIZARD self-test
+
+model = "QCD"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+?alphas_is_fixed = true
+
+seed = 0
+
+process lcio_10_p = "g", "g" => "t", "tbar"
+
+sqrts = 8000
+beams = p, p => pdf_builtin
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+?unweighted = true
+?read_raw = false
+?write_raw = false
+?update_sqme = true
+?update_weight = true
+
+sample_format = lcio, weight_stream
+
+simulate (lcio_10_p) {
+  alt_setup =
+  {alphas = 0.125},
+  {alphas = 0.25},
+  {alphas = 0.5},
+  {alphas = 1},
+  {alphas = 2},
+  {alphas = 4},
+  {alphas = 8},
+  {alphas = 16},
+  {alphas = 32},
+  {alphas = 64}
+  ?keep_beams = true
+  iterations = 1:1000
+}

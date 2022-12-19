@@ -1,0 +1,117 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "omega"
+| Process library 'gaussian_1_lib': recorded process 'gaussian_1_p1'
+| Process library 'gaussian_1_lib': recorded process 'gaussian_1_p2'
+seed = 0
+| Process library 'gaussian_1_lib': compiling ...
+| Process library 'gaussian_1_lib': writing makefile
+| Process library 'gaussian_1_lib': removing old files
+| Process library 'gaussian_1_lib': writing driver
+| Process library 'gaussian_1_lib': creating source code
+| Process library 'gaussian_1_lib': compiling sources
+| Process library 'gaussian_1_lib': linking
+| Process library 'gaussian_1_lib': loading
+| Process library 'gaussian_1_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  5.000000000000E+02
+openmp_num_threads = 1
+[user variable] n = 1000
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process gaussian_1_p1:
+| Beam structure: e-, e+
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'gaussian_1_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'gaussian_1_p1'
+|   Library name  = 'gaussian_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'gaussian_1_p1_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'gaussian_1_p1'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784  4.2838228E+02  7.48E-01    0.17    0.05*  40.64
+   2        784  4.2735349E+02  5.88E-01    0.14    0.04*  71.60
+   3        784  4.2902357E+02  5.58E-01    0.13    0.04*  54.33
+|-----------------------------------------------------------------------------|
+   3       2352  4.2826659E+02  3.56E-01    0.08    0.04   54.33    2.14   3
+|-----------------------------------------------------------------------------|
+   4        784  4.2832122E+02  5.68E-01    0.13    0.04   54.24
+   5        784  4.2857830E+02  5.56E-01    0.13    0.04*  54.26
+   6        784  4.2827201E+02  5.70E-01    0.13    0.04   54.22
+|-----------------------------------------------------------------------------|
+   6       2352  4.2839349E+02  3.26E-01    0.08    0.04   54.22    0.09   3
+|=============================================================================|
+gaussian_spread1 =  5.000000000000E-02
+gaussian_spread2 =  1.000000000000E-01
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process gaussian_1_p2:
+| Beam structure: e-, e+ => gaussian
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'gaussian_1_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'gaussian_1_p2'
+|   Library name  = 'gaussian_1_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'gaussian_1_p2_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: gaussian
+| Beam structure: 2 channels, 0 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'gaussian_1_p2'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784  4.3723251E+02  2.23E+00    0.51    0.14*  35.04
+   2        784  4.3096214E+02  1.81E+00    0.42    0.12*  61.46
+   3        784  4.3901273E+02  1.78E+00    0.41    0.11*  66.20
+|-----------------------------------------------------------------------------|
+   3       2352  4.3559006E+02  1.10E+00    0.25    0.12   66.20    5.38   3
+|-----------------------------------------------------------------------------|
+   4        784  4.3292768E+02  1.81E+00    0.42    0.12   65.28
+   5        784  4.3627693E+02  1.96E+00    0.45    0.13   63.28
+   6        784  4.3128986E+02  1.81E+00    0.42    0.12*  62.49
+|-----------------------------------------------------------------------------|
+   6       2352  4.3335571E+02  1.07E+00    0.25    0.12   62.49    1.80   3
+|=============================================================================|
+| WHIZARD run finished.
+|=============================================================================|

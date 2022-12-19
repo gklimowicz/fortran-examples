@@ -1,0 +1,112 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+| Process library 'hepmc_8_lib': recorded process 'hepmc_8_p'
+sqrts =  1.000000000000E+02
+openmp_num_threads = 1
+n_events = 1
+?read_raw = false
+?write_raw = false
+$sample = "hepmc_8a"
+?keep_beams = true
+| Starting simulation for process 'hepmc_8_p'
+| Simulate: process 'hepmc_8_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'hepmc_8_lib': compiling ...
+| Process library 'hepmc_8_lib': writing makefile
+| Process library 'hepmc_8_lib': removing old files
+| Process library 'hepmc_8_lib': writing driver
+| Process library 'hepmc_8_lib': creating source code
+| Process library 'hepmc_8_lib': compiling sources
+| Process library 'hepmc_8_lib': linking
+| Process library 'hepmc_8_lib': loading
+| Process library 'hepmc_8_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process hepmc_8_p:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1100000E-04 GeV)
+|   e+  (mass = 5.1100000E-04 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'hepmc_8_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'hepmc_8_p'
+|   Library name  = 'hepmc_8_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'hepmc_8_p_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'hepmc_8_p'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  2.2160731E+04  1.10E+04   49.53   15.66*   0.20
+|-----------------------------------------------------------------------------|
+   1       1000  2.2160731E+04  1.10E+04   49.53   15.66    0.20
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'hepmc_8_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   4.5125E-05
+| Events: writing to HepMC file 'hepmc_8a.hepmc'
+| Events: writing to ASCII file 'hepmc_8a.evt'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.31 %
+| Events: closing HepMC file 'hepmc_8a.hepmc'
+| Events: closing ASCII file 'hepmc_8a.evt'
+$rescan_input_format = "hepmc"
+$sample = "hepmc_8b"
+?recover_beams = false
+| Starting simulation for process 'hepmc_8_p'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   4.5125E-05
+| Events: reading from HepMC file 'hepmc_8a.hepmc'
+| Events: writing to ASCII file 'hepmc_8b.evt'
+| Rescanning unweighted events ...
+| ... event file terminates after 1 events.
+| Events: closing ASCII file 'hepmc_8b.evt'
+| Events: closing HepMC file 'hepmc_8a.hepmc'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of hepmc_8a.evt
+ 1 prt(b:11|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00,-5.0000000E+01| *** | 1)
+ 2 prt(b:-11|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00, 5.0000000E+01| *** | 2)
+ 3 prt(i:11|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00,-5.0000000E+01| *** | 3)
+ 4 prt(i:-11|-1.9429113E-01; 0.0000000E+00, 0.0000000E+00, 1.9429046E-01| *** | 4)
+ 5 prt(o:22| 5.0921585E-24; 0.0000000E+00, 0.0000000E+00, 5.0921585E-24| *** | 5)
+ 6 prt(o:22| 4.9805710E+01; 0.0000000E+00, 0.0000000E+00,-4.9805710E+01| *** | 6)
+ 7 prt(o:13| 2.7600335E+01; 1.9347388E-01, 3.0931829E+00, 2.7425574E+01| *** | 7)
+ 8 prt(o:-13| 2.2593956E+01;-1.9347388E-01,-3.0931829E+00, 2.2380135E+01| *** | 8)
+Contents of hepmc_8b.evt
+ 1 prt(b:11/1|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00,-5.0000000E+01| *** | 1)
+ 2 prt(b:-11/1|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00, 5.0000000E+01| *** | 2)
+ 3 prt(i:11/1|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00,-5.0000000E+01| *** | 3)
+ 4 prt(i:-11/1|-1.9429113E-01; 0.0000000E+00, 0.0000000E+00, 1.9429046E-01| *** | 4)
+ 5 prt(o:22/1| 5.0921585E-24; 0.0000000E+00, 0.0000000E+00, 5.0921585E-24| *** | 5)
+ 6 prt(o:22/1| 4.9805710E+01; 0.0000000E+00, 0.0000000E+00,-4.9805710E+01| *** | 6)
+ 7 prt(o:13/1| 2.7600335E+01; 1.9347388E-01, 3.0931829E+00, 2.7425574E+01| *** | 7)
+ 8 prt(o:-13/1| 2.2593956E+01;-1.9347388E-01,-3.0931829E+00, 2.2380135E+01| *** | 8)

@@ -1,0 +1,43 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+
+model = "QCD"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process reweight_4_p1 = "g", "g" => "u", "ubar"
+process reweight_4_p2 = "g", "g" => "u", "ubar"
+
+sqrts = 8000
+beams = p, p => pdf_builtin
+
+cuts = all Pt > 50 [u:ubar]
+
+n_events = 1
+?unweighted = false
+?read_raw = false
+?write_raw = true
+
+simulate (reweight_4_p1) {
+  $sample = "reweight_4a"
+  iterations = 1:1000
+}
+
+sample_format = weight_stream
+
+?write_raw = false
+rescan "reweight_4a" (reweight_4_p2) {
+  ?check_event_file = false
+  $sample = "reweight_4b"
+  alt_setup = 
+    { $pdf_builtin_set = "MSTW2008LO" },
+    { $pdf_builtin_set = "CT10"       }
+}

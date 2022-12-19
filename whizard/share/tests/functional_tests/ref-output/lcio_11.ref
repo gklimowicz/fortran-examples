@@ -1,0 +1,118 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+seed = 0
+process_num_id = 25
+| Process library 'lcio_11_lib': recorded process 'lcio_11_p' (25)
+sqrts =  1.000000000000E+03
+| Integrate: current process library needs compilation
+| Process library 'lcio_11_lib': compiling ...
+| Process library 'lcio_11_lib': writing makefile
+| Process library 'lcio_11_lib': removing old files
+| Process library 'lcio_11_lib': writing driver
+| Process library 'lcio_11_lib': creating source code
+| Process library 'lcio_11_lib': compiling sources
+| Process library 'lcio_11_lib': linking
+| Process library 'lcio_11_lib': loading
+| Process library 'lcio_11_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process lcio_11_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 5.1100000E-04 GeV)
+|   e+  (mass = 5.1100000E-04 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lcio_11_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lcio_11_p'
+|   ID (num)      = 25
+|   Library name  = 'lcio_11_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lcio_11_p_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'lcio_11_p'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  8.4620428E+01  1.81E+00    2.14    0.21*  65.91
+|-----------------------------------------------------------------------------|
+   1        100  8.4620428E+01  1.81E+00    2.14    0.21   65.91
+|=============================================================================|
+lcio_run_id = 27
+?proc_as_run_id = false
+event_index_offset = 345
+n_events = 2
+openmp_num_threads = 1
+| Starting simulation for process 'lcio_11_p'
+| Simulate: using integration grids from file 'lcio_11_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 2
+|             corr. to luminosity [fb-1] =   2.3635E-02
+| Events: writing to LCIO file 'lcio_11_p.slcio'
+| Events: generating 2 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing LCIO file 'lcio_11_p.slcio'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Output from running lcio_11_rd:
+
+============================================================================
+        Event  : 347 - run:  27 -  timestamp [...]
+============================================================================
+ date: [...]
+ detector : unknown
+ event parameters: 
+ parameter Event Number [int]: 347, 
+ parameter ProcessID [int]: 25, 
+ parameter Run ID [int]: 27, 
+ parameter beamPDG1 [int]: 11, 
+ parameter beamPDG2 [int]: -11, 
+ parameter Energy [float]: 1000, 
+ parameter _weight [float]: 1, 
+ parameter alphaQCD [float]: 0.1178, 
+ parameter beamPol1 [float]: 0, 
+ parameter beamPol2 [float]: 0, 
+ parameter crossSection [float]: 84.6204, 
+ parameter crossSectionError [float]: 1.8082, 
+ parameter scale [float]: 1000, 
+ parameter sqme [float]: 0.00877082, 
+ parameter BeamSpectrum [string]: , 
+ parameter processName [string]: lcio_11_p, 
+
+ collection name : MCParticle
+ parameters: 
+
+--------------- print out of MCParticle collection --------------- 
+
+  flag:  0x0
+  simulator status bits: [sbvtcls]  s: created in simulation b: backscatter v: vertex is not endpoint of parent t: decayed in tracker c: decayed in calorimeter l: has left detector s: stopped o: overlay
+
+
+[   id   ]index|      PDG |    px,     py,        pz    | energy  |gen|[simstat ]| vertex x,     y   ,   z     |    mass |  charge |            spin             | colorflow | [parents] - [daughters]
+
+[00000004]    0|        11| 0.00e+00, 0.00e+00, 5.00e+02| 5.00e+02| 3 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 5.11e-04|-1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [] - [2,3] 
+[00000005]    1|       -11| 0.00e+00, 0.00e+00,-5.00e+02| 5.00e+02| 3 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 5.11e-04| 1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [] - [2,3] 
+[00000006]    2|        13|-3.67e+02, 3.24e+02, 1.03e+02| 5.00e+02| 1 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 1.06e-01|-1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [0,1] - [] 
+[00000007]    3|       -13| 3.67e+02,-3.24e+02,-1.03e+02| 5.00e+02| 1 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 1.06e-01| 1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [0,1] - [] 
+
+-------------------------------------------------------------------------------- 

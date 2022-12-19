@@ -1,0 +1,700 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+module simulations
+
+
+  use kinds, only: default
+  use iso_varying_string, string_t => varying_string
+  use sm_qcd
+  use model_data
+  use particles
+  use rng_base
+  use selectors
+  use process_libraries, only: process_library_t
+  use process_libraries, only: process_component_def_t
+  use prc_core
+  use process
+  use event_base
+  use event_handles, only: event_handle_t
+  use events
+  use event_transforms
+  use eio_data
+  use eio_base
+  use rt_data
+
+  use event_streams
+  use restricted_subprocesses, only: resonant_subprocess_set_t
+  use restricted_subprocesses, only: get_libname_res
+
+
+  implicit none
+  private
+
+  public :: simulation_t
+  public :: pacify
+
+  type :: counter_t
+     integer :: total = 0
+     integer :: generated = 0
+     integer :: read = 0
+     integer :: positive = 0
+     integer :: negative = 0
+     integer :: zero = 0
+     integer :: excess = 0
+     integer :: dropped = 0
+     real(default) :: max_excess = 0
+     real(default) :: sum_excess = 0
+     logical :: reproduce_xsection = .false.
+     real(default) :: mean = 0
+     real(default) :: varsq = 0
+     integer :: nlo_weight_counter = 0
+   contains
+     procedure :: write => counter_write
+     procedure :: show_excess => counter_show_excess
+     procedure :: show_dropped => counter_show_dropped
+     procedure :: show_mean_and_variance => counter_show_mean_and_variance
+     procedure :: record => counter_record
+     procedure :: record_mean_and_variance => &
+        counter_record_mean_and_variance
+  end type counter_t
+
+  type :: mci_set_t
+     private
+     integer :: n_components = 0
+     integer, dimension(:), allocatable :: i_component
+     type(string_t), dimension(:), allocatable :: component_id
+     logical :: has_integral = .false.
+     real(default) :: integral = 0
+     real(default) :: error = 0
+     real(default) :: weight_mci = 0
+     type(counter_t) :: counter
+   contains
+     procedure :: write => mci_set_write
+     procedure :: init => mci_set_init
+  end type mci_set_t
+
+  type :: core_safe_t
+     class(prc_core_t), allocatable :: core
+  end type core_safe_t
+
+  type, extends (event_t) :: entry_t
+     private
+     type(string_t) :: process_id
+     type(string_t) :: library
+     type(string_t) :: run_id
+     logical :: has_integral = .false.
+     real(default) :: integral = 0
+     real(default) :: error = 0
+     real(default) :: process_weight = 0
+     logical :: valid = .false.
+     type(counter_t) :: counter
+     integer :: n_in = 0
+     integer :: n_mci = 0
+     type(mci_set_t), dimension(:), allocatable :: mci_sets
+     type(selector_t) :: mci_selector
+     logical :: has_resonant_subprocess_set = .false.
+     type(resonant_subprocess_set_t) :: resonant_subprocess_set
+     type(core_safe_t), dimension(:), allocatable :: core_safe
+     class(model_data_t), pointer :: model => null ()
+     type(qcd_t) :: qcd
+     type(entry_t), pointer :: first => null ()
+     type(entry_t), pointer :: next => null ()
+     class(evt_t), pointer :: evt_powheg => null ()
+   contains
+     procedure :: write_config => entry_write_config
+     procedure :: final => entry_final
+     procedure :: copy_entry => entry_copy_entry
+     procedure :: init => entry_init
+     procedure :: set_active_real_components => entry_set_active_real_components
+     procedure, private :: import_process_characteristics &
+          => entry_import_process_characteristics
+     procedure, private :: import_process_def_characteristics &
+          => entry_import_process_def_characteristics
+     procedure, private :: import_process_results &
+          => entry_import_process_results
+     procedure, private :: prepare_expressions &
+          => entry_prepare_expressions
+     procedure :: setup_additional_entries => entry_setup_additional_entries
+     procedure :: get_first => entry_get_first
+     procedure :: get_next => entry_get_next
+     procedure :: count_nlo_entries => entry_count_nlo_entries
+     procedure :: reset_nlo_counter => entry_reset_nlo_counter
+     procedure :: determine_if_powheg_matching => &
+          entry_determine_if_powheg_matching
+     procedure, private :: setup_event_transforms &
+          => entry_setup_event_transforms
+     procedure :: init_mci_selector => entry_init_mci_selector
+     procedure :: select_mci => entry_select_mci
+     procedure :: record => entry_record
+     procedure :: update_process => entry_update_process
+     procedure :: restore_process => entry_restore_process
+     procedure :: connect_qcd => entry_connect_qcd
+     procedure :: setup_resonant_subprocesses &
+          => entry_setup_resonant_subprocesses
+     procedure :: compile_resonant_subprocesses &
+          => entry_compile_resonant_subprocesses
+     procedure :: prepare_resonant_subprocesses &
+          => entry_prepare_resonant_subprocesses
+     procedure :: prepare_resonant_subprocess_instances &
+          => entry_prepare_resonant_subprocess_instances
+     procedure :: write_resonant_subprocess_data &
+          => entry_write_resonant_subprocess_data
+     procedure :: write_process_data => entry_write_process_data
+  end type entry_t
+
+  type, extends (entry_t) :: alt_entry_t
+   contains
+     procedure :: init_alt => alt_entry_init
+     procedure :: fill_particle_set => entry_fill_particle_set
+  end type alt_entry_t
+
+  type :: simulation_t
+     private
+     type(rt_data_t), pointer :: local => null ()
+     type(string_t) :: sample_id
+     logical :: unweighted = .true.
+     logical :: negative_weights = .false.
+     logical :: support_resonance_history = .false.
+     logical :: respect_selection = .true.
+     integer :: norm_mode = NORM_UNDEFINED
+     logical :: update_sqme = .false.
+     logical :: update_weight = .false.
+     logical :: update_event = .false.
+     logical :: recover_beams = .false.
+     logical :: pacify = .false.
+     integer :: n_max_tries = 10000
+     integer :: n_prc = 0
+     integer :: n_alt = 0
+     logical :: has_integral = .false.
+     logical :: valid = .false.
+     real(default) :: integral = 0
+     real(default) :: error = 0
+     integer :: version = 1
+     character(32) :: md5sum_prc = ""
+     character(32) :: md5sum_cfg = ""
+     character(32), dimension(:), allocatable :: md5sum_alt
+     type(entry_t), dimension(:), allocatable :: entry
+     type(alt_entry_t), dimension(:,:), allocatable :: alt_entry
+     type(selector_t) :: process_selector
+     integer :: n_evt_requested = 0
+     integer :: event_index_offset = 0
+     logical :: event_index_set = .false.
+     integer :: event_index = 0
+     integer :: split_n_evt = 0
+     integer :: split_n_kbytes = 0
+     integer :: split_index = 0
+     type(counter_t) :: counter
+     class(rng_t), allocatable :: rng
+     integer :: i_prc = 0
+     integer :: i_mci = 0
+     real(default) :: weight = 0
+     real(default) :: excess = 0
+     integer :: n_dropped = 0
+   contains
+     procedure :: write => simulation_write
+     generic :: write_event => write_event_unit
+     procedure :: write_event_unit => simulation_write_event_unit
+     procedure :: write_alt_event => simulation_write_alt_event
+     procedure :: write_resonant_subprocess_data &
+          => simulation_write_resonant_subprocess_data
+     procedure :: write_process_data &
+          => simulation_write_process_data
+     procedure :: show_efficiency => simulation_show_efficiency
+     procedure :: compute_md5sum => simulation_compute_md5sum
+     procedure :: final => simulation_final
+     procedure :: init => simulation_init
+     procedure :: compute_n_events => simulation_compute_n_events
+     procedure :: setup_openmp => simulation_setup_openmp
+     procedure :: prepare_event_streams => simulation_prepare_event_streams
+     procedure :: get_n_nlo_entries => simulation_get_n_nlo_entries
+     procedure :: init_process_selector => simulation_init_process_selector
+     procedure :: select_prc => simulation_select_prc
+     procedure :: select_mci => simulation_select_mci
+     procedure :: set_n_events_requested => simulation_set_n_events_requested
+     procedure :: get_n_events_requested => simulation_get_n_events_requested
+     procedure :: generate => simulation_generate
+     procedure :: before_first_event => simulation_before_first_event
+     procedure, private :: startup_message_generate &
+          => simulation_startup_message_generate
+     procedure :: next_event => simulation_next_event
+     procedure :: after_last_event => simulation_after_last_event
+     procedure :: activate_extra_logging => simulation_activate_extra_logging
+     procedure :: calculate_alt_entries => simulation_calculate_alt_entries
+     procedure :: update_processes => simulation_update_processes
+     procedure :: restore_processes => simulation_restore_processes
+     procedure :: rescan => simulation_rescan
+     procedure :: init_event_index => simulation_init_event_index
+     procedure :: increment_event_index => simulation_increment_event_index
+     procedure :: set_event_index => simulation_set_event_index
+     procedure :: get_event_index => simulation_get_event_index
+     procedure :: get_process_index => simulation_get_process_index
+     procedure :: get_event_ptr => simulation_get_event_ptr
+     generic :: write_event => write_event_eio
+     procedure :: write_event_eio => simulation_write_event_eio
+     generic :: read_event => read_event_eio
+     procedure :: read_event_eio => simulation_read_event_eio
+     generic :: write_event => write_event_es_array
+     procedure :: write_event_es_array => simulation_write_event_es_array
+     generic :: read_event => read_event_es_array
+     procedure :: read_event_es_array => simulation_read_event_es_array
+     procedure :: recalculate => simulation_recalculate
+     procedure :: get_md5sum_prc => simulation_get_md5sum_prc
+     procedure :: get_md5sum_cfg => simulation_get_md5sum_cfg
+     procedure :: get_md5sum_alt => simulation_get_md5sum_alt
+     procedure :: get_data => simulation_get_data
+     procedure :: get_default_sample_name => simulation_get_default_sample_name
+     procedure :: is_valid => simulation_is_valid
+     procedure :: get_hard_particle_set => simulation_get_hard_particle_set
+     procedure :: evaluate_expressions => simulation_evaluate_expressions
+     procedure :: evaluate_transforms => simulation_evaluate_transforms
+  end type simulation_t
+
+
+  interface pacify
+     module procedure pacify_simulation
+  end interface
+
+  interface
+    module subroutine counter_write (counter, unit)
+      class(counter_t), intent(in) :: counter
+      integer, intent(in), optional :: unit
+    end subroutine counter_write
+    module subroutine counter_show_excess (counter)
+      class(counter_t), intent(in) :: counter
+    end subroutine counter_show_excess
+    module subroutine counter_show_dropped (counter)
+      class(counter_t), intent(in) :: counter
+    end subroutine counter_show_dropped
+    module subroutine counter_show_mean_and_variance (counter)
+      class(counter_t), intent(in) :: counter
+    end subroutine counter_show_mean_and_variance
+    module subroutine counter_record &
+         (counter, weight, excess, n_dropped, from_file)
+      class(counter_t), intent(inout) :: counter
+      real(default), intent(in), optional :: weight, excess
+      integer, intent(in), optional :: n_dropped
+      logical, intent(in), optional :: from_file
+    end subroutine counter_record
+    module subroutine counter_record_mean_and_variance (counter, weight, i_nlo)
+      class(counter_t), intent(inout) :: counter
+      real(default), intent(in) :: weight
+      integer, intent(in) :: i_nlo
+    end subroutine counter_record_mean_and_variance
+    module subroutine mci_set_write (object, unit, pacified)
+      class(mci_set_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: pacified
+    end subroutine mci_set_write
+    module subroutine mci_set_init (object, i_mci, process)
+      class(mci_set_t), intent(out) :: object
+      integer, intent(in) :: i_mci
+      type(process_t), intent(in), target :: process
+    end subroutine mci_set_init
+    module subroutine entry_write_config (object, unit, pacified)
+      class(entry_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: pacified
+    end subroutine entry_write_config
+    module subroutine entry_final (object)
+      class(entry_t), intent(inout) :: object
+    end subroutine entry_final
+    module subroutine entry_copy_entry (entry1, entry2)
+      class(entry_t), intent(in), target :: entry1
+      type(entry_t), intent(inout), target :: entry2
+    end subroutine entry_copy_entry
+    module subroutine entry_init &
+         (entry, process_id, &
+         use_process, integrate, generate, update_sqme, &
+         support_resonance_history, &
+         local, global, n_alt)
+      class(entry_t), intent(inout), target :: entry
+      type(string_t), intent(in) :: process_id
+      logical, intent(in) :: use_process, integrate, generate, update_sqme
+      logical, intent(in) :: support_resonance_history
+      type(rt_data_t), intent(inout), target :: local
+      type(rt_data_t), intent(inout), optional, target :: global
+      integer, intent(in), optional :: n_alt
+    end subroutine entry_init
+    module subroutine entry_set_active_real_components (entry)
+      class(entry_t), intent(inout) :: entry
+    end subroutine entry_set_active_real_components
+    module subroutine entry_import_process_characteristics (entry, process)
+      class(entry_t), intent(inout) :: entry
+      type(process_t), intent(in), target :: process
+    end subroutine entry_import_process_characteristics
+    module subroutine entry_import_process_def_characteristics &
+         (entry, prclib, id)
+      class(entry_t), intent(inout) :: entry
+      type(process_library_t), intent(in), target :: prclib
+      type(string_t), intent(in) :: id
+    end subroutine entry_import_process_def_characteristics
+    module subroutine entry_import_process_results (entry, process)
+      class(entry_t), intent(inout) :: entry
+      type(process_t), intent(in), target :: process
+    end subroutine entry_import_process_results
+    module subroutine entry_prepare_expressions (entry, local)
+      class(entry_t), intent(inout) :: entry
+      type(rt_data_t), intent(in), target :: local
+    end subroutine entry_prepare_expressions
+    module subroutine entry_setup_additional_entries (entry)
+      class(entry_t), intent(inout), target :: entry
+    end subroutine entry_setup_additional_entries
+    module function entry_get_first (entry) result (entry_out)
+      class(entry_t), intent(in), target :: entry
+      type(entry_t), pointer :: entry_out
+    end function entry_get_first
+    module function entry_get_next (entry) result (next_entry)
+      class(entry_t), intent(in) :: entry
+      type(entry_t), pointer :: next_entry
+    end function entry_get_next
+    module function entry_count_nlo_entries (entry) result (n)
+      class(entry_t), intent(in), target :: entry
+      integer :: n
+    end function entry_count_nlo_entries
+    module subroutine entry_reset_nlo_counter (entry)
+      class(entry_t), intent(inout) :: entry
+    end subroutine entry_reset_nlo_counter
+    module subroutine entry_determine_if_powheg_matching (entry)
+      class(entry_t), intent(inout) :: entry
+    end subroutine entry_determine_if_powheg_matching
+    module subroutine entry_setup_event_transforms (entry, process, local)
+      class(entry_t), intent(inout) :: entry
+      type(process_t), intent(inout), target :: process
+      type(rt_data_t), intent(in), target :: local
+    end subroutine entry_setup_event_transforms
+    module subroutine entry_init_mci_selector (entry, negative_weights)
+      class(entry_t), intent(inout), target :: entry
+      logical, intent(in), optional :: negative_weights
+    end subroutine entry_init_mci_selector
+    module function entry_select_mci (entry) result (i_mci)
+      class(entry_t), intent(inout) :: entry
+      integer :: i_mci
+    end function entry_select_mci
+    module subroutine entry_record (entry, i_mci, from_file)
+      class(entry_t), intent(inout) :: entry
+      integer, intent(in) :: i_mci
+      logical, intent(in), optional :: from_file
+    end subroutine entry_record
+    module subroutine entry_update_process &
+         (entry, model, qcd, helicity_selection, saved)
+      class(entry_t), intent(inout) :: entry
+      class(model_data_t), intent(in), optional, target :: model
+      type(qcd_t), intent(in), optional :: qcd
+      type(helicity_selection_t), intent(in), optional :: helicity_selection
+      logical, intent(in), optional :: saved
+    end subroutine entry_update_process
+    module subroutine entry_restore_process (entry)
+      class(entry_t), intent(inout) :: entry
+    end subroutine entry_restore_process
+    module subroutine entry_connect_qcd (entry)
+      class(entry_t), intent(inout), target :: entry
+    end subroutine entry_connect_qcd
+    module subroutine entry_setup_resonant_subprocesses (entry, global, process)
+      class(entry_t), intent(inout) :: entry
+      type(rt_data_t), intent(inout), target :: global
+      type(process_t), intent(in), target :: process
+    end subroutine entry_setup_resonant_subprocesses
+    module subroutine entry_compile_resonant_subprocesses (entry, global)
+      class(entry_t), intent(inout) :: entry
+      type(rt_data_t), intent(inout), target :: global
+    end subroutine entry_compile_resonant_subprocesses
+    module subroutine entry_prepare_resonant_subprocesses (entry, local, global)
+      class(entry_t), intent(inout) :: entry
+      type(rt_data_t), intent(inout), target :: local
+      type(rt_data_t), intent(inout), optional, target :: global
+    end subroutine entry_prepare_resonant_subprocesses
+    module subroutine entry_prepare_resonant_subprocess_instances &
+         (entry, global)
+      class(entry_t), intent(inout) :: entry
+      type(rt_data_t), intent(in), target :: global
+    end subroutine entry_prepare_resonant_subprocess_instances
+    module subroutine entry_write_resonant_subprocess_data (entry, unit)
+      class(entry_t), intent(in) :: entry
+      integer, intent(in), optional :: unit
+    end subroutine entry_write_resonant_subprocess_data
+    module subroutine entry_write_process_data &
+         (entry, unit, show_process, show_instance, verbose)
+      class(entry_t), intent(in) :: entry
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: show_process
+      logical, intent(in), optional :: show_instance
+      logical, intent(in), optional :: verbose
+    end subroutine entry_write_process_data
+    module subroutine alt_entry_init (entry, process_id, master_process, local)
+      class(alt_entry_t), intent(inout), target :: entry
+      type(string_t), intent(in) :: process_id
+      type(process_t), intent(in), target :: master_process
+      type(rt_data_t), intent(inout), target :: local
+    end subroutine alt_entry_init
+    module subroutine entry_fill_particle_set (alt_entry, entry)
+      class(alt_entry_t), intent(inout) :: alt_entry
+      class(entry_t), intent(in), target :: entry
+    end subroutine entry_fill_particle_set
+    module subroutine simulation_write (object, unit, testflag)
+      class(simulation_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: testflag
+    end subroutine simulation_write
+    module subroutine simulation_write_event_unit &
+         (object, unit, i_prc, verbose, testflag)
+      class(simulation_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: verbose
+      integer, intent(in), optional :: i_prc
+      logical, intent(in), optional :: testflag
+    end subroutine simulation_write_event_unit
+    module subroutine simulation_write_alt_event (object, unit, j_alt, i_prc, &
+         verbose, testflag)
+      class(simulation_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: j_alt
+      integer, intent(in), optional :: i_prc
+      logical, intent(in), optional :: verbose
+      logical, intent(in), optional :: testflag
+    end subroutine simulation_write_alt_event
+    module subroutine simulation_write_resonant_subprocess_data &
+         (object, unit, i_prc)
+      class(simulation_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: i_prc
+    end subroutine simulation_write_resonant_subprocess_data
+    module subroutine simulation_write_process_data &
+         (object, unit, i_prc, &
+         show_process, show_instance, verbose)
+      class(simulation_t), intent(in) :: object
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: i_prc
+      logical, intent(in), optional :: show_process
+      logical, intent(in), optional :: show_instance
+      logical, intent(in), optional :: verbose
+    end subroutine simulation_write_process_data
+    module subroutine simulation_show_efficiency (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_show_efficiency
+    module subroutine simulation_compute_md5sum (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_compute_md5sum
+    module subroutine simulation_final (object)
+      class(simulation_t), intent(inout) :: object
+    end subroutine simulation_final
+    module subroutine simulation_init (simulation, &
+         process_id, integrate, generate, local, global, alt_env)
+      class(simulation_t), intent(out), target :: simulation
+      type(string_t), dimension(:), intent(in) :: process_id
+      logical, intent(in) :: integrate, generate
+      type(rt_data_t), intent(inout), target :: local
+      type(rt_data_t), intent(inout), optional, target :: global
+      type(rt_data_t), dimension(:), intent(inout), optional, target :: alt_env
+    end subroutine simulation_init
+    module subroutine simulation_compute_n_events (simulation, n_events)
+      class(simulation_t), intent(in) :: simulation
+      integer, intent(out) :: n_events
+    end subroutine simulation_compute_n_events
+    module subroutine simulation_setup_openmp (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_setup_openmp
+    module subroutine simulation_prepare_event_streams (sim, es_array)
+      class(simulation_t), intent(inout) :: sim
+      type(event_stream_array_t), intent(out) :: es_array
+    end subroutine simulation_prepare_event_streams
+    module function simulation_get_n_nlo_entries &
+         (simulation, i_prc) result (n_extra)
+      class(simulation_t), intent(in) :: simulation
+      integer, intent(in) :: i_prc
+      integer :: n_extra
+    end function simulation_get_n_nlo_entries
+    module subroutine simulation_init_process_selector (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_init_process_selector
+    module function simulation_select_prc (simulation) result (i_prc)
+      class(simulation_t), intent(inout) :: simulation
+      integer :: i_prc
+    end function simulation_select_prc
+    module function simulation_select_mci (simulation) result (i_mci)
+      class(simulation_t), intent(inout) :: simulation
+      integer :: i_mci
+    end function simulation_select_mci
+    module subroutine simulation_set_n_events_requested (simulation, n)
+      class(simulation_t), intent(inout) :: simulation
+      integer, intent(in) :: n
+    end subroutine simulation_set_n_events_requested
+    module function simulation_get_n_events_requested (simulation) result (n)
+      class(simulation_t), intent(in) :: simulation
+      integer :: n
+    end function simulation_get_n_events_requested
+    module subroutine simulation_generate (simulation, es_array)
+      class(simulation_t), intent(inout), target :: simulation
+      type(event_stream_array_t), intent(inout), optional :: es_array
+    end subroutine simulation_generate
+    module subroutine simulation_before_first_event (simulation, &
+         begin_it, end_it, es_array)
+      class(simulation_t), intent(inout), target :: simulation
+      integer, intent(out) :: begin_it
+      integer, intent(out) :: end_it
+      type(event_stream_array_t), intent(inout), optional :: es_array
+    end subroutine simulation_before_first_event
+    module subroutine simulation_startup_message_generate (simulation, &
+       has_input, is_weighted, is_polarized, is_leading_order, n_events)
+      class(simulation_t), intent(in) :: simulation
+      logical, intent(in) :: has_input
+      logical, intent(in) :: is_weighted
+      logical, intent(in) :: is_polarized
+      logical, intent(in) :: is_leading_order
+      integer, intent(in) :: n_events
+    end subroutine simulation_startup_message_generate
+    module subroutine simulation_next_event &
+         (simulation, es_array, event_handle_out, event_handle_in)
+      class(simulation_t), intent(inout) :: simulation
+      type(event_stream_array_t), intent(inout), optional :: es_array
+      class(event_handle_t), intent(inout), optional :: event_handle_out
+      class(event_handle_t), intent(inout), optional :: event_handle_in
+    end subroutine simulation_next_event
+    module subroutine simulation_after_last_event (simulation, begin_it, end_it)
+      class(simulation_t), intent(inout) :: simulation
+      integer, intent(in) :: begin_it, end_it
+    end subroutine simulation_after_last_event
+    module subroutine simulation_activate_extra_logging (simulation)
+      class(simulation_t), intent(in) :: simulation
+    end subroutine simulation_activate_extra_logging
+    module subroutine simulation_calculate_alt_entries (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_calculate_alt_entries
+    module subroutine simulation_update_processes (simulation, &
+         model, qcd, helicity_selection)
+      class(simulation_t), intent(inout) :: simulation
+      class(model_data_t), intent(in), optional, target :: model
+      type(qcd_t), intent(in), optional :: qcd
+      type(helicity_selection_t), intent(in), optional :: helicity_selection
+    end subroutine simulation_update_processes
+    module subroutine simulation_restore_processes (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_restore_processes
+    module subroutine simulation_rescan (simulation, n, es_array, global)
+      class(simulation_t), intent(inout) :: simulation
+      integer, intent(in) :: n
+      type(event_stream_array_t), intent(inout) :: es_array
+      type(rt_data_t), intent(inout) :: global
+    end subroutine simulation_rescan
+    module subroutine simulation_init_event_index (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_init_event_index
+    module subroutine simulation_increment_event_index (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_increment_event_index
+    module subroutine simulation_set_event_index (simulation, i)
+      class(simulation_t), intent(inout) :: simulation
+      integer, intent(in) :: i
+    end subroutine simulation_set_event_index
+    module function simulation_get_event_index (simulation) result (i)
+      class(simulation_t), intent(in) :: simulation
+      integer :: i
+    end function simulation_get_event_index
+    module function simulation_get_process_index (simulation) result (i_prc)
+      class(simulation_t), intent(in), target :: simulation
+      integer :: i_prc
+    end function simulation_get_process_index
+    module function simulation_get_event_ptr (simulation) result (event)
+      class(simulation_t), intent(in), target :: simulation
+      class(event_t), pointer :: event
+    end function simulation_get_event_ptr
+    module subroutine simulation_write_event_eio (object, eio, i_prc)
+      class(simulation_t), intent(in) :: object
+      class(eio_t), intent(inout) :: eio
+      integer, intent(in), optional :: i_prc
+    end subroutine simulation_write_event_eio
+    module subroutine simulation_read_event_eio (object, eio)
+      class(simulation_t), intent(inout) :: object
+      class(eio_t), intent(inout) :: eio
+    end subroutine simulation_read_event_eio
+    module subroutine simulation_write_event_es_array &
+         (object, es_array, passed, event_handle)
+      class(simulation_t), intent(in), target :: object
+      class(event_stream_array_t), intent(inout) :: es_array
+      logical, intent(in), optional :: passed
+      class(event_handle_t), intent(inout), optional :: event_handle
+    end subroutine simulation_write_event_es_array
+    module subroutine simulation_read_event_es_array &
+         (object, es_array, enable_switch, fail, event_handle)
+      class(simulation_t), intent(inout), target :: object
+      class(event_stream_array_t), intent(inout), target :: es_array
+      logical, intent(in) :: enable_switch
+      logical, intent(out) :: fail
+      class(event_handle_t), intent(inout), optional :: event_handle
+    end subroutine simulation_read_event_es_array
+    module subroutine simulation_recalculate &
+         (simulation, recover_phs, check_match)
+      class(simulation_t), intent(inout) :: simulation
+      logical, intent(in), optional :: recover_phs
+      logical, intent(in), optional :: check_match
+    end subroutine simulation_recalculate
+    module function simulation_get_md5sum_prc (simulation) result (md5sum)
+      class(simulation_t), intent(in) :: simulation
+      character(32) :: md5sum
+    end function simulation_get_md5sum_prc
+    module function simulation_get_md5sum_cfg (simulation) result (md5sum)
+      class(simulation_t), intent(in) :: simulation
+      character(32) :: md5sum
+    end function simulation_get_md5sum_cfg
+    module function simulation_get_md5sum_alt (simulation, i) result (md5sum)
+      class(simulation_t), intent(in) :: simulation
+      integer, intent(in) :: i
+      character(32) :: md5sum
+    end function simulation_get_md5sum_alt
+    module function simulation_get_data (simulation, alt) result (sdata)
+      class(simulation_t), intent(in) :: simulation
+      logical, intent(in), optional :: alt
+      type(event_sample_data_t) :: sdata
+    end function simulation_get_data
+    module function simulation_get_default_sample_name &
+         (simulation) result (sample)
+      class(simulation_t), intent(in) :: simulation
+      type(string_t) :: sample
+    end function simulation_get_default_sample_name
+    module function simulation_is_valid (simulation) result (valid)
+      class(simulation_t), intent(inout) :: simulation
+      logical :: valid
+    end function simulation_is_valid
+    module function simulation_get_hard_particle_set &
+         (simulation, i_prc) result (pset)
+      class(simulation_t), intent(in) :: simulation
+      integer, intent(in) :: i_prc
+      type(particle_set_t) :: pset
+    end function simulation_get_hard_particle_set
+    module subroutine pacify_simulation (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine pacify_simulation
+    module subroutine simulation_evaluate_expressions (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_evaluate_expressions
+    module subroutine simulation_evaluate_transforms (simulation)
+      class(simulation_t), intent(inout) :: simulation
+    end subroutine simulation_evaluate_transforms
+  end interface
+
+end module simulations

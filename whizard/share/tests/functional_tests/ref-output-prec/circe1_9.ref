@@ -1,0 +1,137 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$method = "omega"
+| Process library 'circe1_9_lib': recorded process 'circe1_9_p2'
+| Process library 'circe1_9_lib': recorded process 'circe1_9_p3'
+| Process library 'circe1_9_lib': compiling ...
+| Process library 'circe1_9_lib': writing makefile
+| Process library 'circe1_9_lib': removing old files
+| Process library 'circe1_9_lib': writing driver
+| Process library 'circe1_9_lib': creating source code
+| Process library 'circe1_9_lib': compiling sources
+| Process library 'circe1_9_lib': linking
+| Process library 'circe1_9_lib': loading
+| Process library 'circe1_9_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  5.00000E+02
+openmp_num_threads = 1
+[user variable] n = 1000
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process circe1_9_p2:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'circe1_9_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'circe1_9_p2'
+|   Library name  = 'circe1_9_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'circe1_9_p2_i1':   e-, e+ => Z [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 0 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'circe1_9_p2'
+| Integrate: iterations = 1:1000:"g", 3:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     1.234E+04   1.01E+01    0.08    0.02    83.8
+|-----------------------------------------------------------------------------|
+   1        800     1.234E+04   1.01E+01    0.08    0.02    83.8
+|-----------------------------------------------------------------------------|
+   2        800     1.235E+04   9.13E+00    0.07    0.02    83.9
+   3        800     1.235E+04   1.26E+01    0.10    0.03    83.1
+   4        800     1.236E+04   1.21E+01    0.10    0.03    83.2
+|-----------------------------------------------------------------------------|
+   4       2400     1.235E+04   6.31E+00    0.05    0.03    83.2    0.40   3
+|=============================================================================|
+$circe1_acc = "TESLA"
+circe1_chat = 2
+?circe1_generate = true
+seed = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process circe1_9_p3:
+| Beam structure: e-, e+ => circe1 => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| CIRCE1: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'circe1_9_p3.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'circe1_9_p3'
+|   Library name  = 'circe1_9_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'circe1_9_p3_i1':   e-, e+ => Z [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 0 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: circe1 => isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'circe1_9_p3'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     1.235E+04   1.35E+01    0.11    0.03    82.7
+   2        800     1.235E+04   3.53E+00    0.03    0.01    22.4
+   3        800     1.235E+04   5.07E+00    0.04    0.01    18.1
+|-----------------------------------------------------------------------------|
+   3       2400     1.235E+04   2.83E+00    0.02    0.01    18.1    0.36   3
+|-----------------------------------------------------------------------------|
+   4        800     1.235E+04   3.75E+00    0.03    0.01    18.2
+   5        800     1.236E+04   3.32E+00    0.03    0.01    18.2
+   6        800     1.235E+04   4.46E+00    0.04    0.01    18.1
+|-----------------------------------------------------------------------------|
+   6       2400     1.235E+04   2.17E+00    0.02    0.01    18.1    0.30   3
+|=============================================================================|
+n_events = 1
+| Starting simulation for process 'circe1_9_p3'
+| Simulate: using integration grids from file 'circe1_9_p3.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   8.0941E-05
+| Events: writing to ASCII file 'circe1_9_p3.debug'
+| Events: writing to raw file 'circe1_9_p3.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  50.00 %
+| Events: closing ASCII file 'circe1_9_p3.debug'
+| Events: closing raw file 'circe1_9_p3.evx'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

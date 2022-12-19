@@ -1,0 +1,123 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$method = "omega"
+| Process library 'beam_events_4_lib': recorded process 'beam_events_4_p1'
+| Process library 'beam_events_4_lib': recorded process 'beam_events_4_p2'
+sqrts =  5.00000E+02
+$beam_events_file = "uniform_spread_2.5%.dat"
+openmp_num_threads = 1
+seed = 0
+| Integrate: current process library needs compilation
+| Process library 'beam_events_4_lib': compiling ...
+| Process library 'beam_events_4_lib': writing makefile
+| Process library 'beam_events_4_lib': removing old files
+| Process library 'beam_events_4_lib': writing driver
+| Process library 'beam_events_4_lib': creating source code
+| Process library 'beam_events_4_lib': compiling sources
+| Process library 'beam_events_4_lib': linking
+| Process library 'beam_events_4_lib': loading
+| Process library 'beam_events_4_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process beam_events_4_p1:
+| Beam structure: e-, e+ => beam_events
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'beam_events_4_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'beam_events_4_p1'
+|   Library name  = 'beam_events_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'beam_events_4_p1_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: beam_events
+| Beam structure: 2 channels, 0 dimensions
+Warning: No cuts have been defined.
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Starting integration for process 'beam_events_4_p1'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784     4.284E+02   8.25E-01    0.19    0.05    40.4
+|-----------------------------------------------------------------------------|
+   1        784     4.284E+02   8.25E-01    0.19    0.05    40.4
+|=============================================================================|
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process beam_events_4_p2:
+| Beam structure: e-, e+ => beam_events
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'beam_events_4_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'beam_events_4_p2'
+|   Library name  = 'beam_events_4_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'beam_events_4_p2_i1':   e-, e+ => tau-, tau+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: beam_events
+| Beam structure: 2 channels, 0 dimensions
+Warning: No cuts have been defined.
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Starting integration for process 'beam_events_4_p2'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        784     4.284E+02   8.29E-01    0.19    0.05    39.9
+|-----------------------------------------------------------------------------|
+   1        784     4.284E+02   8.29E-01    0.19    0.05    39.9
+|=============================================================================|
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+n_events = 10
+| Starting simulation for processes 'beam_events_4_p1' etc.
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Simulate: using integration grids from file 'beam_events_4_p1.m1.vg'
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Simulate: using integration grids from file 'beam_events_4_p2.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 10
+|             corr. to luminosity [fb-1] =   1.1671E-02
+| Events: writing to raw file 'beam_events_4_p1.evx'
+| Events: generating 10 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  50.00 %
+| Events: closing raw file 'beam_events_4_p1.evx'
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

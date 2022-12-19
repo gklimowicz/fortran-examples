@@ -1,0 +1,30 @@
+* Test output: commands_33
+*   Purpose: execute shell command
+
+*  Initialization
+
+*  Input file
+
+exec ("echo foo >> bar")
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_exec>
+|  +  <cmd_exec>  =  exec <exec_arg>
+|  |  +  exec  = [keyword] exec
+|  |  +  <exec_arg>  =  <sexpr>
+|  |  |  +  <sexpr>  =  <string_literal>
+|  |  |  |  +  <string_literal>  = "echo foo >> bar"
+
+* Compile command list
+
+ exec: [command associated]
+
+* Execute command list
+
+should be 'foo': foo
+
+* Cleanup
+
+* Test output end: commands_33

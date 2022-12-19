@@ -1,0 +1,88 @@
+# SINDARIN file for WHIZARD self test
+# Input file for testing user defined amplitudes
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+?use_vamp_equivalences = false
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+model = SM_tt_threshold
+sqrtsmin = 350 GeV
+sqrtsmax = 350 GeV
+sqrtsstepsize = 0.0 GeV
+m1S = 172 GeV
+
+mZ = 91.188
+mW = 80.419
+mb = 4.2
+alphas = 0.118 ! (Z pole, NLL running to mu_h)
+alpha_em_i = 125.924 ! (not running)
+m1S = 172.0
+phs_t_channel = 0
+
+nrqcd_order  = 1 # NLL
+sh     = 1.
+sf     = 1.
+Vtb    = 1.
+FF     = 1 # NRQCD resummed
+mpole_fixed = 1
+offshell_strategy = 4
+
+me = 0
+sqrts = 350 GeV
+iterations = 1:200
+real num_diff = 0.001
+
+seed = 0
+process user_prc_threshold_1_p1 = E1, e1 => Wp, Wm, b, B { $restrictions = "3+5~t && 4+6~tbar" }
+integrate (user_prc_threshold_1_p1)
+
+seed = 0
+process user_prc_threshold_1_p2 = E1, e1 => t, T
+integrate (user_prc_threshold_1_p2)
+
+seed = 0
+process user_prc_threshold_1_p5 = E1, e1 => t, T { $method = "threshold" }
+integrate (user_prc_threshold_1_p5)
+expect (integral(user_prc_threshold_1_p5) == integral(user_prc_threshold_1_p2)) { tolerance = 0.0001 }
+
+seed = 0
+$born_me_method = "threshold"
+$loop_me_method = "threshold"
+$correlation_me_method = "threshold"
+$real_tree_me_method = "threshold"
+process user_prc_threshold_1_p6 = E1, e1 => Wp, Wm, b, B {
+  $restrictions = "3+5~t && 4+6~tbar" nlo_calculation = born }
+integrate (user_prc_threshold_1_p6)
+expect (integral(user_prc_threshold_1_p6) == integral(user_prc_threshold_1_p1)) { tolerance = 0.0001 }
+
+
+$method = "threshold"
+
+! FF = 10        !!! tree
+! bits for offshell strategy :
+! NLO|factorization|interference|onshellprojection|LOwidthinsignal
+
+!!! We can also compute the signal diagram in the signal component (in threshold.f90)
+seed = 0
+process user_prc_threshold_1_sig_thr = E1, e1 => Wp, Wm, b, B
+offshell_strategy = 0+0+0+0+0
+integrate (user_prc_threshold_1_sig_thr)
+expect (integral (user_prc_threshold_1_sig_thr) ==
+  integral (user_prc_threshold_1_p6)) {tolerance = num_diff}
+
+!!! tree level result from amp_blob, i.e. with factorized onshell LO decays
+seed = 0
+process user_prc_threshold_1_factorized = E1, e1 => Wp, Wm, b, B
+offshell_strategy = 0+2+0+0+0 ! activate factorization
+integrate (user_prc_threshold_1_factorized)
+
+!!! Differences of O(Gamma/M) are ok
+expect (integral (user_prc_threshold_1_p6) ==
+  integral (user_prc_threshold_1_factorized)) {tolerance =
+  4 * wtop / mtpole * integral (user_prc_threshold_1_p6)}

@@ -1,0 +1,50 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> u dbar mu nu_mu_bar
+# with resonance insertion
+#
+# Check: LCIO and recovery of elementary process
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+seed = 814995 
+
+model = SM
+
+sqrts = 250 GeV
+$circe2_file = "ilc250.circe"
+$circe2_design = "ILC"
+?circe2_polarized = false
+
+process lcio_12_p =  e1,E1 => e2,E2
+
+compile
+
+beams = e1, E1 => circe2 => isr,isr  
+
+cuts = sqrts_hat > sqrts * 0.8
+
+integrate (lcio_12_p) { iterations = 2:10000 }
+
+?update_sqme = true
+#?update_weight = true
+?write_raw = false
+
+show ($phs_method)
+
+simulate (lcio_12_p) {
+ n_events = 1
+ $sample = "lcio_12_a"
+ sample_format = lcio, weight_stream, debug
+}
+
+rescan "lcio_12_a" (lcio_12_p) {
+ $rescan_input_format = "lcio"
+ $sample = "lcio_12_b"
+ sample_format = weight_stream, debug
+ ?recover_beams = false
+ alt_setup = { mW = 80.0 GeV }
+}

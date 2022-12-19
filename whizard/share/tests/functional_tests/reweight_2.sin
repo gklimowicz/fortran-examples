@@ -1,0 +1,39 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+
+model = "QED"
+ee = 0.30286
+me = 0
+mmu = 0
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process reweight_2_p1 = "e-", "e+" => "mu-", "mu+"
+
+sqrts = 1000
+
+n_events = 2
+?unweighted = false
+?read_raw = false
+?write_raw = true
+
+simulate (reweight_2_p1) {
+  $sample = "reweight_2a"
+  iterations = 1:1000
+}
+
+sample_format = weight_stream
+
+?write_raw = false
+rescan "reweight_2a" (reweight_2_p1) {
+  $sample = "reweight_2b"
+  alt_setup = { ee = 2 * ee }
+}

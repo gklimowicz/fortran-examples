@@ -1,0 +1,24 @@
+# SINDARIN input for WHIZARD self-test
+# Test dummy integration/simulation for single forbidden process
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+me = 0
+mmu = 0
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+# Forbidden by definition
+process smtest_15_1 = e1, E1 => e2, e2
+
+simulate (smtest_15_1)

@@ -1,0 +1,192 @@
+include("nlo_settings_ew.sin")
+
+alias jet = u:U:d:D:s:S:c:C:b:B:gl:A:E1:n1
+alias pr=u:U:d:D:s:S:c:C:b:B:A:gl
+alias j= u:U:d:D:s:S:c:C:b:B:A:gl
+alias quarks = u:U:d:D:s:S:c:C:b:B
+
+mZ=91.15348
+mW=80.35797
+wZ=2.494266
+wW=2.084299
+
+wtop = 1.36918
+
+alpha_power = 2
+alphas_power = 1
+
+cuts=
+        let subevt @recfermion = photon_recombination [A:E1:quarks] in
+        let subevt @dressedleptons = select if abs(real(PDG)) == 11. [@recfermion] in
+        let subevt @dressedquarks = select if abs(real(PDG)) <= 5. [@recfermion] in
+        let subevt @notreco_photon = select if abs(real(PDG)) == 22. [@recfermion] in
+        let subevt @clustered_jets = cluster [join[gl, join[@notreco_photon,@dressedquarks]]] in
+       let subevt @pt_selected = select if Pt > 30 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4.5 [@pt_selected] in
+         count[@eta_selected]>=1
+         and all Pt > 10. [@dressedleptons]
+         and all abs(Eta) < 2.5 [@dressedleptons]
+
+
+scale = sum (Pt/2) [jet]
+
+$nlo_correction_type = "EW"
+
+seed=1
+process nlo_ppevj_ew = pr, pr => E1,n1, j {nlo_calculation = full}
+
+integrate (nlo_ppevj_ew) { iterations = 1:1000:"gw" mult_call_virt = 0.1}
+
+!!! Note: With the current status of the public_beta branch of OpenLoops (30-03-2022) this Sindarin yields incorrect results. Please check out commit "c56ba08c73696bd8c9ac70adbddc5c2e9da78d0c" in the public_beta git repository for the following results:
+!!!
+!!! ?use_vamp_equivalences = false
+!!!
+!| Starting integration for process 'drellyNLO' part 'born'
+!| Integrate: iterations = 10:30000000:"gw", 3:90000000
+!| Integrator: 10 chains, 17 channels, 7 dimensions
+!| Integrator: Write grid header and grids to 'drellyNLO.m1.vg2'
+!| Integrator: Grid checkpoint after each iteration
+!| Integrator: 30000000 initial calls, 20 max. bins, stratified = T
+!| Integrator: VAMP2
+!|=============================================================================|
+!| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+!|=============================================================================|
+!| VAMP2: Initialize new grids and write to file 'drellyNLO.m1.vg2'.
+!| VAMP2: set chain: use chained weights.
+!| VAMP2: Simple Request Balancing.
+!   1   27124693  9.1609414E+05  6.32E+03    0.69   35.92*   0.02
+!   2   25741278  9.1414831E+05  8.56E+02    0.09    4.75*   0.44
+!   3   24341598  9.1504515E+05  3.39E+02    0.04    1.83*   0.73
+!   4   24885205  9.1455689E+05  2.63E+02    0.03    1.44*   0.58
+!   5   23781726  9.1479860E+05  2.44E+02    0.03    1.30*   0.99
+!   6   24341598  9.1460105E+05  2.41E+02    0.03    1.30    1.05
+!   7   25181406  9.1451570E+05  2.31E+02    0.03    1.27*   0.98
+!   8   24621534  9.1473165E+05  2.26E+02    0.02    1.22*   1.17
+!   9   25741278  9.1450918E+05  2.22E+02    0.02    1.23    1.12
+!  10   25708748  9.1455930E+05  2.16E+02    0.02    1.20*   1.31
+!|-----------------------------------------------------------------------------|
+!  10  251469064  9.1463114E+05  8.50E+01    0.01    1.47    1.31    0.36  10
+!|-----------------------------------------------------------------------------|
+!| VAMP2: Simple Request Balancing.
+!  11   82783922  9.1473829E+05  1.13E+02    0.01    1.13*   1.24
+!  12   82783922  9.1470782E+05  1.13E+02    0.01    1.13    1.24
+!  13   82783922  9.1478251E+05  1.13E+02    0.01    1.13    1.22
+!|-----------------------------------------------------------------------------|
+!  13  248351766  9.1474286E+05  6.54E+01    0.01    1.13    1.22    0.11   3
+!|=============================================================================|
+!| Starting integration for process 'drellyNLO' part 'real'
+!| Integrate: iterations = 10:50000000:"gw", 3:150000000
+!| Integrator: 10 chains, 17 channels, 10 dimensions
+!| Integrator: Write grid header and grids to 'drellyNLO.m2.vg2'
+!| Integrator: Grid checkpoint after each iteration
+!| Integrator: 50000000 initial calls, 20 max. bins, stratified = T
+!| Integrator: VAMP2
+!|=============================================================================|
+!| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+!|=============================================================================|
+!| VAMP2: Initialize new grids and write to file 'drellyNLO.m2.vg2'.
+!| VAMP2: set chain: use chained weights.
+!| VAMP2: Simple Request Balancing.
+!   1   44437404 -2.9639406E+02  4.59E+02  155.02 ********   0.00
+!   2   45217522  3.6848444E+02  5.19E+01   14.08  946.67*   0.03
+!   3   46720534  4.0487202E+02  2.67E+01    6.60  451.32*   0.05
+!   4   47074828  3.3805878E+02  2.14E+01    6.34  434.96*   0.06
+!   5   46205224  3.6896791E+02  1.98E+01    5.37  364.74*   0.09
+!   6   47015779  3.4832998E+02  1.94E+01    5.57  382.04    0.09
+!   7   47192926  3.6935222E+02  1.92E+01    5.21  357.72*   0.07
+!   8   44224345  3.5339274E+02  1.80E+01    5.09  338.33*   0.13
+!   9   46720534  3.3799325E+02  1.84E+01    5.44  372.01    0.11
+!  10   46781408  3.5284701E+02  1.88E+01    5.32  363.66*   0.08
+!|-----------------------------------------------------------------------------|
+!  10  461590504  3.5645536E+02  6.94E+00    1.95  418.40    0.08    0.91  10
+!|-----------------------------------------------------------------------------|
+!| VAMP2: Simple Request Balancing.
+!  11  142606336  3.7685064E+02  1.43E+01    3.80  453.46    0.03
+!  12  142606336  3.6016281E+02  1.05E+01    2.91  347.59*   0.05
+!  13  142606336  3.2957596E+02  1.05E+01    3.18  379.81    0.05
+!|-----------------------------------------------------------------------------|
+!  13  427819008  3.5163401E+02  6.58E+00    1.87  387.16    0.05    4.10   3
+!|=============================================================================|
+!| Starting integration for process 'drellyNLO' part 'virtual'
+!| Integrate: iterations = 10:50000:"gw", 3:100000
+!| Integrator: 10 chains, 17 channels, 7 dimensions
+!| Integrator: Write grid header and grids to 'drellyNLO.m3.vg2'
+!| Integrator: Grid checkpoint after each iteration
+!| Integrator: 50000 initial calls, 20 max. bins, stratified = T
+!| Integrator: VAMP2
+!|=============================================================================|
+!| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+!|=============================================================================|
+!| VAMP2: Initialize new grids and write to file 'drellyNLO.m3.vg2'.
+!| VAMP2: set chain: use chained weights.
+!| VAMP2: Simple Request Balancing.
+!########################################################################
+!#                                                                      #
+!#                        You are using OneLOop                         #
+!#                                                                      #
+!# for the evaluation of 1-loop scalar 1-, 2-, 3- and 4-point functions #
+!#                                                                      #
+!# author: Andreas van Hameren <hamerenREMOVETHIS@ifj.edu.pl>           #
+!#   date: 2018-06-13                                                   #
+!#                                                                      #
+!# Please cite                                                          #
+!#    A. van Hameren,                                                   #
+!#      Comput.Phys.Commun. 182 (2011) 2427-2438, arXiv:1007.4716       #
+!#    A. van Hameren, C.G. Papadopoulos and R. Pittau,                  #
+!#      JHEP 0909:106,2009, arXiv:0903.4665                             #
+!# in publications with results obtained with the help of this program. #
+!#                                                                      #
+!########################################################################
+!   1      47393 -1.3397509E+04  2.04E+03   15.23   33.17*   0.11
+!   2      47437 -1.1676951E+04  3.20E+02    2.74    5.97*   0.65
+!   3      45689 -1.1662400E+04  1.30E+02    1.12    2.39*   2.70
+!   4      44687 -1.1399831E+04  9.73E+01    0.85    1.81*   4.13
+!   5      45305 -1.1475761E+04  9.25E+01    0.81    1.72*   5.04
+!   6      43140 -1.1548673E+04  8.91E+01    0.77    1.60*   5.36
+!   7      42884 -1.1740750E+04  8.91E+01    0.76    1.57*   5.04
+!   8      42884 -1.1693272E+04  8.67E+01    0.74    1.53*   5.77
+!   9      43652 -1.1527727E+04  8.36E+01    0.72    1.51*   7.16
+!  10      44164 -1.1594397E+04  8.17E+01    0.70    1.48*   6.83
+!|-----------------------------------------------------------------------------|
+!  10     447235 -1.1581138E+04  3.21E+01    0.28    1.85    6.83    1.28  10
+!|-----------------------------------------------------------------------------|
+!| VAMP2: Simple Request Balancing.
+!  11      94677 -1.1491718E+04  5.63E+01    0.49    1.51    4.88
+!  12      94677 -1.1568062E+04  6.03E+01    0.52    1.61    5.45
+!  13      94677 -1.1612899E+04  5.68E+01    0.49    1.51*   3.49
+!|-----------------------------------------------------------------------------|
+!  13     284031 -1.1556700E+04  3.33E+01    0.29    1.54    3.49    1.17   3
+!|=============================================================================|
+!| Starting integration for process 'drellyNLO' part 'dglap'
+!| Integrate: iterations = 10:5000000:"gw", 3:10000000
+!| Integrator: 10 chains, 17 channels, 8 dimensions
+!| Integrator: Write grid header and grids to 'drellyNLO.m4.vg2'
+!| Integrator: Grid checkpoint after each iteration
+!| Integrator: 5000000 initial calls, 20 max. bins, stratified = T
+!| Integrator: VAMP2
+!|=============================================================================|
+!| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+!|=============================================================================|
+!| VAMP2: Initialize new grids and write to file 'drellyNLO.m4.vg2'.
+!| VAMP2: set chain: use chained weights.
+!| VAMP2: Simple Request Balancing.
+!   1    4521984  1.1055191E+03  4.32E+01    3.91   83.10*   0.01
+!   2    4325376  1.0553240E+03  5.27E+00    0.50   10.38*   0.24
+!   3    4325376  1.0571633E+03  2.61E+00    0.25    5.13*   0.60
+!   4    4259840  1.0544896E+03  1.98E+00    0.19    3.88*   1.09
+!   5    4325376  1.0536059E+03  1.78E+00    0.17    3.51*   1.35
+!   6    4325376  1.0538225E+03  1.69E+00    0.16    3.34*   1.57
+!   7    4259840  1.0514160E+03  1.65E+00    0.16    3.24*   1.61
+!   8    4390912  1.0548834E+03  1.65E+00    0.16    3.27    1.53
+!   9    4194304  1.0544613E+03  1.61E+00    0.15    3.13*   1.55
+!  10    4390912  1.0549559E+03  1.63E+00    0.15    3.24    1.58
+!|-----------------------------------------------------------------------------|
+!  10   43319296  1.0541500E+03  6.20E-01    0.06    3.87    1.58    0.69  10
+!|-----------------------------------------------------------------------------|
+!| VAMP2: Simple Request Balancing.
+!  11    8755914  1.0540943E+03  1.11E+00    0.10    3.10*   1.20
+!  12    8755914  1.0557883E+03  1.11E+00    0.10    3.10*   1.19
+!  13    8755914  1.0551535E+03  1.11E+00    0.10    3.10    1.26
+!|-----------------------------------------------------------------------------|
+!  13   26267742  1.0550115E+03  6.39E-01    0.06    3.10    1.26    0.60   3
+!|=============================================================================|

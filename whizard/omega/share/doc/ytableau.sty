@@ -1,0 +1,367 @@
+%%
+%% This is file `ytableau.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% ytableau.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2010--2012 by Ryan Reich <ryan.reich@gmail.com>
+%% 
+%% This file may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.2 of this license
+%% or (at your option) any later version.  The latest version of this
+%% license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.2 or later is part of all distributions of LaTeX version
+%% 1999/12/01 or later.
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ytableau}
+    [2012/08/14 v1.3 Many-featured Young tableaux and Young diagrams]
+
+
+\newbox\tableaux@YT
+\newbox\thistableau@YT
+\let\thisbox@YT=\thistableau@YT
+\newbox\refhtdp@YT
+\newtoks\toks@YT
+\newtoks\opttoksa@YT
+\newtoks\opttoksb@YT
+\newdimen\boxdim@YT
+\newdimen\tableauwd@YT
+\newcount\count@YT
+\def\ifstar@YT#1{\kernel@ifnextchar *{\@firstoftwo{#1}}}
+\def\expandonce@YT#1{%
+ \expandafter\unexpanded\expandafter{#1}%
+}
+\def\nil@YT{\nil@YT}
+\def\boxframe@YT{0.04em}
+\def\boxdim@normal@YT{1.5em}
+\let\boxdim@save@YT = \boxdim@normal@YT
+\edef\macro@boxdim@YT{\boxdim@normal@YT}
+\def\hrule@normal@YT{%
+  \hrule width \dimexpr \boxdim@YT + \fboxrule * 2\relax
+         height \fboxrule
+}
+\def\vrule@normal@YT{%
+  \vrule height \dimexpr \boxdim@YT + \fboxrule\relax
+         width \fboxrule
+}
+\def\hrule@none@YT{\kern\fboxrule}
+\def\vrule@none@YT{%
+  \vrule width 0pt
+         height \dimexpr \boxdim@YT + \fboxrule\relax
+  \kern\fboxrule
+}
+\def\font@YT{}
+\def\set@mathmode@YT{%
+ \gdef\skipin@YT{$}%
+ \gdef\skipout@YT{$}%
+ \def\smallfont@YT{\scriptstyle}%
+}
+\def\set@textmode@YT{%
+ \gdef\skipin@YT{\ignorespaces}%
+ \gdef\skipout@YT{\unskip}%
+ \def\smallfont@YT{\scriptsize}%
+}
+\set@mathmode@YT
+\def\thisboxcolor@YT{clear}
+\def\centering@YT{top}
+\def\compare@YT#1#2{%
+ \def\tmpa@YT{#1}\def\tmpb@YT{#2}%
+ \ifx\tmpa@YT\tmpb@YT
+  \global\eq@YTtrue
+ \else
+  \global\eq@YTfalse
+ \fi
+}
+\def\compare@@YT#1#2{%
+ \def\tmpb@YT{#2}%
+ \ifx#1\tmpb@YT
+  \global\eq@YTtrue
+ \else
+  \global\eq@YTfalse
+ \fi
+}
+\newif\ifeq@YT
+\RequirePackage{pgfkeys}
+\pgfkeys{/ytableau/options/.is family}
+\newcommand{\ytableausetup}[1]{\pgfkeys{/ytableau/options,#1}}
+\pgfkeys{/ytableau/options,
+ boxsize/.value required,
+ boxsize/.code = {%
+  \pgfkeysalso{nosmalltableaux}%
+  \compare@YT{#1}{normal}%
+  \ifeq@YT
+   \xdef\macro@boxdim@YT{\expandonce@YT\boxdim@normal@YT}%
+  \else
+   \xdef\macro@boxdim@YT{#1}%
+  \fi
+ }
+}
+\pgfkeys{/ytableau/options,
+ aligntableaux/.value required,
+ aligntableaux/.is choice,
+  aligntableaux/top/.code = {\gdef\centering@YT{top}},
+  aligntableaux/center/.code = {\gdef\centering@YT{center}},
+  aligntableaux/bottom/.code = {\gdef\centering@YT{bottom}},
+ centertableaux/.value forbidden,
+ centertableaux/.style = {aligntableaux/center},
+ nocentertableaux/.value forbidden,
+ nocentertableaux/.style = {aligntableaux/top}
+}
+\newif\ifsmalltableaux@YT
+\pgfkeys{/ytableau/options,
+ smalltableaux/.default = true,
+ smalltableaux/.is choice,
+  smalltableaux/true/.code = {%
+   \ifsmalltableaux@YT\else
+    \global\smalltableaux@YTtrue
+    \gdef\font@YT{\smallfont@YT}%
+    \xdef\boxdim@save@YT{\expandonce@YT\macro@boxdim@YT}%
+    \gdef\macro@boxdim@YT{%
+     \dimexpr \ht\refhtdp@YT + \dp\refhtdp@YT + 0.1em\relax
+    }
+   \fi
+  },
+  smalltableaux/false/.code = {%
+   \ifsmalltableaux@YT
+    \global\smalltableaux@YTfalse
+    \gdef\font@YT{}%
+    \xdef\macro@boxdim@YT{\expandonce@YT\boxdim@save@YT}%
+   \fi
+  },
+  smalltableaux/on/.style = {smalltableaux/true},
+  smalltableaux/off/.style = {smalltableaux/false},
+ nosmalltableaux/.value forbidden,
+ nosmalltableaux/.style = {smalltableaux/false}
+}
+\pgfkeys{/ytableau/options,
+ textmode/.value forbidden,
+ textmode/.code = \set@textmode@YT,
+ mathmode/.value forbidden,
+ mathmode/.code = \set@mathmode@YT,
+}
+\newif\ifbaseline@YT
+\pgfkeys{/ytableau/options,
+ baseline/.is if = baseline@YT,
+ baseline/.default = true,
+ nobaseline/.style = {baseline = false},
+ centerboxes/.style = {baseline = false},
+}
+\pgfkeys{/ytableau/options,
+  tabloids/.default = true,
+  tabloids/.is choice,
+    tabloids/true/.code = {%
+      \global\let\vrule@YT=\vrule@none@YT
+      \global\let\hrule@YT=\hrule@normal@YT
+    },
+    tabloids/false/.code = {%
+      \global\let\vrule@YT=\vrule@normal@YT
+      \global\let\hrule@YT=\hrule@normal@YT
+    },
+    tabloids/on/.style = {tabloids/true},
+    tabloids/off/.style = {tabloids/false},
+  notabloids/.style = {tabloids/false},
+}
+\ytableausetup{nosmalltableaux,mathmode,baseline,notabloids}
+\RequirePackage{pgfopts}[2011/06/02]
+\ProcessPgfPackageOptions{/ytableau/options}
+\RequirePackage{xcolor}
+\newenvironment{ytableau}[1][]
+{%
+  \global\setbox\thistableau@YT=\vtop{\iffalse}\fi
+   \def\none{\omit\none@YT}
+   \setbox\refhtdp@YT=\hbox{\skipin@YT\font@YT (\skipout@YT}%
+   \boxdim@YT=\macro@boxdim@YT\relax
+   \fboxrule=\boxframe@YT\relax
+   \fboxsep=0pt %
+   \let\\=\cr@YT
+   \tabskip=0pt %
+   \offinterlineskip
+   \openup-\fboxrule
+ % \changes{v1.1}{2010/11/10}{Added the everycr fix.}
+   \everycr={}%
+   \halign\bgroup&\tabskip=-\fboxrule
+                  \startbox@YT{\font@YT}{#1}##\endbox@YT\cr
+}
+{%
+   \crcr\egroup
+  \iffalse{\fi}%
+ \ifnum\wd\thistableau@YT>\wd\tableaux@YT
+  \tableauwd@YT=\wd\thistableau@YT
+  \advance\tableauwd@YT by \fboxrule
+  \wd\thistableau@YT = \tableauwd@YT
+  \advance\tableauwd@YT by -\wd\tableaux@YT
+ \else
+  \tableauwd@YT = 0pt %
+ \fi
+ \wd\thistableau@YT=0pt %
+ \setbox\tableaux@YT
+  =\hbox{\box\thistableau@YT\unhbox\tableaux@YT
+         \kern\tableauwd@YT}%
+ \ifstar@YT
+  {\ydiagram}%
+  {%
+   \leavevmode
+   \compare@@YT{\centering@YT}{center}%
+   \ifeq@YT
+    \hbox{$\vcenter{\box\tableaux@YT}$}%
+   \else\compare@@YT{\centering@YT}{bottom}%
+   \ifeq@YT
+    \hbox{\raise\dp\tableaux@YT\box\tableaux@YT}%
+   \fi
+    \box\tableaux@YT
+   \fi
+  }%
+}
+\def\cr@YT{\cr}
+\newcommand{\none@YT}[1][]{%
+ \def\thisboxcolor@YT{clear}%
+ \let\hrule@YT=\hrule@none@YT
+ \let\vrule@YT=\vrule@none@YT
+ \startbox@@YT#1\endbox@YT
+ \nullfont
+}
+\def\startbox@YT#1#2{%
+ \getcolor@YT{\save@YT{\opttoksa@YT}}#1\nil@YT
+ \getcolor@YT{\save@YT{\opttoksb@YT}}#2\nil@YT
+ \getcolor@YT
+   {\startbox@@YT\the\opttoksa@YT\the\opttoksb@YT}%
+}
+\def\save@YT#1#2\nil@YT{#1={#2}}
+\def\getcolor@YT#1{\ifstar@YT{\getcolor@@YT{#1}}{#1}}
+\def\getcolor@@YT#1(#2){%
+ \def\thisboxcolor@YT{#2}%
+ #1%
+}
+\def\startbox@@YT{%
+ \setbox\thisbox@YT=\hbox to \boxdim@YT\bgroup
+  \hss
+  \skipin@YT
+}
+\def\endbox@YT{%
+  \skipout@YT
+  \hss
+ \egroup
+ \ifbaseline@YT
+  \ht\thisbox@YT=\ht\refhtdp@YT
+  \dp\thisbox@YT=\dp\refhtdp@YT
+ \fi
+ \fcolorbox@YT{\thisboxcolor@YT}{%
+  \vbox to \dimexpr\boxdim@YT + \fboxrule\relax{\vss\box\thisbox@YT\vss}%
+ }%
+}
+\def\fcolorbox@YT#1#2{%
+  \lower\fboxrule\vbox{%
+    \ifodd\fboxrule\kern1sp \fi
+    \kern0.5\fboxrule
+    \hbox{%
+      \kern\fboxrule
+      \compare@@YT{#1}{clear}%
+      \ifeq@YT
+        #2%
+      \else
+        \colorbox{#1}{#2}%
+      \fi
+      \rules@YT{v}%
+    }%
+    \kern-0.5\fboxrule
+    \rules@YT{h}%
+  }%
+}
+\def\rules@YT#1{%
+  \expandafter\let\expandafter\rule@YT\csname #1rule@YT\endcsname
+  \kern-\dimexpr\boxdim@YT + \fboxrule\relax
+  \rule@YT
+  \kern\boxdim@YT
+  \rule@YT
+}
+\newcommand{\ytableaushort}[2][]{%
+ \toks@YT={}%
+ \getentries@YT{\getentries@@YT}{}#2,\nil@YT
+ \ytableau[#1]\the\toks@YT\endytableau
+}
+\def\getentries@YT#1#2{\getline@YT{#1}{#2}.}
+\def\getline@YT#1#2#3,{%
+ \opttoksa@YT=\expandafter{\@gobble#3}%
+ \opttoksb@YT={\getline@@YT{#1}{#2}}%
+ \edef\next@YT{\the\opttoksb@YT{\the\opttoksa@YT}}%
+ \futurelet\tmpa@YT\next@YT
+}
+\def\getline@@YT#1#2#3{%
+ \ifx\tmpa@YT\nil@YT
+  \compare@YT{#3}{}%
+  \ifeq@YT
+   \def\next@YT{\@gobble}%
+  \else
+   \def\next@YT{#1#3#2}%
+  \fi
+ \else
+  \compare@YT{#3}{}%
+  \ifeq@YT
+   \def\next@YT{\getline@YT{#1}{#2}.}%
+  \else
+   \def\next@YT{#1#3#2\nil@YT\getentries@YT{#1}{#2}}%
+  \fi
+ \fi
+ \next@YT
+}
+\def\getentries@@YT#1#2{%
+ \compare@YT{#2}{\nil@YT}%
+ \ifeq@YT
+  \toks@YT=\expandafter{\the\toks@YT#1\\}%
+  \def\next@YT{}%
+ \else
+  \toks@YT=\expandafter{\the\toks@YT#1&}%
+  \def\next@YT{\getentries@@YT{#2}}%
+ \fi
+ \next@YT
+}
+\newcommand\ydiagram[2][]{%
+ \toks@YT={}%
+ \getentries@YT{\getnumbers@YT}{+}#2,\nil@YT
+ \ytableau[#1]\the\toks@YT\endytableau
+}
+\def\getnumbers@YT#1+#2\nil@YT{%
+ \compare@YT{#2}{}%
+ \ifeq@YT
+  \def\next@YT{%
+   \loop@YT{#1}{}%
+  }%
+ \else
+  \def\next@YT{%
+   \loop@YT{#1}{\none}%
+   \getnumbers@YT#2\nil@YT
+  }%
+ \fi
+ \next@YT
+}
+\def\loop@YT#1#2{%
+ \count@YT=#1\relax
+ \loop\ifnum\count@YT>1 %
+  \toks@YT=\expandafter{\the\toks@YT#2&}%
+  \advance\count@YT by -1 %
+ \repeat
+ \ifnum\count@YT=1 %
+  \compare@YT{#2}{}%
+  \ifeq@YT
+   \toks@YT=\expandafter{\the\toks@YT#2\\}%
+  \else
+   \toks@YT=\expandafter{\the\toks@YT#2&}%
+  \fi
+ \else
+  \compare@YT{#2}{}%
+  \ifeq@YT
+   \toks@YT=\expandafter{\the\toks@YT\none\\}%
+  \fi
+ \fi
+}
+\endinput
+%%
+%% End of file `ytableau.sty'.

@@ -1,0 +1,39 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> 3 gamma
+
+model = "QED"
+ee = 0.30286
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+$method = "omega"
+?omega_openmp = false
+process qedtest_4_p1 = "e-", "e+" => A, A, A
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+iterations = 5:2000:"g", 5:2000:""
+
+sqrts = 1000
+
+cuts = 
+  all E > 80 GeV [A]
+and
+  all Pt > 40 GeV [A]
+and
+  all Dist > 0.8 [A, A]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (qedtest_4_p1)

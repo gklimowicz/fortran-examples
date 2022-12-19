@@ -1,0 +1,29 @@
+include("nlo_settings.sin")
+
+alias pr = u:U:d:D:s:S:c:C:b:B:gl
+$exclude_gauge_splittings = "t"
+
+$negative_sf = "positive"
+
+beams = p, p => lhapdf
+$lhapdf_file = "MSTW2008nlo68cl"
+sqrts = 13000 GeV
+
+alpha_power = 0
+alphas_power = 4
+?alphas_from_mz = false
+?alphas_from_lhapdf = true
+
+scale = let subevt @clustered_jets = cluster [jet] in
+        sum sqrt(Pt^2 + M^2)/2 [t:T] + sum Pt/2 [@clustered_jets]
+
+?combined_nlo_integration = false
+!?nlo_use_real_partition = true
+!real_partition_scale = 5 GeV
+
+process nlo_pptttt_p1 = pr, pr => t, T, t, T { nlo_calculation = full }
+
+integrate (nlo_pptttt_p1) { iterations = 1:2000:"gw" }
+
+!mult_call_real = 5
+!integrate (nlo_pptttt_p1) { iterations = 10:100000:"gw",5:60000 }

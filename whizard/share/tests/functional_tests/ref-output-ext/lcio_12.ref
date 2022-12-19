@@ -1,0 +1,121 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+seed = 814995
+| Switching to model 'SM', scheme 'default'
+sqrts =  2.50000E+02
+$circe2_file = "ilc250.circe"
+$circe2_design = "ILC"
+?circe2_polarized = false
+| Process library 'lcio_12_lib': recorded process 'lcio_12_p'
+| Process library 'lcio_12_lib': compiling ...
+| Process library 'lcio_12_lib': writing makefile
+| Process library 'lcio_12_lib': removing old files
+| Process library 'lcio_12_lib': writing driver
+| Process library 'lcio_12_lib': creating source code
+| Process library 'lcio_12_lib': compiling sources
+| Process library 'lcio_12_lib': linking
+| Process library 'lcio_12_lib': loading
+| Process library 'lcio_12_lib': ... success.
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28563
+| Initializing integration for process lcio_12_p:
+| Beam structure: e-, e+ => circe2 => isr, isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.500000000000E+02 GeV
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28564
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lcio_12_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lcio_12_p'
+|   Library name  = 'lcio_12_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lcio_12_p_i1':   e-, e+ => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: circe2 => isr, none => none, isr
+| Beam structure: 2 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'lcio_12_p'
+| Integrate: iterations = 2:10000
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 10000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1      10000     1.752E+03   1.98E+01    1.13    1.13    19.6
+   2      10000     1.692E+03   1.92E+01    1.14    1.14    14.9
+|-----------------------------------------------------------------------------|
+   2      20000     1.721E+03   1.38E+01    0.80    1.13    14.9    4.73   2
+|=============================================================================|
+?update_sqme = true
+?write_raw = false
+$phs_method = "default"
+n_events = 1
+$sample = "lcio_12_a"
+| Starting simulation for process 'lcio_12_p'
+| Simulate: using integration grids from file 'lcio_12_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28565
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.8093E-04
+| Events: writing to LCIO file 'lcio_12_a.slcio'
+| Events: writing to weight stream file 'lcio_12_a.weights.dat'
+| Events: writing to ASCII file 'lcio_12_a.debug'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  50.00 %
+| Events: closing LCIO file 'lcio_12_a.slcio'
+| Events: closing weight stream file 'lcio_12_a.weights.dat'
+| Events: closing ASCII file 'lcio_12_a.debug'
+$rescan_input_format = "lcio"
+$sample = "lcio_12_b"
+?recover_beams = false
+SM.mW =>  8.00000E+01
+| Starting simulation for process 'lcio_12_p'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28566
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28567
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'lcio_12_p.i1.phs'
+| Simulate: initializing alternate process setup ...
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28568
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28569
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'lcio_12_p.i1.phs'
+| ...  alternate process setup complete.
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 28570
+| Simulation: requested number of events = 0
+|             corr. to luminosity [fb-1] =   0.0000E+00
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from LCIO file 'lcio_12_a.slcio'
+| Events: writing to weight stream file 'lcio_12_b.weights.dat'
+| Events: writing to ASCII file 'lcio_12_b.debug'
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'lcio_12_b.weights.dat'
+| Events: closing ASCII file 'lcio_12_b.debug'
+| Events: closing LCIO file 'lcio_12_a.slcio'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

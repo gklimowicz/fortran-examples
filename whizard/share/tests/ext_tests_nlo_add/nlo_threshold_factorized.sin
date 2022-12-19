@@ -1,0 +1,130 @@
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+model = SM_tt_threshold
+sqrts = 10 TeV
+sqrtsstepsize = 0.1 GeV
+sqrtsmin = sqrts - sqrtsstepsize
+sqrtsmax = sqrts + sqrtsstepsize
+
+mZ = 91.188
+mW = 80.419
+mb = 4.2
+alphas = 0.118 ! (Z pole, NLL running to mu_h)
+alpha_em_i = 125.924 ! (not running)
+m1S = 172.0
+scale = m1S
+mpole_fixed = 1
+mult_call_real = 30
+
+nrqcd_order  = 1 # NLL
+sh     = 1.
+sf     = 1.
+Vtb    = 1.
+
+me = 0
+int n_iter = 1000
+
+$method = "threshold"
+$born_me_method = "threshold"
+$loop_me_method = "threshold"
+$correlation_me_method = "threshold"
+$real_tree_me_method = "threshold"
+alpha_power = 4
+alphas_power = 0
+real num_diff = 0.001
+iterations = 5:n_iter:"gw", 5:n_iter
+
+real mass_cut = 10 GeV
+cuts = all abs (M - mtpole) < mass_cut [Wp, b] and
+       all abs (M - mtpole) < mass_cut [Wm, B]
+
+! bits for offshell strategy :
+! 1 NLO, 2 factorization, 4 interference, 8 onShellProjection, 16 LOWidthInSignal,
+! 32 helicityApprox, 64 onShellProjectionProductionOnly,
+! 128 onShellProjectionDecayOnly, 256 offShellWidthInPropagtor,
+! 512 boostDecayMomenta
+
+process threshold = E1, e1 => Wp, Wm, b, B
+offshell_strategy = 2+8+0
+seed = 0
+!integrate (threshold)
+
+offshell_strategy = 2+8+16+32
+!integrate (threshold)
+
+offshell_strategy = 2+32+64
+!integrate (threshold)
+
+offshell_strategy = 2+128
+!integrate (threshold)
+
+seed = 0
+FF = 10
+offshell_strategy = 0+0+4+0+0
+integrate (threshold)
+real integralFull = integral (threshold)
+real errorFull = error (threshold)
+
+FF = 9       !!! on
+
+seed = 0
+offshell_strategy = 2+64+128+512
+integrate (threshold)
+real integralWithBoost = integral (threshold)
+real errorWithBoost = error (threshold)
+
+seed = 0
+offshell_strategy = 2+64+128
+integrate (threshold)
+real integralWithOutBoost = integral (threshold)
+real errorWithOutBoost = error (threshold)
+
+seed = 0
+offshell_strategy = 2+64+128+32+512
+integrate (threshold)
+real integralWithBoostHelApprox = integral (threshold)
+real errorWithBoostHelApprox = error (threshold)
+
+seed = 0
+offshell_strategy = 2+64+128+32
+integrate (threshold)
+real integralWithOutBoostHelApprox = integral (threshold)
+real errorWithOutBoostHelApprox = error (threshold)
+
+seed = 0
+offshell_strategy = 2+64+128+32+512+1024
+integrate (threshold)
+real integralWithBoostExtraHelApprox = integral (threshold)
+real errorWithBoostExtraHelApprox = error (threshold)
+
+seed = 0
+offshell_strategy = 2+64+128+32+1024
+integrate (threshold)
+real integralWithOutBoostExtraHelApprox = integral (threshold)
+real errorWithOutBoostExtraHelApprox = error (threshold)
+
+printf "Full: %g +- %g" (integralFull, errorFull)
+printf "No hel approx"
+printf "withBoost: %g +- %g" (integralWithBoost, errorWithBoost)
+printf "withoutBoost: %g +- %g" (integralWithOutBoost, errorWithOutBoost)
+expect (integralWithBoost == integralWithOutBoost) {tolerance = 3 * sqrt (errorWithBoost**2 + errorWithOutBoost**2)}
+
+printf "Hel approx"
+printf "withBoost: %g +- %g" (integralWithBoostHelApprox,
+    errorWithBoostHelApprox)
+printf "withoutBoost: %g +- %g" (integralWithOutBoostHelApprox,
+    errorWithOutBoostHelApprox)
+expect (integralWithBoostExtraHelApprox == integralWithOutBoostExtraHelApprox) {tolerance = 3 * sqrt (errorWithBoostHelApprox**2 + errorWithOutBoostHelApprox**2)}
+
+printf "Extra hel approx"
+printf "withBoost: %g +- %g" (integralWithBoostExtraHelApprox,
+    errorWithBoostExtraHelApprox)
+printf "withoutBoost: %g +- %g" (integralWithOutBoostExtraHelApprox,
+    errorWithOutBoostExtraHelApprox)
+expect (integralWithBoostExtraHelApprox == integralWithOutBoostExtraHelApprox) {tolerance = 3 * sqrt (errorWithBoostExtraHelApprox**2 + errorWithOutBoostExtraHelApprox**2)}

@@ -1,0 +1,53 @@
+* Test output: commands_10
+*   Purpose: define beams
+
+*  Initialization
+
+*  Input file
+
+model = QCD
+sqrts = 1000
+beams = p, p
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_model> <cmd_num> <cmd_beams>
+|  +  <cmd_model>  =  model '=' <model_id>
+|  |  +  model  = [keyword] model
+|  |  +  '='  = [keyword] =
+|  |  +  <model_id>  = QCD
+|  +  <cmd_num>  =  <var_name> '=' <expr>
+|  |  +  <var_name>  = sqrts
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  +  <integer_literal>  = 1000
+|  +  <cmd_beams>  =  beams '=' <beam_def>
+|  |  +  beams  = [keyword] beams
+|  |  +  '='  = [keyword] =
+|  |  +  <beam_def>  =  <beam_spec>
+|  |  |  +  <beam_spec>  =  <beam_list>
+|  |  |  |  +  <beam_list>  =  <cexpr> <cexpr>
+|  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  +  <variable>  = p
+|  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  +  <variable>  = p
+
+* Compile command list
+
+ model = "QCD"
+ var: sqrts (real, intrinsic)
+ beams: 2 [scattering]
+
+* Execute command list
+
+========================================================================
+ Beam structure: p, p
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_10

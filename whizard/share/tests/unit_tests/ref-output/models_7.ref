@@ -1,0 +1,151 @@
+* Test output: models_7
+*   Purpose: read a model from file with scheme selection
+
+model "Test7"
+  schemes = "foo", "bar", "gee"
+
+  select scheme
+  scheme "foo"
+    parameter a = 1
+    derived   b = 2 * a
+  scheme other
+    parameter b = 4
+    derived   a = b / 2
+  end select
+
+  parameter c = 3
+
+  select scheme
+  scheme "foo", "gee"
+    derived   d = b + c
+  scheme other
+    unused    d
+  end select
+
+* Model output, default scheme (= foo)
+
+model "Test7"
+ ! schemes = 'foo', 'bar', 'gee'
+ ! selected scheme = 'foo' (1)
+
+   parameter a =  1.000000000000E+00
+   derived b =  2.000000000000E+00
+   parameter c =  3.000000000000E+00
+   derived d =  5.000000000000E+00
+
+
+
+* Variable list
+
+a =>  1.000000000000E+00
+b* =>  2.000000000000E+00
+c =>  3.000000000000E+00
+d* =>  5.000000000000E+00
+particle* = PDG(0)
+charged* = PDG()
+neutral* = PDG()
+colored* = PDG()
+
+* Parameter array
+
+  1.000
+  2.000
+  3.000
+  5.000
+
+* Model output, scheme foo
+
+model "Test7"
+ ! schemes = 'foo', 'bar', 'gee'
+ ! selected scheme = 'foo' (1)
+
+   parameter a =  1.000000000000E+00
+   derived b =  2.000000000000E+00
+   parameter c =  3.000000000000E+00
+   derived d =  5.000000000000E+00
+
+
+
+* Variable list
+
+a =>  1.000000000000E+00
+b* =>  2.000000000000E+00
+c =>  3.000000000000E+00
+d* =>  5.000000000000E+00
+particle* = PDG(0)
+charged* = PDG()
+neutral* = PDG()
+colored* = PDG()
+
+* Parameter array
+
+  1.000
+  2.000
+  3.000
+  5.000
+
+* Model output, scheme bar
+
+model "Test7"
+ ! schemes = 'foo', 'bar', 'gee'
+ ! selected scheme = 'bar' (2)
+
+   parameter b =  4.000000000000E+00
+   derived a =  2.000000000000E+00
+   parameter c =  3.000000000000E+00
+   unused d
+
+
+
+* Variable list
+
+b =>  4.000000000000E+00
+a* =>  2.000000000000E+00
+c =>  3.000000000000E+00
+[undefined] d* = [unknown real]
+particle* = PDG(0)
+charged* = PDG()
+neutral* = PDG()
+colored* = PDG()
+
+* Parameter array
+
+  4.000
+  2.000
+  3.000
+  0.000
+
+* Model output, scheme gee
+
+model "Test7"
+ ! schemes = 'foo', 'bar', 'gee'
+ ! selected scheme = 'gee' (3)
+
+   parameter b =  4.000000000000E+00
+   derived a =  2.000000000000E+00
+   parameter c =  3.000000000000E+00
+   derived d =  7.000000000000E+00
+
+
+
+* Variable list
+
+b =>  4.000000000000E+00
+a* =>  2.000000000000E+00
+c =>  3.000000000000E+00
+d* =>  7.000000000000E+00
+particle* = PDG(0)
+charged* = PDG()
+neutral* = PDG()
+colored* = PDG()
+
+* Parameter array
+
+  4.000
+  2.000
+  3.000
+  7.000
+
+* Cleanup
+
+* Test output end: models_7

@@ -1,0 +1,32 @@
+# Process with two components
+
+model = QED
+
+ee = 0.30286
+me = 0
+mmu = 0
+mtau = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+$method = "omega"
+
+process multi_comp_2_p1 = e1, E1 => e2 + e3 + A, E2 + E3 + A
+compile
+
+iterations = 3:1000:"g", 3:1000 
+sqrts = 1000
+
+cuts = all Pt > 200 [A]
+integrate (multi_comp_2_p1)
+
+simulate (multi_comp_2_p1) { 
+ n_events = 1000
+ ?write_raw = false
+ sample_format = short
+}

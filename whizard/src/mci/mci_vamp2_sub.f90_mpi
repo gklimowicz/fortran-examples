@@ -1,0 +1,1373 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+submodule (mci_vamp2) mci_vamp2_s
+
+  use io_units
+  use format_utils, only: pac_fmt
+  use format_utils, only: write_separator, write_indent
+  use format_defs, only: FMT_12, FMT_14, FMT_17, FMT_19
+  use constants, only: tiny_13
+  use diagnostics
+  use md5
+  use os_interface, only: mpi_get_comm_id
+  use rng_stream, only: rng_stream_t
+  use vegas, only: VEGAS_MODE_IMPORTANCE, VEGAS_MODE_IMPORTANCE_ONLY
+
+  use mpi_f08 !NODEP!
+
+  implicit none
+
+contains
+
+  module subroutine mci_vamp2_func_set_workspace (self, instance, sampler)
+    class(mci_vamp2_func_t), intent(inout) :: self
+    class(mci_vamp2_instance_t), intent(inout), target :: instance
+    class(mci_sampler_t), intent(inout), target :: sampler
+    self%instance => instance
+    self%sampler => sampler
+  end subroutine mci_vamp2_func_set_workspace
+
+  module function mci_vamp2_func_get_probabilities (self) result (gi)
+    class(mci_vamp2_func_t), intent(inout) :: self
+    real(default), dimension(self%n_channel) :: gi
+    gi = self%gi
+  end function mci_vamp2_func_get_probabilities
+
+  module function mci_vamp2_func_get_weight (self) result (g)
+    class(mci_vamp2_func_t), intent(in) :: self
+    real(default) :: g
+    g = self%g
+  end function mci_vamp2_func_get_weight
+
+  module subroutine mci_vamp2_func_set_integrand (self, integrand)
+    class(mci_vamp2_func_t), intent(inout) :: self
+    real(default), intent(in) :: integrand
+    self%integrand = integrand
+  end subroutine mci_vamp2_func_set_integrand
+
+  module subroutine mci_vamp2_func_evaluate_maps (self, x)
+    class(mci_vamp2_func_t), intent(inout) :: self
+    real(default), dimension(:), intent(in) :: x
+    select type (self)
+    type is (mci_vamp2_func_t)
+       call self%instance%evaluate (self%sampler, self%current_channel, x)
+    end select
+    self%valid_x = self%instance%valid
+    self%xi = self%instance%x
+    self%det = self%instance%f
+  end subroutine mci_vamp2_func_evaluate_maps
+
+  module function mci_vamp2_func_evaluate_func (self, x) result (f)
+    class(mci_vamp2_func_t), intent(in) :: self
+    real(default), dimension(:), intent(in) :: x
+    real(default) :: f
+    f = self%integrand
+    if (signal_is_pending ()) then
+       call msg_message ("VAMP2: function evaluate_func: signal received")
+       call terminate_now_if_signal ()
+    end if
+    call terminate_now_if_single_event ()
+  end function mci_vamp2_func_evaluate_func
+
+  module subroutine list_pass_final (self)
+    class(list_pass_t), intent(inout) :: self
+    type(pass_t), pointer :: current
+    current => self%first
+    do while (associated (current))
+       self%first => current%next
+       deallocate (current)
+       current => self%first
+    end do
+  end subroutine list_pass_final
+
+  module subroutine list_pass_add &
+       (self, adapt_grids, adapt_weights, final_pass)
+    class(list_pass_t), intent(inout) :: self
+    logical, intent(in), optional :: adapt_grids, adapt_weights, final_pass
+    type(pass_t), pointer :: new_pass
+    allocate (new_pass)
+    new_pass%i_pass = 1
+    new_pass%i_first_it = 1
+    new_pass%adapt_grids = .false.; if (present (adapt_grids)) &
+         & new_pass%adapt_grids = adapt_grids
+    new_pass%adapt_weights = .false.; if (present (adapt_weights)) &
+         & new_pass%adapt_weights = adapt_weights
+    new_pass%is_final_pass = .false.; if (present (final_pass)) &
+         & new_pass%is_final_pass = final_pass
+    if (.not. associated (self%first)) then
+       self%first => new_pass
+    else
+       new_pass%i_pass = new_pass%i_pass + self%current%i_pass
+       new_pass%i_first_it = self%current%i_first_it + self%current%n_it
+       self%current%next => new_pass
+    end if
+    self%current => new_pass
+  end subroutine list_pass_add
+
+  module subroutine list_pass_update_from_ref (self, ref, success)
+    class(list_pass_t), intent(inout) :: self
+    type(list_pass_t), intent(in) :: ref
+    logical, intent(out) :: success
+    type(pass_t), pointer :: current, ref_current
+    current => self%first
+    ref_current => ref%first
+    success = .true.
+    do while (success .and. associated (current))
+       if (associated (ref_current)) then
+          if (associated (current%next)) then
+             success = current .matches. ref_current
+          else
+             call current%update (ref_current, success)
+          end if
+          current => current%next
+          ref_current => ref_current%next
+       else
+          success = .false.
+       end if
+    end do
+  end subroutine list_pass_update_from_ref
+
+  module function list_pass_has_last_integral(self) result (flag)
+    class(list_pass_t), intent(in) :: self
+    logical :: flag
+    flag = associated(self%current)
+    if (flag) flag = self%current%integral_defined
+  end function list_pass_has_last_integral
+
+  module subroutine list_pass_get_last_integral &
+       (self, integral, error, efficiency)
+    class(list_pass_t), intent(in) :: self
+    real(default), intent(out) :: integral
+    real(default), intent(out) :: error
+    real(default), intent(out) :: efficiency
+    if (self%has_last_integral()) then
+       integral = self%current%get_integral()
+       error = self%current%get_error()
+       efficiency = self%current%get_efficiency()
+    else
+       integral = 0
+       error = 0
+       efficiency = 0
+    end if
+  end subroutine list_pass_get_last_integral
+
+  module subroutine list_pass_write (self, unit, pacify)
+    class(list_pass_t), intent(in) :: self
+    integer, intent(in) :: unit
+    logical, intent(in), optional :: pacify
+    type(pass_t), pointer :: current
+    current => self%first
+    do while (associated (current))
+       write (unit, "(1X,A)") "Integration pass:"
+       call current%write (unit, pacify)
+       current => current%next
+    end do
+  end subroutine list_pass_write
+
+  module subroutine pass_write (self, unit, pacify)
+    class(pass_t), intent(in) :: self
+    integer, intent(in) :: unit
+    logical, intent(in), optional :: pacify
+    integer :: u, i
+    real(default) :: pac_error
+    character(len=7) :: fmt
+    call pac_fmt (fmt, FMT_17, FMT_14, pacify)
+    u = given_output_unit (unit)
+    write (u, "(3X,A,I0)") "n_it          = ", self%n_it
+    write (u, "(3X,A,I0)") "n_calls       = ", self%n_calls
+    write (u, "(3X,A,L1)") "adapt grids   = ", self%adapt_grids
+    write (u, "(3X,A,L1)") "adapt weights = ", self%adapt_weights
+    if (self%integral_defined) then
+       write (u, "(3X,A)") "Results:  [it, calls, valid, integral, error, efficiency]"
+       do i = 1, self%n_it
+          if (abs (self%error(i)) > tiny_13) then
+             pac_error = self%error(i)
+          else
+             pac_error = 0
+          end if
+          write (u, "(5x,I0,2(1x,I0),3(1x," // fmt // "))") &
+               i, self%calls(i), self%calls_valid(i), self%integral(i), &
+               pac_error, self%efficiency(i)
+       end do
+    else
+       write (u, "(3x,A)")  "Results: [undefined]"
+    end if
+  end subroutine pass_write
+
+  module subroutine pass_read (self, u, n_pass, n_it)
+    class(pass_t), intent(out) :: self
+    integer, intent(in) :: u, n_pass, n_it
+    integer :: i, j
+    character(80) :: buffer
+    self%i_pass = n_pass + 1
+    self%i_first_it = n_it + 1
+    call read_ival (u, self%n_it)
+    call read_ival (u, self%n_calls)
+    call read_lval (u, self%adapt_grids)
+    call read_lval (u, self%adapt_weights)
+    allocate (self%calls (self%n_it), source = 0)
+    allocate (self%calls_valid (self%n_it), source = 0)
+    allocate (self%integral (self%n_it), source = 0._default)
+    allocate (self%error (self%n_it), source = 0._default)
+    allocate (self%efficiency (self%n_it), source = 0._default)
+    read (u, "(A)")  buffer
+    select case (trim (adjustl (buffer)))
+    case ("Results:  [it, calls, valid, integral, error, efficiency]")
+       do i = 1, self%n_it
+          read (u, *) &
+               j, self%calls(i), self%calls_valid(i), self%integral(i), self%error(i), &
+               self%efficiency(i)
+       end do
+       self%integral_defined = .true.
+    case ("Results: [undefined]")
+       self%integral_defined = .false.
+    case default
+       call msg_fatal ("Reading integration pass: corrupted file")
+    end select
+  end subroutine pass_read
+
+  subroutine read_rval (u, rval)
+    integer, intent(in) :: u
+    real(default), intent(out) :: rval
+    character(80) :: buffer
+    read (u, "(A)")  buffer
+    buffer = adjustl (buffer(scan (buffer, "=") + 1:))
+    read (buffer, *)  rval
+  end subroutine read_rval
+
+  subroutine read_ival (u, ival)
+    integer, intent(in) :: u
+    integer, intent(out) :: ival
+    character(80) :: buffer
+    read (u, "(A)")  buffer
+    buffer = adjustl (buffer(scan (buffer, "=") + 1:))
+    read (buffer, *)  ival
+  end subroutine read_ival
+
+  subroutine read_sval (u, sval)
+    integer, intent(in) :: u
+    character(*), intent(out) :: sval
+    character(80) :: buffer
+    read (u, "(A)")  buffer
+    buffer = adjustl (buffer(scan (buffer, "=") + 1:))
+    read (buffer, *)  sval
+  end subroutine read_sval
+
+  subroutine read_lval (u, lval)
+    integer, intent(in) :: u
+    logical, intent(out) :: lval
+    character(80) :: buffer
+    read (u, "(A)")  buffer
+    buffer = adjustl (buffer(scan (buffer, "=") + 1:))
+    read (buffer, *)  lval
+  end subroutine read_lval
+
+  module subroutine pass_configure (pass, n_it, n_calls, n_calls_min)
+    class(pass_t), intent(inout) :: pass
+    integer, intent(in) :: n_it
+    integer, intent(in) :: n_calls
+    integer, intent(in) :: n_calls_min
+    pass%n_it = n_it
+    pass%n_calls = max (n_calls, n_calls_min)
+    if (pass%n_calls /= n_calls) then
+       write (msg_buffer, "(A,I0)")  "VAMP2: too few calls, resetting " &
+            // "n_calls to ", pass%n_calls
+       call msg_warning ()
+    end if
+    allocate (pass%calls (n_it), source = 0)
+    allocate (pass%calls_valid (n_it), source = 0)
+    allocate (pass%integral (n_it), source = 0._default)
+    allocate (pass%error (n_it), source = 0._default)
+    allocate (pass%efficiency (n_it), source = 0._default)
+  end subroutine pass_configure
+
+  module function pass_matches (pass, ref) result (ok)
+    type(pass_t), intent(in) :: pass, ref
+    integer :: n
+    logical :: ok
+    ok = .true.
+    if (ok)  ok = pass%i_pass == ref%i_pass
+    if (ok)  ok = pass%i_first_it == ref%i_first_it
+    if (ok)  ok = pass%n_it == ref%n_it
+    if (ok)  ok = pass%n_calls == ref%n_calls
+    if (ok)  ok = pass%adapt_grids .eqv. ref%adapt_grids
+    if (ok)  ok = pass%adapt_weights .eqv. ref%adapt_weights
+    if (ok)  ok = pass%integral_defined .eqv. ref%integral_defined
+    if (pass%integral_defined) then
+       n = pass%n_it
+       if (ok)  ok = all (pass%calls(:n) == ref%calls(:n))
+       if (ok)  ok = all (pass%calls_valid(:n) == ref%calls_valid(:n))
+       if (ok)  ok = all (pass%integral(:n) .matches. ref%integral(:n))
+       if (ok)  ok = all (pass%error(:n) .matches. ref%error(:n))
+       if (ok)  ok = all (pass%efficiency(:n) .matches. ref%efficiency(:n))
+    end if
+  end function pass_matches
+
+  module subroutine pass_update (pass, ref, ok)
+    class(pass_t), intent(inout) :: pass
+    type(pass_t), intent(in) :: ref
+    logical, intent(out) :: ok
+    integer :: n, n_ref
+    ok = .true.
+    if (ok)  ok = pass%i_pass == ref%i_pass
+    if (ok)  ok = pass%i_first_it == ref%i_first_it
+    if (ok)  ok = pass%n_calls == ref%n_calls
+    if (ok)  ok = pass%adapt_grids .eqv. ref%adapt_grids
+    if (ok)  ok = pass%adapt_weights .eqv. ref%adapt_weights
+    if (ok) then
+       if (ref%integral_defined) then
+          if (.not. allocated (pass%calls)) then
+             allocate (pass%calls (pass%n_it), source = 0)
+             allocate (pass%calls_valid (pass%n_it), source = 0)
+             allocate (pass%integral (pass%n_it), source = 0._default)
+             allocate (pass%error (pass%n_it), source = 0._default)
+             allocate (pass%efficiency (pass%n_it), source = 0._default)
+          end if
+          n = count (pass%calls /= 0)
+          n_ref = count (ref%calls /= 0)
+          ok = n <= n_ref .and. n_ref <= pass%n_it
+          if (ok)  ok = all (pass%calls(:n) == ref%calls(:n))
+          if (ok)  ok = all (pass%calls_valid(:n) == ref%calls_valid(:n))
+          if (ok)  ok = all (pass%integral(:n) .matches. ref%integral(:n))
+          if (ok)  ok = all (pass%error(:n) .matches. ref%error(:n))
+          if (ok)  ok = all (pass%efficiency(:n) .matches. ref%efficiency(:n))
+          if (ok) then
+             pass%calls(n+1:n_ref) = ref%calls(n+1:n_ref)
+             pass%calls_valid(n+1:n_ref) = ref%calls_valid(n+1:n_ref)
+             pass%integral(n+1:n_ref) = ref%integral(n+1:n_ref)
+             pass%error(n+1:n_ref) = ref%error(n+1:n_ref)
+             pass%efficiency(n+1:n_ref) = ref%efficiency(n+1:n_ref)
+             pass%integral_defined = any (pass%calls /= 0)
+          end if
+       end if
+    end if
+  end subroutine pass_update
+
+  elemental module function real_matches (x, y) result (ok)
+    real(default), intent(in) :: x, y
+    logical :: ok
+    real(default), parameter :: tolerance = 1.e-8_default
+    ok = abs (x - y) <= tolerance * max (abs (x), abs (y))
+  end function real_matches
+
+  module function pass_get_integration_index (pass) result (n)
+    class (pass_t), intent(in) :: pass
+    integer :: n
+    integer :: i
+    n = 0
+    if (allocated (pass%calls)) then
+       do i = 1, pass%n_it
+          if (pass%calls(i) == 0)  exit
+          n = i
+       end do
+    end if
+  end function pass_get_integration_index
+
+  module function pass_get_calls (pass) result (calls)
+    class(pass_t), intent(in) :: pass
+    integer :: calls
+    integer :: n
+    n = pass%get_integration_index ()
+    calls = 0
+    if (n /= 0) then
+       calls = pass%calls(n)
+    end if
+  end function pass_get_calls
+
+  module function pass_get_calls_valid (pass) result (valid)
+    class(pass_t), intent(in) :: pass
+    integer :: valid
+    integer :: n
+    n = pass%get_integration_index ()
+    valid = 0
+    if (n /= 0) then
+       valid = pass%calls_valid(n)
+    end if
+  end function pass_get_calls_valid
+
+  module function pass_get_integral (pass) result (integral)
+    class(pass_t), intent(in) :: pass
+    real(default) :: integral
+    integer :: n
+    n = pass%get_integration_index ()
+    integral = 0
+    if (n /= 0) then
+       integral = pass%integral(n)
+    end if
+  end function pass_get_integral
+
+  module function pass_get_error (pass) result (error)
+    class(pass_t), intent(in) :: pass
+    real(default) :: error
+    integer :: n
+    n = pass%get_integration_index ()
+    error = 0
+    if (n /= 0) then
+       error = pass%error(n)
+    end if
+  end function pass_get_error
+
+  module function pass_get_efficiency (pass) result (efficiency)
+    class(pass_t), intent(in) :: pass
+    real(default) :: efficiency
+    integer :: n
+    n = pass%get_integration_index ()
+    efficiency = 0
+    if (n /= 0) then
+       efficiency = pass%efficiency(n)
+    end if
+  end function pass_get_efficiency
+
+  module subroutine mci_vamp2_final (object)
+    class(mci_vamp2_t), intent(inout) :: object
+    call object%list_pass%final ()
+    call object%base_final ()
+  end subroutine mci_vamp2_final
+
+  module subroutine mci_vamp2_write (object, unit, pacify, md5sum_version)
+    class(mci_vamp2_t), intent(in) :: object
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: pacify
+    logical, intent(in), optional :: md5sum_version
+    integer :: u, i
+    u = given_output_unit (unit)
+    write (u, "(1X,A)") "VAMP2 integrator:"
+    call object%base_write (u, pacify, md5sum_version)
+    write (u, "(1X,A)") "Grid config:"
+    call object%config%write (u)
+    write (u, "(3X,A,L1)") "Integrator defined   = ", object%integrator_defined
+    write (u, "(3X,A,L1)") "Integrator from file = ", object%integrator_from_file
+    write (u, "(3X,A,L1)") "Adapt grids          = ", object%adapt_grids
+    write (u, "(3X,A,L1)") "Adapt weights        = ", object%adapt_weights
+    write (u, "(3X,A,I0)") "No. of adapt grids   = ", object%n_adapt_grids
+    write (u, "(3X,A,I0)") "No. of adapt weights = ", object%n_adapt_weights
+    write (u, "(3X,A,L1)") "Verbose              = ", object%verbose
+    if (object%config%equivalences) then
+       call object%equivalences%write (u)
+    end if
+    call object%list_pass%write (u, pacify)
+    if (object%md5sum_adapted /= "") then
+       write (u, "(1X,A,A,A)")  "MD5 sum (including results) = '", &
+            & object%md5sum_adapted, "'"
+    end if
+  end subroutine mci_vamp2_write
+
+  module subroutine mci_vamp2_compute_md5sum (mci, pacify)
+    class(mci_vamp2_t), intent(inout) :: mci
+    logical, intent(in), optional :: pacify
+    integer :: u
+    mci%md5sum_adapted = ""
+    u = free_unit ()
+    open (u, status = "scratch", action = "readwrite")
+    write (u, "(A)")  mci%md5sum
+    call mci%write (u, pacify, md5sum_version = .true.)
+    rewind (u)
+    mci%md5sum_adapted = md5sum (u)
+    close (u)
+  end subroutine mci_vamp2_compute_md5sum
+
+  pure module function mci_vamp2_get_md5sum (mci) result (md5sum)
+    class(mci_vamp2_t), intent(in) :: mci
+    character(32) :: md5sum
+    if (mci%md5sum_adapted /= "") then
+       md5sum = mci%md5sum_adapted
+    else
+       md5sum = mci%md5sum
+    end if
+  end function mci_vamp2_get_md5sum
+
+  module subroutine mci_vamp2_startup_message (mci, unit, n_calls)
+    class(mci_vamp2_t), intent(in) :: mci
+    integer, intent(in), optional :: unit, n_calls
+    integer :: num_calls, n_bins
+    num_calls = 0; if (present (n_calls)) num_calls = n_calls
+    n_bins = mci%config%n_bins_max
+    call mci%base_startup_message (unit = unit, n_calls = n_calls)
+    if (mci%config%equivalences) then
+       write (msg_buffer, "(A)") &
+            "Integrator: Using VAMP2 channel equivalences"
+       call msg_message (unit = unit)
+    end if
+    if (mci%binary_grid_format) then
+       write (msg_buffer, "(A,A,A,A)") &
+            "Integrator: Write grid header to '" // char (mci%get_grid_filename ()) // &
+            "' and grids to '" // char (mci%get_grid_filename (binary_grid_format = .true.)) // "'"
+    else
+       write (msg_buffer, "(A,A,A)") &
+            "Integrator: Write grid header and grids to '" // char (mci%get_grid_filename ()) // "'"
+    end if
+    call msg_message (unit = unit)
+    select case (mci%grid_checkpoint)
+    case (0)
+       write (msg_buffer, "(A)") &
+            "Integrator: Grid checkpoint after each pass"
+    case (1)
+       write (msg_buffer, "(A)") &
+            "Integrator: Grid checkpoint after each iteration"
+    case (2:)
+       write (msg_buffer, "(A,1X,I0,1X,A)") &
+            "Integrator: Grid checkpoint after", mci%grid_checkpoint, &
+            "iterations and after each pass"
+    case default
+       call msg_bug ("Integrator: Cannot assign grid checkpoint (value is negative).")
+    end select
+    call msg_message (unit = unit)
+    write (msg_buffer, "(A,2(1x,I0,1x,A),L1)") &
+         "Integrator:", num_calls, &
+         "initial calls,", n_bins, &
+         "max. bins, stratified = ", &
+         mci%config%stratified
+    call msg_message (unit = unit)
+    write (msg_buffer, "(A,2(1x,I0,1x,A))") &
+         "Integrator: VAMP2"
+    call msg_message (unit = unit)
+  end subroutine mci_vamp2_startup_message
+
+  module subroutine mci_vamp2_write_log_entry (mci, u)
+    class(mci_vamp2_t), intent(in) :: mci
+    integer, intent(in) :: u
+    write (u, "(1x,A)")  "MC Integrator is VAMP2"
+    call write_separator (u)
+    if (mci%config%equivalences) then
+       call mci%equivalences%write (u)
+    else
+       write (u, "(3x,A)") "No channel equivalences have been used."
+    end if
+    call write_separator (u)
+    call mci%write_chain_weights (u)
+  end subroutine mci_vamp2_write_log_entry
+
+  module subroutine mci_vamp2_record_index (mci, i_mci)
+    class(mci_vamp2_t), intent(inout) :: mci
+    integer, intent(in) :: i_mci
+    type(string_t) :: basename, suffix
+    character(32) :: buffer
+    if (mci%grid_filename_set) then
+       write (buffer, "(I0)") i_mci
+       mci%grid_filename = mci%grid_filename // ".m" // trim (buffer)
+    end if
+  end subroutine mci_vamp2_record_index
+
+  module subroutine mci_vamp2_set_config (mci, config)
+    class(mci_vamp2_t), intent(inout) :: mci
+    type(mci_vamp2_config_t), intent(in) :: config
+    mci%config = config
+  end subroutine mci_vamp2_set_config
+
+  module subroutine mci_vamp2_set_rebuild_flag (mci, rebuild, check_grid_file)
+    class(mci_vamp2_t), intent(inout) :: mci
+    logical, intent(in) :: rebuild
+    logical, intent(in) :: check_grid_file
+    mci%rebuild = rebuild
+    mci%check_grid_file = check_grid_file
+  end subroutine mci_vamp2_set_rebuild_flag
+
+  module subroutine mci_vamp2_set_grid_filename (mci, name, run_id)
+    class(mci_vamp2_t), intent(inout) :: mci
+    type(string_t), intent(in) :: name
+    type(string_t), intent(in), optional :: run_id
+    mci%grid_filename = name
+    if (present (run_id)) then
+       mci%grid_filename = name // "." // run_id
+    end if
+    mci%grid_filename_set = .true.
+  end subroutine mci_vamp2_set_grid_filename
+
+  module function mci_vamp2_get_grid_filename (mci, binary_grid_format) &
+       result (filename)
+    class(mci_vamp2_t), intent(in) :: mci
+    logical, intent(in), optional :: binary_grid_format
+    type(string_t) :: filename
+    filename = mci%grid_filename // ".vg2"
+    if (present (binary_grid_format)) then
+       if (binary_grid_format) then
+         filename = mci%grid_filename // ".vgx2"
+       end if
+    end if
+  end function mci_vamp2_get_grid_filename
+
+  module subroutine mci_vamp2_prepend_grid_path (mci, prefix)
+    class(mci_vamp2_t), intent(inout) :: mci
+    type(string_t), intent(in) :: prefix
+    if (.not. mci%grid_filename_set) then
+       call msg_warning &
+            ("VAMP2: Cannot add prefix to invalid integrator filename!")
+    end if
+    mci%grid_filename = prefix // "/" // mci%grid_filename
+  end subroutine mci_vamp2_prepend_grid_path
+
+  module subroutine mci_vamp2_declare_flat_dimensions (mci, dim_flat)
+    class(mci_vamp2_t), intent(inout) :: mci
+    integer, dimension(:), intent(in) :: dim_flat
+  end subroutine mci_vamp2_declare_flat_dimensions
+
+  module subroutine mci_vamp2_declare_equivalences (mci, channel, dim_offset)
+    class(mci_vamp2_t), intent(inout) :: mci
+    type(phs_channel_t), dimension(:), intent(in) :: channel
+    integer, intent(in) :: dim_offset
+    integer, dimension(:), allocatable :: perm, mode
+    integer :: n_channels, n_dim, n_equivalences
+    integer :: c, i, j, dest, src
+    integer :: n_dim_perm
+    n_channels = mci%n_channel
+    n_dim = mci%n_dim
+    n_equivalences = 0
+    do c = 1, n_channels
+       n_equivalences = n_equivalences + size (channel(c)%eq)
+    end do
+    mci%equivalences = vamp2_equivalences_t (&
+         n_eqv = n_equivalences, n_channel = n_channels, n_dim = n_dim)
+    allocate (perm (n_dim))
+    allocate (mode (n_dim))
+    perm = [(i, i = 1, n_dim)]
+    mode = 0
+    c = 1
+    j = 0
+    do i = 1, n_equivalences
+       if (j < size (channel(c)%eq)) then
+          j = j + 1
+       else
+          c = c + 1
+          j = 1
+       end if
+       associate (eq => channel(c)%eq(j))
+         dest = c
+         src = eq%c
+         n_dim_perm = size (eq%perm)
+         perm(dim_offset+1:dim_offset+n_dim_perm) = eq%perm + dim_offset
+         mode(dim_offset+1:dim_offset+n_dim_perm) = eq%mode
+         call mci%equivalences%set_equivalence &
+              (i, dest, src, perm, mode)
+       end associate
+    end do
+    call mci%equivalences%freeze ()
+  end subroutine mci_vamp2_declare_equivalences
+
+  module subroutine mci_vamp2_add_pass &
+       (mci, adapt_grids, adapt_weights, final_pass)
+    class(mci_vamp2_t), intent(inout) :: mci
+    logical, intent(in), optional :: adapt_grids, adapt_weights, final_pass
+    call mci%list_pass%add (adapt_grids, adapt_weights, final_pass)
+  end subroutine mci_vamp2_add_pass
+
+  module subroutine mci_vamp2_update_from_ref (mci, mci_ref, success)
+    class(mci_vamp2_t), intent(inout) :: mci
+    class(mci_t), intent(in) :: mci_ref
+    logical, intent(out) :: success
+    select type (mci_ref)
+    type is (mci_vamp2_t)
+       call mci%list_pass%update_from_ref (mci_ref%list_pass, success)
+       if (mci%list_pass%has_last_integral()) then
+          call mci%list_pass%get_last_integral( &
+               integral = mci%integral, &
+               error = mci%error, &
+               efficiency = mci%efficiency)
+          mci%integral_known = .true.
+          mci%error_known = .true.
+          mci%efficiency_known = .true.
+       end if
+    end select
+  end subroutine mci_vamp2_update_from_ref
+
+  module subroutine mci_vamp2_update (mci, u, success)
+    class(mci_vamp2_t), intent(inout) :: mci
+    integer, intent(in) :: u
+    logical, intent(out) :: success
+    character(80) :: buffer
+    character(32) :: md5sum_file
+    type(mci_vamp2_t) :: mci_file
+    integer :: n_pass, n_it
+    call read_sval (u, md5sum_file)
+    success = .true.; if (mci%check_grid_file) &
+       & success = (md5sum_file == mci%md5sum)
+    if (success) then
+       read (u, *)
+       read (u, "(A)") buffer
+       if (trim (adjustl (buffer)) /= "VAMP2 integrator:") then
+          call msg_fatal ("VAMP2: reading grid file: corrupted data")
+       end if
+       n_pass = 0
+       n_it = 0
+       do
+          read (u, "(A)") buffer
+          select case (trim (adjustl (buffer)))
+          case ("")
+             exit
+          case ("Integration pass:")
+             call mci_file%list_pass%add ()
+             call mci_file%list_pass%current%read (u, n_pass, n_it)
+             n_pass = n_pass + 1
+             n_it = n_it + mci_file%list_pass%current%n_it
+          end select
+       end do
+       call mci%update_from_ref (mci_file, success)
+       call mci_file%final ()
+    end if
+  end subroutine mci_vamp2_update
+
+  module subroutine mci_vamp2_write_grids (mci)
+    class(mci_vamp2_t), intent(in) :: mci
+    integer :: u
+    if (.not. mci%grid_filename_set) then
+       call msg_bug ("VAMP2: write grids: filename undefined")
+    end if
+    if (.not. mci%integrator_defined) then
+       call msg_bug ("VAMP2: write grids: grids undefined")
+    end if
+    open (newunit = u, file = char (mci%get_grid_filename ()), &
+         action = "write", status = "replace")
+    write (u, "(1X,A,A,A)") "MD5sum = '", mci%md5sum, "'"
+    write (u, *)
+    call mci%write (u)
+    write (u, *)
+    if (mci%binary_grid_format) then
+       write (u, "(1X,2A)") "VAMP2 grids: binary file: ", &
+            char (mci%get_grid_filename (binary_grid_format = .true.))
+       close (u)
+       open (newunit = u, &
+            file = char (mci%get_grid_filename (binary_grid_format = .true.)), &
+            action = "write", &
+            access = "stream", &
+            form = "unformatted", &
+            status = "replace")
+       call mci%integrator%write_binary_grids (u)
+    else
+       write (u, "(1X,A)") "VAMP2 grids:"
+       call mci%integrator%write_grids (u)
+    end if
+    close (u)
+  end subroutine mci_vamp2_write_grids
+
+  module subroutine mci_vamp2_read_header (mci, success)
+    class(mci_vamp2_t), intent(inout) :: mci
+    logical, intent(out) :: success
+    logical :: exist, binary_grid_format, exist_binary
+    integer :: u
+    success = .false.
+    if (.not. mci%grid_filename_set) then
+       call msg_bug ("VAMP2: read grids: filename undefined")
+    end if
+    !! First, check for existence of the (usual) grid file.
+    inquire (file = char (mci%get_grid_filename ()), exist = exist)
+    if (.not. exist) return !! success = .false.
+    open (newunit = u, file = char (mci%get_grid_filename ()), &
+         action = "read", status = "old")
+    !! Second, check for existence of a (possible) binary grid file.
+    call mci%advance_to_data (u, binary_grid_format)
+    rewind (u) !! Rewind header file, after line search.
+    if (binary_grid_format) then
+       inquire (file = char &
+            (mci%get_grid_filename (binary_grid_format = .true.)), &
+            exist = exist)
+       if (.not. exist) then
+          write (msg_buffer, "(3A)") &
+               "VAMP2: header: binary grid file not found, discarding " // &
+               "grid file '", char (mci%get_grid_filename ()), "'."
+          call msg_message ()
+          return !! success = .false.
+       end if
+    end if
+    !! The grid file (ending *.vg) exists and, if binary file is listed, it
+    !! exists, too.
+    call mci%update (u, success)
+    close (u)
+    if (.not. success) then
+       write (msg_buffer, "(A,A,A)") &
+            "VAMP2: header: parameter mismatch, discarding pass from file '", &
+            char (mci%get_grid_filename ()), "'."
+       call msg_message ()
+    end if
+  end subroutine mci_vamp2_read_header
+
+  module subroutine mci_vamp2_read_data (mci)
+    class(mci_vamp2_t), intent(inout) :: mci
+    integer :: u
+    logical :: binary_grid_format
+    if (mci%integrator_defined) then
+       call msg_bug ("VAMP2: read grids: grids already defined")
+    end if
+    open (newunit = u, &
+         file = char (mci%get_grid_filename ()), &
+         action = "read", &
+         status = "old")
+    call mci%advance_to_data (u, binary_grid_format)
+    if (binary_grid_format) then
+       close (u)
+       write (msg_buffer, "(3A)") &
+            "VAMP2: Reading from binary grid file '", &
+            char (mci%get_grid_filename (binary_grid_format = .true.)), "'"
+       call msg_message ()
+       open (newunit = u, &
+            file = char (mci%get_grid_filename (binary_grid_format = .true.)), &
+            action = "read", &
+            access = "stream", &
+            form = "unformatted", &
+            status = "old")
+       call mci%integrator%read_binary_grids (u)
+    else
+       call mci%integrator%read_grids (u)
+    end if
+    mci%integrator_defined = .true.
+    close (u)
+  end subroutine mci_vamp2_read_data
+
+  module subroutine mci_vamp2_advance_to_data (mci, u, binary_grid_format)
+    class(mci_vamp2_t), intent(in) :: mci
+    integer, intent(in) :: u
+    logical, intent(out) :: binary_grid_format
+    character(80) :: buffer
+    type(string_t) :: search_string_binary, search_string_ascii
+    search_string_binary = "VAMP2 grids: binary file: " // &
+         mci%get_grid_filename (binary_grid_format = .true.)
+    search_string_ascii = "VAMP2 grids:"
+    SEARCH: do
+       read (u, "(A)")  buffer
+       if (trim (adjustl (buffer)) == char (search_string_binary)) then
+          binary_grid_format = .true.
+          exit SEARCH
+       else if (trim (adjustl (buffer)) == char (search_string_ascii)) then
+          binary_grid_format = .false.
+          exit SEARCH
+       end if
+    end do SEARCH
+  end subroutine mci_vamp2_advance_to_data
+
+  module subroutine mci_vamp2_init_integrator (mci)
+    class(mci_vamp2_t), intent(inout) :: mci
+    type (pass_t), pointer :: current
+    integer :: ch, vegas_mode
+    current => mci%list_pass%current
+    vegas_mode = merge (VEGAS_MODE_IMPORTANCE, VEGAS_MODE_IMPORTANCE_ONLY,&
+         & mci%config%stratified)
+    mci%n_adapt_grids = 0
+    mci%n_adapt_weights = 0
+    if (mci%integrator_defined) then
+       call msg_bug ("VAMP2: init integrator: &
+            & integrator is already initialised.")
+    end if
+    mci%integrator = vamp2_t (mci%n_channel, mci%n_dim, &
+         & n_bins_max = mci%config%n_bins_max, &
+         & iterations = 1, &
+         & mode = vegas_mode)
+    if (mci%has_chains ()) &
+         call mci%integrator%set_chain (mci%n_chain, mci%chain)
+    call mci%integrator%set_config (mci%config)
+    mci%integrator_defined = .true.
+  end subroutine mci_vamp2_init_integrator
+
+  module subroutine mci_vamp2_reset_result (mci)
+    class(mci_vamp2_t), intent(inout) :: mci
+    if (.not. mci%integrator_defined) then
+       call msg_bug ("VAMP2: reset results: integrator undefined")
+    end if
+    call mci%integrator%reset_result ()
+  end subroutine mci_vamp2_reset_result
+
+  module subroutine mci_vamp2_set_calls (mci, n_calls)
+    class(mci_vamp2_t), intent(inout) :: mci
+    integer :: n_calls
+    if (.not. mci%integrator_defined) then
+       call msg_bug ("VAMP2: set calls: grids undefined")
+    end if
+    call mci%integrator%set_calls (n_calls)
+  end subroutine mci_vamp2_set_calls
+
+  module subroutine mci_vamp2_init_integration (mci, n_it, n_calls, instance)
+    class(mci_vamp2_t), intent(inout) :: mci
+    integer, intent(in) :: n_it
+    integer, intent(in) :: n_calls
+    class(mci_instance_t), intent(inout) :: instance
+    logical :: from_file, success
+    if (.not. associated (mci%list_pass%current)) then
+       call msg_bug ("MCI integrate: current_pass object not allocated")
+    end if
+    associate (current_pass => mci%list_pass%current)
+      current_pass%integral_defined = .false.
+      mci%config%n_calls_min = mci%config%n_calls_min_per_channel * &
+           mci%config%n_channel
+      call current_pass%configure (n_it, n_calls, mci%config%n_calls_min)
+      mci%adapt_grids = current_pass%adapt_grids
+      mci%adapt_weights = current_pass%adapt_weights
+      mci%pass_complete = .false.
+      mci%it_complete = .false.
+      from_file = .false.
+      if (.not. mci%integrator_defined .or. mci%integrator_from_file) then
+         if (mci%grid_filename_set .and. .not. mci%rebuild) then
+            call mci%read_header (success)
+            from_file = success
+            if (.not. mci%integrator_defined .and. success) &
+               call mci%read_data ()
+         end if
+      end if
+      if (from_file) then
+         if (.not. mci%check_grid_file) &
+              & call msg_warning ("Reading grid file: MD5 sum check disabled")
+         call msg_message ("VAMP2: " &
+              // "Using grids and results from file ’" &
+              // char (mci%get_grid_filename ()) // "’.")
+      else if (.not. mci%integrator_defined) then
+         call msg_message ("VAMP2: " &
+              // "Initialize new grids and write to file '" &
+              // char (mci%get_grid_filename ()) // "'.")
+         call mci%init_integrator ()
+      end if
+      mci%integrator_from_file = from_file
+      if (.not. mci%integrator_from_file .or. (n_it > current_pass%get_integration_index ())) then
+         call mci%integrator%set_calls (current_pass%n_calls)
+      end if
+      call mci%integrator%set_equivalences (mci%equivalences)
+    end associate
+    if (mci%parallel_method /= "") then
+       call mci%integrator%allocate_request (method = char (mci%parallel_method))
+    else
+       call msg_message ("VAMP2: Use default parallel method: simple.")
+       call mci%integrator%allocate_request (method = "simple")
+    end if
+  end subroutine mci_vamp2_init_integration
+
+  module subroutine mci_vamp2_integrate (mci, instance, sampler, &
+       n_it, n_calls, results, pacify)
+    class(mci_vamp2_t), intent(inout) :: mci
+    class(mci_instance_t), intent(inout), target :: instance
+    class(mci_sampler_t), intent(inout), target :: sampler
+    integer, intent(in) :: n_it
+    integer, intent(in) :: n_calls
+    class(mci_results_t), intent(inout), optional :: results
+    logical, intent(in), optional :: pacify
+    integer :: it
+    logical :: from_file, success
+    real(default) :: integral, error, efficiency
+    integer :: calls, calls_valid
+    integer :: rank, n_size
+    type(MPI_Request), dimension(6) :: request
+    call MPI_Comm_size (MPI_COMM_WORLD, n_size)
+    call MPI_Comm_rank (MPI_COMM_WORLD, rank)
+    call mci%init_integration (n_it, n_calls, instance)
+    from_file = mci%integrator_from_file
+    select type (instance)
+    type is (mci_vamp2_instance_t)
+       call instance%set_workspace (sampler)
+    end select
+    associate (current_pass => mci%list_pass%current)
+      do it = 1, current_pass%n_it
+         if (signal_is_pending ()) return
+         mci%integrator_from_file = from_file .and. &
+              it <= current_pass%get_integration_index ()
+         if (.not. mci%integrator_from_file) then
+            mci%it_complete = .false.
+            select type (instance)
+            type is (mci_vamp2_instance_t)
+               call mci%integrator%integrate (instance%func, mci%rng, &
+                    & iterations = 1, &
+                    & reset_result = .true., &
+                    & refine_grids = mci%adapt_grids, &
+                    & adapt_weights = mci%adapt_weights, &
+                    & verbose = mci%verbose)
+            end select
+            if (signal_is_pending ()) return
+            mci%it_complete = .true.
+            integral = mci%integrator%get_integral ()
+            calls = mci%integrator%get_n_calls ()
+            select type (instance)
+            type is (mci_vamp2_instance_t)
+               calls_valid = instance%func%get_n_calls ()
+               call instance%func%reset_n_calls ()
+            end select
+            error = sqrt (mci%integrator%get_variance ())
+            efficiency = mci%integrator%get_efficiency ()
+            call MPI_Ibcast (integral, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, request(1))
+            call MPI_Ibcast (calls, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, request(2))
+            call MPI_Ibcast (calls_valid, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, request(3))
+            call MPI_Ibcast (error, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, request(4))
+            call MPI_Ibcast (efficiency, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, request(5))
+            call MPI_Waitall (5, request, MPI_STATUSES_IGNORE)
+            if (integral /= 0) then
+               current_pass%integral(it) = integral
+               current_pass%calls(it) = calls
+               current_pass%calls_valid(it) = calls_valid
+               current_pass%error(it) = error
+               current_pass%efficiency(it) = efficiency
+            end if
+            current_pass%integral_defined = .true.
+         end if
+         if (present (results)) then
+            if (mci%has_chains ()) then
+               call mci%collect_chain_weights (instance%w)
+               call results%record (1, &
+                    n_calls = current_pass%calls(it), &
+                    n_calls_valid = current_pass%calls_valid(it), &
+                    integral = current_pass%integral(it), &
+                    error = current_pass%error(it), &
+                    efficiency = current_pass%efficiency(it), &
+                    efficiency_pos = current_pass%efficiency(it), &
+                    efficiency_neg = 0._default, &
+                    chain_weights = mci%chain_weights, &
+                    suppress = pacify)
+            else
+               call results%record (1, &
+                    n_calls = current_pass%calls(it), &
+                    n_calls_valid = current_pass%calls_valid(it), &
+                    integral = current_pass%integral(it), &
+                    error = current_pass%error(it), &
+                    efficiency = current_pass%efficiency(it), &
+                    efficiency_pos = current_pass%efficiency(it), &
+                    efficiency_neg = 0._default, &
+                    suppress = pacify)
+            end if
+         end if
+         if (.not. mci%integrator_from_file &
+              .and. mci%grid_filename_set) then
+              if (rank == 0) &
+            call checkpoint_and_write_grids (it = it, &
+                 final_it = (it == current_pass%n_it))
+         end if
+         if (.not. current_pass%is_final_pass) then
+            call check_goals (it, success)
+            if (success) exit
+         end if
+      end do
+      if (signal_is_pending ()) return
+      mci%pass_complete = .true.
+      mci%integral = current_pass%get_integral()
+      mci%error = current_pass%get_error()
+      mci%efficiency = current_pass%get_efficiency()
+      mci%integral_known = .true.
+      mci%error_known = .true.
+      mci%efficiency_known = .true.
+      call mci%compute_md5sum (pacify)
+    end associate
+  contains
+      subroutine checkpoint_and_write_grids (it, final_it)
+        integer, intent(in) :: it
+        logical, intent(in) :: final_it
+        select case (mci%grid_checkpoint)
+        case (0)
+           if (.not. final_it) return
+        case (1)
+        case(2:)
+           if (.not. (final_it &
+                .or. mod (it, mci%grid_checkpoint) == 0)) return
+        case default
+           call msg_bug ("VAMP2: Grid checkpoint must be a positive integer.")
+        end select
+        call mci%write_grids ()
+      end subroutine checkpoint_and_write_grids
+
+      subroutine check_goals (it, success)
+        integer, intent(in) :: it
+        logical, intent(out) :: success
+        success = .false.
+        associate (current_pass => mci%list_pass%current)
+          if (error_reached (it)) then
+             current_pass%n_it = it
+             call msg_message ("VAMP2: error goal reached; &
+                  &skipping iterations")
+             success = .true.
+             return
+          end if
+          if (rel_error_reached (it)) then
+             current_pass%n_it = it
+             call msg_message ("VAMP2: relative error goal reached; &
+                  &skipping iterations")
+             success = .true.
+             return
+          end if
+          if (accuracy_reached (it)) then
+             current_pass%n_it = it
+             call msg_message ("VAMP2: accuracy goal reached; &
+                  &skipping iterations")
+             success = .true.
+             return
+          end if
+        end associate
+      end subroutine check_goals
+
+      function error_reached (it) result (flag)
+        integer, intent(in) :: it
+        logical :: flag
+        real(default) :: error_goal, error
+        error_goal = mci%config%error_goal
+        flag = .false.
+        associate (current_pass => mci%list_pass%current)
+          if (error_goal > 0 .and. current_pass%integral_defined) then
+             error = abs (current_pass%error(it))
+             flag = error < error_goal
+          end if
+        end associate
+      end function error_reached
+
+      function rel_error_reached (it) result (flag)
+        integer, intent(in) :: it
+        logical :: flag
+        real(default) :: rel_error_goal, rel_error
+        rel_error_goal = mci%config%rel_error_goal
+        flag = .false.
+        associate (current_pass => mci%list_pass%current)
+          if (rel_error_goal > 0 .and. current_pass%integral_defined) then
+             rel_error = abs (current_pass%error(it) / current_pass%integral(it))
+             flag = rel_error < rel_error_goal
+          end if
+        end associate
+      end function rel_error_reached
+
+      function accuracy_reached (it) result (flag)
+        integer, intent(in) :: it
+        logical :: flag
+        real(default) :: accuracy_goal, accuracy
+        accuracy_goal = mci%config%accuracy_goal
+        flag = .false.
+        associate (current_pass => mci%list_pass%current)
+          if (accuracy_goal > 0 .and. current_pass%integral_defined) then
+             if (current_pass%integral(it) /= 0) then
+                accuracy = abs (current_pass%error(it) / current_pass%integral(it)) &
+                     * sqrt (real (current_pass%calls(it), default))
+                flag = accuracy < accuracy_goal
+             else
+                flag = .true.
+             end if
+          end if
+        end associate
+      end function accuracy_reached
+
+  end subroutine mci_vamp2_integrate
+
+  module subroutine mci_vamp2_prepare_simulation (mci)
+    class(mci_vamp2_t), intent(inout) :: mci
+    logical :: success
+    if (.not. mci%grid_filename_set) then
+       call msg_bug ("VAMP2: preapre simulation: integrator filename not set.")
+    end if
+    call mci%read_header (success)
+    call mci%compute_md5sum ()
+    if (.not. success) then
+       call msg_fatal ("Simulate: " &
+            // "reading integration grids from file ’" &
+            // char (mci%get_grid_filename ()) // "’ failed")
+    end if
+    if (.not. mci%integrator_defined) then
+       call mci%read_data ()
+    end if
+    call groom_rng (mci%rng)
+   contains
+    subroutine groom_rng (rng)
+      class(rng_t), intent(inout) :: rng
+      integer :: i, rank, n_size
+      call mpi_get_comm_id (n_size, rank)
+      do i = 2, rank + 1
+         select type (rng)
+         type is (rng_stream_t)
+            call rng%next_substream ()
+            if (i == rank) &
+               call msg_message ("MCI: Advance RNG for parallel event simulation")
+         class default
+            call msg_bug ("Use of any random number generator &
+               &beside rng_stream for parallel event generation not supported.")
+         end select
+      end do
+    end subroutine groom_rng
+  end subroutine mci_vamp2_prepare_simulation
+
+  module subroutine mci_vamp2_generate_weighted_event (mci, instance, sampler)
+    class(mci_vamp2_t), intent(inout) :: mci
+    class(mci_instance_t), intent(inout), target :: instance
+    class(mci_sampler_t), intent(inout), target :: sampler
+    if (.not. mci%integrator_defined) then
+       call msg_bug ("VAMP2: generate weighted event: undefined integrator")
+    end if
+    select type (instance)
+    type is (mci_vamp2_instance_t)
+       instance%event_generated = .false.
+       call instance%set_workspace (sampler)
+       call mci%integrator%generate_weighted (&
+            & instance%func, mci%rng, instance%event_x)
+       instance%event_weight = mci%integrator%get_evt_weight ()
+       instance%event_excess = 0
+       instance%n_events = instance%n_events + 1
+       instance%event_generated = .true.
+    end select
+  end subroutine mci_vamp2_generate_weighted_event
+
+  module subroutine mci_vamp2_generate_unweighted_event (mci, instance, sampler)
+    class(mci_vamp2_t), intent(inout) :: mci
+    class(mci_instance_t), intent(inout), target :: instance
+    class(mci_sampler_t), intent(inout), target :: sampler
+    if (.not. mci%integrator_defined) then
+       call msg_bug ("VAMP2: generate unweighted event: undefined integrator")
+    end if
+    select type (instance)
+    type is (mci_vamp2_instance_t)
+       instance%event_generated = .false.
+       call instance%set_workspace (sampler)
+       generate: do
+          call mci%integrator%generate_unweighted (&
+               & instance%func, mci%rng, instance%event_x, &
+               & opt_event_rescale = instance%event_rescale_f_max)
+          instance%event_excess = mci%integrator%get_evt_weight_excess ()
+          if (signal_is_pending ()) return
+          if (sampler%is_valid ()) exit generate
+       end do generate
+       if (mci%integrator%get_evt_weight () < 0._default) then
+          if (.not. mci%negative_weights) then
+             call msg_fatal ("VAMP2: cannot sample negative weights!")
+          end if
+          instance%event_weight = -1._default
+       else
+          instance%event_weight = 1._default
+       end if
+       instance%n_events = instance%n_events + 1
+       instance%event_generated = .true.
+    end select
+  end subroutine mci_vamp2_generate_unweighted_event
+
+  module subroutine mci_vamp2_rebuild_event (mci, instance, sampler, state)
+    class(mci_vamp2_t), intent(inout) :: mci
+    class(mci_instance_t), intent(inout) :: instance
+    class(mci_sampler_t), intent(inout) :: sampler
+    class(mci_state_t), intent(in) :: state
+    call msg_bug ("VAMP2: rebuild event not implemented yet.")
+  end subroutine mci_vamp2_rebuild_event
+
+  module subroutine mci_vamp2_instance_write (object, unit, pacify)
+    class(mci_vamp2_instance_t), intent(in) :: object
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: pacify
+    integer :: u, ch, j
+    character(len=7) :: fmt
+    call pac_fmt (fmt, FMT_17, FMT_14, pacify)
+    u = given_output_unit (unit)
+    write (u, "(1X,A)") "MCI VAMP2 instance:"
+    write (u, "(1X,A,I0)") &
+         & "Selected channel        = ", object%selected_channel
+    write (u, "(1X,A25,1X," // fmt // ")") &
+         & "Integrand               = ", object%integrand
+    write (u, "(1X,A25,1X," // fmt // ")") &
+         & "MCI weight              = ", object%mci_weight
+    write (u, "(1X,A,L1)") &
+         & "Valid                   = ", object%valid
+    write (u, "(1X,A)") "MCI a-priori weight:"
+    do ch = 1, size (object%w)
+       write (u, "(3X,I25,1X," // fmt // ")") ch, object%w(ch)
+    end do
+    write (u, "(1X,A)") "MCI jacobian:"
+    do ch = 1, size (object%w)
+       write (u, "(3X,I25,1X," // fmt // ")") ch, object%f(ch)
+    end do
+    write (u, "(1X,A)") "MCI mapped x:"
+    do ch = 1, size (object%w)
+       do j = 1, size (object%x, 1)
+          write (u, "(3X,2(1X,I8),1X," // fmt // ")") j, ch, object%x(j, ch)
+       end do
+    end do
+    write (u, "(1X,A)") "MCI channel weight:"
+    do ch = 1, size (object%w)
+       write (u, "(3X,I25,1X," // fmt // ")") ch, object%gi(ch)
+    end do
+    write (u, "(1X,A,I0)") &
+         & "Number of event         = ", object%n_events
+    write (u, "(1X,A,L1)") &
+         & "Event generated         = ", object%event_generated
+    write (u, "(1X,A25,1X," // fmt // ")") &
+         & "Event weight            = ", object%event_weight
+    write (u, "(1X,A25,1X," // fmt // ")") &
+         & "Event excess            = ", object%event_excess
+    write (u, "(1X,A25,1X," // fmt // ")") &
+         & "Event rescale f max     = ", object%event_rescale_f_max
+    write (u, "(1X,A,L1)") &
+         & "Negative (event) weight = ", object%negative_weights
+    write (u, "(1X,A)") "MCI event"
+    do j = 1, size (object%event_x)
+       write (u, "(3X,I25,1X," // fmt // ")") j, object%event_x(j)
+    end do
+  end subroutine mci_vamp2_instance_write
+
+  module subroutine mci_vamp2_instance_final (object)
+    class(mci_vamp2_instance_t), intent(inout) :: object
+    !
+  end subroutine mci_vamp2_instance_final
+
+  module subroutine mci_vamp2_instance_set_workspace (instance, sampler)
+    class(mci_vamp2_instance_t), intent(inout), target :: instance
+    class(mci_sampler_t), intent(inout), target :: sampler
+    call instance%func%set_workspace (instance, sampler)
+  end subroutine mci_vamp2_instance_set_workspace
+
+  module subroutine mci_vamp2_instance_compute_weight (mci, c)
+    class(mci_vamp2_instance_t), intent(inout) :: mci
+    integer, intent(in) :: c
+    mci%gi = mci%func%get_probabilities ()
+    mci%mci_weight = mci%func%get_weight ()
+  end subroutine mci_vamp2_instance_compute_weight
+
+  module subroutine mci_vamp2_instance_record_integrand (mci, integrand)
+    class(mci_vamp2_instance_t), intent(inout) :: mci
+    real(default), intent(in) :: integrand
+    mci%integrand = integrand
+    call mci%func%set_integrand (integrand)
+  end subroutine mci_vamp2_instance_record_integrand
+
+  module subroutine mci_vamp2_instance_init_simulation (instance, safety_factor)
+    class(mci_vamp2_instance_t), intent(inout) :: instance
+    real(default), intent(in), optional :: safety_factor
+    if (present (safety_factor)) instance%event_rescale_f_max = safety_factor
+    instance%n_events = 0
+    instance%event_generated = .false.
+    if (instance%event_rescale_f_max /= 1) then
+       write (msg_buffer, "(A,ES10.3,A)") "Simulate: &
+            &applying safety factor ", instance%event_rescale_f_max, &
+            & " to event rejection."
+       call msg_message ()
+    end if
+  end subroutine mci_vamp2_instance_init_simulation
+
+  module subroutine mci_vamp2_instance_final_simulation (instance)
+    class(mci_vamp2_instance_t), intent(inout) :: instance
+    !
+  end subroutine mci_vamp2_instance_final_simulation
+
+  module function mci_vamp2_instance_get_event_weight (mci) result (weight)
+    class(mci_vamp2_instance_t), intent(in) :: mci
+    real(default) :: weight
+    if (.not. mci%event_generated) then
+       call msg_bug ("VAMP2: get event weight: no event generated")
+    end if
+    weight = mci%event_weight
+  end function mci_vamp2_instance_get_event_weight
+
+  module function mci_vamp2_instance_get_event_excess (mci) result (excess)
+    class(mci_vamp2_instance_t), intent(in) :: mci
+    real(default) :: excess
+    if (.not. mci%event_generated) then
+       call msg_bug ("VAMP2: get event excess: no event generated")
+    end if
+    excess = mci%event_excess
+  end function mci_vamp2_instance_get_event_excess
+
+
+end submodule mci_vamp2_s
+

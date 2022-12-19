@@ -1,0 +1,70 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+$method = "omega"
+?omega_openmp = false
+| Process library 'qedtest_4_lib': recorded process 'qedtest_4_p1'
+| Process library 'qedtest_4_lib': compiling ...
+| Process library 'qedtest_4_lib': writing makefile
+| Process library 'qedtest_4_lib': removing old files
+| Process library 'qedtest_4_lib': writing driver
+| Process library 'qedtest_4_lib': creating source code
+| Process library 'qedtest_4_lib': compiling sources
+| Process library 'qedtest_4_lib': linking
+| Process library 'qedtest_4_lib': loading
+| Process library 'qedtest_4_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process qedtest_4_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'qedtest_4_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'qedtest_4_p1'
+|   Library name  = 'qedtest_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'qedtest_4_p1_i1':   e-, e+ => A, A, A [omega]
+| ------------------------------------------------------------------------
+| Phase space: 12 channels, 5 dimensions
+| Phase space: found 12 channels, collected in 1 grove.
+| Phase space: Using 72 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'qedtest_4_p1'
+| Integrate: iterations = 5:2000:"g", 5:2000:""
+| Integrator: 1 chains, 12 channels, 5 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 2000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1992  1.5753145E+01  1.59E+00   10.10    4.51*   4.07
+   2       1992  1.6046227E+01  5.51E-01    3.43    1.53*  10.57
+   3       1992  1.4578766E+01  4.29E-01    2.94    1.31*  14.61
+   4       1992  1.5207985E+01  4.60E-01    3.02    1.35   12.00
+   5       1992  1.5764278E+01  4.21E-01    2.67    1.19*  14.87
+|-----------------------------------------------------------------------------|
+   5       9960  1.5346069E+01  2.27E-01    1.48    1.47   14.87    1.49   5
+|-----------------------------------------------------------------------------|
+   6       1992  1.4527227E+01  4.11E-01    2.83    1.26   12.02
+   7       1992  1.4824831E+01  4.17E-01    2.81    1.26*  11.21
+   8       1992  1.5055591E+01  4.21E-01    2.80    1.25*  10.36
+   9       1992  1.5039113E+01  4.04E-01    2.69    1.20*   9.61
+  10       1992  1.5138569E+01  4.55E-01    3.01    1.34    9.22
+|-----------------------------------------------------------------------------|
+  10       9960  1.4908478E+01  1.88E-01    1.26    1.26    9.22    0.35   5
+|=============================================================================|
+| WHIZARD run finished.
+|=============================================================================|

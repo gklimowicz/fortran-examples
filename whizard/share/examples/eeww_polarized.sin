@@ -1,0 +1,111 @@
+# eeww_polarized.sin 
+# Use WHIZARD's initial and final state polarization facilities to
+# examine the angular distributions for all 36 helicity combinations
+# in e+, e- -> W+, W-
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+
+# Define and compile the process
+model = SM
+process eeww = "e+", "e-" => "W+", "W-"
+compile
+
+# Define the beams and event count (for simulation)
+sqrts = 200 GeV
+beams = "e+", "e-"
+n_events = 100000
+
+# Tell WHIZARD to retain the W polarization in the generated events
+polarized "W+", "W-"
+
+# Define common description for all histograms below
+$description =
+  "A WHIZARD 3.0 Example. $W$ pair production in polarized ILC beams at 200 GeV. Analysis for polarized $W$s."
+
+# Define histograms for all final-state helicity combinations.
+histogram cta_mm (-1, 1, 0.1) { $title = "$WW$ polarization: -1 -1" }
+histogram cta_m0 (-1, 1, 0.1) { $title = "$WW$ polarization: -1  0" }
+histogram cta_mp (-1, 1, 0.1) { $title = "$WW$ polarization: -1 +1" }
+histogram cta_0m (-1, 1, 0.1) { $title = "$WW$ polarization:  0 -1" }
+histogram cta_00 (-1, 1, 0.1) { $title = "$WW$ polarization:  0  0" }
+histogram cta_0p (-1, 1, 0.1) { $title = "$WW$ polarization:  0 +1" }
+histogram cta_pm (-1, 1, 0.1) { $title = "$WW$ polarization: +1 -1" }
+histogram cta_p0 (-1, 1, 0.1) { $title = "$WW$ polarization: +1  0" }
+histogram cta_pp (-1, 1, 0.1) { $title = "$WW$ polarization: +1 +1" }
+
+
+# Loop over e+ / e- helicity
+scan int hel_ep = (-1, 1) {
+  scan int hel_em = (-1, 1) {
+    # Apply the helicity setup
+    beams_pol_density = @(hel_ep), @(hel_em)
+
+    # (Re)calculate the integral for each initial state polarization
+    integrate (eeww)
+
+    # The analysis setup fills the different histograms
+    analysis =
+      if (any Hel == -1 ["W+"] and any Hel == -1 ["W-"] ) then 
+         record cta_mm (eval cos (Theta) ["W+"])
+      elsif (any Hel == -1 ["W+"] and any Hel ==  0 ["W-"] ) then
+         record cta_m0 (eval cos (Theta) ["W+"])
+      elsif (any Hel == -1 ["W+"] and any Hel == +1 ["W-"] ) then
+         record cta_mp (eval cos (Theta) ["W+"])
+      elsif (any Hel ==  0 ["W+"] and any Hel == -1 ["W-"] ) then
+         record cta_0m (eval cos (Theta) ["W+"])
+      elsif (any Hel ==  0 ["W+"] and any Hel ==  0 ["W-"] ) then
+         record cta_00 (eval cos (Theta) ["W+"])
+      elsif (any Hel ==  0 ["W+"] and any Hel == +1 ["W-"] ) then
+         record cta_0p (eval cos (Theta) ["W+"])
+      elsif (any Hel == +1 ["W+"] and any Hel == -1 ["W-"] ) then
+         record cta_pm (eval cos (Theta) ["W+"])
+      elsif (any Hel == +1 ["W+"] and any Hel ==  0 ["W-"] ) then
+         record cta_p0 (eval cos (Theta) ["W+"])
+      elsif (any Hel == +1 ["W+"] and any Hel == +1 ["W-"] ) then
+         record cta_pp (eval cos (Theta) ["W+"])
+      endif
+
+    # Generate events (keep the helicity information). As this takes
+    # some time, we request status information. The event sample has to 
+    # be rebuilt as it is different for different initial state polarization.
+    $sample = sprintf "eeww%+d%+d" (hel_ep, hel_em)
+
+    # Generate a new event sample and fill histograms on the fly
+    simulate (eeww) {
+      ?rebuild_events = true
+      ?polarized_events = true
+      checkpoint = 10000
+    }
+
+    # Generate a PDF document with all histograms for this e+/e- helicity
+    compile_analysis  { $out_file = $sample & ".dat" }
+
+    # Reset histograms
+    clear (analysis)
+
+  }
+}
+

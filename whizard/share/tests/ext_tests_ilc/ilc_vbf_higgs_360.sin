@@ -1,0 +1,54 @@
+include("ilc_settings.sin")
+
+!! Table 2. The cross sections for different e+e- -> 6f final states corresponding to the Higgs production via vector-boson fusion signal.
+!! Expected runtime: ~1 d
+
+process higgs_prod_electron_360_1_noqcd = e1, E1 => e1, E1, u, U, d, D { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process higgs_prod_electron_360_1_qcd   = e1, E1 => e1, E1, u, U, d, D
+process higgs_prod_electron_360_2       = e1, E1 => e1, E1, u, U, e1, E1
+process higgs_prod_electron_360_3       = e1, E1 => e1, E1, u, U, e2, E2
+process higgs_prod_neutrino_360_1_noqcd = e1, E1 => n1, N1, u, D, d, U { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process higgs_prod_neutrino_360_1_qcd   = e1, E1 => n1, N1, u, D, d, U
+process higgs_prod_neutrino_360_2       = e1, E1 => n1, N1, u, D, e1, N1
+process higgs_prod_neutrino_360_3       = e1, E1 => n1, N1, u, D, e2, N2
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 360 GeV
+alphas = 0.0925
+
+sqrts = 360 GeV
+beams = e1, E1
+
+$run_id = "360"
+
+integrate(higgs_prod_electron_360_1_noqcd,
+          higgs_prod_electron_360_1_qcd,
+          higgs_prod_electron_360_2,
+          higgs_prod_electron_360_3,
+          higgs_prod_neutrino_360_1_noqcd,
+          higgs_prod_neutrino_360_1_qcd,
+          higgs_prod_neutrino_360_2,
+          higgs_prod_neutrino_360_3)
+
+!! Compare against previous WHIZARD production run by Simon Braß.
+tolerance = 2 * sqrt( error(higgs_prod_electron_360_1_noqcd)**2 + 0.0012**2 )
+expect(integral(higgs_prod_electron_360_1_noqcd) == 0.6501)
+tolerance = 2 * sqrt( error(higgs_prod_electron_360_1_qcd)**2 + 0.0013**2 )
+expect(integral(higgs_prod_electron_360_1_qcd) == 0.6795)
+tolerance = 2 * sqrt( error(higgs_prod_electron_360_2)**2 + 1.4e-05**2 )
+expect(integral(higgs_prod_electron_360_2) == 0.006025)
+tolerance = 2 * sqrt( error(higgs_prod_electron_360_3)**2 + 2.1e-05**2 )
+expect(integral(higgs_prod_electron_360_3) == 0.009192)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_360_1_noqcd)**2 + 0.0023**2 )
+expect(integral(higgs_prod_neutrino_360_1_noqcd) == 1.1566)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_360_1_qcd)**2 + 0.0025**2 )
+expect(integral(higgs_prod_neutrino_360_1_qcd) == 1.1774)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_360_2)**2 + 0.0009**2 )
+expect(integral(higgs_prod_neutrino_360_2) == 0.4255)
+tolerance = 2 * sqrt( error(higgs_prod_neutrino_360_3)**2 + 0.0008**2 )
+expect(integral(higgs_prod_neutrino_360_3) == 0.4223)
+
+show(results)

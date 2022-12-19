@@ -1,0 +1,241 @@
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+\label{sec:conclusions}
+I have presented a library of simple parameterizations of realistic
+$e^\pm$- and $\gamma$-beam spectra at future linear
+$e^+e^-$-colliders.  The library can be used for integration and event
+generation.  Emphasis is put on simplicity and reproducibility of the
+parameterizations for supporting reproducible physics simulations.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Acknowledgements}
+Daniel Schulte made his simulation code \texttt{Guinea-Pig}
+available and answered questions.  Harald Anlauf and Torbj\"orn
+Sj\"ostrand have contributed useful suggestions.  The Tesla group at
+DESY/Zeuthen made error estimates feasible by donating time on the
+multi-headed number cruncher \Hydra/.  The 1996 ECFA/Desy Linear
+Collider Workshop got me started and provided support.  Thanks to all
+of them.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Identifiers}                                      %!MANUAL%
+\nowebindex                                                    %!MANUAL%
+\subsection*{Refinements}                                      %!MANUAL%
+\nowebchunks                                                   %!MANUAL%
+\InputIfFileExists{\jobname.ind}{}{}                           %!MANUAL%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!MANUAL%                    
+%%% \bibliography{circe1}
+\begin{thebibliography}{10}
+
+\bibitem{Murayama/Peskin:1996:LC_review}
+  H. Murayama and M.~E. Peskin, SLAC-PUB-7149,
+    to appear in {\textit{Ann.\ Rev.\ Nucl.\ Part.\ Sci.}};
+  P. Zerwas, DESY 94-001-REV.
+
+\bibitem{Chen/Noble:1986:Beamstrahlung}
+  P. Chen and R.~J. Noble, SLAC-PUB-4050;
+  M. Bell and J.~S. Bell, Part.\ Accl.\ {\bf 24},  1  (1988);
+  R. Blankenbecler and S.~D. Drell, Phys.\ Rev.\ Lett.\ {\bf 61},
+     2324  (1988);
+  P. Chen and K. Yokoya, Phys.\ Rev.\ Lett.\ {\bf 61},  1101  (1988);
+  M. Jacob and T.~T. Wu, Nucl.\ Phys.\ {\bf B303},  389  (1988);
+  V.~N. Baier, V.~M. Katkov, and V.~M. Strakovenkov, Nucl.\ Phys.\
+     {\bf B328},  387 (1989);
+  R. Blankenbecler, S.~D. Drell, and N. Kroll, Phys.\ Rev.\ {\bf D40},
+     2462 (1989);
+  P. Chen and V.~L. Telnov, Phys.\ Rev.\ Lett.\ {\bf 63},  1796  (1989).
+
+\bibitem{Yokoya:1985:ABEL}
+  K. Yokoya, KEK 85-9, KEK.
+
+\bibitem{Chen/etal:1995:CAIN}
+  P. Chen {\it et~al.}, Nucl.\ Inst.\ Meth.\ {\bf A355},  107  (1995).
+
+\bibitem{Schulte:1996:Thesis}
+  D. Schulte, Ph.D. thesis, in preparation.
+
+\bibitem{Palmer:1990:LC_review}
+  R.~B. Palmer, Ann.\ Rev.\ Nucl.\ Part.\ Sci.\ {\bf 40},  529  (1990).
+
+\bibitem{Chen:1992:Beamstrahlung}
+  P. Chen, Phys.\ Rev.\ {\bf D46},  1186  (1992).
+
+\bibitem{Tesla:1996:CDR}
+  {Tesla Collaboration}, Conceptual Design Report, in preparation.
+
+\bibitem{S-Band:1996:CDR}
+  {Desy-Darmstadt Linear Collider Collaboration}, Conceptual Design Report,
+    in preparation.
+
+\bibitem{JLC:1992:CDR}
+  {JLC Group}, KEK Report 92-16.
+
+\bibitem{NLC:1996:ZDR}
+  {NLC ZDR Design Group}, SLAC-Report-474.
+
+\bibitem{NLC:1996:Physics}
+  {NLC ZDR Design Group} and {NLC Physics Working Groups}, SLAC-Report-485.
+
+\bibitem{PDG:1994}
+  {Particle Data Group}, Phys.\ Rev.\ {\bf D50},  1173  (1994).
+
+\bibitem{Altarelli/etal:1989:LEP1}
+  G. Altarelli, R. Kleiss, and C. Verzegnassi, CERN Yellow Report 89-08.
+
+\bibitem{James/Roos:1989:Minuit}
+  F. James and M. Roos, {\em MINUIT, Function Minimization and Error Analysis,
+    Release 89.12j}, CERN, Geneva, 1989.
+
+\bibitem{Anlauf:1996:Beamstrahlung}
+  H. Anlauf, IKDA 96/6.
+
+\bibitem{Anlauf:1996:Chen_no_good}
+  H. Anlauf, private communication.
+
+\bibitem{Atkinson/Whittaker:1979:beta_distribution}
+  A. Atkinson and J. Whittaker, Appl.\ Stat.\ {\bf 28},  90  (1979).
+
+\bibitem{Knuth:1991:literate_programming}
+  D.~E. Knuth, {\em Literate Programming}, Vol.~27 of {\em {CSLI} Lecture Notes}
+    (Center for the Study of Language and Information, Leland Stanford Junior
+    University, Stanford, CA, 1991).
+
+\bibitem{Knuth:1986:TeX}
+  D.~E. Knuth, {\em {\TeX}: The Program}, Vol.~B of {\em Computers {\&}
+    Typesetting} (Addison-Wesley, Reading, Mass., 1986).
+
+\bibitem{Knuth:1986:MF}
+  D.~E. Knuth, {\em {\MF}: The Program}, Vol.~D of {\em Computers {\&}
+    Typesetting} (Addison-Wesley, Reading, Mass., 1986).
+
+\bibitem{Ramsey:1994:noweb}
+  N. Ramsey, IEEE Software {\bf 11},  97  (1994).
+
+\end{thebibliography}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+\section{Literate Programming}
+\label{sec:litprog}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Paradigm}
+\label{sec:paradigm}
+I have presented the sample code in this paper using the
+\emph{literate programming} paradigm.  This paradigm has been
+introduced by Donald Knuth~\cite{Knuth:1991:literate_programming} and
+his programs \TeX~\cite{Knuth:1986:TeX} and \MF~\cite{Knuth:1986:MF}
+provide excellent examples of the virtues of literate programming.
+Knuth summarized his intention as
+follows~(\cite{Knuth:1991:literate_programming}, p.~99)
+\begin{quote}
+  ``Let us change our traditional attitude to the construction of
+  programs. Instead of imagining that our main task is to instruct a
+  \emph{computer} what to do, let us concentrate rather on explaining
+  to \emph{human beings} what we want a computer to do.''
+\end{quote}
+Usually, literate programming uses two utility programs to produce two
+kinds of files from the source
+\begin{description}
+  \item[\texttt{tangle}] produces the computer program that is
+    acceptable to an ``illiterate'' (Fortran, C, etc.) compiler.  This
+    process consists of stripping documentation and reordering code.
+    Therefore it frees the author from having to present the code in
+    the particular order enforced by a compiler for purely technical
+    reasons.  Instead, the author can present the code in the order
+    that is most comprehensible.
+  \item[\texttt{weave}] produces a documents that describes the
+    program.  Extensive cross referencing of the code sections is
+    usually provided, which has been suppressed in this paper. If a
+    powerful typesetting system (such a \TeX) is used, the document
+    can present the algorithms in clear mathematical notation
+    alongside the code.  These features improve readability and
+    maintainability of scientific code immensely.
+\end{description}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Practice}
+\label{sec:practice}
+\Kirke/ uses the \texttt{noweb}~\cite{Ramsey:1994:noweb} system.  This
+system has the advantage to work with any traditional
+programming language and support the essential features described in
+section~\ref{sec:paradigm} with minimal effort.  \texttt{noweb}'s
+\texttt{tangle} program only reorders the code sections, but does not
+reformat them.  Therefore its output can be used just like any other
+``illiterate'' program.\par
+The examples above should be almost self-explaining, but in order to
+avoid any ambiguities, I give another example:
+<<Literate programming example>>=
+  <<Code that has to be at the top>>
+  <<Other code>>
+@ I can start the presentation with the first line of the ``other
+code'':
+<<Other code>>=
+line 1 of the other code
+@ If appropriate, the first line of the code that has to appear
+\emph{before} the other code can be presented later:
+<<Code that has to be at the top>>=
+line 1 of the code at the top
+@ Now I can augment the sections:
+<<Other code>>=
+line 2 of the other code
+@
+<<Code that has to be at the top>>=
+line 2 of the code at the top
+@ The complete ``program'' will be presented to the compiler as
+\begin{verbatim}
+line 1 of the code at the top
+line 2 of the code at the top
+line 1 of the other code
+line 2 of the other code
+\end{verbatim}
+The examples in section~\ref{sec:sample-int} show that this
+reordering is particularly useful for declaring variables when they
+are first used (rather than at the beginning) and for zooming in on
+code inside of loops.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fortran Name Space}
+\label{sec:name-space}
+In addition to the ten procedures and one \texttt{common} block
+discussed in section~\ref{sec:usage}
+\begin{itemize}
+  \item \texttt{circe}, \texttt{circee}, \texttt{circeg}, \texttt{circgg},
+  \item \texttt{girce}, \texttt{gircee}, \texttt{girceg}, \texttt{gircgg},
+  \item \texttt{circes}, \texttt{circel}, \texttt{/circom/},
+\end{itemize}
+there are two more globally visible functions which are used internally:
+\begin{itemize}
+  \item \texttt{circem}: error message handler,
+  \item \texttt{girceb}: efficient Beta distribution generator.
+\end{itemize}
+Even if the \texttt{/circom/} is globally visible, application
+programs \emph{must not} manipulate it directly.  The \texttt{circes},
+subroutine is provided for this purpose and updates some
+internal parameters as well.\par
+With features from the current Fortran standard (Fortran90), I could
+have kept the last two functions and the \texttt{common} block
+private.\par
+Application programs wishing to remain compatible with future versions
+of \Kirke/ must not use \texttt{common} blocks or procedures starting
+with \texttt{circe} or \texttt{girce}.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Updates}
+\label{sec:updates}
+Information about updates can be obtained
+\begin{itemize}
+  \item on the World Wide Web:
+    \begin{itemize}
+      \item[]\verb+http:http://projects.hepforge.org/whizard/+
+    \end{itemize}
+\end{itemize}
+Contributions of results from other simulation programs and updated
+accelerator designs are welcome at
+\begin{itemize}
+  \item[] \verb+ohl@physik.uni-wuerzburg.de+
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+\endinput
+Local Variables:
+mode:noweb
+noweb-doc-mode:latex-mode
+noweb-code-mode:indented-text-mode
+indent-tabs-mode:nil
+page-delimiter:"^@ %%%.*\n"
+End:

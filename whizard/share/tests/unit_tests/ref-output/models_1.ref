@@ -1,0 +1,25 @@
+* Test output: models_1
+*   Purpose: create a model
+
+model "Test model"
+
+   parameter mx =  1.000000000000E+01
+   parameter coup =  1.300000000000E+00
+
+   particle X_LEPTON 99
+     name "X" "x"
+     anti "Xbar"
+     tex_name "X^+"
+     tex_anti "X^-"
+     spin 1/2  isospin -1  charge 1/3
+     mass mx
+   particle Y_COLORON 97  invisible  gauge
+     name "Y" "yc"
+     tex_name "Y^0"
+     spin 0  isospin 1/2  color 8
+
+   vertex "X" "X" "X"
+   vertex "X" "X" "X" "X"
+   vertex "X" "Y" "X"
+
+* Test output end: models_1

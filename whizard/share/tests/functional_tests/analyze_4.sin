@@ -1,0 +1,41 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+histogram hn (-0.5, 3.5, 1) {
+  x_min = 0  x_max = 4
+  y_min = 0  y_max = 10 }
+
+histogram hp (-2.5, 2.5, 1) {
+  x_min = -2  x_max = 2
+  y_min = 0  y_max = 10 }
+
+process analyze_4_p = e1, E1 => u, ubar, g
+
+me = 0
+sqrts = 500
+cuts = all Dist > 0.1 [u:U, g] and all E > 5 [u:U:g]
+jet_algorithm = antikt_algorithm
+jet_r = 0.7
+?keep_flavors_when_clustering = true
+
+analysis = record hn (count [cluster [u:U:g]])
+
+seed = 1
+simulate (analyze_4_p) { iterations = 3:5000, 1:10000  n_events = 10 }
+
+$out_file = "analyze_4.dat"
+write_analysis
+
+?rebuild_events = true
+
+analysis = record hp (eval real(PDG) [sort by -Eta [cluster [u:U:g]]])
+
+
+seed = 1
+simulate (analyze_4_p) { iterations = 3:5000, 1:10000  n_events = 10 }
+write_analysis

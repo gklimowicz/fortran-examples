@@ -1,0 +1,124 @@
+* Test output: restricted_subprocesses_2
+*   Purpose: create subprocess library from resonances
+
+* Create resonance histories
+
+Resonance history with 1 resonances:
+  Resonance contributors: 1 2 f(-24)
+Resonance history with 1 resonances:
+  Resonance contributors: 1 2 3 f(23)
+
+* Empty restricted subprocess set
+
+active = F
+
+ Resonant subprocess set:
+   [not allocated]
+
+* Fill restricted subprocess set
+
+active = T
+
+ Resonant subprocess set:
+ Component #1
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+ 2    Resonance history with 1 resonances:
+      1 2 3 f(23)
+      contained in ()
+   Process library = 'restricted_subprocesses_2_p_R'
+   Event transform: not associated
+
+* Queries
+
+n_process = 2
+
+libname = 'restricted_subprocesses_2_p_R'
+
+proc_id(1) = 'restricted_subprocesses_2_p_R1'
+proc_id(2) = 'restricted_subprocesses_2_p_R2'
+
+* Process library
+
+ Process library: restricted_subprocesses_2_p_R
+   external        = T
+   makefile exists = T
+   driver exists   = T
+   code status     = a
+
+ Process library entries: 2
+ Entry #1: [a] restricted_subprocesses_2_p_R1.1 = ext:1 (omega)
+ Entry #2: [a] restricted_subprocesses_2_p_R2.1 = ext:2 (omega)
+
+ External matrix-element code library: restricted_subprocesses_2_p_R
+   static    = F
+   loaded    = T
+   MD5 sum   = '5D90F989443FB5E1F415E6259A8676BF'
+
+ DL access info:
+   is open   = T
+   error     = [none]
+
+ Matrix-element code entries:
+   restricted_subprocesses_2_p_R1_i1  [SM]
+     omega: init update_alpha_s reset_helicity_selection is_allowed new_event get_amplitude
+   restricted_subprocesses_2_p_R2_i1  [SM]
+     omega: init update_alpha_s reset_helicity_selection is_allowed new_event get_amplitude
+
+ Process #1:
+ ID = 'restricted_subprocesses_2_p_R1'
+ Scattering
+ Model = SM
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = 'B8BCACCA24AD0E78887CB5215A846FE1'
+ Component #1
+   Component ID        = restricted_subprocesses_2_p_R1_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 3 5
+   Particle content    = e-, e+ => d, u, W+
+   Method              = omega
+   Process variant     = omega
+     Model name        = "SM"
+     Mode string       = " -scatter"
+     Process string    = " 'e- e+ -> d u W+'"
+     Restrictions      = "3+4~W-"
+     OpenMP support    = F
+     Report progress   = T
+     Extra options     = " "
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '661A8DB7B5EEB9AA53C1D9C0CCA7CFD9'
+
+ Process #2:
+ ID = 'restricted_subprocesses_2_p_R2'
+ Scattering
+ Model = SM
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '895A539A13AAED925283BD39990B24DF'
+ Component #1
+   Component ID        = restricted_subprocesses_2_p_R2_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 3 5
+   Particle content    = e-, e+ => d, u, W+
+   Method              = omega
+   Process variant     = omega
+     Model name        = "SM"
+     Mode string       = " -scatter"
+     Process string    = " 'e- e+ -> d u W+'"
+     Restrictions      = "3+4+5~Z"
+     OpenMP support    = F
+     Report progress   = T
+     Extra options     = " "
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '324A2E15F964C9BE1F956CE9B4E06823'
+
+* Cleanup
+
+* Test output end: restricted_subprocesses_2

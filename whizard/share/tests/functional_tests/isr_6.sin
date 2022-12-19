@@ -1,0 +1,49 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process isr_6_a = e1, E1 => u, U
+process isr_6_b = e1, E1 => u, U
+
+compile
+
+sqrts = 10 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 1:1000
+
+!!! Keep me nonzero and fixed for this test
+me = 511.11111 keV
+
+beams = e1, E1 => isr
+
+!!! Enforce identical samples
+seed = 1
+integrate (isr_6_a)
+seed = 1
+integrate (isr_6_b)
+
+isr_mass = me
+?isr_handler = true
+$isr_handler_mode = "recoil"
+
+$sample = "isr_6_a"
+?isr_handler_keep_mass = false
+observable mass_a
+analysis = record mass_a (eval M [incoming e1])
+simulate (isr_6_a) { n_events = 1 }
+
+$sample = "isr_6_b"
+?isr_handler_keep_mass = true
+observable mass_b
+analysis = record mass_b (eval M [incoming e1])
+simulate (isr_6_b) { n_events = 1 }
+
+$out_file = "isr_6.dat"
+write_analysis

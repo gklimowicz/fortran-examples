@@ -1,0 +1,17 @@
+% Display data with error bars using the gamelan macros
+% This file has been generated automatically from gamelan.nw
+\documentclass[12pt]{article}
+\usepackage{gamelan}
+\begin{document}
+\begin{gmlfile}
+\begin{figure}\unitlength1cm
+\begin{gmlgraph}(10,10)
+fromfile "gmlerr.dat":
+  for l withinblock: get x,y,yerr; plot(tmp)(x,y) vbar yerr; endfor
+  draw piecewise from(tmp) withsymbol (cross scaled 3mm) withticks;
+endfrom
+label.ulft(btex \texttt{gmlerr.dat} etex, margin.lrt(5mm));
+\end{gmlgraph}
+\end{figure}
+\end{gmlfile}
+\end{document}

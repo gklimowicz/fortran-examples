@@ -1,0 +1,98 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+[user variable] pr = PDG(2, 1, -2, -1)
+$dglap_me_method = "openloops"
+openmp_num_threads = 1
+| Process library 'openloops_10_lib': recorded process 'openloops_10_p1'
+seed = 42
+sqrts =  1.30000E+04
+| Integrate: current process library needs compilation
+| Process library 'openloops_10_lib': compiling ...
+| Process library 'openloops_10_lib': writing makefile
+| Process library 'openloops_10_lib': removing old files
+| Process library 'openloops_10_lib': writing driver
+| Process library 'openloops_10_lib': creating source code
+| Process library 'openloops_10_lib': compiling sources
+| Process library 'openloops_10_lib': linking
+| Process library 'openloops_10_lib': loading
+| Process library 'openloops_10_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 42
+| Initializing integration for process openloops_10_p1:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.300000000000E+04 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'openloops_10_p1.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'openloops_10_p1.i3.phs'
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| ------------------------------------------------------------------------
+| Process [scattering]: 'openloops_10_p1'
+|   Library name  = 'openloops_10_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'openloops_10_p1_i1':   u:d:ubar:dbar, u:d:ubar:dbar => e-, e+ [inactive]
+|     2: 'openloops_10_p1_i2':   gl:dbar:d:ubar:u:dbar:d:ubar:u, dbar:d:ubar:u:gl:dbar:d:ubar:u => e-, e+, d:dbar:u:ubar:d:dbar:u:ubar:gl [inactive], [real]
+|     3: 'openloops_10_p1_i3':   u:d:ubar:dbar, u:d:ubar:dbar => e-, e+ [inactive], [virtual]
+|     4: 'openloops_10_p1_i4':   u:d:ubar:dbar, u:d:ubar:dbar => e-, e+ [inactive], [subtraction]
+|     5: 'openloops_10_p1_i5':   u:d:ubar:dbar, u:d:ubar:dbar => e-, e+ [openloops], [dglap]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 2 channels, 5 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 2 channels, 3 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 2 channels, 2 dimensions
+| Applying user-defined cuts.
+| Using user-defined general scale.
+| Starting integration for process 'openloops_10_p1' part 'dglap'
+| Integrate: iterations = 1:100:"gw"
+| Integrator: 2 chains, 2 channels, 5 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     2.038E+05   5.31E+04   26.05    2.61    10.7
+|-----------------------------------------------------------------------------|
+   1        100     2.038E+05   5.31E+04   26.05    2.61    10.7
+|=============================================================================|
+| Integrate: sum of all components
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          0     2.038E+05   5.31E+04   26.05    0.00    10.7
+|=============================================================================|
+| WHIZARD run finished.
+|=============================================================================|

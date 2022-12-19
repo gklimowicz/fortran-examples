@@ -1,0 +1,190 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+seed = 0
+| Process library 'analyze_5_lib': recorded process 'analyze_5_p'
+sqrts =  1.00000E+02
+?sample_pacify = true
+?debug_process = false
+?debug_transforms = true
+$sample = "analyze_5"
+?colorize_subevt = true
+n_events = 1
+| Starting simulation for process 'analyze_5_p'
+| Simulate: process 'analyze_5_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'analyze_5_lib': compiling ...
+| Process library 'analyze_5_lib': writing makefile
+| Process library 'analyze_5_lib': removing old files
+| Process library 'analyze_5_lib': writing driver
+| Process library 'analyze_5_lib': creating source code
+| Process library 'analyze_5_lib': compiling sources
+| Process library 'analyze_5_lib': linking
+| Process library 'analyze_5_lib': loading
+| Process library 'analyze_5_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process analyze_5_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   u     (mass = 0.0000000E+00 GeV)
+|   ubar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'analyze_5_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'analyze_5_p'
+|   Library name  = 'analyze_5_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'analyze_5_p_i1':   u, ubar => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 3 channels, 2 dimensions
+| Phase space: found 3 channels, collected in 2 groves.
+| Phase space: Using 3 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'analyze_5_p'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 3 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        864     1.407E+08   7.23E+06    5.14    1.51     6.6
+|-----------------------------------------------------------------------------|
+   1        864     1.407E+08   7.23E+06    5.14    1.51     6.6
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'analyze_5_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   7.1098E-09
+| Events: writing to ASCII file 'analyze_5.debug'
+| Events: writing to raw file 'analyze_5.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  20.00 %
+| Events: closing ASCII file 'analyze_5.debug'
+| Events: closing raw file 'analyze_5.evx'
+n_events = 100
+| Starting simulation for process 'analyze_5_p'
+| Simulate: using integration grids from file 'analyze_5_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 100
+|             corr. to luminosity [fb-1] =   7.1098E-07
+| Events: writing to event dump file 'analyze_5.pset.dat'
+| Events: writing to raw file 'analyze_5.evx'
+| Events: generating 100 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   7.63 %
+Warning: Encountered events with excess weight: 6 events (  6.000 %)
+| Maximum excess weight = 2.027E+00
+| Average excess weight = 2.201E-02
+| Events: closing event dump file 'analyze_5.pset.dat'
+| Events: closing raw file 'analyze_5.evx'
+$out_file = "analyze_5.dat"
+| Opening file 'analyze_5.dat' for output
+| Writing analysis data to file 'analyze_5.dat'
+| Closing file 'analyze_5.dat' for output
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of analyze_5.debug
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = T
+   Normalization      = '1'
+   Helicity handling  = drop
+   Keep correlations  = F
+   Colorize subevent  = T
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  1.40198E+04
+   Squared matrix el. (prc) =  1.40198E+04
+   Event weight (ref)       =  1.00000E+00
+   Event weight (prc)       =  1.00000E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 2
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'analyze_5_p'
+   TAO random-number generator:
+     seed  = 2
+     calls = 3
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(2)c(1 )
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00  5.000000E+01
+ T =   0.000000000E+00
+ Children: 3 4
+ Particle 2 [i] f(-2)c(-1 )
+ E =   5.000000E+01
+ P =   0.000000E+00  0.000000E+00 -5.000000E+01
+ T =   0.000000000E+00
+ Children: 3 4
+ Particle 3 [o] f(2)c(6 )
+ E =   5.000000E+01
+ P =  -8.759275E+00  6.269636E+00  4.882588E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(-2)c(-6 )
+ E =   5.000000E+01
+ P =   8.759275E+00 -6.269636E+00 -4.882588E+01
+ T =   0.000000000E+00
+ Parents:  1 2
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.00000E+02
+sqrts_hat* =>  1.00000E+02
+n_in* => 2
+n_out* => 2
+n_tot* => 4
+$process_id* => "analyze_5_p"
+process_num_id* => [unknown integer]
+sqme* =>  1.40198E+04
+sqme_ref* =>  1.40198E+04
+event_index* => 1
+event_weight* =>  1.00000E+00
+event_weight_ref* =>  1.00000E+00
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:2|1/|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00,-5.0000000E+01| 0.0000000E+00| 1)
+ 2 prt(i:-2|/1|-5.0000000E+01; 0.0000000E+00, 0.0000000E+00, 5.0000000E+01| 0.0000000E+00| 2)
+ 3 prt(o:2|6/| 5.0000000E+01;-8.7592749E+00, 6.2696356E+00, 4.8825882E+01| 0.0000000E+00| 3)
+ 4 prt(o:-2|/6| 5.0000000E+01; 8.7592749E+00,-6.2696356E+00,-4.8825882E+01| 0.0000000E+00| 4)
+========================================================================
+Contents of analyze_5.dat
+###############################################################################
+# Observable: ncol
+average     =  1.800000000000E-01
+error[abs]  =  3.861229196654E-02
+error[rel]  =  2.145127331474E-01
+n_entries   = 100
+###############################################################################
+# Observable: nacl
+average     =  1.800000000000E-01
+error[abs]  =  3.861229196654E-02
+error[rel]  =  2.145127331474E-01
+n_entries   = 100

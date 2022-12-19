@@ -1,0 +1,70 @@
+# EEMatching2W.sin 
+# Simple complete physics example: e+e- to jets with
+# 	 matched WHIZARD shower (max. 2 hard matrix-element jets)
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = SM
+ms = 0
+mc = 0
+alias j = u:d:s:c:U:D:S:C:g
+process eeuu = e1, E1 => u, U
+
+compile
+
+sqrts = 91 GeV
+beams = e1, E1
+
+?ps_fsr_active = true
+?hadronization_active = false
+$shower_method = "WHIZARD"
+
+ps_max_n_flavors = 5
+ps_mass_cutoff = 1
+ps_fsr_lambda = 0.29
+
+?mlm_matching = true
+mlm_nmaxMEjets = 2
+mlm_Rmin = 1
+mlm_ETclusminE = 10 GeV
+real ycut = mlm_ETclusminE**2
+
+cuts = all kT > ycut [j, j]
+     
+seed = 1
+
+integrate (eeuu) { iterations = 2:2000 }
+
+n_events = 500
+
+?rebuild_events = true
+$sample = "EEMatching2W"
+sample_format = lhef
+
+checkpoint = 2500
+
+simulate (eeuu)
+
+show (results)

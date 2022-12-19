@@ -1,0 +1,494 @@
+* Test output: prclib_interfaces_2
+*   Purpose: check the generated driver source code
+
+* Create a prclib driver object (2 processes)
+
+ External matrix-element code library: prclib2
+   static    = F
+   loaded    = F
+   MD5 sum   = 'prclib_interfaces_2_md5sum      '
+   Mdl flags = ''
+
+ DL access info:
+   is open   = F
+   error     = [none]
+
+ Matrix-element code entries:
+   test1  [Test_model]
+     test_1: proc1
+   test2  [Test_model]
+     test_2: proc1 proc2
+
+* Write the driver file
+* File contents:
+
+! WHIZARD matrix-element code interface
+!
+! Automatically generated file, do not edit
+
+! Module: define library driver as an extension of the abstract driver type.
+! This is used _only_ by the library dispatcher of a static executable.
+! For a dynamical library, the stand-alone procedures are linked via libdl.
+
+module prclib2_driver
+  use iso_c_binding
+  use iso_varying_string, string_t => varying_string
+  use diagnostics
+  use prclib_interfaces
+
+  implicit none
+
+  type, extends (prclib_driver_t) :: prclib2_driver_t
+   contains
+     procedure :: get_c_funptr => prclib2_driver_get_c_funptr
+  end type prclib2_driver_t
+
+contains
+
+  function prclib2_driver_get_c_funptr (driver, feature) result (c_fptr)
+    class(prclib2_driver_t), intent(inout) :: driver
+    type(string_t), intent(in) :: feature
+    type(c_funptr) :: c_fptr
+    procedure(prc_get_n_processes) &
+         :: prclib2_get_n_processes
+    procedure(prc_get_stringptr) &
+         :: prclib2_get_process_id_ptr
+    procedure(prc_get_stringptr) &
+         :: prclib2_get_model_name_ptr
+    procedure(prc_get_stringptr) &
+         :: prclib2_get_md5sum_ptr
+    procedure(prc_get_log) &
+         :: prclib2_get_openmp_status
+    procedure(prc_get_int) &
+         :: prclib2_get_n_in
+    procedure(prc_get_int) &
+         :: prclib2_get_n_out
+    procedure(prc_get_int) &
+         :: prclib2_get_n_flv
+    procedure(prc_get_int) &
+         :: prclib2_get_n_hel
+    procedure(prc_get_int) &
+         :: prclib2_get_n_col
+    procedure(prc_get_int) &
+         :: prclib2_get_n_cin
+    procedure(prc_get_int) &
+         :: prclib2_get_n_cf
+    procedure(prc_set_int_tab1) &
+         :: prclib2_set_flv_state_ptr
+    procedure(prc_set_int_tab1) &
+         :: prclib2_set_hel_state_ptr
+    procedure(prc_set_col_state) &
+         :: prclib2_set_col_state_ptr
+    procedure(prc_set_color_factors) &
+         :: prclib2_set_color_factors_ptr
+    procedure(prc_get_fptr) &
+         :: prclib2_get_fptr
+    select case (char (feature))
+    case ('get_n_processes')
+       c_fptr = c_funloc (prclib2_get_n_processes)
+    case ('get_process_id_ptr')
+       c_fptr = c_funloc (prclib2_get_process_id_ptr)
+    case ('get_model_name_ptr')
+       c_fptr = c_funloc (prclib2_get_model_name_ptr)
+    case ('get_md5sum_ptr')
+       c_fptr = c_funloc (prclib2_get_md5sum_ptr)
+    case ('get_openmp_status')
+       c_fptr = c_funloc (prclib2_get_openmp_status)
+    case ('get_n_in')
+       c_fptr = c_funloc (prclib2_get_n_in)
+    case ('get_n_out')
+       c_fptr = c_funloc (prclib2_get_n_out)
+    case ('get_n_flv')
+       c_fptr = c_funloc (prclib2_get_n_flv)
+    case ('get_n_hel')
+       c_fptr = c_funloc (prclib2_get_n_hel)
+    case ('get_n_col')
+       c_fptr = c_funloc (prclib2_get_n_col)
+    case ('get_n_cin')
+       c_fptr = c_funloc (prclib2_get_n_cin)
+    case ('get_n_cf')
+       c_fptr = c_funloc (prclib2_get_n_cf)
+    case ('set_flv_state_ptr')
+       c_fptr = c_funloc (prclib2_set_flv_state_ptr)
+    case ('set_hel_state_ptr')
+       c_fptr = c_funloc (prclib2_set_hel_state_ptr)
+    case ('set_col_state_ptr')
+       c_fptr = c_funloc (prclib2_set_col_state_ptr)
+    case ('set_color_factors_ptr')
+       c_fptr = c_funloc (prclib2_set_color_factors_ptr)
+    case ('get_fptr')
+       c_fptr = c_funloc (prclib2_get_fptr)
+    case default
+       call msg_bug ('prclib2 driver setup: unknown function name')
+    end select
+  end function prclib2_driver_get_c_funptr
+
+end module prclib2_driver
+
+! Stand-alone external procedures: used for both static and dynamic linkage
+
+! The MD5 sum of the library
+function prclib2_md5sum () result (md5sum)
+  implicit none
+  character(32) :: md5sum
+  md5sum = 'prclib_interfaces_2_md5sum      '
+end function prclib2_md5sum
+
+! Return the number of processes in this library
+function prclib2_get_n_processes () result (n) bind(C)
+  use iso_c_binding
+  implicit none
+  integer(c_int) :: n
+  n = 2
+end function prclib2_get_n_processes
+
+! Return the process ID of process #i (as a C pointer to a character array)
+subroutine prclib2_get_process_id_ptr (i, cptr, len) bind(C)
+  use iso_c_binding
+  implicit none
+  integer(c_int), intent(in) :: i
+  type(c_ptr), intent(out) :: cptr
+  integer(c_int), intent(out) :: len
+  character(kind=c_char), dimension(:), allocatable, target, save :: a
+  interface
+     subroutine prclib2_string_to_array (string, a)
+       use iso_c_binding
+       implicit none
+       character(*), intent(in) :: string
+       character(kind=c_char), dimension(:), allocatable, intent(out) :: a
+     end subroutine prclib2_string_to_array
+  end interface
+  select case (i)
+  case (0);  if (allocated (a))  deallocate (a)
+  case (1);  call prclib2_string_to_array ('test1', a)
+  case (2);  call prclib2_string_to_array ('test2', a)
+  end select
+  if (allocated (a)) then
+     cptr = c_loc (a)
+     len = size (a)
+  else
+     cptr = c_null_ptr
+     len = 0
+  end if
+end subroutine prclib2_get_process_id_ptr
+
+! Return the model name for process #i (as a C pointer to a character array)
+subroutine prclib2_get_model_name_ptr (i, cptr, len) bind(C)
+  use iso_c_binding
+  implicit none
+  integer(c_int), intent(in) :: i
+  type(c_ptr), intent(out) :: cptr
+  integer(c_int), intent(out) :: len
+  character(kind=c_char), dimension(:), allocatable, target, save :: a
+  interface
+     subroutine prclib2_string_to_array (string, a)
+       use iso_c_binding
+       implicit none
+       character(*), intent(in) :: string
+       character(kind=c_char), dimension(:), allocatable, intent(out) :: a
+     end subroutine prclib2_string_to_array
+  end interface
+  select case (i)
+  case (0);  if (allocated (a))  deallocate (a)
+  case (1);  call prclib2_string_to_array ('Test_model', a)
+  case (2);  call prclib2_string_to_array ('Test_model', a)
+  end select
+  if (allocated (a)) then
+     cptr = c_loc (a)
+     len = size (a)
+  else
+     cptr = c_null_ptr
+     len = 0
+  end if
+end subroutine prclib2_get_model_name_ptr
+
+! Return the MD5 sum for the process configuration (as a C pointer to a character array)
+subroutine prclib2_get_md5sum_ptr (i, cptr, len) bind(C)
+  use iso_c_binding
+  use test2, only: test2_md5sum => md5sum
+  implicit none
+  ! Interface code for test1_md5sum goes here.
+  interface
+     function prclib2_md5sum () result (md5sum)
+       character(32) :: md5sum
+     end function prclib2_md5sum
+  end interface
+  integer(c_int), intent(in) :: i
+  type(c_ptr), intent(out) :: cptr
+  integer(c_int), intent(out) :: len
+  character(kind=c_char), dimension(32), target, save :: md5sum
+  select case (i)
+  case (0)
+     call copy (prclib2_md5sum ())
+     cptr = c_loc (md5sum)
+  case (1)
+     ! MD5sum call for test1 goes here.
+  case (2)
+     call copy (test2_md5sum ())
+     cptr = c_loc (md5sum)
+  case default
+     cptr = c_null_ptr
+  end select
+  len = 32
+contains
+  subroutine copy (md5sum_tmp)
+    character, dimension(32), intent(in) :: md5sum_tmp
+    md5sum = md5sum_tmp
+  end subroutine copy
+end subroutine prclib2_get_md5sum_ptr
+
+! Auxiliary: convert character string to array pointer
+subroutine prclib2_string_to_array (string, a)
+  use iso_c_binding
+  implicit none
+  character(*), intent(in) :: string
+  character(kind=c_char), dimension(:), allocatable, intent(out) :: a
+  integer :: i
+  allocate (a (len (string)))
+  do i = 1, size (a)
+     a(i) = string(i:i)
+  end do
+end subroutine prclib2_string_to_array
+
+! Return the OpenMP support status
+function prclib2_get_openmp_status (i) result (openmp_status) bind(C)
+  use iso_c_binding
+  use test2, only: test2_openmp_supported => openmp_supported
+  implicit none
+  ! Interface code for test1_openmp_supported goes here.
+  integer(c_int), intent(in) :: i
+  logical(c_bool) :: openmp_status
+  select case (i)
+  case (1);  openmp_status = test1_openmp_supported ()
+  case (2);  openmp_status = test2_openmp_supported ()
+  end select
+end function prclib2_get_openmp_status
+
+! Return the value of n_in
+function prclib2_get_n_in (pid) result (n_in) bind(C)
+  use iso_c_binding
+  use test2, only: test2_n_in => n_in
+  implicit none
+  ! Interface code for test1_n_in goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int) :: n_in
+  select case (pid)
+  case (1);  n_in = test1_n_in ()
+  case (2);  n_in = test2_n_in ()
+  end select
+end function prclib2_get_n_in
+
+! Return the value of n_out
+function prclib2_get_n_out (pid) result (n_out) bind(C)
+  use iso_c_binding
+  use test2, only: test2_n_out => n_out
+  implicit none
+  ! Interface code for test1_n_out goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int) :: n_out
+  select case (pid)
+  case (1);  n_out = test1_n_out ()
+  case (2);  n_out = test2_n_out ()
+  end select
+end function prclib2_get_n_out
+
+! Return the value of n_flv
+function prclib2_get_n_flv (pid) result (n_flv) bind(C)
+  use iso_c_binding
+  use test2, only: test2_n_flv => n_flv
+  implicit none
+  ! Interface code for test1_n_flv goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int) :: n_flv
+  select case (pid)
+  case (1);  n_flv = test1_n_flv ()
+  case (2);  n_flv = test2_n_flv ()
+  end select
+end function prclib2_get_n_flv
+
+! Return the value of n_hel
+function prclib2_get_n_hel (pid) result (n_hel) bind(C)
+  use iso_c_binding
+  use test2, only: test2_n_hel => n_hel
+  implicit none
+  ! Interface code for test1_n_hel goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int) :: n_hel
+  select case (pid)
+  case (1);  n_hel = test1_n_hel ()
+  case (2);  n_hel = test2_n_hel ()
+  end select
+end function prclib2_get_n_hel
+
+! Return the value of n_col
+function prclib2_get_n_col (pid) result (n_col) bind(C)
+  use iso_c_binding
+  use test2, only: test2_n_col => n_col
+  implicit none
+  ! Interface code for test1_n_col goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int) :: n_col
+  select case (pid)
+  case (1);  n_col = test1_n_col ()
+  case (2);  n_col = test2_n_col ()
+  end select
+end function prclib2_get_n_col
+
+! Return the value of n_cin
+function prclib2_get_n_cin (pid) result (n_cin) bind(C)
+  use iso_c_binding
+  use test2, only: test2_n_cin => n_cin
+  implicit none
+  ! Interface code for test1_n_cin goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int) :: n_cin
+  select case (pid)
+  case (1);  n_cin = test1_n_cin ()
+  case (2);  n_cin = test2_n_cin ()
+  end select
+end function prclib2_get_n_cin
+
+! Return the value of n_cf
+function prclib2_get_n_cf (pid) result (n_cf) bind(C)
+  use iso_c_binding
+  use test2, only: test2_n_cf => n_cf
+  implicit none
+  ! Interface code for test1_n_cf goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int) :: n_cf
+  select case (pid)
+  case (1);  n_cf = test1_n_cf ()
+  case (2);  n_cf = test2_n_cf ()
+  end select
+end function prclib2_get_n_cf
+
+! Set table: flv_state
+subroutine prclib2_set_flv_state_ptr (pid, flv_state, shape) bind(C)
+  use iso_c_binding
+  use test2, only: test2_flv_state => flv_state
+  implicit none
+  ! Interface code for test1_flv_state goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int), dimension(*), intent(out) :: flv_state
+  integer(c_int), dimension(2), intent(in) :: shape
+  integer, dimension(:,:), allocatable :: flv_state_tmp
+  integer :: i, j
+  select case (pid)
+  case (1)
+     ! flv_state call for test1 goes here.
+  case (2)
+     allocate (flv_state_tmp (shape(1), shape(2)))
+     call test2_flv_state (flv_state_tmp)
+     forall (i=1:shape(1), j=1:shape(2))
+        flv_state(i + shape(1)*(j-1)) = flv_state_tmp(i,j)
+     end forall
+  end select
+end subroutine prclib2_set_flv_state_ptr
+
+! Set table: hel_state
+subroutine prclib2_set_hel_state_ptr (pid, hel_state, shape) bind(C)
+  use iso_c_binding
+  use test2, only: test2_hel_state => hel_state
+  implicit none
+  ! Interface code for test1_hel_state goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int), dimension(*), intent(out) :: hel_state
+  integer(c_int), dimension(2), intent(in) :: shape
+  integer, dimension(:,:), allocatable :: hel_state_tmp
+  integer :: i, j
+  select case (pid)
+  case (1)
+     ! hel_state call for test1 goes here.
+  case (2)
+     allocate (hel_state_tmp (shape(1), shape(2)))
+     call test2_hel_state (hel_state_tmp)
+     forall (i=1:shape(1), j=1:shape(2))
+        hel_state(i + shape(1)*(j-1)) = hel_state_tmp(i,j)
+     end forall
+  end select
+end subroutine prclib2_set_hel_state_ptr
+
+! Set tables: col_state, ghost_flag
+subroutine prclib2_set_col_state_ptr (pid, col_state, ghost_flag, shape) bind(C)
+  use iso_c_binding
+  use test2, only: test2_col_state => col_state
+  implicit none
+  ! Interface code for test1_col_state goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int), dimension(*), intent(out) :: col_state
+  logical(c_bool), dimension(*), intent(out) :: ghost_flag
+  integer(c_int), dimension(3), intent(in) :: shape
+  integer, dimension(:,:,:), allocatable :: col_state_tmp
+  logical, dimension(:,:), allocatable :: ghost_flag_tmp
+  integer :: i, j, k
+  select case (pid)
+  case (1)
+     ! col_state call for test1 goes here.
+  case (2)
+  allocate (col_state_tmp (shape(1), shape(2), shape(3)))
+     allocate (ghost_flag_tmp (shape(2), shape(3)))
+     call test2_col_state (col_state_tmp, ghost_flag_tmp)
+     forall (i = 1:shape(2), j = 1:shape(3))
+        forall (k = 1:shape(1))
+           col_state(k + shape(1) * (i + shape(2)*(j-1) - 1)) = col_state_tmp(k,i,j)
+        end forall
+        ghost_flag(i + shape(2)*(j-1)) = ghost_flag_tmp(i,j)
+     end forall
+  end select
+end subroutine prclib2_set_col_state_ptr
+
+! Set tables: color factors
+subroutine prclib2_set_color_factors_ptr (pid, cf_index1, cf_index2, color_factors, shape) bind(C)
+  use iso_c_binding
+  use kinds
+  use omega_color
+  use test2, only: test2_color_factors => color_factors
+  implicit none
+  ! Interface code for test1_color_factors goes here.
+  integer(c_int), intent(in) :: pid
+  integer(c_int), dimension(1), intent(in) :: shape
+  integer(c_int), dimension(*), intent(out) :: cf_index1, cf_index2
+  complex(c_default_complex), dimension(*), intent(out) :: color_factors
+  type(omega_color_factor), dimension(:), allocatable :: cf
+  select case (pid)
+  case (1)
+     ! color_factors call for test1 goes here.
+  case (2)
+     allocate (cf (shape(1)))
+     call test2_color_factors (cf)
+     cf_index1(1:shape(1)) = cf%i1
+     cf_index2(1:shape(1)) = cf%i2
+     color_factors(1:shape(1)) = cf%factor
+  end select
+end subroutine prclib2_set_color_factors_ptr
+
+! Return C pointer to a procedure:
+! pid = process index;  fid = function index
+subroutine prclib2_get_fptr (pid, fid, fptr) bind(C)
+  use iso_c_binding
+  use kinds
+  implicit none
+  integer(c_int), intent(in) :: pid
+  integer(c_int), intent(in) :: fid
+  type(c_funptr), intent(out) :: fptr
+  ! Interface code for test1_proc1 goes here.
+  ! Interface code for test2_proc1 goes here.
+  ! Interface code for test2_proc2 goes here.
+  select case (pid)
+  case (1)
+     select case (fid)
+     case (1);  fptr = c_funloc (test1_proc1)
+     end select
+  case (2)
+     select case (fid)
+     case (1);  fptr = c_funloc (test2_proc1)
+     case (2);  fptr = c_funloc (test2_proc2)
+     end select
+  end select
+end subroutine prclib2_get_fptr
+
+! Wrapper code for test2_proc1 goes here.
+
+! Wrapper code for test2_proc2 goes here.
+
+* Test output end: prclib_interfaces_2

@@ -1,0 +1,2349 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD main code as NOWEB source
+\includemodulegraph{main}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Main Program}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Tools for the command line}
+
+We do not intent to be very smart here, but this module provides a few
+small tools that simplify dealing with the command line.
+
+The [[unquote_value]] subroutine handles an option value that begins with a
+single/double quote character.  It swallows extra option strings until it
+finds a value that ends with another quote character.  The returned string
+consists of all argument strings between quotes, concatenated by blanks (with
+a leading blank).  Note that more complex patterns, such as quoted or embedded
+quotes, or multiple blanks, are not accounted for.
+<<[[cmdline_options.f90]]>>=
+<<File header>>
+
+module cmdline_options
+
+<<Use strings>>
+  use diagnostics
+
+<<Standard module head>>
+
+  public :: init_options
+  public :: no_option_value
+  public :: get_option_value
+
+<<Main: cmdline arg len declaration>>
+
+  abstract interface
+     subroutine msg
+     end subroutine msg
+  end interface
+
+  procedure (msg), pointer :: print_usage => null ()
+
+contains
+
+  subroutine init_options (usage_msg)
+    procedure (msg) :: usage_msg
+    print_usage => usage_msg
+  end subroutine init_options
+
+  subroutine no_option_value (option, value)
+    type(string_t), intent(in) :: option, value
+    if (value /= "") then
+       call msg_error (" Option '" // char (option) // "' should have no value")
+    end if
+  end subroutine no_option_value
+
+  function get_option_value (i, option, value) result (string)
+    type(string_t) :: string
+    integer, intent(inout) :: i
+    type(string_t), intent(in) :: option
+    type(string_t), intent(in), optional :: value
+    character(CMDLINE_ARG_LEN) :: arg_value
+    integer :: arg_len, arg_status
+    logical :: has_value
+    if (present (value)) then
+       has_value = value /= ""
+    else
+       has_value = .false.
+    end if
+    if (has_value) then
+       call unquote_value (i, option, value, string)
+    else
+       i = i + 1
+       call get_command_argument (i, arg_value, arg_len, arg_status)
+       select case (arg_status)
+       case (0)
+       case (-1)
+          call msg_error (" Option value truncated: '" // arg_value // "'")
+       case default
+          call print_usage ()
+          call msg_fatal (" Option '" // char (option) // "' needs a value")
+       end select
+       select case (arg_value(1:1))
+       case ("-")
+          call print_usage ()
+          call msg_fatal (" Option '" // char (option) // "' needs a value")
+       end select
+       call unquote_value (i, option, var_str (trim (arg_value)), string)
+    end if
+  end function get_option_value
+
+  subroutine unquote_value (i, option, value, string)
+    integer, intent(inout) :: i
+    type(string_t), intent(in) :: option
+    type(string_t), intent(in) :: value
+    type(string_t), intent(out) :: string
+    character(1) :: quote
+    character(CMDLINE_ARG_LEN) :: arg_value
+    integer :: arg_len, arg_status
+    quote = extract (value, 1, 1)
+    select case (quote)
+    case ("'", '"')
+       string = ""
+       arg_value = extract (value, 2)
+       arg_len = len_trim (value)
+       APPEND_QUOTED: do
+          if (extract (arg_value, arg_len, arg_len) == quote) then
+             string = string // " " // extract (arg_value, 1, arg_len-1)
+             exit APPEND_QUOTED
+          else
+             string = string // " " // trim (arg_value)
+             i = i + 1
+             call get_command_argument (i, arg_value, arg_len, arg_status)
+             select case (arg_status)
+             case (0)
+             case (-1)
+                call msg_error (" Quoted option value truncated: '" &
+                     // char (string) // "'")
+             case default
+                call print_usage ()
+                call msg_fatal (" Option '" // char (option) &
+                     // "': unterminated quoted value")
+             end select
+          end if
+       end do APPEND_QUOTED
+    case default
+       string = value
+    end select
+  end subroutine unquote_value
+
+end module cmdline_options
+
+@ %def init_options
+@ %def no_option_value
+@ %def get_option_value
+@ %def cmdline_options
+@
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Driver program}
+The main program handles command options, initializes the environment,
+and runs WHIZARD in a particular mode (interactive, file, standard
+input).
+
+This is also used in the C interface:
+<<Main: cmdline arg len declaration>>=
+  integer, parameter :: CMDLINE_ARG_LEN = 1000
+@ %def CMDLINE_ARG_LEN
+@
+The actual main program:
+<<[[main.f90]]>>=
+<<File header>>
+
+program main
+
+<<Use strings>>
+  use system_dependencies
+  use diagnostics
+  use ifiles
+  use os_interface
+  use rt_data, only: show_description_of_string, show_tex_descriptions
+  use whizard
+
+  use cmdline_options
+  use features
+
+<<Use mpi f08>>
+
+  implicit none
+
+<<Main: cmdline arg len declaration>>
+
+!!! (WK 02/2016) Interface for the separate external routine below
+  interface
+     subroutine print_usage ()
+     end subroutine print_usage
+  end interface
+
+! Main program variable declarations
+  character(CMDLINE_ARG_LEN) :: arg
+  character(2) :: option
+  type(string_t) :: long_option, value
+  integer :: i, j, arg_len, arg_status
+  logical :: look_for_options
+  logical :: interactive
+  logical :: banner
+  type(string_t) :: job_id, files, this, model, default_lib, library, libraries
+  type(string_t) :: logfile, query_string
+  type(paths_t) :: paths
+  type(string_t) :: pack_arg, unpack_arg
+  type(string_t), dimension(:), allocatable :: pack_args, unpack_args
+  type(string_t), dimension(:), allocatable :: tmp_strings
+  logical :: rebuild_library
+  logical :: rebuild_phs, rebuild_grids, rebuild_events
+  logical :: recompile_library
+  type(ifile_t) :: commands
+  type(string_t) :: command, cmdfile
+  integer :: cmdfile_unit
+  logical :: cmdfile_exists
+
+  type(whizard_options_t), allocatable :: options
+  type(whizard_t), allocatable, target :: whizard_instance
+
+  ! Exit status
+  logical :: quit = .false.
+  integer :: quit_code = 0
+
+  ! Initial values
+  look_for_options = .true.
+  interactive = .false.
+  job_id = ""
+  files = ""
+  model = "SM"
+  default_lib = "default_lib"
+  library = ""
+  libraries = ""
+  banner = .true.
+  logging = .true.
+  msg_level = RESULT
+  logfile = "whizard.log"
+  rebuild_library = .false.
+  rebuild_phs = .false.
+  rebuild_grids = .false.
+  rebuild_events = .false.
+  recompile_library = .false.
+  call paths_init (paths)
+
+<<Main: MPI init>>
+
+  ! Read and process options
+  call init_options (print_usage)
+  i = 0
+  SCAN_CMDLINE: do
+     i = i + 1
+     call get_command_argument (i, arg, arg_len, arg_status)
+     select case (arg_status)
+     case (0)
+     case (-1)
+        call msg_error (" Command argument truncated: '" // arg // "'")
+     case default
+        exit SCAN_CMDLINE
+     end select
+     if (look_for_options) then
+        select case (arg(1:2))
+        case ("--")
+           value = trim (arg)
+           call split (value, long_option, "=")
+           select case (char (long_option))
+           case ("--version")
+              call no_option_value (long_option, value)
+              call print_version (); stop
+           case ("--help")
+              call no_option_value (long_option, value)
+              call print_usage (); stop
+           case ("--prefix")
+              paths%prefix = get_option_value (i, long_option, value)
+              cycle scan_cmdline
+           case ("--exec-prefix")
+              paths%exec_prefix = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--bindir")
+              paths%bindir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--libdir")
+              paths%libdir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--includedir")
+              paths%includedir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--datarootdir")
+              paths%datarootdir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--libtool")
+              paths%libtool = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--lhapdfdir")
+              paths%lhapdfdir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--check")
+              call print_usage ()
+              call msg_fatal ("Option --check not supported &
+                   &(for unit tests, run whizard_ut instead)")
+           case ("--show-config")
+              call no_option_value (long_option, value)
+              call print_features (); stop
+           case ("--execute")
+              command = get_option_value (i, long_option, value)
+              call ifile_append (commands, command)
+              cycle SCAN_CMDLINE
+           case ("--file")
+              cmdfile = get_option_value (i, long_option, value)
+              inquire (file=char(cmdfile), exist=cmdfile_exists)
+              if (cmdfile_exists) then
+                 open (newunit=cmdfile_unit, file=char(cmdfile), &
+                      action="read", status="old")
+                 call ifile_append (commands, cmdfile_unit)
+                 close (cmdfile_unit)
+              else
+                 call msg_error &
+                      ("Sindarin file '" // char (cmdfile) // "' not found")
+              end if
+              cycle SCAN_CMDLINE
+           case ("--interactive")
+              call no_option_value (long_option, value)
+              interactive = .true.
+              cycle SCAN_CMDLINE
+           case ("--job-id")
+              job_id = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--library")
+              library = get_option_value (i, long_option, value)
+              libraries = libraries // " " // library
+              cycle SCAN_CMDLINE
+           case ("--no-library")
+              call no_option_value (long_option, value)
+              default_lib = ""
+              library = ""
+              libraries = ""
+              cycle SCAN_CMDLINE
+           case ("--localprefix")
+              paths%localprefix = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--logfile")
+              logfile = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--no-logfile")
+              call no_option_value (long_option, value)
+              logfile = ""
+              cycle SCAN_CMDLINE
+           case ("--logging")
+              call no_option_value (long_option, value)
+              logging = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-logging")
+              call no_option_value (long_option, value)
+              logging = .false.
+              cycle SCAN_CMDLINE
+           case ("--query")
+              call no_option_value (long_option, value)
+              query_string = get_option_value (i, long_option, value)
+              call show_description_of_string (query_string)
+              call exit (0)
+           case ("--generate-variables-tex")
+              call no_option_value (long_option, value)
+              call show_tex_descriptions ()
+              call exit (0)
+           case ("--debug")
+              call no_option_value (long_option, value)
+              call set_debug_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case ("--debug2")
+              call no_option_value (long_option, value)
+              call set_debug2_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case ("--single-event")
+              call no_option_value (long_option, value)
+              single_event = .true.
+              cycle SCAN_CMDLINE
+           case ("--banner")
+              call no_option_value (long_option, value)
+              banner = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-banner")
+              call no_option_value (long_option, value)
+              banner = .false.
+              cycle SCAN_CMDLINE
+           case ("--pack")
+              pack_arg = get_option_value (i, long_option, value)
+              if (allocated (pack_args)) then
+                 call move_alloc (from=pack_args, to=tmp_strings)
+                 allocate (pack_args (size (tmp_strings)+1))
+                 pack_args(1:size(tmp_strings)) = tmp_strings
+              else
+                 allocate (pack_args (1))
+              end if
+              pack_args(size(pack_args)) = pack_arg
+              cycle SCAN_CMDLINE
+           case ("--unpack")
+              unpack_arg = get_option_value (i, long_option, value)
+              if (allocated (unpack_args)) then
+                 call move_alloc (from=unpack_args, to=tmp_strings)
+                 allocate (unpack_args (size (tmp_strings)+1))
+                 unpack_args(1:size(tmp_strings)) = tmp_strings
+              else
+                 allocate (unpack_args (1))
+              end if
+              unpack_args(size(unpack_args)) = unpack_arg
+              cycle SCAN_CMDLINE
+           case ("--model")
+              model = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--no-model")
+              call no_option_value (long_option, value)
+              model = ""
+              cycle SCAN_CMDLINE
+           case ("--rebuild")
+              call no_option_value (long_option, value)
+              rebuild_library = .true.
+              rebuild_phs = .true.
+              rebuild_grids = .true.
+              rebuild_events = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-rebuild")
+              call no_option_value (long_option, value)
+              rebuild_library = .false.
+              recompile_library = .false.
+              rebuild_phs = .false.
+              rebuild_grids = .false.
+              rebuild_events = .false.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-library")
+              call no_option_value (long_option, value)
+              rebuild_library = .true.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-phase-space")
+              call no_option_value (long_option, value)
+              rebuild_phs = .true.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-grids")
+              call no_option_value (long_option, value)
+              rebuild_grids = .true.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-events")
+              call no_option_value (long_option, value)
+              rebuild_events = .true.
+              cycle SCAN_CMDLINE
+           case ("--recompile")
+              call no_option_value (long_option, value)
+              recompile_library = .true.
+              rebuild_grids = .true.
+              cycle SCAN_CMDLINE
+           case ("--write-syntax-tables")
+              call no_option_value (long_option, value)
+        call init_syntax_tables ()
+              call write_syntax_tables ()
+              call final_syntax_tables ()
+              stop
+              cycle SCAN_CMDLINE
+           case default
+              call print_usage ()
+              call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+           end select
+        end select
+        select case (arg(1:1))
+        case ("-")
+           j = 1
+           if (len_trim (arg) == 1) then
+              look_for_options = .false.
+           else
+              SCAN_SHORT_OPTIONS: do
+                 j = j + 1
+                 if (j > len_trim (arg)) exit SCAN_SHORT_OPTIONS
+                 option = "-" // arg(j:j)
+                 select case (option)
+                 case ("-V")
+                    call print_version (); stop
+                 case ("-?", "-h")
+                    call print_usage (); stop
+                 case ("-e")
+                    command = get_option_value (i, var_str (option))
+                    call ifile_append (commands, command)
+                    cycle SCAN_CMDLINE
+                 case ("-f")
+                    cmdfile = get_option_value (i, var_str (option))
+                    inquire (file=char(cmdfile), exist=cmdfile_exists)
+                    if (cmdfile_exists) then
+                       open (newunit=cmdfile_unit, file=char(cmdfile), &
+                            action="read", status="old")
+                       call ifile_append (commands, cmdfile_unit)
+                       close (cmdfile_unit)
+                    else
+                       call msg_error ("Sindarin file '" &
+                            // char (cmdfile) // "' not found")
+                    end if
+                    cycle SCAN_CMDLINE
+                 case ("-i")
+                    interactive = .true.
+                    cycle SCAN_SHORT_OPTIONS
+                 case ("-J")
+                    if (j == len_trim (arg)) then
+                       job_id = get_option_value (i, var_str (option))
+                    else
+                       job_id = trim (arg(j+1:))
+                    end if
+                    cycle SCAN_CMDLINE
+                 case ("-l")
+                    if (j == len_trim (arg)) then
+                       library = get_option_value (i, var_str (option))
+                    else
+                       library = trim (arg(j+1:))
+                    end if
+                    libraries = libraries // " " // library
+                    cycle SCAN_CMDLINE
+                 case ("-L")
+                    if (j == len_trim (arg)) then
+                       logfile = get_option_value (i, var_str (option))
+                    else
+                       logfile = trim (arg(j+1:))
+                    end if
+                    cycle SCAN_CMDLINE
+                 case ("-m")
+                    if (j < len_trim (arg))  call msg_fatal &
+                         ("Option '" // option // "' needs a value")
+                    model = get_option_value (i, var_str (option))
+                    cycle SCAN_CMDLINE
+                 case ("-q")
+                    call no_option_value (long_option, value)
+                    query_string = get_option_value (i, long_option, value)
+                    call show_description_of_string (query_string)
+                    call exit (0)
+                 case ("-r")
+                    rebuild_library = .true.
+                    rebuild_phs = .true.
+                    rebuild_grids = .true.
+                    rebuild_events = .true.
+                    cycle SCAN_SHORT_OPTIONS
+                 case default
+                    call print_usage ()
+                    call msg_fatal &
+                         ("Option '" // option // "' not recognized")
+                 end select
+              end do SCAN_SHORT_OPTIONS
+           end if
+        case default
+           files = files // " " // trim (arg)
+        end select
+     else
+        files = files // " " // trim (arg)
+     end if
+  end do SCAN_CMDLINE
+
+  ! Overall initialization
+  if (logfile /= "")  call logfile_init (logfile)
+  if (banner)  call msg_banner ()
+
+   allocate (options)
+   allocate (whizard_instance)
+
+   if (.not. quit) then
+
+      ! Set options and initialize the whizard object
+      options%job_id = job_id
+      if (allocated (pack_args)) then
+         options%pack_args = pack_args
+      else
+         allocate (options%pack_args (0))
+      end if
+      if (allocated (unpack_args)) then
+         options%unpack_args = unpack_args
+      else
+         allocate (options%unpack_args (0))
+      end if
+      options%preload_model = model
+      options%default_lib = default_lib
+      options%preload_libraries = libraries
+      options%rebuild_library = rebuild_library
+      options%recompile_library = recompile_library
+      options%rebuild_phs = rebuild_phs
+      options%rebuild_grids = rebuild_grids
+      options%rebuild_events = rebuild_events
+    <<Main: dependent flags>>
+
+      call whizard_instance%init (options, paths, logfile)
+
+      call mask_term_signals ()
+
+   end if
+
+   ! Run commands given on the command line
+   if (.not. quit .and. ifile_get_length (commands) > 0) then
+      call whizard_instance%process_ifile (commands, quit, quit_code)
+   end if
+
+   if (.not. quit) then
+      ! Process commands from standard input
+      if (.not. interactive .and. files == "") then
+         call whizard_instance%process_stdin (quit, quit_code)
+
+         ! ... or process commands from file
+      else
+         files = trim (adjustl (files))
+         SCAN_FILES: do while (files /= "")
+            call split (files, this, " ")
+            call whizard_instance%process_file (this, quit, quit_code)
+            if (quit)  exit SCAN_FILES
+         end do SCAN_FILES
+
+      end if
+  end if
+
+  ! Enter an interactive shell if requested
+  if (.not. quit .and. interactive) then
+     call whizard_instance%shell (quit_code)
+  end if
+
+  ! Overall finalization
+  call ifile_final (commands)
+
+  deallocate (options)
+
+  call whizard_instance%final ()
+  deallocate (whizard_instance)
+
+<<Main: MPI finalize>>
+
+  call terminate_now_if_signal ()
+  call release_term_signals ()
+  call msg_terminate (quit_code = quit_code)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+contains
+
+  subroutine print_version ()
+    print "(A)", "WHIZARD " // WHIZARD_VERSION
+    print "(A)", "Copyright (C) 1999-2022 Wolfgang Kilian, Thorsten Ohl, Juergen Reuter"
+    print "(A)", "              ---------------------------------------                "
+    print "(A)", "This is free software; see the source for copying conditions.  There is NO"
+    print "(A)", "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    print *
+  end subroutine print_version
+
+end program main
+
+!!! (WK 02/2016)
+!!! Separate subroutine, because this becomes a procedure pointer target
+!!! Internal procedures as targets are not supported by some compilers.
+
+  subroutine print_usage ()
+    use system_dependencies, only: WHIZARD_VERSION
+    print "(A)", "WHIZARD " // WHIZARD_VERSION
+    print "(A)", "Usage: whizard [OPTIONS] [FILE]"
+    print "(A)", "Run WHIZARD with the command list taken from FILE(s)"
+    print "(A)", "Options for resetting default directories and tools" &
+            // "(GNU naming conventions):"
+    print "(A)", "    --prefix DIR"
+    print "(A)", "    --exec-prefix DIR"
+    print "(A)", "    --bindir DIR"
+    print "(A)", "    --libdir DIR"
+    print "(A)", "    --includedir DIR"
+    print "(A)", "    --datarootdir DIR"
+    print "(A)", "    --libtool LOCAL_LIBTOOL"
+    print "(A)", "    --lhapdfdir DIR   (PDF sets directory)"
+    print "(A)", "Other options:"
+    print "(A)", "-h, --help            display this help and exit"
+    print "(A)", "    --banner          display banner at startup (default)"
+    print "(A)", "    --debug AREA      switch on debug output for AREA."
+    print "(A)", "                      AREA can be one of Whizard's src dirs or 'all'"
+    print "(A)", "    --debug2 AREA     switch on more verbose debug output for AREA."
+    print "(A)", "    --single-event    only compute one phase-space point (for debugging)"
+    print "(A)", "-e, --execute CMDS    execute SINDARIN CMDS before reading FILE(s)"
+    print "(A)", "-f, --file CMDFILE    execute SINDARIN from CMDFILE before reading FILE(s)"
+    print "(A)", "-i, --interactive     run interactively after reading FILE(s)"
+    print "(A)", "-J, --job-id STRING   set job ID to STRING (default: empty)"
+    print "(A)", "-l, --library LIB     preload process library NAME"
+    print "(A)", "    --localprefix DIR"
+    print "(A)", "                      search in DIR for local models (default: ~/.whizard)"
+    print "(A)", "-L, --logfile FILE    write log to FILE (default: 'whizard.log'"
+    print "(A)", "    --logging         switch on logging at startup (default)"
+    print "(A)", "-m, --model NAME      preload model NAME (default: 'SM')"
+    print "(A)", "    --no-banner       do not display banner at startup"
+    print "(A)", "    --no-library      do not preload process library"
+    print "(A)", "    --no-logfile      do not write a logfile"
+    print "(A)", "    --no-logging      switch off logging at startup"
+    print "(A)", "    --no-model        do not preload a model"
+    print "(A)", "    --no-rebuild      do not force rebuilding"
+    print "(A)", "    --pack DIR        tar/gzip DIR after job"
+    print "(A)", "-q, --query VARIABLE  display documentation of VARIABLE"
+    print "(A)", "-r, --rebuild         rebuild all (see below)"
+    print "(A)", "    --rebuild-library"
+    print "(A)", "                      rebuild process code library"
+    print "(A)", "    --rebuild-phase-space"
+    print "(A)", "                      rebuild phase-space configuration"
+    print "(A)", "    --rebuild-grids   rebuild integration grids"
+    print "(A)", "    --rebuild-events  rebuild event samples"
+    print "(A)", "    --recompile       recompile process code"
+    print "(A)", "    --show-config     show build-time configuration"
+    print "(A)", "    --unpack FILE     untar/gunzip FILE before job"
+    print "(A)", "-V, --version         output version information and exit"
+    print "(A)", "    --write-syntax-tables"
+    print "(A)", "                      write the internal syntax tables to files and exit"
+    print "(A)", "-                     further options are taken as filenames"
+    print *
+    print "(A)", "With no FILE, read standard input."
+  end subroutine print_usage
+
+@ %def main
+@
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Driver program for the unit tests}
+This is a variant of the above main program that takes unit-test names
+as command-line options and runs those tests.
+<<[[main_ut.f90]]>>=
+<<File header>>
+
+program main_ut
+
+<<Use strings>>
+  use unit_tests
+  use io_units
+  use system_dependencies
+  use diagnostics
+  use os_interface
+
+  use cmdline_options
+
+  use model_testbed !NODEP!
+<<Use mpi f08>>
+
+<<Main: use tests>>
+
+  implicit none
+
+<<Main: cmdline arg len declaration>>
+
+!!! (WK 02/2016) Interface for the separate external routine below
+  interface
+     subroutine print_usage ()
+     end subroutine print_usage
+  end interface
+
+  ! Main program variable declarations
+  character(CMDLINE_ARG_LEN) :: arg
+  character(2) :: option
+  type(string_t) :: long_option, value
+  integer :: i, j, arg_len, arg_status
+  logical :: look_for_options
+  logical :: banner
+  type(string_t) :: check, checks
+  type(test_results_t) :: test_results
+  logical :: success
+
+  ! Exit status
+  integer :: quit_code = 0
+
+  ! Initial values
+  look_for_options = .true.
+  banner = .true.
+  logging = .false.
+  msg_level = RESULT
+  check = ""
+  checks = ""
+
+<<Main: MPI init>>
+
+  ! Read and process options
+  call init_options (print_usage)
+  i = 0
+  SCAN_CMDLINE: do
+     i = i + 1
+     call get_command_argument (i, arg, arg_len, arg_status)
+     select case (arg_status)
+     case (0)
+     case (-1)
+        call msg_error (" Command argument truncated: '" // arg // "'")
+     case default
+        exit SCAN_CMDLINE
+     end select
+     if (look_for_options) then
+        select case (arg(1:2))
+        case ("--")
+           value = trim (arg)
+           call split (value, long_option, "=")
+           select case (char (long_option))
+           case ("--version")
+              call no_option_value (long_option, value)
+              call print_version (); stop
+           case ("--help")
+              call no_option_value (long_option, value)
+              call print_usage (); stop
+           case ("--banner")
+              call no_option_value (long_option, value)
+              banner = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-banner")
+              call no_option_value (long_option, value)
+              banner = .false.
+              cycle SCAN_CMDLINE
+           case ("--check")
+              check = get_option_value (i, long_option, value)
+              checks = checks // " " // check
+              cycle SCAN_CMDLINE
+           case ("--debug")
+              call no_option_value (long_option, value)
+              call set_debug_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case ("--debug2")
+              call no_option_value (long_option, value)
+              call set_debug2_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case default
+              call print_usage ()
+              call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+           end select
+        end select
+        select case (arg(1:1))
+        case ("-")
+           j = 1
+           if (len_trim (arg) == 1) then
+              look_for_options = .false.
+           else
+              SCAN_SHORT_OPTIONS: do
+                 j = j + 1
+                 if (j > len_trim (arg)) exit SCAN_SHORT_OPTIONS
+                 option = "-" // arg(j:j)
+                 select case (option)
+                 case ("-V")
+                    call print_version (); stop
+                 case ("-?", "-h")
+                    call print_usage (); stop
+                 case default
+                    call print_usage ()
+                    call msg_fatal &
+                         ("Option '" // option // "' not recognized")
+                 end select
+              end do SCAN_SHORT_OPTIONS
+           end if
+        case default
+           call print_usage ()
+           call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+        end select
+     else
+        call print_usage ()
+        call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+     end if
+  end do SCAN_CMDLINE
+
+  ! Overall initialization
+  if (banner)  call msg_banner ()
+
+   ! Run any self-checks (and no commands)
+   if (checks /= "") then
+      checks = trim (adjustl (checks))
+      RUN_CHECKS: do while (checks /= "")
+         call split (checks, check, " ")
+         call whizard_check (check, test_results)
+      end do RUN_CHECKS
+      call test_results%wrapup (6, success)
+      if (.not. success)  quit_code = 7
+   end if
+
+ <<Main: MPI finalize>>
+
+   call msg_terminate (quit_code = quit_code)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+contains
+
+  subroutine print_version ()
+    print "(A)", "WHIZARD " // WHIZARD_VERSION // " (unit test driver)"
+    print "(A)", "Copyright (C) 1999-2022 Wolfgang Kilian, Thorsten Ohl, Juergen Reuter"
+    print "(A)", "              ---------------------------------------                "
+    print "(A)", "This is free software; see the source for copying conditions.  There is NO"
+    print "(A)", "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    print *
+  end subroutine print_version
+
+<<Main: tests>>
+
+end program main_ut
+
+!!! (WK 02/2016)
+!!! Separate subroutine, because this becomes a procedure pointer target
+!!! Internal procedures as targets are not supported by some compilers.
+
+  subroutine print_usage ()
+    use system_dependencies, only: WHIZARD_VERSION
+    print "(A)", "WHIZARD " // WHIZARD_VERSION // " (unit test driver)"
+    print "(A)", "Usage: whizard_ut [OPTIONS] [FILE]"
+    print "(A)", "Run WHIZARD unit tests as given on the command line"
+    print "(A)", "Options:"
+    print "(A)", "-h, --help            display this help and exit"
+    print "(A)", "    --banner          display banner at startup (default)"
+    print "(A)", "    --no-banner       do not display banner at startup"
+    print "(A)", "    --debug AREA      switch on debug output for AREA."
+    print "(A)", "                      AREA can be one of Whizard's src dirs or 'all'"
+    print "(A)", "    --debug2 AREA     switch on more verbose debug output for AREA."
+    print "(A)", "-V, --version         output version information and exit"
+    print "(A)", "    --check TEST      run unit test TEST"
+  end subroutine print_usage
+@ %def main_ut
+@
+<<Main: MPI init>>=
+@
+<<Main: MPI finalize>>=
+@
+@ MPI init.
+<<MPI: Main: MPI init>>=
+  call MPI_init ()
+<<MPI: Main: MPI finalize>>=
+  call MPI_finalize ()
+@ %def MPI_init MPI_finalize
+<<Main: dependent flags>>=
+@
+Every rebuild action is forbidden for the slave workers except
+[[rebuild_grids]], which is handled correctly inside the corresponding
+integration object.
+<<MPI: Main: dependent flags>>=
+  if (.not. mpi_is_comm_master ()) then
+    options%rebuild_library = .false.
+    options%recompile_library = .false.
+    options%rebuild_phs = .false.
+    options%rebuild_events = .false.
+  end if
+@
+\subsection{Self-tests}
+For those self-tests, we need some auxiliary routines that provide an
+enviroment.  The environment depends on things that are not available at the
+level of the module that we want to test.
+
+\subsubsection{Testbed for event I/O}
+This subroutine prepares a test process with a single event.  All objects are
+allocated via anonymous pointers, because we want to recover the pointers and
+delete the objects in a separate procedure.
+<<Main: tests>>=
+  subroutine prepare_eio_test (event, unweighted, n_alt, sample_norm)
+    use variables, only: var_list_t
+    use model_data
+    use process, only: process_t
+    use instances, only: process_instance_t
+    use processes_ut, only: prepare_test_process
+    use event_base
+    use events
+
+    class(generic_event_t), intent(inout), pointer :: event
+    logical, intent(in), optional :: unweighted
+    integer, intent(in), optional :: n_alt
+    type(string_t), intent(in), optional :: sample_norm
+    type(model_data_t), pointer :: model
+    type(var_list_t) :: var_list
+    type(string_t) :: sample_normalization
+    type(process_t), pointer :: proc
+    type(process_instance_t), pointer :: process_instance
+
+    allocate (model)
+    call model%init_test ()
+
+    allocate (proc)
+    allocate (process_instance)
+
+    call prepare_test_process (proc, process_instance, model, &
+         run_id = var_str ("run_test"))
+    call process_instance%setup_event_data ()
+
+    call model%final ()
+    deallocate (model)
+
+    allocate (event_t :: event)
+    select type (event)
+    type is (event_t)
+       if (present (unweighted)) then
+          call var_list%append_log (&
+               var_str ("?unweighted"), unweighted, &
+               intrinsic = .true.)
+       else
+          call var_list%append_log (&
+               var_str ("?unweighted"), .true., &
+               intrinsic = .true.)
+       end if
+       if (present (sample_norm)) then
+          sample_normalization = sample_norm
+       else
+          sample_normalization = var_str ("auto")
+       end if
+       call var_list%append_string (&
+            var_str ("$sample_normalization"), &
+            sample_normalization, intrinsic = .true.)
+       call event%basic_init (var_list, n_alt)
+       call event%connect (process_instance, proc%get_model_ptr ())
+       call var_list%final ()
+    end select
+
+  end subroutine prepare_eio_test
+
+@ %def prepare_eio_test
+@ Recover those pointers, finalize the objects and deallocate.
+<<Main: tests>>=
+  subroutine cleanup_eio_test (event)
+    use model_data
+    use process, only: process_t
+    use instances, only: process_instance_t
+    use processes_ut, only: cleanup_test_process
+    use event_base
+    use events
+
+    class(generic_event_t), intent(inout), pointer :: event
+    type(process_t), pointer :: proc
+    type(process_instance_t), pointer :: process_instance
+
+    select type (event)
+    type is (event_t)
+       proc => event%get_process_ptr ()
+       process_instance => event%get_process_instance_ptr ()
+       call cleanup_test_process (proc, process_instance)
+       deallocate (process_instance)
+       deallocate (proc)
+       call event%final ()
+    end select
+    deallocate (event)
+
+  end subroutine cleanup_eio_test
+
+@ %def cleanup_eio_test_event
+@ Assign those procedures to appropriate pointers (module variables) in the
+[[eio_base]] module, so they can be called as if they were module procedures.
+<<Main: use tests>>=
+  use eio_base_ut, only: eio_prepare_test
+  use eio_base_ut, only: eio_cleanup_test
+<<Main: prepare testbed>>=
+  eio_prepare_test => prepare_eio_test
+  eio_cleanup_test => cleanup_eio_test
+@
+\subsubsection{Any Model}
+This procedure reads any model from file and, optionally, assigns a
+var-list pointer.  If the model pointer is still null, we allocate the model
+object first, with concrete type [[model_t]].  This is a service for modules
+which do just have access to the [[model_data_t]] base type.
+<<Main: tests>>=
+  subroutine prepare_whizard_model (model, name, vars)
+  <<Use strings>>
+    use os_interface
+    use model_data
+    use var_base
+    use models
+    class(model_data_t), intent(inout), pointer :: model
+    type(string_t), intent(in) :: name
+    class(vars_t), pointer, intent(out), optional :: vars
+    type(os_data_t) :: os_data
+    call syntax_model_file_init ()
+    call os_data%init ()
+    if (.not. associated (model))  allocate (model_t :: model)
+    select type (model)
+    type is (model_t)
+       call model%read (name // ".mdl", os_data)
+       if (present (vars)) then
+          vars => model%get_var_list_ptr ()
+       end if
+    end select
+  end subroutine prepare_whizard_model
+
+@ %def prepare_whizard_model
+@ Cleanup after use.  Includes deletion of the model-file syntax.
+<<Main: tests>>=
+  subroutine cleanup_whizard_model (model)
+    use model_data
+    use models
+    class(model_data_t), intent(inout), target :: model
+    call model%final ()
+    call syntax_model_file_final ()
+  end subroutine cleanup_whizard_model
+
+@ %def cleanup_whizard_model
+@ Assign those procedures to appropriate pointers (module variables) in the
+[[model_testbed]] module, so they can be called as if they were module
+procedures.
+<<Main: prepare testbed>>=
+  prepare_model => prepare_whizard_model
+  cleanup_model => cleanup_whizard_model
+@
+\subsubsection{Fallback model: hadrons}
+Some event format tests require the hadronic SM implementation, which
+has to be read from file.  We provide the functionality here, so the
+tests do not depend on model I/O.
+<<Main: tests>>=
+  subroutine prepare_fallback_model (model)
+    use model_data
+    class(model_data_t), intent(inout), pointer :: model
+    call prepare_whizard_model (model, var_str ("SM_hadrons"))
+  end subroutine prepare_fallback_model
+
+@ %def prepare_fallback_model
+@ Assign those procedures to appropriate pointers (module variables) in the
+[[eio_base]] module, so they can be called as if they were module procedures.
+<<Main: use tests>>=
+  use eio_base_ut, only: eio_prepare_fallback_model
+  use eio_base_ut, only: eio_cleanup_fallback_model
+<<Main: prepare testbed>>=
+  eio_prepare_fallback_model => prepare_fallback_model
+  eio_cleanup_fallback_model => cleanup_model
+@
+\subsubsection{Access to the test random-number generator}
+This generator is not normally available for the dispatcher.  We assign an
+additional dispatch routine to the hook in the [[dispatch]] module
+which will be checked before the default rule.
+<<Main: use tests>>=
+  use dispatch_rng, only: dispatch_rng_factory_fallback
+  use dispatch_rng_ut, only: dispatch_rng_factory_test
+<<Main: prepare testbed>>=
+  dispatch_rng_factory_fallback => dispatch_rng_factory_test
+@
+\subsubsection{Access to the test structure functions}
+These are not normally available for the dispatcher.  We assign an
+additional dispatch routine to the hook in the [[dispatch]] module
+which will be checked before the default rule.
+<<Main: use tests>>=
+  use dispatch_beams, only: dispatch_sf_data_extra
+  use dispatch_ut, only: dispatch_sf_data_test
+<<Main: prepare testbed>>=
+  dispatch_sf_data_extra => dispatch_sf_data_test
+@
+\subsubsection{Procedure for Checking}
+This is for developers only, but needs a well-defined interface.
+<<Main: tests>>=
+  subroutine whizard_check (check, results)
+    type(string_t), intent(in) :: check
+    type(test_results_t), intent(inout) :: results
+    type(os_data_t) :: os_data
+    integer :: u
+    call os_data%init ()
+    u = free_unit ()
+    open (u, file="whizard_check." // char (check) // ".log", &
+         action="write", status="replace")
+    call msg_message (repeat ('=', 76), 0)
+    call msg_message ("Running self-test: " // char (check), 0)
+    call msg_message (repeat ('-', 76), 0)
+  <<Main: prepare testbed>>
+    select case (char (check))
+  <<Main: test cases>>
+    case ("all")
+     <<Main: all tests>>
+    case default
+       call msg_fatal ("Self-test '" // char (check) // "' not implemented.")
+    end select
+    close (u)
+  end subroutine whizard_check
+
+@ %def whizard_check
+@
+\subsection{Unit test references}
+\subsubsection{Formats}
+<<Main: use tests>>=
+  use formats_ut, only: format_test
+<<Main: test cases>>=
+  case ("formats")
+     call format_test (u, results)
+<<Main: all tests>>=
+  call format_test (u, results)
+@
+\subsubsection{Numeric utilities}
+<<Main: use tests>>=
+  use numeric_utils_ut, only: numeric_utils_test
+<<Main: test cases>>=
+  case ("numeric_utils")
+     call numeric_utils_test (u, results)
+<<Main: all tests>>=
+  call numeric_utils_test (u, results)
+@
+\subsubsection{Binary Tree}
+<<Main: use tests>>=
+  use binary_tree_ut, only: binary_tree_test
+<<Main: test cases>>=
+  case ("binary_tree")
+     call binary_tree_test (u, results)
+<<Main: all tests>>=
+  call binary_tree_test (u, results)
+@
+\subsubsection{Array List}
+<<Main: use tests>>=
+  use array_list_ut, only: array_list_test
+<<Main: test cases>>=
+  case ("array_list")
+     call array_list_test (u, results)
+<<Main: all tests>>=
+  call array_list_test (u, results)
+@
+\subsubsection{Iterator}
+<<Main: use tests>>=
+  use iterator_ut, only: iterator_test
+<<Main: test cases>>=
+  case ("iterator")
+     call iterator_test (u, results)
+<<Main: all tests>>=
+  call iterator_test (u, results)
+@
+\subsubsection{MD5}
+<<Main: use tests>>=
+  use md5_ut, only: md5_test
+<<Main: test cases>>=
+  case ("md5")
+     call md5_test (u, results)
+<<Main: all tests>>=
+  call md5_test (u, results)
+@
+\subsubsection{OS Interface}
+<<Main: use tests>>=
+  use os_interface_ut, only: os_interface_test
+<<Main: test cases>>=
+  case ("os_interface")
+     call os_interface_test (u, results)
+<<Main: all tests>>=
+  call os_interface_test (u, results)
+@
+\subsubsection{Sorting}
+<<Main: use tests>>=
+  use sorting_ut, only: sorting_test
+<<Main: test cases>>=
+  case ("sorting")
+     call sorting_test (u, results)
+<<Main: all tests>>=
+  call sorting_test (u, results)
+@
+\subsubsection{Grids}
+<<Main: use tests>>=
+  use grids_ut, only: grids_test
+<<Main: test cases>>=
+  case ("grids")
+     call grids_test (u, results)
+<<Main: all tests>>=
+  call grids_test (u, results)
+@
+\subsubsection{Solver}
+<<Main: use tests>>=
+  use solver_ut, only: solver_test
+<<Main: test cases>>=
+  case ("solver")
+     call solver_test (u, results)
+<<Main: all tests>>=
+  call solver_test (u, results)
+@
+\subsubsection{CPU Time}
+<<Main: use tests>>=
+  use cputime_ut, only: cputime_test
+<<Main: test cases>>=
+  case ("cputime")
+     call cputime_test (u, results)
+<<Main: all tests>>=
+  call cputime_test (u, results)
+@
+\subsubsection{Lorentz algebra}
+<<Main: use tests>>=
+  use lorentz_ut, only: lorentz_test
+<<Main: test cases>>=
+  case ("lorentz")
+     call lorentz_test (u, results)
+<<Main: all tests>>=
+  call lorentz_test (u, results)
+@
+\subsubsection{PHS points}
+<<Main: use tests>>=
+  use phs_points_ut, only: phs_points_test
+<<Main: test cases>>=
+  case ("phs_points")
+     call phs_points_test (u, results)
+<<Main: all tests>>=
+  call phs_points_test (u, results)
+@
+\subsubsection{SM QCD}
+<<Main: use tests>>=
+  use sm_qcd_ut, only: sm_qcd_test
+<<Main: test cases>>=
+  case ("sm_qcd")
+     call sm_qcd_test (u, results)
+<<Main: all tests>>=
+  call sm_qcd_test (u, results)
+@
+\subsubsection{SM QED}
+<<Main: use tests>>=
+  use sm_qed_ut, only: sm_qed_test
+<<Main: test cases>>=
+  case ("sm_qed")
+     call sm_qed_test (u, results)
+<<Main: all tests>>=
+  call sm_qed_test (u, results)
+@
+\subsubsection{SM physics}
+<<Main: use tests>>=
+  use sm_physics_ut, only: sm_physics_test
+<<Main: test cases>>=
+  case ("sm_physics")
+     call sm_physics_test (u, results)
+<<Main: all tests>>=
+  call sm_physics_test (u, results)
+@
+\subsubsection{Electron PDFs}
+<<Main: use tests>>=
+  use electron_pdfs_ut, only: electron_pdfs_test
+<<Main: test cases>>=
+  case ("electron_pdfs")
+     call electron_pdfs_test (u, results)
+<<Main: all tests>>=
+  call electron_pdfs_test (u, results)
+@
+\subsubsection{Lexers}
+<<Main: use tests>>=
+  use lexers_ut, only: lexer_test
+<<Main: test cases>>=
+  case ("lexers")
+     call lexer_test (u, results)
+<<Main: all tests>>=
+  call lexer_test (u, results)
+@
+\subsubsection{Parser}
+<<Main: use tests>>=
+  use parser_ut, only: parse_test
+<<Main: test cases>>=
+  case ("parser")
+     call parse_test (u, results)
+<<Main: all tests>>=
+  call parse_test (u, results)
+@
+\subsubsection{XML}
+<<Main: use tests>>=
+  use xml_ut, only: xml_test
+<<Main: test cases>>=
+  case ("xml")
+     call xml_test (u, results)
+<<Main: all tests>>=
+  call xml_test (u, results)
+@
+\subsubsection{Colors}
+<<Main: use tests>>=
+  use colors_ut, only: color_test
+<<Main: test cases>>=
+  case ("colors")
+     call color_test (u, results)
+<<Main: all tests>>=
+  call color_test (u, results)
+@
+\subsubsection{State matrices}
+<<Main: use tests>>=
+  use state_matrices_ut, only: state_matrix_test
+<<Main: test cases>>=
+  case ("state_matrices")
+     call state_matrix_test (u, results)
+<<Main: all tests>>=
+  call state_matrix_test (u, results)
+@
+\subsubsection{Analysis}
+<<Main: use tests>>=
+  use analysis_ut, only: analysis_test
+<<Main: test cases>>=
+  case ("analysis")
+     call analysis_test (u, results)
+<<Main: all tests>>=
+  call analysis_test (u, results)
+@
+\subsubsection{Particles}
+<<Main: use tests>>=
+  use particles_ut, only: particles_test
+<<Main: test cases>>=
+  case ("particles")
+     call particles_test (u, results)
+<<Main: all tests>>=
+  call particles_test (u, results)
+@
+\subsubsection{Models}
+<<Main: use tests>>=
+  use models_ut, only: models_test
+<<Main: test cases>>=
+  case ("models")
+     call models_test (u, results)
+<<Main: all tests>>=
+  call models_test (u, results)
+@
+\subsubsection{Auto Components}
+<<Main: use tests>>=
+  use auto_components_ut, only: auto_components_test
+<<Main: test cases>>=
+  case ("auto_components")
+     call auto_components_test (u, results)
+<<Main: all tests>>=
+  call auto_components_test (u, results)
+@
+\subsubsection{Radiation Generator}
+<<Main: use tests>>=
+  use radiation_generator_ut, only: radiation_generator_test
+<<Main: test cases>>=
+  case ("radiation_generator")
+     call radiation_generator_test (u, results)
+<<Main: all tests>>=
+  call radiation_generator_test (u, results)
+@
+\subsection{BLHA}
+<<Main: use tests>>=
+  use blha_ut, only: blha_test
+<<Main: test cases>>=
+  case ("blha")
+     call blha_test (u, results)
+<<Main: all tests>>=
+  call blha_test (u, results)
+@
+\subsubsection{Evaluators}
+<<Main: use tests>>=
+  use evaluators_ut, only: evaluator_test
+<<Main: test cases>>=
+  case ("evaluators")
+     call evaluator_test (u, results)
+<<Main: all tests>>=
+  call evaluator_test (u, results)
+@
+\subsubsection{Expressions}
+<<Main: use tests>>=
+  use eval_trees_ut, only: expressions_test
+<<Main: test cases>>=
+  case ("expressions")
+     call expressions_test (u, results)
+<<Main: all tests>>=
+  call expressions_test (u, results)
+@
+\subsubsection{Resonances}
+<<Main: use tests>>=
+  use resonances_ut, only: resonances_test
+<<Main: test cases>>=
+  case ("resonances")
+     call resonances_test (u, results)
+<<Main: all tests>>=
+  call resonances_test (u, results)
+@
+\subsubsection{PHS Trees}
+<<Main: use tests>>=
+  use phs_trees_ut, only: phs_trees_test
+<<Main: test cases>>=
+  case ("phs_trees")
+     call phs_trees_test (u, results)
+<<Main: all tests>>=
+  call phs_trees_test (u, results)
+@
+\subsubsection{PHS Forests}
+<<Main: use tests>>=
+  use phs_forests_ut, only: phs_forests_test
+<<Main: test cases>>=
+  case ("phs_forests")
+     call phs_forests_test (u, results)
+<<Main: all tests>>=
+  call phs_forests_test (u, results)
+@
+\subsubsection{Beams}
+<<Main: use tests>>=
+  use beams_ut, only: beams_test
+<<Main: test cases>>=
+  case ("beams")
+     call beams_test (u, results)
+<<Main: all tests>>=
+  call beams_test (u, results)
+@
+\subsubsection{$su(N)$ Algebra}
+<<Main: use tests>>=
+  use su_algebra_ut, only: su_algebra_test
+<<Main: test cases>>=
+  case ("su_algebra")
+     call su_algebra_test (u, results)
+<<Main: all tests>>=
+  call su_algebra_test (u, results)
+@
+\subsubsection{Bloch Vectors}
+<<Main: use tests>>=
+  use bloch_vectors_ut, only: bloch_vectors_test
+<<Main: test cases>>=
+  case ("bloch_vectors")
+     call bloch_vectors_test (u, results)
+<<Main: all tests>>=
+  call bloch_vectors_test (u, results)
+@
+\subsubsection{Polarizations}
+<<Main: use tests>>=
+  use polarizations_ut, only: polarizations_test
+<<Main: test cases>>=
+  case ("polarizations")
+     call polarizations_test (u, results)
+<<Main: all tests>>=
+  call polarizations_test (u, results)
+@
+\subsubsection{SF Aux}
+<<Main: use tests>>=
+  use sf_aux_ut, only: sf_aux_test
+<<Main: test cases>>=
+  case ("sf_aux")
+     call sf_aux_test (u, results)
+<<Main: all tests>>=
+  call sf_aux_test (u, results)
+@
+\subsubsection{SF Mappings}
+<<Main: use tests>>=
+  use sf_mappings_ut, only: sf_mappings_test
+<<Main: test cases>>=
+  case ("sf_mappings")
+     call sf_mappings_test (u, results)
+<<Main: all tests>>=
+  call sf_mappings_test (u, results)
+@
+\subsubsection{SF Base}
+<<Main: use tests>>=
+  use sf_base_ut, only: sf_base_test
+<<Main: test cases>>=
+  case ("sf_base")
+     call sf_base_test (u, results)
+<<Main: all tests>>=
+  call sf_base_test (u, results)
+@
+\subsubsection{SF PDF Builtin}
+<<Main: use tests>>=
+  use sf_pdf_builtin_ut, only: sf_pdf_builtin_test
+<<Main: test cases>>=
+  case ("sf_pdf_builtin")
+     call sf_pdf_builtin_test (u, results)
+<<Main: all tests>>=
+  call sf_pdf_builtin_test (u, results)
+@
+\subsubsection{SF LHAPDF}
+<<Main: use tests>>=
+  use sf_lhapdf_ut, only: sf_lhapdf_test
+<<Main: test cases>>=
+  case ("sf_lhapdf")
+     call sf_lhapdf_test (u, results)
+<<Main: all tests>>=
+  call sf_lhapdf_test (u, results)
+@
+\subsubsection{SF ISR}
+<<Main: use tests>>=
+  use sf_isr_ut, only: sf_isr_test
+<<Main: test cases>>=
+  case ("sf_isr")
+     call sf_isr_test (u, results)
+<<Main: all tests>>=
+  call sf_isr_test (u, results)
+@
+\subsubsection{SF EPA}
+<<Main: use tests>>=
+  use sf_epa_ut, only: sf_epa_test
+<<Main: test cases>>=
+  case ("sf_epa")
+     call sf_epa_test (u, results)
+<<Main: all tests>>=
+  call sf_epa_test (u, results)
+@
+\subsubsection{SF EWA}
+<<Main: use tests>>=
+  use sf_ewa_ut, only: sf_ewa_test
+<<Main: test cases>>=
+  case ("sf_ewa")
+     call sf_ewa_test (u, results)
+<<Main: all tests>>=
+  call sf_ewa_test (u, results)
+@
+\subsubsection{SF CIRCE1}
+<<Main: use tests>>=
+  use sf_circe1_ut, only: sf_circe1_test
+<<Main: test cases>>=
+  case ("sf_circe1")
+     call sf_circe1_test (u, results)
+<<Main: all tests>>=
+  call sf_circe1_test (u, results)
+@
+\subsubsection{SF CIRCE2}
+<<Main: use tests>>=
+  use sf_circe2_ut, only: sf_circe2_test
+<<Main: test cases>>=
+  case ("sf_circe2")
+     call sf_circe2_test (u, results)
+<<Main: all tests>>=
+  call sf_circe2_test (u, results)
+@
+\subsubsection{SF Gaussian}
+<<Main: use tests>>=
+  use sf_gaussian_ut, only: sf_gaussian_test
+<<Main: test cases>>=
+  case ("sf_gaussian")
+     call sf_gaussian_test (u, results)
+<<Main: all tests>>=
+  call sf_gaussian_test (u, results)
+@
+\subsubsection{SF Beam Events}
+<<Main: use tests>>=
+  use sf_beam_events_ut, only: sf_beam_events_test
+<<Main: test cases>>=
+  case ("sf_beam_events")
+     call sf_beam_events_test (u, results)
+<<Main: all tests>>=
+  call sf_beam_events_test (u, results)
+@
+\subsubsection{SF EScan}
+<<Main: use tests>>=
+  use sf_escan_ut, only: sf_escan_test
+<<Main: test cases>>=
+  case ("sf_escan")
+     call sf_escan_test (u, results)
+<<Main: all tests>>=
+  call sf_escan_test (u, results)
+@
+\subsubsection{PHS Base}
+<<Main: use tests>>=
+  use phs_base_ut, only: phs_base_test
+<<Main: test cases>>=
+  case ("phs_base")
+     call phs_base_test (u, results)
+<<Main: all tests>>=
+  call phs_base_test (u, results)
+@
+\subsubsection{PHS None}
+<<Main: use tests>>=
+  use phs_none_ut, only: phs_none_test
+<<Main: test cases>>=
+  case ("phs_none")
+     call phs_none_test (u, results)
+<<Main: all tests>>=
+  call phs_none_test (u, results)
+@
+\subsubsection{PHS Single}
+<<Main: use tests>>=
+  use phs_single_ut, only: phs_single_test
+<<Main: test cases>>=
+  case ("phs_single")
+     call phs_single_test (u, results)
+<<Main: all tests>>=
+  call phs_single_test (u, results)
+@
+\subsubsection{PHS Rambo}
+<<Main: use tests>>=
+  use phs_rambo_ut, only: phs_rambo_test
+<<Main: test cases>>=
+  case ("phs_rambo")
+     call phs_rambo_test (u, results)
+<<Main: all tests>>=
+  call phs_rambo_test (u, results)
+@
+\subsubsection{PHS Wood}
+<<Main: use tests>>=
+  use phs_wood_ut, only: phs_wood_test
+  use phs_wood_ut, only: phs_wood_vis_test
+<<Main: test cases>>=
+  case ("phs_wood")
+     call phs_wood_test (u, results)
+  case ("phs_wood_vis")
+     call phs_wood_vis_test (u, results)
+<<Main: all tests>>=
+  call phs_wood_test (u, results)
+  call phs_wood_vis_test (u, results)
+@
+\subsubsection{PHS FKS Generator}
+<<Main: use tests>>=
+  use phs_fks_ut, only: phs_fks_generator_test
+<<Main: test cases>>=
+  case ("phs_fks_generator")
+     call phs_fks_generator_test (u, results)
+<<Main: all tests>>=
+  call phs_fks_generator_test (u, results)
+@
+\subsubsection{FKS regions}
+<<Main: use tests>>=
+  use fks_regions_ut, only: fks_regions_test
+<<Main: test cases>>=
+  case ("fks_regions")
+     call fks_regions_test (u, results)
+<<Main: all tests>>=
+  call fks_regions_test (u, results)
+@
+\subsubsection{Real subtraction}
+<<Main: use tests>>=
+  use real_subtraction_ut, only: real_subtraction_test
+<<Main: test cases>>=
+  case ("real_subtraction")
+     call real_subtraction_test (u, results)
+<<Main: all tests>>=
+  call real_subtraction_test (u, results)
+@
+\subsubsection{RECOLA}
+<<Main: use tests>>=
+  use prc_recola_ut, only: prc_recola_test
+<<Main: test cases>>=
+  case ("prc_recola")
+     call prc_recola_test (u, results)
+<<Main: all tests>>=
+  call prc_recola_test (u, results)
+@
+\subsubsection{RNG Base}
+<<Main: use tests>>=
+  use rng_base_ut, only: rng_base_test
+<<Main: test cases>>=
+  case ("rng_base")
+     call rng_base_test (u, results)
+<<Main: all tests>>=
+  call rng_base_test (u, results)
+@
+\subsubsection{RNG Tao}
+<<Main: use tests>>=
+  use rng_tao_ut, only: rng_tao_test
+<<Main: test cases>>=
+  case ("rng_tao")
+     call rng_tao_test (u, results)
+<<Main: all tests>>=
+  call rng_tao_test (u, results)
+@
+\subsubsection{RNG Stream}
+<<Main: use tests>>=
+  use rng_stream_ut, only: rng_stream_test
+<<Main: test cases>>=
+  case ("rng_stream")
+     call rng_stream_test (u, results)
+<<Main: all tests>>=
+  call rng_stream_test (u, results)
+@
+\subsubsection{Selectors}
+<<Main: use tests>>=
+  use selectors_ut, only: selectors_test
+<<Main: test cases>>=
+  case ("selectors")
+     call selectors_test (u, results)
+<<Main: all tests>>=
+  call selectors_test (u, results)
+@
+\subsubsection{VEGAS}
+<<Main: use tests>>=
+  use vegas_ut, only: vegas_test
+<<Main: test cases>>=
+  case ("vegas")
+     call vegas_test (u, results)
+<<Main: all tests>>=
+  call vegas_test (u, results)
+@
+\subsubsection{VAMP2}
+<<Main: use tests>>=
+  use vamp2_ut, only: vamp2_test
+<<Main: test cases>>=
+  case ("vamp2")
+     call vamp2_test (u, results)
+<<Main: all tests>>=
+  call vamp2_test (u, results)
+@
+\subsubsection{MCI Base}
+<<Main: use tests>>=
+  use mci_base_ut, only: mci_base_test
+<<Main: test cases>>=
+  case ("mci_base")
+     call mci_base_test (u, results)
+<<Main: all tests>>=
+  call mci_base_test (u, results)
+@
+\subsubsection{MCI None}
+<<Main: use tests>>=
+  use mci_none_ut, only: mci_none_test
+<<Main: test cases>>=
+  case ("mci_none")
+     call mci_none_test (u, results)
+<<Main: all tests>>=
+  call mci_none_test (u, results)
+@
+\subsubsection{MCI Midpoint}
+<<Main: use tests>>=
+  use mci_midpoint_ut, only: mci_midpoint_test
+<<Main: test cases>>=
+  case ("mci_midpoint")
+     call mci_midpoint_test (u, results)
+<<Main: all tests>>=
+  call mci_midpoint_test (u, results)
+@
+\subsubsection{MCI VAMP}
+<<Main: use tests>>=
+  use mci_vamp_ut, only: mci_vamp_test
+<<Main: test cases>>=
+  case ("mci_vamp")
+     call mci_vamp_test (u, results)
+<<Main: all tests>>=
+  call mci_vamp_test (u, results)
+@
+\subsubsection{MCI VAMP2}
+<<Main: use tests>>=
+  use mci_vamp2_ut, only: mci_vamp2_test
+<<Main: test cases>>=
+  case ("mci_vamp2")
+     call mci_vamp2_test (u, results)
+<<Main: all tests>>=
+  call mci_vamp2_test (u, results)
+@
+\subsubsection{Integration Results}
+<<Main: use tests>>=
+  use integration_results_ut, only: integration_results_test
+<<Main: test cases>>=
+  case ("integration_results")
+     call integration_results_test (u, results)
+<<Main: all tests>>=
+  call integration_results_test (u, results)
+@
+\subsubsection{PRCLib Interfaces}
+<<Main: use tests>>=
+  use prclib_interfaces_ut, only: prclib_interfaces_test
+<<Main: test cases>>=
+  case ("prclib_interfaces")
+     call prclib_interfaces_test (u, results)
+<<Main: all tests>>=
+  call prclib_interfaces_test (u, results)
+@
+\subsubsection{Particle Specifiers}
+<<Main: use tests>>=
+  use particle_specifiers_ut, only: particle_specifiers_test
+<<Main: test cases>>=
+  case ("particle_specifiers")
+     call particle_specifiers_test (u, results)
+<<Main: all tests>>=
+  call particle_specifiers_test (u, results)
+@
+\subsubsection{Process Libraries}
+<<Main: use tests>>=
+  use process_libraries_ut, only: process_libraries_test
+<<Main: test cases>>=
+  case ("process_libraries")
+     call process_libraries_test (u, results)
+<<Main: all tests>>=
+  call process_libraries_test (u, results)
+@
+\subsubsection{PRCLib Stacks}
+<<Main: use tests>>=
+  use prclib_stacks_ut, only: prclib_stacks_test
+<<Main: test cases>>=
+  case ("prclib_stacks")
+     call prclib_stacks_test (u, results)
+<<Main: all tests>>=
+  call prclib_stacks_test (u, results)
+@
+\subsubsection{HepMC}
+<<Main: use tests>>=
+  use hepmc_interface_ut, only: hepmc_interface_test
+<<Main: test cases>>=
+  case ("hepmc")
+     call hepmc_interface_test (u, results)
+<<Main: all tests>>=
+  call hepmc_interface_test (u, results)
+@
+\subsubsection{LCIO}
+<<Main: use tests>>=
+  use lcio_interface_ut, only: lcio_interface_test
+<<Main: test cases>>=
+  case ("lcio")
+     call lcio_interface_test (u, results)
+<<Main: all tests>>=
+  call lcio_interface_test (u, results)
+@
+\subsubsection{Jets}
+<<Main: use tests>>=
+  use jets_ut, only: jets_test
+<<Main: test cases>>=
+  case ("jets")
+     call jets_test (u, results)
+<<Main: all tests>>=
+  call jets_test (u, results)
+@
+\subsection{LHA User Process WHIZARD}
+<<Main: use tests>>=
+  use whizard_lha_ut, only: whizard_lha_test
+<<Main: test cases>>=
+  case ("whizard_lha")
+     call whizard_lha_test (u, results)
+<<Main: all tests>>=
+  call whizard_lha_test (u, results)
+@
+\subsection{Pythia8}
+<<Main: use tests>>=
+  use pythia8_ut, only: pythia8_test
+<<Main: test cases>>=
+  case ("pythia8")
+     call pythia8_test (u, results)
+<<Main: all tests>>=
+  call pythia8_test (u, results)
+@
+\subsubsection{PDG Arrays}
+<<Main: use tests>>=
+  use pdg_arrays_ut, only: pdg_arrays_test
+<<Main: test cases>>=
+  case ("pdg_arrays")
+     call pdg_arrays_test (u, results)
+<<Main: all tests>>=
+  call pdg_arrays_test (u, results)
+@
+\subsubsection{interactions}
+<<Main: use tests>>=
+  use interactions_ut, only: interaction_test
+<<Main: test cases>>=
+  case ("interactions")
+     call interaction_test (u, results)
+<<Main: all tests>>=
+  call interaction_test (u, results)
+@
+\subsubsection{SLHA}
+<<Main: use tests>>=
+  use slha_interface_ut, only: slha_test
+<<Main: test cases>>=
+  case ("slha_interface")
+     call slha_test (u, results)
+<<Main: all tests>>=
+  call slha_test (u, results)
+@
+\subsubsection{Cascades}
+<<Main: use tests>>=
+  use cascades_ut, only: cascades_test
+<<Main: test cases>>=
+  case ("cascades")
+     call cascades_test (u, results)
+<<Main: all tests>>=
+  call cascades_test (u, results)
+@
+\subsubsection{Cascades2 lexer}
+<<Main: use tests>>=
+  use cascades2_lexer_ut, only: cascades2_lexer_test
+<<Main: test cases>>=
+  case ("cascades2_lexer")
+     call cascades2_lexer_test (u, results)
+<<Main: all tests>>=
+  call cascades2_lexer_test (u, results)
+@
+\subsubsection{Cascades2}
+<<Main: use tests>>=
+  use cascades2_ut, only: cascades2_test
+<<Main: test cases>>=
+  case ("cascades2")
+     call cascades2_test (u, results)
+<<Main: all tests>>=
+  call cascades2_test (u, results)
+@
+\subsubsection{PRC Test}
+<<Main: use tests>>=
+  use prc_test_ut, only: prc_test_test
+<<Main: test cases>>=
+  case ("prc_test")
+     call prc_test_test (u, results)
+<<Main: all tests>>=
+  call prc_test_test (u, results)
+@
+\subsubsection{PRC Template ME}
+<<Main: use tests>>=
+  use prc_template_me_ut, only: prc_template_me_test
+<<Main: test cases>>=
+  case ("prc_template_me")
+     call prc_template_me_test (u, results)
+<<Main: all tests>>=
+  call prc_template_me_test (u, results)
+@
+\subsubsection{PRC OMega}
+<<Main: use tests>>=
+  use prc_omega_ut, only: prc_omega_test
+  use prc_omega_ut, only: prc_omega_diags_test
+<<Main: test cases>>=
+  case ("prc_omega")
+     call prc_omega_test (u, results)
+  case ("prc_omega_diags")
+     call prc_omega_diags_test (u, results)
+<<Main: all tests>>=
+  call prc_omega_test (u, results)
+  call prc_omega_diags_test (u, results)
+@
+\subsubsection{Parton States}
+<<Main: use tests>>=
+  use parton_states_ut, only: parton_states_test
+<<Main: test cases>>=
+  case ("parton_states")
+     call parton_states_test (u, results)
+<<Main: all tests>>=
+  call parton_states_test (u, results)
+@
+\subsubsection{Subevt Expr}
+<<Main: use tests>>=
+  use expr_tests_ut, only: subevt_expr_test
+<<Main: test cases>>=
+  case ("subevt_expr")
+     call subevt_expr_test (u, results)
+<<Main: all tests>>=
+  call subevt_expr_test (u, results)
+@
+\subsubsection{Processes}
+<<Main: use tests>>=
+  use processes_ut, only: processes_test
+<<Main: test cases>>=
+  case ("processes")
+     call processes_test (u, results)
+<<Main: all tests>>=
+  call processes_test (u, results)
+@
+\subsubsection{Process Stacks}
+<<Main: use tests>>=
+  use process_stacks_ut, only: process_stacks_test
+<<Main: test cases>>=
+  case ("process_stacks")
+     call process_stacks_test (u, results)
+<<Main: all tests>>=
+  call process_stacks_test (u, results)
+@
+\subsubsection{Event Transforms}
+<<Main: use tests>>=
+  use event_transforms_ut, only: event_transforms_test
+<<Main: test cases>>=
+  case ("event_transforms")
+     call event_transforms_test (u, results)
+<<Main: all tests>>=
+  call event_transforms_test (u, results)
+@
+\subsubsection{Resonance Insertion Transform}
+<<Main: use tests>>=
+  use resonance_insertion_ut, only: resonance_insertion_test
+<<Main: test cases>>=
+  case ("resonance_insertion")
+     call resonance_insertion_test (u, results)
+<<Main: all tests>>=
+  call resonance_insertion_test (u, results)
+@
+\subsubsection{Recoil Kinematics}
+<<Main: use tests>>=
+  use recoil_kinematics_ut, only: recoil_kinematics_test
+<<Main: test cases>>=
+  case ("recoil_kinematics")
+     call recoil_kinematics_test (u, results)
+<<Main: all tests>>=
+  call recoil_kinematics_test (u, results)
+@
+\subsubsection{ISR Handler}
+<<Main: use tests>>=
+  use isr_epa_handler_ut, only: isr_handler_test
+<<Main: test cases>>=
+  case ("isr_handler")
+     call isr_handler_test (u, results)
+<<Main: all tests>>=
+  call isr_handler_test (u, results)
+@
+\subsubsection{EPA Handler}
+<<Main: use tests>>=
+  use isr_epa_handler_ut, only: epa_handler_test
+<<Main: test cases>>=
+  case ("epa_handler")
+     call epa_handler_test (u, results)
+<<Main: all tests>>=
+  call epa_handler_test (u, results)
+@
+\subsubsection{Decays}
+<<Main: use tests>>=
+  use decays_ut, only: decays_test
+<<Main: test cases>>=
+  case ("decays")
+     call decays_test (u, results)
+<<Main: all tests>>=
+  call decays_test (u, results)
+@
+\subsubsection{Shower}
+<<Main: use tests>>=
+  use shower_ut, only: shower_test
+<<Main: test cases>>=
+  case ("shower")
+     call shower_test (u, results)
+<<Main: all tests>>=
+  call shower_test (u, results)
+@
+\subsubsection{Events}
+<<Main: use tests>>=
+  use events_ut, only: events_test
+<<Main: test cases>>=
+  case ("events")
+     call events_test (u, results)
+<<Main: all tests>>=
+  call events_test (u, results)
+@
+\subsubsection{HEP Events}
+<<Main: use tests>>=
+  use hep_events_ut, only: hep_events_test
+<<Main: test cases>>=
+  case ("hep_events")
+     call hep_events_test (u, results)
+<<Main: all tests>>=
+  call hep_events_test (u, results)
+@
+\subsubsection{EIO Data}
+<<Main: use tests>>=
+  use eio_data_ut, only: eio_data_test
+<<Main: test cases>>=
+  case ("eio_data")
+     call eio_data_test (u, results)
+<<Main: all tests>>=
+  call eio_data_test (u, results)
+@
+\subsubsection{EIO Base}
+<<Main: use tests>>=
+  use eio_base_ut, only: eio_base_test
+<<Main: test cases>>=
+  case ("eio_base")
+     call eio_base_test (u, results)
+<<Main: all tests>>=
+  call eio_base_test (u, results)
+@
+\subsubsection{EIO Direct}
+<<Main: use tests>>=
+  use eio_direct_ut, only: eio_direct_test
+<<Main: test cases>>=
+  case ("eio_direct")
+     call eio_direct_test (u, results)
+<<Main: all tests>>=
+  call eio_direct_test (u, results)
+@
+\subsubsection{EIO Raw}
+<<Main: use tests>>=
+  use eio_raw_ut, only: eio_raw_test
+<<Main: test cases>>=
+  case ("eio_raw")
+     call eio_raw_test (u, results)
+<<Main: all tests>>=
+  call eio_raw_test (u, results)
+@
+\subsubsection{EIO Checkpoints}
+<<Main: use tests>>=
+  use eio_checkpoints_ut, only: eio_checkpoints_test
+<<Main: test cases>>=
+  case ("eio_checkpoints")
+     call eio_checkpoints_test (u, results)
+<<Main: all tests>>=
+  call eio_checkpoints_test (u, results)
+@
+\subsubsection{EIO LHEF}
+<<Main: use tests>>=
+  use eio_lhef_ut, only: eio_lhef_test
+<<Main: test cases>>=
+  case ("eio_lhef")
+     call eio_lhef_test (u, results)
+<<Main: all tests>>=
+  call eio_lhef_test (u, results)
+@
+\subsubsection{EIO HepMC}
+<<Main: use tests>>=
+  use eio_hepmc_ut, only: eio_hepmc_test
+<<Main: test cases>>=
+  case ("eio_hepmc")
+     call eio_hepmc_test (u, results)
+<<Main: all tests>>=
+  call eio_hepmc_test (u, results)
+@
+\subsubsection{EIO LCIO}
+<<Main: use tests>>=
+  use eio_lcio_ut, only: eio_lcio_test
+<<Main: test cases>>=
+  case ("eio_lcio")
+     call eio_lcio_test (u, results)
+<<Main: all tests>>=
+  call eio_lcio_test (u, results)
+@
+\subsubsection{EIO StdHEP}
+<<Main: use tests>>=
+  use eio_stdhep_ut, only: eio_stdhep_test
+<<Main: test cases>>=
+  case ("eio_stdhep")
+     call eio_stdhep_test (u, results)
+<<Main: all tests>>=
+  call eio_stdhep_test (u, results)
+@
+\subsubsection{EIO ASCII}
+<<Main: use tests>>=
+  use eio_ascii_ut, only: eio_ascii_test
+<<Main: test cases>>=
+  case ("eio_ascii")
+     call eio_ascii_test (u, results)
+<<Main: all tests>>=
+  call eio_ascii_test (u, results)
+@
+\subsubsection{EIO Weights}
+<<Main: use tests>>=
+  use eio_weights_ut, only: eio_weights_test
+<<Main: test cases>>=
+  case ("eio_weights")
+     call eio_weights_test (u, results)
+<<Main: all tests>>=
+  call eio_weights_test (u, results)
+@
+\subsubsection{EIO Dump}
+<<Main: use tests>>=
+  use eio_dump_ut, only: eio_dump_test
+<<Main: test cases>>=
+  case ("eio_dump")
+     call eio_dump_test (u, results)
+<<Main: all tests>>=
+  call eio_dump_test (u, results)
+@
+\subsubsection{Iterations}
+<<Main: use tests>>=
+  use iterations_ut, only: iterations_test
+<<Main: test cases>>=
+  case ("iterations")
+     call iterations_test (u, results)
+<<Main: all tests>>=
+  call iterations_test (u, results)
+@
+\subsubsection{Beam Structures}
+<<Main: use tests>>=
+  use beam_structures_ut, only: beam_structures_test
+<<Main: test cases>>=
+  case ("beam_structures")
+     call beam_structures_test (u, results)
+<<Main: all tests>>=
+  call beam_structures_test (u, results)
+@
+\subsubsection{RT Data}
+<<Main: use tests>>=
+  use rt_data_ut, only: rt_data_test
+<<Main: test cases>>=
+  case ("rt_data")
+     call rt_data_test (u, results)
+<<Main: all tests>>=
+  call rt_data_test (u, results)
+@
+\subsubsection{Dispatch}
+<<Main: use tests>>=
+  use dispatch_ut, only: dispatch_test
+<<Main: test cases>>=
+  case ("dispatch")
+     call dispatch_test (u, results)
+<<Main: all tests>>=
+  call dispatch_test (u, results)
+@
+\subsubsection{Dispatch RNG}
+<<Main: use tests>>=
+  use dispatch_rng_ut, only: dispatch_rng_test
+<<Main: test cases>>=
+  case ("dispatch_rng")
+     call dispatch_rng_test (u, results)
+<<Main: all tests>>=
+  call dispatch_rng_test (u, results)
+@
+\subsubsection{Dispatch MCI}
+<<Main: use tests>>=
+  use dispatch_mci_ut, only: dispatch_mci_test
+<<Main: test cases>>=
+  case ("dispatch_mci")
+     call dispatch_mci_test (u, results)
+<<Main: all tests>>=
+  call dispatch_mci_test (u, results)
+@
+\subsubsection{Dispatch PHS}
+<<Main: use tests>>=
+  use dispatch_phs_ut, only: dispatch_phs_test
+<<Main: test cases>>=
+  case ("dispatch_phs")
+     call dispatch_phs_test (u, results)
+<<Main: all tests>>=
+  call dispatch_phs_test (u, results)
+@
+\subsubsection{Dispatch transforms}
+<<Main: use tests>>=
+  use dispatch_transforms_ut, only: dispatch_transforms_test
+<<Main: test cases>>=
+  case ("dispatch_transforms")
+     call dispatch_transforms_test (u, results)
+<<Main: all tests>>=
+  call dispatch_transforms_test (u, results)
+@
+\subsubsection{Shower partons}
+<<Main: use tests>>=
+  use shower_base_ut, only: shower_base_test
+<<Main: test cases>>=
+  case ("shower_base")
+     call shower_base_test (u, results)
+<<Main: all tests>>=
+  call shower_base_test (u, results)
+@
+\subsubsection{Process Configurations}
+<<Main: use tests>>=
+  use process_configurations_ut, only: process_configurations_test
+<<Main: test cases>>=
+  case ("process_configurations")
+     call process_configurations_test (u, results)
+<<Main: all tests>>=
+  call process_configurations_test (u, results)
+@
+\subsubsection{Compilations}
+<<Main: use tests>>=
+  use compilations_ut, only: compilations_test
+  use compilations_ut, only: compilations_static_test
+<<Main: test cases>>=
+  case ("compilations")
+     call compilations_test (u, results)
+  case ("compilations_static")
+     call compilations_static_test (u, results)
+<<Main: all tests>>=
+  call compilations_test (u, results)
+  call compilations_static_test (u, results)
+@
+\subsubsection{Integrations}
+<<Main: use tests>>=
+  use integrations_ut, only: integrations_test
+  use integrations_ut, only: integrations_history_test
+<<Main: test cases>>=
+  case ("integrations")
+     call integrations_test (u, results)
+  case ("integrations_history")
+     call integrations_history_test (u, results)
+<<Main: all tests>>=
+  call integrations_test (u, results)
+  call integrations_history_test (u, results)
+@
+\subsubsection{Event Streams}
+<<Main: use tests>>=
+  use event_streams_ut, only: event_streams_test
+<<Main: test cases>>=
+  case ("event_streams")
+     call event_streams_test (u, results)
+<<Main: all tests>>=
+  call event_streams_test (u, results)
+@
+\subsubsection{Restricted Subprocesses}
+<<Main: use tests>>=
+  use restricted_subprocesses_ut, only: restricted_subprocesses_test
+<<Main: test cases>>=
+  case ("restricted_subprocesses")
+     call restricted_subprocesses_test (u, results)
+<<Main: all tests>>=
+  call restricted_subprocesses_test (u, results)
+@
+\subsubsection{Simulations}
+<<Main: use tests>>=
+  use simulations_ut, only: simulations_test
+<<Main: test cases>>=
+  case ("simulations")
+     call simulations_test (u, results)
+<<Main: all tests>>=
+  call simulations_test (u, results)
+@
+\subsubsection{Commands}
+<<Main: use tests>>=
+  use commands_ut, only: commands_test
+<<Main: test cases>>=
+  case ("commands")
+     call commands_test (u, results)
+<<Main: all tests>>=
+  call commands_test (u, results)
+@
+\subsubsection{$ttV$ formfactors}
+<<Main: use tests>>=
+  use ttv_formfactors_ut, only: ttv_formfactors_test
+<<Main: test cases>>=
+  case ("ttv_formfactors")
+     call ttv_formfactors_test (u, results)
+<<Main: all tests>>=
+  call ttv_formfactors_test (u, results)
+@
+\subsubsection{API}
+<<Main: use tests>>=
+  use api_ut, only: api_test
+<<Main: test cases>>=
+  case ("api")
+     call api_test (u, results)
+<<Main: all tests>>=
+  call api_test (u, results)
+@
+\subsubsection{API/HepMC}
+<<Main: use tests>>=
+  use api_hepmc_ut, only: api_hepmc_test
+<<Main: test cases>>=
+  case ("api_hepmc")
+     call api_hepmc_test (u, results)
+<<Main: all tests>>=
+  call api_hepmc_test (u, results)
+@
+\subsubsection{API/LCIO}
+<<Main: use tests>>=
+  use api_lcio_ut, only: api_lcio_test
+<<Main: test cases>>=
+  case ("api_lcio")
+     call api_lcio_test (u, results)
+<<Main: all tests>>=
+  call api_lcio_test (u, results)

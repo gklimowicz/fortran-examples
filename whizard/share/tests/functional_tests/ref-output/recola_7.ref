@@ -1,0 +1,134 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+SM.mW =>  8.03760E+01
+SM.mZ =>  9.11876E+01
+SM.GF =>  1.16637E-05
+SM.wZ =>  2.49520E+00
+SM.wW =>  2.12400E+00
+SM.mmu =>  0.00000E+00
+SM.me =>  0.00000E+00
+SM.mc =>  0.00000E+00
+SM.ms =>  0.00000E+00
+SM.wtop =>  0.00000E+00
+SM.mtop =>  1.75000E+02
+$method = "recola"
+openmp_num_threads = 1
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+| Process library 'recola_7_lib': recorded process 'recola_7_p1'
+seed = 7777
+sqrts =  5.00000E+02
+| Integrate: current process library needs compilation
+| Process library 'recola_7_lib': compiling ...
+| Process library 'recola_7_lib': writing makefile
+| Process library 'recola_7_lib': removing old files
+| Process library 'recola_7_lib': writing driver
+| Process library 'recola_7_lib': creating source code
+| Process library 'recola_7_lib': compiling sources
+| Process library 'recola_7_lib': linking
+| Process library 'recola_7_lib': loading
+| Process library 'recola_7_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 7777
+| Initializing integration for process recola_7_p1:
+| Recola: registering processes for 'recola_7_p1_BORN'
+| Recola: process #1: e+ e- -> t t~ (LO)
+| Recola: preparing processes for integration
+| Recola: registering processes for 'recola_7_p1_REAL'
+| Recola: process #2: e+ e- -> t t~ g (LO)
+| Recola: preparing processes for integration
+| Recola: registering processes for 'recola_7_p1_LOOP'
+| Recola: process #3: e+ e- -> t t~ (NLO)
+| Recola: preparing processes for integration
+| Recola: registering processes for 'recola_7_p1_SUB'
+| Recola: process #4: e+ e- -> t t~ (LO)
+| Recola: preparing processes for integration
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e+  (mass = 0.0000000E+00 GeV)
+|   e-  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'recola_7_p1.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'recola_7_p1.i3.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'recola_7_p1'
+|   Library name  = 'recola_7_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'recola_7_p1_i1':   e+, e- => t, tbar [recola]
+|     2: 'recola_7_p1_i2':   e+, e- => t, tbar, gl [recola], [real]
+|     3: 'recola_7_p1_i3':   e+, e- => t, tbar [recola], [virtual]
+|     4: 'recola_7_p1_i4':   e+, e- => t, tbar [inactive], [subtraction]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 1 channels, 5 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'recola_7_p1' part 'born'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     5.071E+02   2.64E+01    5.21    0.52    45.6
+|-----------------------------------------------------------------------------|
+   1        100     5.071E+02   2.64E+01    5.21    0.52    45.6
+|=============================================================================|
+| Starting integration for process 'recola_7_p1' part 'real'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 5 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100    -7.761E+01   4.10E+00    5.28    0.53    43.0
+|-----------------------------------------------------------------------------|
+   1        100    -7.761E+01   4.10E+00    5.28    0.53    43.0
+|=============================================================================|
+| Starting integration for process 'recola_7_p1' part 'virtual'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     1.388E+02   7.64E+00    5.51    0.55    45.4
+|-----------------------------------------------------------------------------|
+   1        100     1.388E+02   7.64E+00    5.51    0.55    45.4
+|=============================================================================|
+| Integrate: sum of all components
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          0     5.683E+02   2.78E+01    4.90    0.00    40.1
+| NLO Correction: [O(alpha_s+1)/O(alpha_s)]
+|  (  12.06 +-   1.82 ) %
+|=============================================================================|
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

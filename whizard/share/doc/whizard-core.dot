@@ -1,0 +1,35 @@
+
+digraph G {
+concentrate=true
+splines=true
+node[shape=record,style=filled,fillcolor=white]
+edge[color=gray50]
+commands_sub -> integrations
+simulations -> rt_data
+rt_data -> user_files
+process_configurations_sub -> dispatch_me_methods
+simulations_sub -> integrations
+commands_sub -> process_configurations
+commands_sub -> event_streams
+commands_sub -> simulations
+restricted_subprocesses -> process_configurations
+simulations -> event_streams
+simulations_sub -> dispatch_me_methods
+restricted_subprocesses_sub -> integrations
+restricted_subprocesses_sub -> compilations
+whizard_sub -> commands
+integrations_sub -> dispatch_me_methods
+commands_sub -> restricted_subprocesses
+integrations -> rt_data
+process_configurations -> rt_data
+commands -> rt_data
+compilations -> rt_data
+commands_sub -> user_files
+simulations -> restricted_subprocesses
+restricted_subprocesses -> rt_data
+integrations_sub -> compilations
+event_streams -> rt_data
+commands_sub -> compilations
+whizard -> rt_data
+ }
+

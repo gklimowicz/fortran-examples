@@ -1,0 +1,58 @@
+# SINDARIN input for WHIZARD self-test
+# Testing event generation from separate NLO components
+# Testing only standard components, i.e. Born, Real and Virtual
+# No Mismatch or Dglap
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$method = "openloops"
+
+openmp_num_threads = 1
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+
+seed = 2222
+sqrts = 500 GeV
+
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+?fixed_order_nlo_events = true
+?negative_weights = true
+?unweighted = false
+
+mtop = 173.2
+wtop = 0.0
+
+process openloops_3_p1 = E1, e1 => t, T { nlo_calculation = born }
+iterations = 1:100
+integrate (openloops_3_p1)
+simulate (openloops_3_p1) { n_events = 1}
+
+seed = 3333
+
+process openloops_3_p2 = E1, e1 => t, T { nlo_calculation = real }
+
+integrate (openloops_3_p2)
+simulate (openloops_3_p2) { n_events = 1}
+
+seed = 4444
+
+process openloops_3_p3 = E1, e1 => t, T { nlo_calculation = virtual }
+
+integrate (openloops_3_p3)
+simulate (openloops_3_p3) { n_events = 1}

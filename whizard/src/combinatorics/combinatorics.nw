@@ -1,0 +1,3949 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD code as NOWEB source: combinatorics and such
+\chapter{Combinatorics}
+\includemodulegraph{combinatorics}
+
+These modules implement standard algorithms (sorting, hashing, etc.)
+that are not available in Fortran.
+
+Fortran doesn't support generic programming, therefore the algorithms
+are implemented only for specific data types.
+\begin{description}
+\item[bytes]
+  Derived types for bytes and words.
+\item[hashes]
+  Types and tools for setting up hashtables.
+\item[md5]
+  The MD5 algorithm for message digest.
+\item[permutations]
+  Permuting an array of integers.
+\item[sorting]
+  Sorting integer and real values.
+\item[grids]
+  $d$-dimensional grids can be saved to disk and used for interpolation,
+  maximum finding, etc.
+\end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Bytes and such}
+In a few instances we will need the notion of a byte (8-bit) and a word
+(32 bit), even a 64-bit word.  A block of 512 bit is also needed (for
+MD5).
+
+We rely on integers up to 64 bit being supported by the processor.
+The main difference to standard integers is the interpretation as
+unsigned integers.
+<<[[bytes.f90]]>>=
+<<File header>>
+
+module bytes
+
+  use kinds, only: i8, i32, i64
+
+<<Standard module head>>
+
+<<Bytes: public>>
+
+<<Bytes: types>>
+
+<<Bytes: parameters>>
+
+<<Bytes: interfaces>>
+
+  interface
+<<Bytes: sub interfaces>>
+  end interface
+
+end module bytes
+@ %def bytes
+@
+<<[[bytes_sub.f90]]>>=
+<<File header>>
+
+submodule (bytes) bytes_s
+
+  use io_units
+
+  implicit none
+
+contains
+
+<<Bytes: procedures>>
+
+end submodule bytes_s
+
+@ %def bytes_s
+@
+\subsection{8-bit words: bytes}
+This is essentially a wrapper around 8-bit integers.  The wrapper
+emphasises their special interpretation as a sequence of bits.
+However, we interpret bytes as unsigned integers.
+<<Bytes: public>>=
+  public :: byte_t
+<<Bytes: types>>=
+  type :: byte_t
+     private
+     integer(i8) :: i
+  end type byte_t
+
+@ %def byte
+<<Bytes: public>>=
+  public :: byte_zero
+<<Bytes: parameters>>=
+  type(byte_t), parameter :: byte_zero = byte_t (0_i8)
+
+@ %def byte_zero
+@ Set a byte from 8-bit integer:
+<<Bytes: public>>=
+  public :: assignment(=)
+<<Bytes: interfaces>>=
+  interface assignment(=)
+     module procedure set_byte_from_i8
+  end interface
+@ %def =
+@
+<<Bytes: sub interfaces>>=
+    module subroutine set_byte_from_i8 (b, i)
+      type(byte_t), intent(out) :: b
+      integer(i8), intent(in) :: i
+    end subroutine set_byte_from_i8
+<<Bytes: procedures>>=
+  module subroutine set_byte_from_i8 (b, i)
+    type(byte_t), intent(out) :: b
+    integer(i8), intent(in) :: i
+    b%i = i
+  end subroutine set_byte_from_i8
+
+@ %def set_byte_from_i8
+@ Write a byte in one of two formats: either as a hexadecimal number
+(two digits, default) or as a decimal number (one to three digits).
+The decimal version is nontrivial because bytes are unsigned integers.
+Optionally append a newline.
+<<Bytes: public>>=
+  public :: byte_write
+<<Bytes: interfaces>>=
+  interface byte_write
+     module procedure byte_write_unit, byte_write_string
+  end interface
+<<Bytes: sub interfaces>>=
+    module subroutine byte_write_unit (b, unit, decimal, newline)
+      type(byte_t), intent(in), optional :: b
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: decimal, newline
+    end subroutine byte_write_unit
+<<Bytes: procedures>>=
+  module subroutine byte_write_unit (b, unit, decimal, newline)
+    type(byte_t), intent(in), optional :: b
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: decimal, newline
+    logical :: dc, nl
+    type(word32_t) :: w
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    dc = .false.;  if (present (decimal))  dc = decimal
+    nl = .false.;  if (present (newline))  nl = newline
+    if (dc) then
+       w = b
+       write (u, '(I3)', advance='no')  w%i
+    else
+       write (u, '(z2.2)', advance='no')  b%i
+    end if
+    if (nl) write (u, *)
+  end subroutine byte_write_unit
+
+@ %def byte_write_unit
+@ The string version is hex-only
+<<Bytes: sub interfaces>>=
+    module subroutine byte_write_string (b, s)
+      type(byte_t), intent(in) :: b
+      character(len=2), intent(inout) :: s
+    end subroutine byte_write_string
+<<Bytes: procedures>>=
+  module subroutine byte_write_string (b, s)
+    type(byte_t), intent(in) :: b
+    character(len=2), intent(inout) :: s
+    write (s, '(z2.2)')  b%i
+  end subroutine byte_write_string
+
+@ %def byte_write_string
+@
+\subsection{32-bit words}
+This is not exactly a 32-bit integer.  A word is to be filled with
+bytes, and it may be partially filled.  The filling is done lowest-byte
+first, highest-byte last.  We count the bits, so [[fill]] should be
+either 0, 8, 16, 24, or 32.
+In printing words, we correspondingly
+distinguish between printing zeros and printing blanks.
+<<Bytes: public>>=
+  public :: word32_t
+<<Bytes: types>>=
+  type :: word32_t
+     private
+     integer(i32) :: i
+     integer :: fill = 0
+  end type word32_t
+
+@ %def word32
+@ Assignment: the word is filled by inserting a 32-bit integer
+<<Bytes: interfaces>>=
+  interface assignment(=)
+     module procedure word32_set_from_i32
+     module procedure word32_set_from_byte
+  end interface
+@ %def =
+@
+<<Bytes: sub interfaces>>=
+    module subroutine word32_set_from_i32 (w, i)
+      type(word32_t), intent(out) :: w
+      integer(i32), intent(in) :: i
+    end subroutine word32_set_from_i32
+<<Bytes: procedures>>=
+  module subroutine word32_set_from_i32 (w, i)
+    type(word32_t), intent(out) :: w
+    integer(i32), intent(in) :: i
+    w%i = i
+    w%fill = 32
+  end subroutine word32_set_from_i32
+
+@ %def word32_set_from_i32
+@ Reverse assignment to a 32-bit integer.  We do not check the fill
+status.
+<<Bytes: interfaces>>=
+  interface assignment(=)
+     module procedure i32_from_word32
+  end interface
+@ %def =
+@
+<<Bytes: sub interfaces>>=
+    module subroutine i32_from_word32 (i, w)
+      integer(i32), intent(out) :: i
+      type(word32_t), intent(in) :: w
+    end subroutine i32_from_word32
+<<Bytes: procedures>>=
+  module subroutine i32_from_word32 (i, w)
+    integer(i32), intent(out) :: i
+    type(word32_t), intent(in) :: w
+    i = w%i
+  end subroutine i32_from_word32
+
+@ %def i32_from_word32
+@ Filling with a 8-bit integer is slightly tricky, because in this
+interpretation integers are unsigned.
+<<Bytes: sub interfaces>>=
+    module subroutine word32_set_from_byte (w, b)
+      type(word32_t), intent(out) :: w
+      type(byte_t), intent(in) :: b
+    end subroutine word32_set_from_byte
+<<Bytes: procedures>>=
+  module subroutine word32_set_from_byte (w, b)
+    type(word32_t), intent(out) :: w
+    type(byte_t), intent(in) :: b
+    if (b%i >= 0_i8) then
+       w%i = b%i
+    else
+       w%i = 2_i32*(huge(0_i8)+1_i32) + b%i
+    end if
+    w%fill = 32
+  end subroutine word32_set_from_byte
+
+@ %def word32_set_from_byte
+@ Check the fill status
+<<Bytes: public>>=
+  public :: word32_empty, word32_filled, word32_fill
+<<Bytes: sub interfaces>>=
+    module function word32_empty (w)
+      type(word32_t), intent(in) :: w
+      logical :: word32_empty
+    end function word32_empty
+    module function word32_filled (w)
+      type(word32_t), intent(in) :: w
+      logical :: word32_filled
+    end function word32_filled
+    module function word32_fill (w)
+      type(word32_t), intent(in) :: w
+      integer :: word32_fill
+    end function word32_fill
+<<Bytes: procedures>>=
+  module function word32_empty (w)
+    type(word32_t), intent(in) :: w
+    logical :: word32_empty
+    word32_empty = (w%fill == 0)
+  end function word32_empty
+
+  module function word32_filled (w)
+    type(word32_t), intent(in) :: w
+    logical :: word32_filled
+    word32_filled = (w%fill == 32)
+  end function word32_filled
+
+  module function word32_fill (w)
+    type(word32_t), intent(in) :: w
+    integer :: word32_fill
+    word32_fill = w%fill
+  end function word32_fill
+
+@ %def word32_empty word32_filled word32_fill
+@ Partial assignment: append a byte to a partially filled word.
+(Note: no assignment if the word is filled, so check this before if
+necessary.)
+<<Bytes: public>>=
+  public :: word32_append_byte
+<<Bytes: sub interfaces>>=
+    module subroutine word32_append_byte (w, b)
+      type(word32_t), intent(inout) :: w
+      type(byte_t), intent(in) :: b
+    end subroutine word32_append_byte
+<<Bytes: procedures>>=
+  module subroutine word32_append_byte (w, b)
+    type(word32_t), intent(inout) :: w
+    type(byte_t), intent(in) :: b
+    type(word32_t) :: w1
+    if (.not. word32_filled (w)) then
+       w1 = b
+       call mvbits (w1%i, 0, 8, w%i, w%fill)
+       w%fill = w%fill + 8
+    end if
+  end subroutine word32_append_byte
+
+@ %def word32_append_byte
+@ Extract a byte from a word.  The argument [[i]] is the position,
+which may be 0, 1, 2, or 3.
+
+For the final assignment, we set the highest bit separately.
+Otherwise, we might trigger an overflow condition for a compiler with
+strict checking turned on.
+<<Bytes: public>>=
+  public :: byte_from_word32
+<<Bytes: sub interfaces>>=
+    module function byte_from_word32 (w, i) result (b)
+      type(word32_t), intent(in) :: w
+      integer, intent(in) :: i
+      type(byte_t) :: b
+    end function byte_from_word32
+<<Bytes: procedures>>=
+  module function byte_from_word32 (w, i) result (b)
+    type(word32_t), intent(in) :: w
+    integer, intent(in) :: i
+    type(byte_t) :: b
+    integer(i32) :: j
+    j = 0
+    if (i >= 0 .and. i*8 < w%fill) then
+       call mvbits (w%i, i*8, 8, j, 0)
+    end if
+    b%i = int (ibclr (j, 7), kind=i8)
+    if (btest (j, 7))  b%i = ibset (b%i, 7)
+  end function byte_from_word32
+
+@ %def byte_from_word32
+@ Write a word to file or STDOUT.  We understand words as unsigned
+integers, therefore we cannot use the built-in routine unchanged.
+However, we can make use of the existence of 64-bit integers and their
+output routine.
+
+In hexadecimal format, the default version prints eight hex
+characters, highest-first.  The [[bytes]] version prints four bytes
+(two-hex characters), lowest first, with spaces in-between.  The
+decimal bytes version is analogous.  In the [[bytes]] version, missing
+bytes are printed as whitespace.
+<<Bytes: public>>=
+  public :: word32_write
+<<Bytes: interfaces>>=
+  interface word32_write
+     module procedure word32_write_unit
+  end interface
+<<Bytes: sub interfaces>>=
+    module subroutine word32_write_unit (w, unit, bytes, decimal, newline)
+      type(word32_t), intent(in) :: w
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: bytes, decimal, newline
+    end subroutine word32_write_unit
+<<Bytes: procedures>>=
+  module subroutine word32_write_unit (w, unit, bytes, decimal, newline)
+    type(word32_t), intent(in) :: w
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: bytes, decimal, newline
+    logical :: dc, by, nl
+    type(word64_t) :: ww
+    integer :: i, u
+    u = given_output_unit (unit);  if (u < 0)  return
+    by = .false.;  if (present (bytes))   by = bytes
+    dc = .false.;  if (present (decimal)) dc = decimal
+    nl = .false.;  if (present (newline)) nl = newline
+    if (by) then
+       do i = 0, 3
+          if (i>0)  write (u, '(1x)', advance='no')
+          if (8*i < w%fill) then
+             call byte_write (byte_from_word32 (w, i), unit, decimal=decimal)
+          else if (dc) then
+             write (u, '(3x)', advance='no')
+          else
+             write (u, '(2x)', advance='no')
+          end if
+       end do
+    else if (dc) then
+       ww = w
+       write (u, '(I10)', advance='no') ww%i
+    else
+       select case (w%fill)
+       case ( 0)
+       case ( 8);  write (6, '(1x,z8.2)', advance='no') ibits (w%i, 0, 8)
+       case (16);  write (6, '(1x,z8.4)', advance='no') ibits (w%i, 0,16)
+       case (24);  write (6, '(1x,z8.6)', advance='no') ibits (w%i, 0,24)
+       case (32);  write (6, '(1x,z8.8)', advance='no') ibits (w%i, 0,32)
+       end select
+    end if
+    if (nl) write (u, *)
+  end subroutine word32_write_unit
+
+@ %def word32_write_unit
+@
+\subsection{Operations on 32-bit words}
+Define the usual logical operations, as well as addition (mod
+$2^{32}$).  We assume that all operands are completely filled.
+<<Bytes: public>>=
+  public :: not, ior, ieor, iand, ishft, ishftc
+<<Bytes: interfaces>>=
+  interface not
+     module procedure word_not
+  end interface
+  interface ior
+     module procedure word_or
+  end interface
+  interface ieor
+     module procedure word_eor
+  end interface
+  interface iand
+     module procedure word_and
+  end interface
+  interface ishft
+     module procedure word_shft
+  end interface
+  interface ishftc
+     module procedure word_shftc
+  end interface
+@ %def not, ior, ieor, iand, ishftc
+@
+<<Bytes: sub interfaces>>=
+    module function word_not (w1) result (w2)
+      type(word32_t), intent(in) :: w1
+      type(word32_t) :: w2
+    end function word_not
+    module function word_or (w1, w2) result (w3)
+      type(word32_t), intent(in) :: w1, w2
+      type(word32_t) :: w3
+    end function word_or
+    module function word_eor (w1, w2) result (w3)
+      type(word32_t), intent(in) :: w1, w2
+      type(word32_t) :: w3
+    end function word_eor
+    module function word_and (w1, w2) result (w3)
+      type(word32_t), intent(in) :: w1, w2
+      type(word32_t) :: w3
+    end function word_and
+    module function word_shft (w1, s) result (w2)
+      type(word32_t), intent(in) :: w1
+      integer, intent(in) :: s
+      type(word32_t) :: w2
+    end function word_shft
+    module function word_shftc (w1, s) result (w2)
+      type(word32_t), intent(in) :: w1
+      integer, intent(in) :: s
+      type(word32_t) :: w2
+    end function word_shftc
+<<Bytes: procedures>>=
+  module function word_not (w1) result (w2)
+    type(word32_t), intent(in) :: w1
+    type(word32_t) :: w2
+    w2 = not (w1%i)
+  end function word_not
+
+  module function word_or (w1, w2) result (w3)
+    type(word32_t), intent(in) :: w1, w2
+    type(word32_t) :: w3
+    w3 = ior (w1%i, w2%i)
+  end function word_or
+
+  module function word_eor (w1, w2) result (w3)
+    type(word32_t), intent(in) :: w1, w2
+    type(word32_t) :: w3
+    w3 = ieor (w1%i, w2%i)
+  end function word_eor
+
+  module function word_and (w1, w2) result (w3)
+    type(word32_t), intent(in) :: w1, w2
+    type(word32_t) :: w3
+    w3 = iand (w1%i, w2%i)
+  end function word_and
+
+  module function word_shft (w1, s) result (w2)
+    type(word32_t), intent(in) :: w1
+    integer, intent(in) :: s
+    type(word32_t) :: w2
+    w2 = ishft (w1%i, s)
+  end function word_shft
+
+  module function word_shftc (w1, s) result (w2)
+    type(word32_t), intent(in) :: w1
+    integer, intent(in) :: s
+    type(word32_t) :: w2
+    w2 = ishftc (w1%i, s, 32)
+  end function word_shftc
+
+@ %def word_not word_or word_eor word_and word_shft word_shftc
+@ Addition is defined mod $2^{32}$, i.e., without overflow checking.
+This means that we have to work around a possible overflow check enforced by
+the compiler.
+<<Bytes: public>>=
+  public :: operator(+)
+<<Bytes: interfaces>>=
+  interface operator(+)
+     module procedure word_add
+     module procedure word_add_i8
+     module procedure word_add_i32
+  end interface
+@ %def +
+@
+<<Bytes: sub interfaces>>=
+  module function word_add (w1, w2) result (w3)
+    type(word32_t), intent(in) :: w1, w2
+    type(word32_t) :: w3
+  end function word_add
+  module function word_add_i8 (w1, i) result (w3)
+    type(word32_t), intent(in) :: w1
+    integer(i8), intent(in) :: i
+    type(word32_t) :: w3
+  end function word_add_i8
+  module function word_add_i32 (w1, i) result (w3)
+    type(word32_t), intent(in) :: w1
+    integer(i32), intent(in) :: i
+    type(word32_t) :: w3
+  end function word_add_i32
+<<Bytes: procedures>>=
+  module function word_add (w1, w2) result (w3)
+    type(word32_t), intent(in) :: w1, w2
+    type(word32_t) :: w3
+    integer(i64) :: j
+    j = int (ibclr (w1%i, 31), i64) + int (ibclr (w2%i, 31), i64)
+    w3 = int (ibclr (j, 31), kind=i32)
+    if (btest (j, 31)) then
+       if (btest (w1%i, 31) .eqv. btest (w2%i, 31))  w3 = ibset (w3%i, 31)
+    else
+       if (btest (w1%i, 31) .neqv. btest (w2%i, 31))  w3 = ibset (w3%i, 31)
+    end if
+  end function word_add
+
+  module function word_add_i8 (w1, i) result (w3)
+    type(word32_t), intent(in) :: w1
+    integer(i8), intent(in) :: i
+    type(word32_t) :: w3
+    integer(i64) :: j
+    j = int (ibclr (w1%i, 31), i64) + int (ibclr (i, 7), i64)
+    if (btest (i, 7))  j = j + 128
+    w3 = int (ibclr (j, 31), kind=i32)
+    if (btest (j, 31) .neqv. btest (w1%i, 31))  w3 = ibset (w3%i, 31)
+  end function word_add_i8
+
+  module function word_add_i32 (w1, i) result (w3)
+    type(word32_t), intent(in) :: w1
+    integer(i32), intent(in) :: i
+    type(word32_t) :: w3
+    integer(i64) :: j
+    j = int (ibclr (w1%i, 31), i64) + int (ibclr (i, 31), i64)
+    w3 = int (ibclr (j, 31), kind=i32)
+    if (btest (j, 31)) then
+       if (btest (w1%i, 31) .eqv. btest (i, 31))  w3 = ibset (w3%i, 31)
+    else
+       if (btest (w1%i, 31) .neqv. btest (i, 31))  w3 = ibset (w3%i, 31)
+    end if
+  end function word_add_i32
+
+@ %def word_add word_add_i32
+@
+\subsection{64-bit words}
+These objects consist of two 32-bit words.  They thus can hold integer
+numbers larger than $2^{32}$ (to be exact, $2^{31}$ since FORTRAN
+integers are signed).  The order is low-word, high-word.
+<<Bytes: public>>=
+  public :: word64_t
+<<Bytes: types>>=
+  type :: word64_t
+     private
+     integer(i64) :: i
+  end type word64_t
+
+@ %def word64
+@ Set a 64 bit word:
+<<Bytes: interfaces>>=
+  interface assignment(=)
+     module procedure word64_set_from_i64
+     module procedure word64_set_from_word32
+  end interface
+@ %def =
+@
+<<Bytes: sub interfaces>>=
+    module subroutine word64_set_from_i64 (ww, i)
+      type(word64_t), intent(out) :: ww
+      integer(i64), intent(in) :: i
+    end subroutine word64_set_from_i64
+<<Bytes: procedures>>=
+  module subroutine word64_set_from_i64 (ww, i)
+    type(word64_t), intent(out) :: ww
+    integer(i64), intent(in) :: i
+    ww%i = i
+  end subroutine word64_set_from_i64
+
+@ %def word64_set_from_i64
+@ Filling with a 32-bit word:
+<<Bytes: sub interfaces>>=
+    module subroutine word64_set_from_word32 (ww, w)
+      type(word64_t), intent(out) :: ww
+      type(word32_t), intent(in) :: w
+    end subroutine word64_set_from_word32
+<<Bytes: procedures>>=
+  module subroutine word64_set_from_word32 (ww, w)
+    type(word64_t), intent(out) :: ww
+    type(word32_t), intent(in) :: w
+    if (w%i >= 0_i32) then
+       ww%i = w%i
+    else
+       ww%i = 2_i64*(huge(0_i32)+1_i64) + w%i
+    end if
+  end subroutine word64_set_from_word32
+
+@ %def word64_set_from_word32
+@ Extract a byte from a word.  The argument [[i]] is the position,
+which may be between 0 and 7.
+
+For the final assignment, we set the highest bit separately.
+Otherwise, we might trigger an overflow condition for a compiler with
+strict checking turned on.
+<<Bytes: public>>=
+  public :: byte_from_word64, word32_from_word64
+<<Bytes: sub interfaces>>=
+    module function byte_from_word64 (ww, i) result (b)
+      type(word64_t), intent(in) :: ww
+      integer, intent(in) :: i
+      type(byte_t) :: b
+    end function byte_from_word64
+<<Bytes: procedures>>=
+  module function byte_from_word64 (ww, i) result (b)
+    type(word64_t), intent(in) :: ww
+    integer, intent(in) :: i
+    type(byte_t) :: b
+    integer(i64) :: j
+    j = 0
+    if (i >= 0 .and. i*8 < 64) then
+       call mvbits (ww%i, i*8, 8, j, 0)
+    end if
+    b%i = int (ibclr (j, 7), kind=i8)
+    if (btest (j, 7))  b%i = ibset (b%i, 7)
+  end function byte_from_word64
+
+@ %def byte_from_word64
+@ Extract a 32-bit word from a 64-bit word.  The position is either 0
+or 1.
+<<Bytes: sub interfaces>>=
+    module function word32_from_word64 (ww, i) result (w)
+      type(word64_t), intent(in) :: ww
+      integer, intent(in) :: i
+      type(word32_t) :: w
+    end function word32_from_word64
+<<Bytes: procedures>>=
+  module function word32_from_word64 (ww, i) result (w)
+    type(word64_t), intent(in) :: ww
+    integer, intent(in) :: i
+    type(word32_t) :: w
+    integer(i64) :: j
+    j = 0
+    select case (i)
+    case (0);  call mvbits (ww%i,  0, 32, j, 0)
+    case (1);  call mvbits (ww%i, 32, 32, j, 0)
+    end select
+    w = int (ibclr (j, 31), kind=i32)
+    if (btest (j, 31))  w = ibset (w%i, 31)
+  end function word32_from_word64
+
+@ %def word32_from_word64
+@ Print a 64-bit word.  Decimal version works up to $2^{63}$.
+The [[words]] version uses the 'word32' printout, separated by two
+spaces.  The low-word is printed first.  The [[bytes]] version also
+uses the 'word32' printout.  This implies that the lowest byte is
+first.  The default version prints a hexadecimal
+number without spaces, highest byte first.
+<<Bytes: public>>=
+  public :: word64_write
+<<Bytes: interfaces>>=
+  interface word64_write
+     module procedure word64_write_unit
+  end interface
+<<Bytes: sub interfaces>>=
+    module subroutine word64_write_unit (ww, unit, words, bytes, decimal, newline)
+      type(word64_t), intent(in) :: ww
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: words, bytes, decimal, newline
+    end subroutine word64_write_unit
+<<Bytes: procedures>>=
+  module subroutine word64_write_unit (ww, unit, words, bytes, decimal, newline)
+    type(word64_t), intent(in) :: ww
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: words, bytes, decimal, newline
+    logical :: wo, by, dc, nl
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    wo = .false.;  if (present (words))    wo = words
+    by = .false.;  if (present (bytes))    by = bytes
+    dc = .false.;  if (present (decimal))  dc = decimal
+    nl = .false.;  if (present (newline))  nl = newline
+    if (wo .or. by) then
+       call word32_write_unit (word32_from_word64 (ww, 0), unit, by, dc)
+       write (u, '(2x)', advance='no')
+       call word32_write_unit (word32_from_word64 (ww, 1), unit, by, dc)
+    else if (dc) then
+       write (u, '(I19)', advance='no') ww%i
+    else
+       write (u, '(Z16)', advance='no') ww%i
+    end if
+    if (nl) write (u, *)
+  end subroutine word64_write_unit
+
+@ %def word64_write_unit
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Hashtables}
+Hash tables, like lists, are not part of Fortran and must be defined
+on a per-case basis.  In this section we define a module that contains
+a hash function.
+
+Furthermore, for reference there is a complete framework of hashtable
+type definitions and access functions.  This code is to be replicated
+where hash tables are used, mutatis mutandis.
+<<[[hashes.f90]]>>=
+<<File header>>
+
+module hashes
+
+  use kinds, only: i8, i32
+
+<<Standard module head>>
+
+<<Hashes: public>>
+
+  interface
+<<Hashes: sub interfaces>>
+  end interface
+
+end module hashes
+@ %def hashes
+@
+<<[[hashes_sub.f90]]>>=
+<<File header>>
+
+submodule (hashes) hashes_s
+
+  use bytes
+
+  implicit none
+
+contains
+
+<<Hashes: procedures>>
+
+end submodule hashes_s
+
+@ %def hashes_s
+@
+\subsection{The hash function}
+This is the one-at-a-time hash function by Bob Jenkins (from
+Wikipedia), re-implemented in Fortran.  The function works on an array
+of bytes (8-bit integers), as could be produced by, e.g., the
+[[transfer]] function, and returns a single 32-bit integer.  For
+determining the position in a hashtable, one can pick the lower bits
+of the result as appropriate to the hashtable size (which should be a
+power of 2).  Note that we are working on signed integers, so the
+interpretation of values differs from the C version.  This should not
+matter in practice, however.
+<<Hashes: public>>=
+  public :: hash
+<<Hashes: sub interfaces>>=
+    module function hash (key) result (hashval)
+      integer(i32) :: hashval
+      integer(i8), dimension(:), intent(in) :: key
+    end function hash
+<<Hashes: procedures>>=
+  module function hash (key) result (hashval)
+    integer(i32) :: hashval
+    integer(i8), dimension(:), intent(in) :: key
+    type(word32_t) :: w
+    integer :: i
+    w = 0_i32
+    do i = 1, size (key)
+       w = w + key(i)
+       w = w + ishft (w, 10)
+       w = ieor (w, ishft (w, -6))
+    end do
+    w = w + ishft (w, 3)
+    w = ieor (w, ishft (w, -11))
+    w = w + ishft (w, 15)
+    hashval = w
+  end function hash
+
+@ %def hash
+@
+\subsection{The hash table}
+We define a generic hashtable type (that depends on the
+[[hash_data_t]] type) together with associated methods.
+
+This is a template:
+<<Hashtables: types>>=
+  type :: hash_data_t
+     integer :: i
+  end type hash_data_t
+
+@ %def hash_data_t
+@ Associated methods:
+<<Hashtables: procedures>>=
+  subroutine hash_data_final (data)
+    type(hash_data_t), intent(inout) :: data
+  end subroutine hash_data_final
+
+  subroutine hash_data_write (data, unit)
+    type(hash_data_t), intent(in) :: data
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    write (u, *) data%i
+  end subroutine hash_data_write
+
+@ %def hash_data_final hash_data_write
+@ Each hash entry stores the unmasked hash value, the key, and points to
+actual data if present.  Note that this could be an allocatable scalar
+in principle, but making it a pointer avoids deep copy when expanding
+the hashtable.
+<<Hashtables: types>>=
+  type :: hash_entry_t
+     integer(i32) :: hashval = 0
+     integer(i8), dimension(:), allocatable :: key
+     type(hash_data_t), pointer :: data => null ()
+  end type hash_entry_t
+
+@ %def hash_entry_t
+@ The hashtable object holds the actual table, the number of filled
+entries and the number of entries after which the size should be
+doubled.  The mask is equal to the table size minus one and thus
+coincides with the upper bound of the table index, which starts at zero.
+<<Hashtables: types>>=
+  type :: hashtable_t
+     integer :: n_entries = 0
+     real :: fill_ratio = 0
+     integer :: n_entries_max = 0
+     integer(i32) :: mask = 0
+     type(hash_entry_t), dimension(:), allocatable :: entry
+  end type hashtable_t
+
+@ %def hashtable_t
+@ Initializer: The size has to be a power of two, the fill ratio is a
+real (machine-default!) number between 0 and 1.
+<<Hashtables: procedures>>=
+  subroutine hashtable_init (hashtable, size, fill_ratio)
+    type(hashtable_t), intent(out) :: hashtable
+    integer, intent(in) :: size
+    real, intent(in) :: fill_ratio
+    hashtable%fill_ratio = fill_ratio
+    hashtable%n_entries_max = size * fill_ratio
+    hashtable%mask = size - 1
+    allocate (hashtable%entry (0:hashtable%mask))
+  end subroutine hashtable_init
+
+@ %def hashtable_init
+@ Finalizer: This calls a [[hash_data_final]] subroutine which must
+exist.
+<<Hashtables: procedures>>=
+  subroutine hashtable_final (hashtable)
+    type(hashtable_t), intent(inout) :: hashtable
+    integer :: i
+    do i = 0, hashtable%mask
+       if (associated (hashtable%entry(i)%data)) then
+          call hash_data_final (hashtable%entry(i)%data)
+          deallocate (hashtable%entry(i)%data)
+       end if
+    end do
+    deallocate (hashtable%entry)
+  end subroutine hashtable_final
+
+@ %def hashtable_final
+@ Output.  Here, we refer to a [[hash_data_write]] subroutine.
+<<Hashtables: procedures>>=
+  subroutine hashtable_write (hashtable, unit)
+    type(hashtable_t), intent(in) :: hashtable
+    integer, intent(in), optional :: unit
+    integer :: u, i
+    u = given_output_unit (unit);  if (u < 0)  return
+    do i = 0, hashtable%mask
+       if (associated (hashtable%entry(i)%data)) then
+          write (u, *) i, "(hash =", hashtable%entry(i)%hashval, ")", &
+               hashtable%entry(i)%key
+          call hash_data_write (hashtable%entry(i)%data, unit)
+       end if
+    end do
+  end subroutine hashtable_write
+
+@ %def hashtable_write
+@
+\subsection{Hashtable insertion}
+Insert a single entry with the hash value as trial place.  If the
+table is filled, first expand it.
+<<Hashtables: procedures>>=
+  subroutine hashtable_insert (hashtable, key, data)
+    type(hashtable_t), intent(inout) :: hashtable
+    integer(i8), dimension(:), intent(in) :: key
+    type(hash_data_t), intent(in), target :: data
+    integer(i32) :: h
+    if (hashtable%n_entries >= hashtable%n_entries_max) &
+         call hashtable_expand (hashtable)
+    h = hash (key)
+    call hashtable_insert_rec (hashtable, h, h, key, data)
+  end subroutine hashtable_insert
+
+@ %def hashtable_insert
+@ We need this auxiliary routine for doubling the size of the
+hashtable.  We rely on the fact that default assignment copies
+the data pointer, not the data themselves.  The temporary array must
+not be finalized; it is deallocated automatically together with its
+allocatable components.
+<<Hashtables: procedures>>=
+  subroutine hashtable_expand (hashtable)
+    type(hashtable_t), intent(inout) :: hashtable
+    type(hash_entry_t), dimension(:), allocatable :: table_tmp
+    integer :: i, s
+    allocate (table_tmp (0:hashtable%mask))
+    table_tmp = hashtable%entry
+    deallocate (hashtable%entry)
+    s = 2 * size (table_tmp)
+    hashtable%n_entries = 0
+    hashtable%n_entries_max = s * hashtable%fill_ratio
+    hashtable%mask = s - 1
+    allocate (hashtable%entry (0:hashtable%mask))
+    do i = 0, ubound (table_tmp, 1)
+       if (associated (table_tmp(i)%data)) then
+          call hashtable_insert_rec (hashtable, table_tmp(i)%hashval, &
+               table_tmp(i)%hashval, table_tmp(i)%key, table_tmp(i)%data)
+       end if
+    end do
+  end subroutine hashtable_expand
+
+@ %def hashtable_expand
+@ Insert a single entry at a trial place [[h]], reduced to the table
+size.  Collision resolution is done simply by choosing the next
+element, recursively until the place is empty.  For bookkeeping, we
+preserve the original hash value.  For a good hash function, there
+should be no clustering.
+
+Note that if the new key exactly matches an existing key, nothing is done.
+<<Hashtables: procedures>>=
+  recursive subroutine hashtable_insert_rec (hashtable, h, hashval, key, data)
+    type(hashtable_t), intent(inout) :: hashtable
+    integer(i32), intent(in) :: h, hashval
+    integer(i8), dimension(:), intent(in) :: key
+    type(hash_data_t), intent(in), target :: data
+    integer(i32) :: i
+    i = iand (h, hashtable%mask)
+    if (associated (hashtable%entry(i)%data)) then
+       if (size (hashtable%entry(i)%key) /= size (key)) then
+          call hashtable_insert_rec (hashtable, h + 1, hashval, key, data)
+       else if (any (hashtable%entry(i)%key /= key)) then
+          call hashtable_insert_rec (hashtable, h + 1, hashval, key, data)
+       end if
+    else
+       hashtable%entry(i)%hashval = hashval
+       allocate (hashtable%entry(i)%key (size (key)))
+       hashtable%entry(i)%key = key
+       hashtable%entry(i)%data => data
+       hashtable%n_entries = hashtable%n_entries + 1
+    end if
+  end subroutine hashtable_insert_rec
+
+@ %def hashtable_insert_rec
+@
+\subsection{Hashtable lookup}
+The lookup function has to parallel the insert function.  If the place
+is filled, check if the key matches.  Yes: return the pointer; no:
+increment the hash value and check again.
+<<Hashtables: procedures>>=
+  function hashtable_lookup (hashtable, key) result (ptr)
+    type(hash_data_t), pointer :: ptr
+    type(hashtable_t), intent(in) :: hashtable
+    integer(i8), dimension(:), intent(in) :: key
+    ptr => hashtable_lookup_rec (hashtable, hash (key), key)
+  end function hashtable_lookup
+
+@ %def hashtable_get_data_ptr
+<<Hashtables: procedures>>=
+  recursive function hashtable_lookup_rec (hashtable, h, key) result (ptr)
+    type(hash_data_t), pointer :: ptr
+    type(hashtable_t), intent(in) :: hashtable
+    integer(i32), intent(in) :: h
+    integer(i8), dimension(:), intent(in) :: key
+    integer(i32) :: i
+    i = iand (h, hashtable%mask)
+    if (associated (hashtable%entry(i)%data)) then
+       if (size (hashtable%entry(i)%key) == size (key)) then
+          if (all (hashtable%entry(i)%key == key)) then
+             ptr => hashtable%entry(i)%data
+          else
+             ptr => hashtable_lookup_rec (hashtable, h + 1, key)
+          end if
+       else
+          ptr => hashtable_lookup_rec (hashtable, h + 1, key)
+       end if
+    else
+       ptr => null ()
+    end if
+  end function hashtable_lookup_rec
+
+@ %def hashtable_lookup_rec
+<<Hashtables: public>>=
+  public :: hashtable_test
+<<Hashtables: procedures>>=
+  subroutine hashtable_test ()
+    type(hash_data_t), pointer :: data
+    type(hashtable_t) :: hashtable
+    integer(i8) :: i
+    call hashtable_init (hashtable, 16, 0.25)
+    do i = 1, 10
+       allocate (data)
+       data%i = i*i
+       call hashtable_insert (hashtable, [i, i+i], data)
+    end do
+    call hashtable_insert (hashtable, [2_i8, 4_i8], data)
+    call hashtable_write (hashtable)
+    data => hashtable_lookup (hashtable, [5_i8, 10_i8])
+    if (associated (data)) then
+       print *, "lookup:", data%i
+    else
+       print *, "lookup: --"
+    end if
+    data => hashtable_lookup (hashtable, [6_i8, 12_i8])
+    if (associated (data)) then
+       print *, "lookup:", data%i
+    else
+       print *, "lookup: --"
+    end if
+    data => hashtable_lookup (hashtable, [4_i8, 9_i8])
+    if (associated (data)) then
+       print *, "lookup:", data%i
+    else
+       print *, "lookup: --"
+    end if
+    call hashtable_final (hashtable)
+  end subroutine hashtable_test
+
+@ %def hashtable_test
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{MD5 Checksums}
+Implementing MD5 checksums allows us
+to check input/file integrity on the basis of a well-known standard.
+The building blocks have been introduced in the [[bytes]] module.
+<<[[md5.f90]]>>=
+<<File header>>
+
+module md5
+
+  use bytes
+
+<<Standard module head>>
+
+<<MD5: public>>
+
+<<MD5: types>>
+
+<<MD5: interfaces>>
+
+  interface
+<<MD5: sub interfaces>>
+  end interface
+
+end module md5
+@ %def md5
+@
+<<[[md5_sub.f90]]>>=
+<<File header>>
+
+submodule (md5) md5_s
+
+  use kinds, only: i8, i32, i64
+  use system_defs, only: BUFFER_SIZE
+  use system_defs, only: LF, EOR, EOF
+  use io_units
+  use diagnostics
+
+  implicit none
+
+<<MD5: variables>>
+
+contains
+
+<<MD5: procedures>>
+
+end submodule md5_s
+
+@ %def md5_s
+@
+\subsection{Blocks}
+A block is a sequence of 16 words (64 bytes or 512 bits).  We
+anticipate that blocks will be linked, so include a pointer to the
+next block.  There is a fill status (word counter), as there is one
+for each word.  The fill status is equal to the number of bytes that
+are in, so it may be between 0 and 64.
+<<MD5: types>>=
+  type :: block_t
+     private
+     type(word32_t), dimension(0:15) :: w
+     type(block_t), pointer :: next => null ()
+     integer :: fill = 0
+  end type block_t
+
+@ %def block
+@ Check if a block is completely filled or empty:
+<<MD5: procedures>>=
+  function block_is_empty (b)
+    type(block_t), intent(in) :: b
+    logical :: block_is_empty
+    block_is_empty = (b%fill == 0 .and. word32_empty (b%w(0)))
+  end function block_is_empty
+
+  function block_is_filled (b)
+    type(block_t), intent(in) :: b
+    logical :: block_is_filled
+    block_is_filled = (b%fill == 64)
+  end function block_is_filled
+
+@ %def block_is_empty block_is_filled
+@ Append a single byte to a block.  Works only if the block is not yet
+filled.
+<<MD5: procedures>>=
+  subroutine block_append_byte (bl, by)
+    type(block_t), intent(inout) :: bl
+    type(byte_t), intent(in) :: by
+    if (.not. block_is_filled (bl)) then
+       call word32_append_byte (bl%w(bl%fill/4), by)
+       bl%fill = bl%fill + 1
+    end if
+  end subroutine block_append_byte
+
+@ %def block_append_byte
+@ The printing routine allows for printing as sequences of words or
+bytes, decimal or hex.
+<<MD5: interfaces>>=
+  interface block_write
+     module procedure block_write_unit
+  end interface
+<<MD5: sub interfaces>>=
+    module subroutine block_write_unit (b, unit, bytes, decimal)
+      type(block_t), intent(in) :: b
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: bytes, decimal
+    end subroutine block_write_unit
+<<MD5: procedures>>=
+  module subroutine block_write_unit (b, unit, bytes, decimal)
+    type(block_t), intent(in) :: b
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: bytes, decimal
+    logical :: by, dc
+    integer :: i, u
+    u = given_output_unit (unit);  if (u < 0)  return
+    by = .false.;  if (present (bytes))    by = bytes
+    dc = .false.;  if (present (decimal))  dc = decimal
+    do i = 0, b%fill/4 - 1
+       call newline_or_blank (u, i, by, dc)
+       call word32_write (b%w(i), unit, bytes, decimal)
+    end do
+    if (.not. block_is_filled (b)) then
+       i = b%fill/4
+       if (.not. word32_empty (b%w(i))) then
+          call newline_or_blank (u, i, by, dc)
+          call word32_write (b%w(i), unit, bytes, decimal)
+       end if
+    end if
+    write (u, *)
+  contains
+    subroutine newline_or_blank (u, i, bytes, decimal)
+      integer, intent(in) :: u, i
+      logical, intent(in) :: bytes, decimal
+      if (decimal) then
+         select case (i)
+         case (0)
+         case (2,4,6,8,10,12,14);  write (u, *)
+         case default
+            write (u, '(2x)', advance='no')
+         end select
+      else if (bytes) then
+         select case (i)
+         case (0)
+         case (4,8,12);  write (u, *)
+         case default
+            write (u, '(2x)', advance='no')
+         end select
+      else
+         if (i == 8)  write (u, *)
+      end if
+    end subroutine newline_or_blank
+  end subroutine block_write_unit
+
+@ %def block_write_unit
+@
+\subsection{Messages}
+A message (within this module) is a linked list of blocks.
+<<MD5: types>>=
+  type :: message_t
+     private
+     type(block_t), pointer :: first => null ()
+     type(block_t), pointer :: last => null ()
+     integer :: n_blocks = 0
+  end type message_t
+
+@ %def message_t
+@ Clear the message list
+<<MD5: procedures>>=
+  subroutine message_clear (m)
+    type(message_t), intent(inout) :: m
+    type(block_t), pointer :: b
+    nullify (m%last)
+    do
+       b => m%first
+       if (.not.(associated (b))) exit
+       m%first => b%next
+       deallocate (b)
+    end do
+    m%n_blocks = 0
+  end subroutine message_clear
+
+@ %def message_clear
+@ Append an empty block to the message list
+<<MD5: procedures>>=
+  subroutine message_append_new_block (m)
+    type(message_t), intent(inout) :: m
+    if (associated (m%last)) then
+       allocate (m%last%next)
+       m%last => m%last%next
+       m%n_blocks = m%n_blocks + 1
+    else
+       allocate (m%first)
+       m%last => m%first
+       m%n_blocks = 1
+    end if
+  end subroutine message_append_new_block
+
+@ %def message_append_new_block
+@ Initialize: clear and allocate the first (empty) block.
+<<MD5: procedures>>=
+  subroutine message_init (m)
+    type(message_t), intent(inout) :: m
+    call message_clear (m)
+    call message_append_new_block (m)
+  end subroutine message_init
+
+@ %def message_init
+@ Append a single byte to a message.  If necessary, allocate a new
+block.  If the message is empty, initialize it.
+<<MD5: procedures>>=
+  subroutine message_append_byte (m, b)
+    type(message_t), intent(inout) :: m
+    type(byte_t), intent(in) :: b
+    if (.not. associated (m%last)) then
+       call message_init (m)
+    else if (block_is_filled (m%last)) then
+       call message_append_new_block (m)
+    end if
+    call block_append_byte (m%last, b)
+  end subroutine message_append_byte
+
+@ %def message_append_byte
+@ Append zero bytes until the current block is filled up to the required
+position.  If we are already beyond that, append a new block and fill
+that one.
+<<MD5: procedures>>=
+  subroutine message_pad_zero (m, i)
+    type(message_t), intent(inout) :: m
+    integer, intent(in) :: i
+    type(block_t), pointer :: b
+    integer :: j
+    if (associated (m%last)) then
+       b => m%last
+       if (b%fill > i) then
+          do j = b%fill + 1, 64 + i
+             call message_append_byte (m, byte_zero)
+          end do
+       else
+          do j = b%fill + 1, i
+             call message_append_byte (m, byte_zero)
+          end do
+       end if
+    end if
+  end subroutine message_pad_zero
+
+@ %def message_pad_zero
+@ This returns the number of bits within a message.  We need a 64-bit
+word for the result since it may be more than $2^{31}$.  This is also
+required by the MD5 standard.
+<<MD5: procedures>>=
+  function message_bits (m) result (length)
+    type(message_t), intent(in) :: m
+    type(word64_t) :: length
+    type(block_t), pointer :: b
+    integer(i64) :: n_blocks_filled, n_bytes_extra
+    if (m%n_blocks > 0) then
+       b => m%last
+       if (block_is_filled (b)) then
+          n_blocks_filled = m%n_blocks
+          n_bytes_extra = 0
+       else
+          n_blocks_filled = m%n_blocks - 1
+          n_bytes_extra = b%fill
+       end if
+       length = n_blocks_filled * 512 + n_bytes_extra * 8
+    else
+       length = 0_i64
+    end if
+  end function message_bits
+
+@ %def message_bits
+@
+\subsection{Message I/O}
+Append the contents of a string to a message.  We first cast the
+character string into a 8-bit integer array and the append this byte
+by byte.
+<<MD5: procedures>>=
+  subroutine message_append_string (m, s)
+    type(message_t), intent(inout) :: m
+    character(len=*), intent(in) :: s
+    integer(i64) :: i, n_bytes
+    integer(i8), dimension(:), allocatable :: buffer
+    integer(i8), dimension(1) :: mold
+    type(byte_t) :: b
+    n_bytes = size (transfer (s, mold))
+    allocate (buffer (n_bytes))
+    buffer = transfer (s, mold)
+    do i = 1, size (buffer)
+       b = buffer(i)
+       call message_append_byte (m, b)
+    end do
+    deallocate (buffer)
+  end subroutine message_append_string
+
+@ %def message_append_string
+@ Append the contents of a 32-bit integer to a message.  We first cast the
+32-bit integer into a 8-bit integer array and the append this byte
+by byte.
+<<MD5: procedures>>=
+  subroutine message_append_i32 (m, x)
+    type(message_t), intent(inout) :: m
+    integer(i32), intent(in) :: x
+    integer(i8), dimension(4) :: buffer
+    type(byte_t) :: b
+    integer :: i
+    buffer = transfer (x, buffer, size(buffer))
+    do i = 1, size (buffer)
+       b = buffer(i)
+       call message_append_byte (m, b)
+    end do
+  end subroutine message_append_i32
+
+@ %def message_append_i32
+@ Append one line from file to a message.  Include the newline character.
+<<MD5: procedures>>=
+  subroutine message_append_from_unit (m, u, iostat)
+    type(message_t), intent(inout) :: m
+    integer, intent(in) :: u
+    integer, intent(out) :: iostat
+    character(len=BUFFER_SIZE) :: buffer
+    read (u, *, iostat=iostat) buffer
+    call message_append_string (m, trim (buffer))
+    call message_append_string (m, LF)
+  end subroutine message_append_from_unit
+
+@ %def message_append_from_unit
+@ Fill a message from file.  (Each line counts as a string.)
+<<MD5: procedures>>=
+  subroutine message_read_from_file (m, f)
+    type(message_t), intent(inout) :: m
+    character(len=*), intent(in) :: f
+    integer :: u, iostat
+    u = free_unit ()
+    open (file=f, unit=u, action='read')
+    do
+       call message_append_from_unit (m, u, iostat=iostat)
+       if (iostat < 0) exit
+    end do
+    close (u)
+  end subroutine message_read_from_file
+
+@ %def message_read_from_file
+@ Write a message.  After each block, insert an empty line.
+<<MD5: interfaces>>=
+  interface message_write
+     module procedure message_write_unit
+  end interface
+<<MD5: sub interfaces>>=
+    module subroutine message_write_unit (m, unit, bytes, decimal)
+      type(message_t), intent(in) :: m
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: bytes, decimal
+    end subroutine message_write_unit
+<<MD5: procedures>>=
+  module subroutine message_write_unit (m, unit, bytes, decimal)
+    type(message_t), intent(in) :: m
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: bytes, decimal
+    type(block_t), pointer :: b
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    b => m%first
+    if (associated (b)) then
+       do
+          call block_write_unit (b, unit, bytes, decimal)
+          b => b%next
+          if (.not. associated (b))  exit
+          write (u, *)
+       end do
+    end if
+  end subroutine message_write_unit
+
+@ %def message_write_unit
+@
+\subsection{Auxiliary functions}
+These four functions on three words are defined in the MD5 standard:
+<<MD5: procedures>>=
+  function ff (x, y, z)
+    type(word32_t), intent(in) :: x, y, z
+    type(word32_t) :: ff
+    ff = ior (iand (x, y), iand (not (x), z))
+  end function ff
+
+  function fg (x, y, z)
+    type(word32_t), intent(in) :: x, y, z
+    type(word32_t) :: fg
+    fg = ior (iand (x, z), iand (y, not (z)))
+  end function fg
+
+  function fh (x, y, z)
+    type(word32_t), intent(in) :: x, y, z
+    type(word32_t) :: fh
+    fh = ieor (ieor (x, y), z)
+  end function fh
+
+  function fi (x, y, z)
+    type(word32_t), intent(in) :: x, y, z
+    type(word32_t) :: fi
+    fi = ieor (y, ior (x, not (z)))
+  end function fi
+
+@ %def ff fg fh fi
+@
+\subsection{Auxiliary stuff}
+This defines and initializes the table of transformation constants:
+<<MD5: variables>>=
+  type(word32_t), dimension(64), save :: t
+  logical, save :: table_initialized = .false.
+@ %def t table_initialized
+<<MD5: procedures>>=
+  subroutine table_init
+    type(word64_t) :: ww
+    integer :: i
+    if (.not.table_initialized) then
+       do i = 1, 64
+          ww = int (4294967296d0 * abs (sin (i * 1d0)), kind=i64)
+          t(i) = word32_from_word64 (ww, 0)
+       end do
+       table_initialized = .true.
+    end if
+  end subroutine table_init
+
+@ %def table_init
+@ This encodes the message digest (4 words) into a 32-character
+string.
+<<MD5: procedures>>=
+  function digest_string (aa) result (s)
+    type(word32_t), dimension (0:3), intent(in) :: aa
+    character(len=32) :: s
+    integer :: i, j
+    do i = 0, 3
+       do j = 0, 3
+          call byte_write (byte_from_word32 (aa(i), j), s(i*8+j*2+1:i*8+j*2+2))
+       end do
+    end do
+  end function digest_string
+
+@ %def digest_string
+@
+\subsection{MD5 algorithm}
+Pad the message with a byte [[x80]] and then pad zeros up to a full
+block minus two words; in these words, insert the message length
+(before padding) as a 64-bit word, low-word first.
+<<MD5: procedures>>=
+  subroutine message_pad (m)
+    type(message_t), intent(inout) :: m
+    type(word64_t) :: length
+    integer(i8), parameter :: ipad = -128  ! z'80'
+    type(byte_t) :: b
+    integer :: i
+    length = message_bits (m)
+    b = ipad
+    call message_append_byte (m, b)
+    call message_pad_zero (m, 56)
+    do i = 0, 7
+       call message_append_byte (m, byte_from_word64 (length, i))
+    end do
+  end subroutine message_pad
+
+@ %def message_pad
+@ Apply a series of transformations onto a state [[a,b,c,d]], where
+the transform function uses each word of the message together with the
+predefined words.  Finally, encode the state as a 32-character string.
+<<MD5: procedures>>=
+  subroutine message_digest (m, s)
+    type(message_t), intent(in) :: m
+    character(len=32), intent(out) :: s
+    integer(i32), parameter :: ia =  1732584193  ! z'67452301'
+    integer(i32), parameter :: ib =  -271733879  ! z'efcdab89'
+    integer(i32), parameter :: ic = -1732584194  ! z'98badcfe'
+    integer(i32), parameter :: id =   271733878  ! z'10325476'
+    type(word32_t) :: a, b, c, d
+    type(word32_t) :: aa, bb, cc, dd
+    type(word32_t), dimension(0:15) :: x
+    type(block_t), pointer :: bl
+    call table_init
+    a = ia;  b = ib;  c = ic;  d = id
+    bl => m%first
+    do
+       if (.not.associated (bl)) exit
+       x = bl%w
+       aa = a;  bb = b;  cc = c;  dd = d
+       call transform (ff, a, b, c, d,  0,  7,  1)
+       call transform (ff, d, a, b, c,  1, 12,  2)
+       call transform (ff, c, d, a, b,  2, 17,  3)
+       call transform (ff, b, c, d, a,  3, 22,  4)
+       call transform (ff, a, b, c, d,  4,  7,  5)
+       call transform (ff, d, a, b, c,  5, 12,  6)
+       call transform (ff, c, d, a, b,  6, 17,  7)
+       call transform (ff, b, c, d, a,  7, 22,  8)
+       call transform (ff, a, b, c, d,  8,  7,  9)
+       call transform (ff, d, a, b, c,  9, 12, 10)
+       call transform (ff, c, d, a, b, 10, 17, 11)
+       call transform (ff, b, c, d, a, 11, 22, 12)
+       call transform (ff, a, b, c, d, 12,  7, 13)
+       call transform (ff, d, a, b, c, 13, 12, 14)
+       call transform (ff, c, d, a, b, 14, 17, 15)
+       call transform (ff, b, c, d, a, 15, 22, 16)
+       call transform (fg, a, b, c, d,  1,  5, 17)
+       call transform (fg, d, a, b, c,  6,  9, 18)
+       call transform (fg, c, d, a, b, 11, 14, 19)
+       call transform (fg, b, c, d, a,  0, 20, 20)
+       call transform (fg, a, b, c, d,  5,  5, 21)
+       call transform (fg, d, a, b, c, 10,  9, 22)
+       call transform (fg, c, d, a, b, 15, 14, 23)
+       call transform (fg, b, c, d, a,  4, 20, 24)
+       call transform (fg, a, b, c, d,  9,  5, 25)
+       call transform (fg, d, a, b, c, 14,  9, 26)
+       call transform (fg, c, d, a, b,  3, 14, 27)
+       call transform (fg, b, c, d, a,  8, 20, 28)
+       call transform (fg, a, b, c, d, 13,  5, 29)
+       call transform (fg, d, a, b, c,  2,  9, 30)
+       call transform (fg, c, d, a, b,  7, 14, 31)
+       call transform (fg, b, c, d, a, 12, 20, 32)
+       call transform (fh, a, b, c, d,  5,  4, 33)
+       call transform (fh, d, a, b, c,  8, 11, 34)
+       call transform (fh, c, d, a, b, 11, 16, 35)
+       call transform (fh, b, c, d, a, 14, 23, 36)
+       call transform (fh, a, b, c, d,  1,  4, 37)
+       call transform (fh, d, a, b, c,  4, 11, 38)
+       call transform (fh, c, d, a, b,  7, 16, 39)
+       call transform (fh, b, c, d, a, 10, 23, 40)
+       call transform (fh, a, b, c, d, 13,  4, 41)
+       call transform (fh, d, a, b, c,  0, 11, 42)
+       call transform (fh, c, d, a, b,  3, 16, 43)
+       call transform (fh, b, c, d, a,  6, 23, 44)
+       call transform (fh, a, b, c, d,  9,  4, 45)
+       call transform (fh, d, a, b, c, 12, 11, 46)
+       call transform (fh, c, d, a, b, 15, 16, 47)
+       call transform (fh, b, c, d, a,  2, 23, 48)
+       call transform (fi, a, b, c, d,  0,  6, 49)
+       call transform (fi, d, a, b, c,  7, 10, 50)
+       call transform (fi, c, d, a, b, 14, 15, 51)
+       call transform (fi, b, c, d, a,  5, 21, 52)
+       call transform (fi, a, b, c, d, 12,  6, 53)
+       call transform (fi, d, a, b, c,  3, 10, 54)
+       call transform (fi, c, d, a, b, 10, 15, 55)
+       call transform (fi, b, c, d, a,  1, 21, 56)
+       call transform (fi, a, b, c, d,  8,  6, 57)
+       call transform (fi, d, a, b, c, 15, 10, 58)
+       call transform (fi, c, d, a, b,  6, 15, 59)
+       call transform (fi, b, c, d, a, 13, 21, 60)
+       call transform (fi, a, b, c, d,  4,  6, 61)
+       call transform (fi, d, a, b, c, 11, 10, 62)
+       call transform (fi, c, d, a, b,  2, 15, 63)
+       call transform (fi, b, c, d, a,  9, 21, 64)
+       a = a + aa
+       b = b + bb
+       c = c + cc
+       d = d + dd
+       bl => bl%next
+    end do
+    s = digest_string ([a, b, c, d])
+  contains
+  <<MD5: Internal subroutine transform>>
+  end subroutine message_digest
+
+@ %def message_digest
+@ And this is the actual transformation that depends on one of the
+previous functions, four words, and three integers.  The implicit
+arguments are [[x]], the word from the message to digest, and [[t]],
+the entry in the predefined table.
+<<MD5: Internal subroutine transform>>=
+  subroutine transform (f, a, b, c, d, k, s, i)
+    interface
+       function f (x, y, z)
+         import word32_t
+         type(word32_t), intent(in) :: x, y, z
+         type(word32_t) :: f
+       end function f
+    end interface
+    type(word32_t), intent(inout) :: a
+    type(word32_t), intent(in) :: b, c, d
+    integer, intent(in) :: k, s, i
+    a = b + ishftc (a + f(b, c, d) + x(k) + t(i), s)
+  end subroutine transform
+
+@ %def transform
+@
+\subsection{User interface}
+<<MD5: public>>=
+  public :: md5sum
+<<MD5: interfaces>>=
+  interface md5sum
+     module procedure md5sum_from_string
+     module procedure md5sum_from_unit
+  end interface
+@ %def md5sum
+@ This function computes the MD5 sum of the input string and returns it
+as a 32-character string
+<<MD5: sub interfaces>>=
+    module function md5sum_from_string (s) result (digest)
+      character(len=*), intent(in) :: s
+      character(len=32) :: digest
+    end function md5sum_from_string
+<<MD5: procedures>>=
+  module function md5sum_from_string (s) result (digest)
+    character(len=*), intent(in) :: s
+    character(len=32) :: digest
+    type(message_t) :: m
+    call message_append_string (m, s)
+    call message_pad (m)
+    call message_digest (m, digest)
+    call message_clear (m)
+  end function md5sum_from_string
+
+@ %def md5sum_from_string
+@ This funct. reads from unit u (an unformmated sequence of
+integers) and computes the MD5 sum.
+<<MD5: sub interfaces>>=
+    module function md5sum_from_unit (u) result (digest)
+      integer, intent(in) :: u
+      character(len=32) :: digest
+    end function md5sum_from_unit
+<<MD5: procedures>>=
+  module function md5sum_from_unit (u) result (digest)
+    integer, intent(in) :: u
+    character(len=32) :: digest
+    type(message_t) :: m
+    character :: char
+    integer :: iostat
+    READ_CHARS: do
+       read (u, "(A)", advance="no", iostat=iostat)  char
+       select case (iostat)
+       case (0)
+          call message_append_string (m, char)
+       case (EOR)
+          call message_append_string (m, LF)
+       case (EOF)
+          exit READ_CHARS
+       case default
+          call msg_fatal &
+               ("Computing MD5 sum: I/O error while reading from scratch file")
+       end select
+    end do READ_CHARS
+    call message_pad (m)
+    call message_digest (m, digest)
+    call message_clear (m)
+  end function md5sum_from_unit
+
+@ %def md5sum_from_unit
+@
+\subsection{Unit tests}
+Test module, followed by the corresponding implementation module.
+<<[[md5_ut.f90]]>>=
+<<File header>>
+
+module md5_ut
+  use unit_tests
+  use md5_uti
+
+<<Standard module head>>
+
+<<MD5: public test>>
+
+contains
+
+<<MD5: test driver>>
+
+end module md5_ut
+@ %def md5_ut
+@
+<<[[md5_uti.f90]]>>=
+<<File header>>
+
+module md5_uti
+
+  use diagnostics
+
+  use md5
+
+<<Standard module head>>
+
+<<MD5: test declarations>>
+
+contains
+
+<<MD5: tests>>
+
+end module md5_uti
+@ %def md5_ut
+@ API: driver for the unit tests below.
+<<MD5: public test>>=
+  public :: md5_test
+<<MD5: test driver>>=
+  subroutine md5_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<MD5: execute tests>>
+  end subroutine md5_test
+
+@ %def md5_test
+@ This function checks the implementation by computing the checksum of
+certain strings and comparing them with the known values.
+<<MD5: execute tests>>=
+  call test (md5_1, "md5_1", &
+       "check MD5 sums", &
+       u, results)
+<<MD5: test declarations>>=
+  public :: md5_1
+<<MD5: tests>>=
+  subroutine md5_1 (u)
+    integer, intent(in) :: u
+    character(32) :: s
+    integer, parameter :: n = 7
+    integer :: i
+    character(80), dimension(n) :: teststring
+    data teststring(1) /""/
+    data teststring(2) /"a"/
+    data teststring(3) /"abc"/
+    data teststring(4) /"message digest"/
+    data teststring(5) /"abcdefghijklmnopqrstuvwxyz"/
+    data teststring(6) /"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"/
+    data teststring(7) /"12345678901234567890123456789012345678901234567890123456789012345678901234567890"/
+    character(32), dimension(n) :: result
+    data result(1) /"D41D8CD98F00B204E9800998ECF8427E"/
+    data result(2) /"0CC175B9C0F1B6A831C399E269772661"/
+    data result(3) /"900150983CD24FB0D6963F7D28E17F72"/
+    data result(4) /"F96B697D7CB7938D525A2F31AAF161D0"/
+    data result(5) /"C3FCD3D76192E4007DFB496CCA67E13B"/
+    data result(6) /"D174AB98D277D9F5A5611C2C9F419D9F"/
+    data result(7) /"57EDF4A22BE3C955AC49DA2E2107B67A"/
+
+    write (u, "(A)")  "* Test output: MD5"
+    write (u, "(A)")  "*   Purpose: test MD5 sums"
+    write (u, "(A)")
+
+    do i = 1, n
+       write (u, "(A)") "MD5 test string = " // '"'// &
+            trim (teststring(i)) // '"'
+       s = md5sum (trim (teststring(i)))
+       write (u, "(A)") "MD5 check sum   = " // trim (s)
+       write (u, "(A)") "Ref check sum   = " // result(i)
+       if (s == result(i)) then
+          call msg_message ("=> ok", u)
+       else
+          call msg_message ("=> MD5 sum self-test failed", u)
+       end if
+    end do
+    call msg_message ("=============================================================================|", unit=u)
+  end subroutine md5_1
+
+@ %def md5_1
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Permutations}
+Permute arrays of integers (of specific kind).
+<<[[permutations.f90]]>>=
+<<File header>>
+
+module permutations
+
+  use kinds, only: TC
+
+<<Standard module head>>
+
+<<Permutations: public>>
+
+<<Permutations: types>>
+
+<<Permutations: interfaces>>
+
+  interface
+<<Permutations: sub interfaces>>
+  end interface
+
+end module permutations
+@ %def permutations
+@
+<<[[permutations_sub.f90]]>>=
+<<File header>>
+
+submodule (permutations) permutations_s
+
+  implicit none
+
+<<Permutations: variables>>
+
+contains
+
+<<Permutations: procedures>>
+
+end submodule permutations_s
+
+@ %def permutations_s
+@
+\subsection{Permutations}
+A permutation is an array of integers.  Each integer between one and
+[[size]] should occur exactly once.
+<<Permutations: public>>=
+  public :: permutation_t
+<<Permutations: types>>=
+  type :: permutation_t
+     private
+     integer, dimension(:), allocatable :: p
+  end type permutation_t
+
+@ %def permutation
+@
+Initialize with the identity permutation.
+<<Permutations: public>>=
+  public :: permutation_init
+  public :: permutation_final
+<<Permutations: sub interfaces>>=
+    elemental module subroutine permutation_init (p, size)
+      type(permutation_t), intent(inout) :: p
+      integer, intent(in) :: size
+    end subroutine permutation_init
+    elemental module subroutine permutation_final (p)
+      type(permutation_t), intent(inout) :: p
+    end subroutine permutation_final
+<<Permutations: procedures>>=
+  elemental module subroutine permutation_init (p, size)
+    type(permutation_t), intent(inout) :: p
+    integer, intent(in) :: size
+    integer :: i
+    allocate (p%p (size))
+    forall (i = 1:size)
+       p%p(i) = i
+    end forall
+  end subroutine permutation_init
+
+  elemental module subroutine permutation_final (p)
+    type(permutation_t), intent(inout) :: p
+    deallocate (p%p)
+  end subroutine permutation_final
+
+@ %def permutation_init permutation_final
+@ I/O:
+<<Permutations: public>>=
+  public :: permutation_write
+<<Permutations: sub interfaces>>=
+    module subroutine permutation_write (p, u)
+      type(permutation_t), intent (in) :: p
+      integer, intent(in) :: u
+    end subroutine permutation_write
+<<Permutations: procedures>>=
+  module subroutine permutation_write (p, u)
+    type(permutation_t), intent (in) :: p
+    integer, intent(in) :: u
+    integer :: i
+    do i = 1, size (p%p)
+       if (size (p%p) < 10) then
+          write (u,"(1x,I1)", advance="no") p%p(i)
+       else
+          write (u,"(1x,I3)", advance="no") p%p(i)
+       end if
+    end do
+    write (u, *)
+  end subroutine permutation_write
+
+@ %def permutation_write
+@
+Administration:
+<<Permutations: public>>=
+  public :: permutation_size
+<<Permutations: sub interfaces>>=
+    elemental module function permutation_size (perm) result (s)
+      type(permutation_t), intent(in) :: perm
+      integer :: s
+    end function permutation_size
+<<Permutations: procedures>>=
+  elemental module function permutation_size (perm) result (s)
+    type(permutation_t), intent(in) :: perm
+    integer :: s
+    s = size (perm%p)
+  end function permutation_size
+
+@ %def permutation_size
+@ Extract an entry in a permutation.
+<<Permutations: public>>=
+  public :: permute
+<<Permutations: sub interfaces>>=
+    elemental module function permute (i, p) result (j)
+      integer, intent(in) :: i
+      type(permutation_t), intent(in) :: p
+      integer :: j
+    end function permute
+<<Permutations: procedures>>=
+  elemental module function permute (i, p) result (j)
+    integer, intent(in) :: i
+    type(permutation_t), intent(in) :: p
+    integer :: j
+    if (i > 0 .and. i <= size (p%p)) then
+       j = p%p(i)
+    else
+       j = 0
+    end if
+  end function permute
+
+@ %def permute
+@
+Check whether a permutation is valid: Each integer in the range occurs
+exactly once.
+<<Permutations: public>>=
+  public :: permutation_ok
+<<Permutations: sub interfaces>>=
+    elemental module function permutation_ok (perm) result (ok)
+      type(permutation_t), intent(in) :: perm
+      logical :: ok
+    end function permutation_ok
+<<Permutations: procedures>>=
+  elemental module function permutation_ok (perm) result (ok)
+    type(permutation_t), intent(in) :: perm
+    logical :: ok
+    integer :: i
+    logical, dimension(:), allocatable :: set
+    ok = .true.
+    allocate (set (size (perm%p)))
+    set = .false.
+    do i = 1, size (perm%p)
+       ok = (perm%p(i) > 0 .and. perm%p(i) <= size (perm%p))
+       if (.not.ok) return
+       set(perm%p(i)) = .true.
+    end do
+    ok = all (set)
+  end function permutation_ok
+
+@ %def permutation_ok
+@ Find the permutation that transforms the second array into the first
+one.  We assume that this is possible and unique and all bounds are
+set correctly.
+
+This cannot be elemental.
+<<Permutations: public>>=
+  public :: permutation_find
+<<Permutations: sub interfaces>>=
+    module subroutine permutation_find (perm, a1, a2)
+      type(permutation_t), intent(inout) :: perm
+      integer, dimension(:), intent(in) :: a1, a2
+    end subroutine permutation_find
+<<Permutations: procedures>>=
+  module subroutine permutation_find (perm, a1, a2)
+    type(permutation_t), intent(inout) :: perm
+    integer, dimension(:), intent(in) :: a1, a2
+    integer :: i, j
+    if (allocated (perm%p))  deallocate (perm%p)
+    allocate (perm%p (size (a1)))
+    do i = 1, size (a1)
+       do j = 1, size (a2)
+          if (a1(i) == a2(j)) then
+             perm%p(i) = j
+             exit
+          end if
+          perm%p(i) = 0
+       end do
+    end do
+  end subroutine permutation_find
+
+@ %def permutation_find
+@
+Find all permutations that transform an array of integers into
+itself.  The resulting permutation list is allocated with the correct
+length and filled.
+
+The first step is to count the number of different entries in
+[[code]].  Next, we scan [[code]] again and assign a mask to each
+different entry, true for all identical entries.  Finally, we
+recursively permute the identity for each possible mask.
+
+The permutation is done as follows:  A list of all permutations of the
+initial one with respect to the current mask is generated, then the
+permutations are generated in turn for each permutation in this list
+with the next mask.  The result is always stored back into the main
+list, starting from the end of the current list.
+<<Permutations: public>>=
+  public :: permutation_array_make
+<<Permutations: sub interfaces>>=
+    module subroutine permutation_array_make (pa, code)
+      type(permutation_t), dimension(:), allocatable, intent(out) :: pa
+      integer, dimension(:), intent(in) :: code
+    end subroutine permutation_array_make
+<<Permutations: procedures>>=
+  module subroutine permutation_array_make (pa, code)
+    type(permutation_t), dimension(:), allocatable, intent(out) :: pa
+    integer, dimension(:), intent(in) :: code
+    logical, dimension(size(code)) :: mask
+    logical, dimension(:,:), allocatable :: imask
+    integer, dimension(:), allocatable :: n_i
+    type(permutation_t) :: p_init
+    type(permutation_t), dimension(:), allocatable :: p_tmp
+    integer :: psize, i, j, k, n_different, n, nn_k
+    psize = size (code)
+    mask = .true.
+    n_different = 0
+    do i=1, psize
+       if (mask(i)) then
+          n_different = n_different + 1
+          mask = mask .and. (code /= code(i))
+       end if
+    end do
+    allocate (imask(psize, n_different), n_i(n_different))
+    mask = .true.
+    k = 0
+    do i=1, psize
+       if (mask(i)) then
+          k = k + 1
+          imask(:,k) = (code == code(i))
+          n_i(k) = factorial (count(imask(:,k)))
+          mask = mask .and. (code /= code(i))
+       end if
+    end do
+    n = product (n_i)
+    allocate (pa (n))
+    call permutation_init (p_init, psize)
+    pa(1) = p_init
+    nn_k = 1
+    do k = 1, n_different
+       allocate (p_tmp (n_i(k)))
+       do i = nn_k, 1, -1
+          call permutation_array_with_mask (p_tmp, imask(:,k), pa(i))
+          do j = n_i(k), 1, -1
+             pa((i-1)*n_i(k) + j) = p_tmp(j)
+          end do
+       end do
+       deallocate (p_tmp)
+       nn_k = nn_k * n_i(k)
+    end do
+    call permutation_final (p_init)
+    deallocate (imask, n_i)
+  end subroutine permutation_array_make
+
+@ %def permutation_array_make
+@ Make a list of permutations of the elements marked true in the
+[[mask]] array.  The final permutation list must be allocated with the
+correct length ($n!$).  The third argument is the initial
+permutation to start with, which must have the same length as the
+[[mask]] array (this is not checked).
+<<Permutations: procedures>>=
+  subroutine permutation_array_with_mask (pa, mask, p_init)
+    type(permutation_t), dimension(:), intent(inout) :: pa
+    logical, dimension(:), intent(in) :: mask
+    type(permutation_t), intent(in) :: p_init
+    integer :: plen
+    integer :: i, ii, j, fac_i, k, x
+    integer, dimension(:), allocatable :: index
+    plen = size (pa)
+    allocate (index(count(mask)))
+    ii = 0
+    do i = 1, size (mask)
+       if (mask(i)) then
+          ii = ii + 1
+          index(ii) = i
+       end if
+    end do
+    pa = p_init
+    ii = 0
+    fac_i = 1
+    do i = 1, size (mask)
+       if (mask(i)) then
+          ii = ii + 1
+          fac_i = fac_i * ii
+          x = permute (i, p_init)
+          do j = 1, plen
+             k = ii - mod (((j-1)*fac_i)/plen, ii)
+             call insert (pa(j), x, k, ii, index)
+          end do
+       end if
+    end do
+    deallocate (index)
+  contains
+    subroutine insert (p, x, k, n, index)
+      type(permutation_t), intent(inout) :: p
+      integer, intent(in) :: x, k, n
+      integer, dimension(:), intent(in) :: index
+      integer :: i
+      do i = n, k+1, -1
+         p%p(index(i)) = p%p(index(i-1))
+      end do
+      p%p(index(k)) = x
+    end subroutine insert
+  end subroutine permutation_array_with_mask
+
+@ %def permutation_array_with_mask
+@ The factorial function is needed for pre-determining the number of
+permutations that will be generated:
+<<Permutations: public>>=
+  public :: factorial
+<<Permutations: sub interfaces>>=
+    elemental module function factorial (n) result (f)
+      integer, intent(in) :: n
+      integer :: f
+    end function factorial
+<<Permutations: procedures>>=
+  elemental module function factorial (n) result (f)
+    integer, intent(in) :: n
+    integer :: f
+    integer :: i
+    f = 1
+    do i=2, abs(n)
+       f = f*i
+    end do
+  end function factorial
+
+@ %def factorial
+@
+\subsection{Operations on binary codes}
+Binary codes are needed for phase-space trees.  Since the permutation
+function uses permutations, and no other special type is involved, we
+put the functions here.
+
+This is needed for phase space trees: permute bits in a tree binary
+code.  If no permutation is given, leave as is.  (We may want to
+access the permutation directly here if this is efficiency-critical.)
+<<Permutations: public>>=
+  public :: tc_permute
+<<Permutations: sub interfaces>>=
+    module function tc_permute (k, perm, mask_in) result (pk)
+      integer(TC), intent(in) :: k, mask_in
+      type(permutation_t), intent(in) :: perm
+      integer(TC) :: pk
+    end function tc_permute
+<<Permutations: procedures>>=
+  module function tc_permute (k, perm, mask_in) result (pk)
+    integer(TC), intent(in) :: k, mask_in
+    type(permutation_t), intent(in) :: perm
+    integer(TC) :: pk
+    integer :: i
+    pk = iand (k, mask_in)
+    do i = 1, size (perm%p)
+       if (btest(k,i-1))  pk = ibset (pk, perm%p(i)-1)
+    end do
+  end function tc_permute
+
+@ %def tc_permute
+@
+This routine returns the number of set bits in the tree code value
+[[k]].  Hence, it is the number of externals connected to the current
+line.  If [[mask]] is present, the complement of the tree code is also
+considered, and the smaller number is returned.  This gives the true
+distance from the external states, taking into account the initial
+particles.  The complement number is increased by one, since for a
+scattering diagram the vertex with the sum of all final-state codes is
+still one point apart from the initial particles.
+<<Permutations: public>>=
+  public :: tc_decay_level
+<<Permutations: interfaces>>=
+  interface tc_decay_level
+     module procedure decay_level_simple
+     module procedure decay_level_complement
+  end interface
+@ %def decay_level
+@
+<<Permutations: sub interfaces>>=
+    module function decay_level_complement (k, mask) result (l)
+      integer(TC), intent(in) :: k, mask
+      integer :: l
+    end function decay_level_complement
+    module function decay_level_simple (k) result(l)
+      integer(TC), intent(in) :: k
+      integer :: l
+    end function decay_level_simple
+<<Permutations: procedures>>=
+  module function decay_level_complement (k, mask) result (l)
+    integer(TC), intent(in) :: k, mask
+    integer :: l
+    l = min (decay_level_simple (k), &
+         &   decay_level_simple (ieor (k, mask)) + 1)
+  end function decay_level_complement
+
+  module function decay_level_simple (k) result(l)
+    integer(TC), intent(in) :: k
+    integer :: l
+    integer :: i
+    l = 0
+    do i=0, bit_size(k)-1
+       if (btest(k,i)) l = l+1
+    end do
+  end function decay_level_simple
+
+@ %def decay_level_simple decay_level_complement
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Sorting}
+This small module provides functions for sorting integer or real
+arrays.
+<<[[sorting.f90]]>>=
+<<File header>>
+
+module sorting
+
+<<Use kinds>>
+
+<<Standard module head>>
+
+<<Sorting: public>>
+
+<<Sorting: interfaces>>
+
+  interface
+<<Sorting: sub interfaces>>
+  end interface
+
+end module sorting
+@ %def sorting
+@
+<<[[sorting_sub.f90]]>>=
+<<File header>>
+
+submodule (sorting) sorting_s
+
+  use diagnostics
+
+  implicit none
+
+contains
+
+<<Sorting: procedures>>
+
+end submodule sorting_s
+
+@ %def sorting_s
+@
+\subsection{Implementation}
+The [[sort]] function returns, for a given integer or real array, the
+array sorted by increasing value.  The current implementation is
+\emph{mergesort}, which has $O(n\ln n)$ behavior in all cases, and is
+stable for elements of equal value.
+
+The [[sort_abs]] variant sorts by increasing absolute value, where for
+identical absolute value, the positive number comes first.
+<<Sorting: public>>=
+  public :: sort
+  public :: sort_abs
+<<Sorting: interfaces>>=
+  interface sort
+     module procedure sort_int
+     module procedure sort_real
+  end interface
+
+  interface sort_abs
+     module procedure sort_int_abs
+  end interface
+
+@ %def sort sort_abs
+@ This variant of integer sort returns
+@ The body is identical, just the interface differs.
+<<Sorting: sub interfaces>>=
+    module function sort_int (val_in) result (val)
+      integer, dimension(:), intent(in) :: val_in
+      integer, dimension(size(val_in)) :: val
+    end function sort_int
+    module function sort_real (val_in) result (val)
+      real(default), dimension(:), intent(in) :: val_in
+      real(default), dimension(size(val_in)) :: val
+    end function sort_real
+    module function sort_int_abs (val_in) result (val)
+      integer, dimension(:), intent(in) :: val_in
+      integer, dimension(size(val_in)) :: val
+    end function sort_int_abs
+<<Sorting: procedures>>=
+  module function sort_int (val_in) result (val)
+    integer, dimension(:), intent(in) :: val_in
+    integer, dimension(size(val_in)) :: val
+  <<Sorting: sort>>
+  end function sort_int
+
+  module function sort_real (val_in) result (val)
+    real(default), dimension(:), intent(in) :: val_in
+    real(default), dimension(size(val_in)) :: val
+  <<Sorting: sort>>
+  end function sort_real
+
+  module function sort_int_abs (val_in) result (val)
+    integer, dimension(:), intent(in) :: val_in
+    integer, dimension(size(val_in)) :: val
+  <<Sorting: sort abs>>
+  end function sort_int_abs
+
+@ %def sort_int sort_real sort_int_abs
+<<Sorting: sort>>=
+  val = val_in( order (val_in) )
+<<Sorting: sort abs>>=
+  val = val_in( order_abs (val_in) )
+@ The [[order]] function returns, for a given integer or real array, the
+array of indices of the elements sorted by increasing value.
+<<Sorting: public>>=
+  public :: order
+  public :: order_abs
+<<Sorting: interfaces>>=
+  interface order
+     module procedure order_int
+     module procedure order_real
+  end interface
+
+  interface order_abs
+     module procedure order_int_abs
+  end interface
+
+@ %def order order_abs
+@
+<<Sorting: sub interfaces>>=
+    module function order_int (val) result (idx)
+      integer, dimension(:), intent(in) :: val
+      integer, dimension(size(val)) :: idx
+    end function order_int
+    module function order_real (val) result (idx)
+      real(default), dimension(:), intent(in) :: val
+      integer, dimension(size(val)) :: idx
+    end function order_real
+    module function order_int_abs (val) result (idx)
+      integer, dimension(:), intent(in) :: val
+      integer, dimension(size(val)) :: idx
+    end function order_int_abs
+<<Sorting: procedures>>=
+  module function order_int (val) result (idx)
+    integer, dimension(:), intent(in) :: val
+    integer, dimension(size(val)) :: idx
+  <<Sorting: order>>
+  end function order_int
+
+  module function order_real (val) result (idx)
+    real(default), dimension(:), intent(in) :: val
+    integer, dimension(size(val)) :: idx
+  <<Sorting: order>>
+  end function order_real
+
+  module function order_int_abs (val) result (idx)
+    integer, dimension(:), intent(in) :: val
+    integer, dimension(size(val)) :: idx
+  <<Sorting: order abs>>
+  end function order_int_abs
+
+@ %def order_int order_real order_int_abs
+@ We start by individual elements, merge them to pairs, merge those to
+four-element subarrays, and so on.  The last subarray can extend only
+up to the original array bound, of course, and the second of the
+subarrays to merge should contain at least one element.
+<<Sorting: order>>=
+<<Sorting: order1>>
+        call merge (idx(b1:e2), idx(b1:e1), idx(b2:e2), val)
+<<Sorting: order2>>
+@
+<<Sorting: order abs>>=
+<<Sorting: order1>>
+        call merge_abs (idx(b1:e2), idx(b1:e1), idx(b2:e2), val)
+<<Sorting: order2>>
+@
+<<Sorting: order1>>=
+  integer :: n, i, s, b1, b2, e1, e2
+  n = size (idx)
+  do i = 1, n
+     idx(i) = i
+  end do
+  s = 1
+  do while (s < n)
+     do b1 = 1, n-s, 2*s
+        b2 = b1 + s
+        e1 = b2 - 1
+        e2 = min (e1 + s, n)
+@
+<<Sorting: order2>>=
+     end do
+     s = 2 * s
+  end do
+@ The merging step does the actual sorting.  We take two sorted array
+sections and merge them to a sorted result array.  We are working on
+the indices, and comparing is done by taking the associated [[val]]
+which is real or integer.
+<<Sorting: interfaces>>=
+  interface merge
+     module procedure merge_int
+     module procedure merge_real
+  end interface
+
+  interface merge_abs
+     module procedure merge_int_abs
+  end interface
+
+@ %def merge merge_abs
+@
+<<Sorting: sub interfaces>>=
+    module subroutine merge_int (res, src1, src2, val)
+      integer, dimension(:), intent(out) :: res
+      integer, dimension(:), intent(in) :: src1, src2
+      integer, dimension(:), intent(in) :: val
+    end subroutine merge_int
+    module subroutine merge_real (res, src1, src2, val)
+      integer, dimension(:), intent(out) :: res
+      integer, dimension(:), intent(in) :: src1, src2
+      real(default), dimension(:), intent(in) :: val
+    end subroutine merge_real
+    module subroutine merge_int_abs (res, src1, src2, val)
+      integer, dimension(:), intent(out) :: res
+      integer, dimension(:), intent(in) :: src1, src2
+      integer, dimension(:), intent(in) :: val
+    end subroutine merge_int_abs
+<<Sorting: procedures>>=
+  module subroutine merge_int (res, src1, src2, val)
+    integer, dimension(:), intent(out) :: res
+    integer, dimension(:), intent(in) :: src1, src2
+    integer, dimension(:), intent(in) :: val
+    integer, dimension(size(res)) :: tmp
+  <<Sorting: merge>>
+  end subroutine merge_int
+
+  module subroutine merge_real (res, src1, src2, val)
+    integer, dimension(:), intent(out) :: res
+    integer, dimension(:), intent(in) :: src1, src2
+    real(default), dimension(:), intent(in) :: val
+    integer, dimension(size(res)) :: tmp
+  <<Sorting: merge>>
+  end subroutine merge_real
+
+  module subroutine merge_int_abs (res, src1, src2, val)
+    integer, dimension(:), intent(out) :: res
+    integer, dimension(:), intent(in) :: src1, src2
+    integer, dimension(:), intent(in) :: val
+    integer, dimension(size(res)) :: tmp
+  <<Sorting: merge abs>>
+  end subroutine merge_int_abs
+
+@ %def merge_int merge_real merge_int_abs
+<<Sorting: merge>>=
+<<Sorting: merge1>>
+     if (val(src1(i1)) <= val(src2(i2))) then
+<<Sorting: merge2>>
+@ We keep the elements if the absolute values are strictly ordered.
+If they are equal in magnitude, we keep them if the larger value
+comes first, or if they are equal.
+<<Sorting: merge abs>>=
+<<Sorting: merge1>>
+     if (abs (val(src1(i1))) < abs (val(src2(i2))) .or. &
+        (abs (val(src1(i1))) == abs (val(src2(i2))) .and. &
+        val(src1(i1)) >= val(src2(i2)))) then
+<<Sorting: merge2>>
+@
+<<Sorting: merge1>>=
+  integer :: i1, i2, i
+  i1 = 1
+  i2 = 1
+  do i = 1, size (tmp)
+@
+<<Sorting: merge2>>=
+        tmp(i) = src1(i1);  i1 = i1 + 1
+        if (i1 > size (src1)) then
+           tmp(i+1:) = src2(i2:)
+           exit
+        end if
+     else
+        tmp(i) = src2(i2);  i2 = i2 + 1
+        if (i2 > size (src2)) then
+           tmp(i+1:) = src1(i1:)
+           exit
+        end if
+     end if
+  end do
+  res = tmp
+@
+@
+\subsection{Unit tests}
+Test module, followed by the corresponding implementation module.
+<<[[sorting_ut.f90]]>>=
+<<File header>>
+
+module sorting_ut
+  use unit_tests
+  use sorting_uti
+
+<<Standard module head>>
+
+<<Sorting: public test>>
+
+contains
+
+<<Sorting: test driver>>
+
+end module sorting_ut
+@ %def sorting_ut
+@
+<<[[sorting_uti.f90]]>>=
+<<File header>>
+
+module sorting_uti
+
+<<Use kinds>>
+
+  use sorting
+
+<<Standard module head>>
+
+<<Sorting: test declarations>>
+
+contains
+
+<<Sorting: tests>>
+
+end module sorting_uti
+@ %def sorting_ut
+@ API: driver for the unit tests below.
+<<Sorting: public test>>=
+  public :: sorting_test
+<<Sorting: test driver>>=
+  subroutine sorting_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<Sorting: execute tests>>
+  end subroutine sorting_test
+
+@ %def sorting_test
+@ This checks whether the sorting routine works correctly.
+<<Sorting: execute tests>>=
+  call test (sorting_1, "sorting_1", &
+       "check sorting routines", &
+       u, results)
+<<Sorting: test declarations>>=
+  public :: sorting_1
+<<Sorting: tests>>=
+  subroutine sorting_1 (u)
+    integer, intent(in) :: u
+    integer, parameter :: NMAX = 10
+    real(default), dimension(NMAX) :: rval
+    integer, dimension(NMAX) :: ival
+    real, dimension(NMAX,NMAX) :: harvest_r
+    integer, dimension(NMAX,NMAX) :: harvest_i
+    integer, dimension(NMAX,NMAX) :: harvest_a
+    integer :: i, j
+    harvest_r(:, 1) = [0.9976, 0., 0., 0., 0., 0., 0., 0., 0., 0.]
+    harvest_r(:, 2) = [0.5668, 0.9659, 0., 0., 0., 0., 0., 0., 0., 0.]
+    harvest_r(:, 3) = [0.7479, 0.3674, 0.4806, 0., 0., 0., 0., 0., 0., &
+         0.]
+    harvest_r(:, 4) = [0.0738, 0.0054, 0.3471, 0.3422, 0., 0., 0., 0., &
+         0., 0.]
+    harvest_r(:, 5) = [0.2180, 0.1332, 0.9005, 0.3868, 0.4455, 0., 0., &
+         0., 0., 0.]
+    harvest_r(:, 6) = [0.6619, 0.0161, 0.6509, 0.6464, 0.3230, &
+         0.8557, 0., 0., 0., 0.]
+    harvest_r(:, 7) = [0.4013, 0.2069, 0.9685, 0.5984, 0.6730, &
+         0.4569, 0.3300, 0., 0., 0.]
+    harvest_r(:, 8) = [0.1004, 0.7555, 0.6057, 0.7190, 0.8973, &
+         0.6582, 0.1507, 0.6123, 0., 0.]
+    harvest_r(:, 9) = [0.9787, 0.9991, 0.2568, 0.5509, 0.6590, &
+         0.5540, 0.9778, 0.9019, 0.6579, 0.]
+    harvest_r(:,10) = [0.7289, 0.4025, 0.9286, 0.1478, 0.6745, &
+         0.7696, 0.3393, 0.1158, 0.6144, 0.8206]
+
+    harvest_i(:, 1) = [18, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    harvest_i(:, 2) = [14, 9, 0, 0, 0, 0, 0, 0, 0, 0]
+    harvest_i(:, 3) = [ 7, 8,11, 0, 0, 0, 0, 0, 0, 0]
+    harvest_i(:, 4) = [19,19,14,19, 0, 0, 0, 0, 0, 0]
+    harvest_i(:, 5) = [ 1,14,15,18,14, 0, 0, 0, 0, 0]
+    harvest_i(:, 6) = [16,11, 1, 9,11, 2, 0, 0, 0, 0]
+    harvest_i(:, 7) = [11,10,17, 6,13,13,10, 0, 0, 0]
+    harvest_i(:, 8) = [ 5, 1, 2,10, 7, 0,15,12, 0, 0]
+    harvest_i(:, 9) = [15,19, 2, 6,11, 0, 2, 4, 2, 0]
+    harvest_i(:,10) = [ 1, 4, 8, 4,11, 0, 8, 7,19,13]
+
+    harvest_a(:, 1) = [-6,  0,  0,  0,  0,  0,  0,  0,  0,  0]
+    harvest_a(:, 2) = [-8, -9,  0,  0,  0,  0,  0,  0,  0,  0]
+    harvest_a(:, 3) = [ 4, -3,  3,  0,  0,  0,  0,  0,  0,  0]
+    harvest_a(:, 4) = [-6,  6,  2, -2,  0,  0,  0,  0,  0,  0]
+    harvest_a(:, 5) = [ 1, -2,  0, -6,  8,  0,  0,  0,  0,  0]
+    harvest_a(:, 6) = [-2, -1, -8, -5,  8, -5,  0,  0,  0,  0]
+    harvest_a(:, 7) = [-9,  0, -6,  2,  5,  3,  2,  0,  0,  0]
+    harvest_a(:, 8) = [-5, -7,  6,  7, -3,  0, -7,  4,  0,  0]
+    harvest_a(:, 9) = [ 5,  0, -1, -7,  5,  2,  7, -3,  3,  0]
+    harvest_a(:,10) = [-9,  2, -6,  3, -9,  5,  5,  7,  5, -9]
+
+
+    write (u, "(A)")  "* Test output: Sorting"
+    write (u, "(A)")  "*   Purpose: test sorting routines"
+    write (u, "(A)")
+
+    write (u, "(A)")  "* Sorting real values:"
+
+    do i = 1, NMAX
+       write (u, "(A)")
+       rval(:i) = harvest_r(:i,i)
+       write (u, "(10(1x,F7.4))") rval(:i)
+       rval(:i) = sort (rval(:i))
+       write (u, "(10(1x,F7.4))") rval(:i)
+       do j = i, 2, -1
+          if (rval(j)-rval(j-1) < 0) &
+             write (u, "(A)") "*** Sorting failure. ***"
+       end do
+    end do
+
+    write (u, "(A)")
+    write (u, "(A)") "* Sorting integer values:"
+
+    do i = 1, NMAX
+       write (u, "(A)")
+       ival(:i) = harvest_i(:i,i)
+       write (u, "(10(1x,I2))") ival(:i)
+       ival(:i) = sort (ival(:i))
+       write (u, "(10(1x,I2))") ival(:i)
+       do j = i, 2, -1
+          if (ival(j)-ival(j-1) < 0) &
+             write (u, "(A)")  "*** Sorting failure. ***"
+       end do
+    end do
+
+    write (u, "(A)")
+    write (u, "(A)") "* Sorting integer values by absolute value:"
+
+    do i = 1, NMAX
+       write (u, "(A)")
+       ival(:i) = harvest_a(:i,i)
+       write (u, "(10(1x,I2))") ival(:i)
+       ival(:i) = sort_abs (ival(:i))
+       write (u, "(10(1x,I2))") ival(:i)
+       do j = i, 2, -1
+          if (abs(ival(j))-abs(ival(j-1)) < 0 .or. &
+               (abs(ival(j))==abs(ival(j-1))) .and. ival(j)>ival(j-1)) &
+             write (u, "(A)")  "*** Sorting failure. ***"
+       end do
+    end do
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: sorting_1"
+
+  end subroutine sorting_1
+
+@ %def sorting_1
+@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Grids}
+\emph{This is not really a combinatorics module but this directory is the
+  closest I could find. Maybe this will be moved to a seperate directory
+  or combined with related stuff.}
+<<[[grids.f90]]>>=
+<<File header>>
+
+module grids
+
+<<Use kinds>>
+<<Use mpi f08>>
+
+<<Standard module head>>
+
+<<Grids: public>>
+
+<<Grids: types>>
+
+  interface
+<<Grids: sub interfaces>>
+  end interface
+
+end module grids
+@ %def grids
+<<[[grids_sub.f90]]>>=
+<<File header>>
+
+submodule (grids) grids_s
+
+  use constants, only: zero, one, tiny_07
+  use io_units
+  use format_defs, only: FMT_16, FMT_12
+  use diagnostics
+<<Use mpi f08>>
+
+  implicit none
+
+<<Grids: parameters>>
+
+contains
+
+<<Grids: procedures>>
+
+end submodule grids_s
+
+@ %def grids_s
+@
+@ Grids are used in many applications and a general implementation seems
+useful.  The relevant properties implemented so far are
+\begin{itemize}
+  \item Segments of the hypercube are represented by an integer array
+    with size $d$ corresponding to the dimension.
+  \item There is a mapping from the indices to the location in the
+    continuous memory block of values.
+  \item Given a point in the hypercube, find the corresponding
+    segment and the value of the grid therein.
+  \item Update the grid sequentially to represent the maximum
+    of a function over the unit hypercube.
+  \item The grid can be saved to and recovered from disk.
+\end{itemize}
+The following might be implemented in the future
+\begin{itemize}
+  \item Generate a random point in the hypercube by interpreting the
+    grid as probability distribution.
+
+    \emph{This would most likely be solved by using projections and the
+      [[selector_t]], which would make a move of this module higher up in
+      the dependency tree necessary.}
+  \item Update the grid sequentially to represent the \emph{minimum}
+    of a function over the unit hypercube.
+\end{itemize}
+<<Grids: public>>=
+  public :: grid_t
+<<Grids: types>>=
+  type :: grid_t
+     private
+     real(default), dimension(:), allocatable :: values
+     integer, dimension(:), allocatable :: points
+  contains
+   <<Grids: grid: TBP>>
+  end type grid_t
+
+@ %def grid_t
+@
+\subsection{Initializer and finalizer}
+For initialization, we expect the number of points for each dimension
+as an array or the the number of dimensions as a scalar whereby the
+default number of points is used then for each dimension.
+<<Grids: grid: TBP>>=
+  generic :: init => init_base, init_simple
+  procedure :: init_base => grid_init_base
+  procedure :: init_simple => grid_init_simple
+<<Grids: sub interfaces>>=
+    pure module subroutine grid_init_base (grid, points)
+      class(grid_t), intent(inout) :: grid
+      integer, dimension(:), intent(in) :: points
+    end subroutine grid_init_base
+<<Grids: procedures>>=
+  pure module subroutine grid_init_base (grid, points)
+    class(grid_t), intent(inout) :: grid
+    integer, dimension(:), intent(in) :: points
+    allocate (grid%points (size (points)))
+    allocate (grid%values (product (points)))
+    grid%points = points
+    grid%values = zero
+  end subroutine grid_init_base
+
+@ %def grid_init_base
+@
+<<Grids: sub interfaces>>=
+    pure module subroutine grid_init_simple (grid, dimensions)
+      class(grid_t), intent(inout) :: grid
+      integer, intent(in) :: dimensions
+    end subroutine grid_init_simple
+<<Grids: procedures>>=
+  pure module subroutine grid_init_simple (grid, dimensions)
+    class(grid_t), intent(inout) :: grid
+    integer, intent(in) :: dimensions
+    allocate (grid%points (dimensions))
+    allocate (grid%values (DEFAULT_POINTS_PER_DIMENSION ** dimensions))
+    grid%points = DEFAULT_POINTS_PER_DIMENSION
+    grid%values = zero
+  end subroutine grid_init_simple
+
+@ %def grid_init_simple
+@ Manual assignment (tests)
+<<Grids: grid: TBP>>=
+  procedure :: set_values => grid_set_values
+<<Grids: sub interfaces>>=
+    module subroutine grid_set_values (grid, values)
+      class(grid_t), intent(inout) :: grid
+      real(default), dimension(:), intent(in) :: values
+    end subroutine grid_set_values
+<<Grids: procedures>>=
+  module subroutine grid_set_values (grid, values)
+    class(grid_t), intent(inout) :: grid
+    real(default), dimension(:), intent(in) :: values
+    grid%values = values
+  end subroutine grid_set_values
+
+@ %def grid_set_values
+@ A reasonable default
+<<Grids: parameters>>=
+  integer, parameter :: DEFAULT_POINTS_PER_DIMENSION = 100
+@ %def DEFAULT_POINTS_PER_DIMENSION
+@ Calling this is not mandatory, when an instance of [[grid_t]] goes out
+of scope as it will be done by Fortran automatically.
+<<Grids: grid: TBP>>=
+  procedure :: final => grid_final
+<<Grids: sub interfaces>>=
+    pure module subroutine grid_final (grid)
+      class(grid_t), intent(inout) :: grid
+    end subroutine grid_final
+<<Grids: procedures>>=
+  pure module subroutine grid_final (grid)
+    class(grid_t), intent(inout) :: grid
+    if (allocated (grid%values)) then
+       deallocate (grid%values)
+    end if
+    if (allocated (grid%points)) then
+       deallocate (grid%points)
+    end if
+  end subroutine grid_final
+
+@ %def grid_final
+@
+\subsection{Segment finding and memory mapping}
+The [[indices]] array is expected to go from 1 to $d$ whereby the
+entries for the different $\text{dim}$s are from 1 to
+$n_\text{points}(\text{dim})$.
+
+@ We get the value of the grid either from given [[indices]] or from a
+point [[x]] in the hypercube.  In the latter case, we have to find the
+segment first.
+<<Grids: grid: TBP>>=
+  generic :: get_value => get_value_from_x, get_value_from_indices
+  procedure :: get_value_from_x => grid_get_value_from_x
+  procedure :: get_value_from_indices => grid_get_value_from_indices
+<<Grids: sub interfaces>>=
+    module function grid_get_value_from_indices (grid, indices)
+      real(default) :: grid_get_value_from_indices
+      class(grid_t), intent(in) :: grid
+      integer, dimension(:), intent(in) :: indices
+    end function grid_get_value_from_indices
+<<Grids: procedures>>=
+  module function grid_get_value_from_indices (grid, indices)
+    real(default) :: grid_get_value_from_indices
+    class(grid_t), intent(in) :: grid
+    integer, dimension(:), intent(in) :: indices
+    grid_get_value_from_indices = grid%values(grid%get_index(indices))
+  end function grid_get_value_from_indices
+
+@ %def grid_get_value_from_indices
+@
+<<Grids: sub interfaces>>=
+    module function grid_get_value_from_x (grid, x)
+      real(default) :: grid_get_value_from_x
+      class(grid_t), intent(in) :: grid
+      real(default), dimension(:), intent(in) :: x
+    end function grid_get_value_from_x
+<<Grids: procedures>>=
+  module function grid_get_value_from_x (grid, x)
+    real(default) :: grid_get_value_from_x
+    class(grid_t), intent(in) :: grid
+    real(default), dimension(:), intent(in) :: x
+    grid_get_value_from_x = grid_get_value_from_indices &
+         (grid, grid_get_segment (grid, x))
+  end function grid_get_value_from_x
+
+@ %def grid_get_value_from_x
+@ The segment is the part of the grid that contains the point [[x]] and
+is identified by a tupel of [[indices]].  This is just a brute force
+search, for fine grids one could also implement a binary search for
+$\mathcal{O}(\log{N})$ behavior instead of $\mathcal{O}({N})$.
+<<Grids: grid: TBP>>=
+  procedure :: get_segment => grid_get_segment
+<<Grids: sub interfaces>>=
+    module function grid_get_segment (grid, x, unit) result (segment)
+      class(grid_t), intent(in) :: grid
+      real(default), dimension(:), intent(in) :: x
+      integer, intent(in), optional :: unit
+      integer, dimension(1:size (x)) :: segment
+    end function grid_get_segment
+<<Grids: procedures>>=
+  module function grid_get_segment (grid, x, unit) result (segment)
+    class(grid_t), intent(in) :: grid
+    real(default), dimension(:), intent(in) :: x
+    integer, intent(in), optional :: unit
+    integer, dimension(1:size (x)) :: segment
+    integer :: dim, i
+    real(default) :: segment_width
+    segment = 0
+    do dim = 1, size (grid%points)
+       segment_width = one / grid%points (dim)
+       SEARCH: do i = 1, grid%points (dim)
+          if (x (dim) <= i * segment_width + tiny_07) then
+             segment (dim) = i
+             exit SEARCH
+          end if
+       end do SEARCH
+       if (segment (dim) == 0) then
+          do i = 1, size(x)
+             write (msg_buffer, "(A," // DEFAULT_OUTPUT_PRECISION // ")") &
+                  "x[i] = ", x(i)
+             call msg_message ()
+          end do
+          call msg_error ("grid_get_segment: Did not find x in [0,1]^d", &
+               unit=unit)
+       end if
+    end do
+  end function grid_get_segment
+
+@ %def grid_get_segment
+@ This is a simple storage mapping function but more sophisticated ideas
+like hashing could be implemented.
+\begin{align}
+\text{index} = &\text{indices}(1) + \notag\\
+               &\text{indices}(2) * \text{size}(1) + \notag\\
+               &\text{indices}(3) * \text{size}(1) * \text{size}(2) +
+                \dots
+\end{align}
+<<Grids: grid: TBP>>=
+  procedure :: get_index => grid_get_index
+<<Grids: sub interfaces>>=
+    pure module function grid_get_index (grid, indices) result (grid_index)
+      integer :: grid_index
+      class(grid_t), intent(in) :: grid
+      integer, dimension(:), intent(in) :: indices
+    end function grid_get_index
+<<Grids: procedures>>=
+  pure module function grid_get_index (grid, indices) result (grid_index)
+    integer :: grid_index
+    class(grid_t), intent(in) :: grid
+    integer, dimension(:), intent(in) :: indices
+    integer :: dim_innerloop, dim_outerloop, multiplier
+    grid_index = 1
+    do dim_outerloop = 1, size(indices)
+       multiplier = 1
+       do dim_innerloop = 1, dim_outerloop - 1
+          multiplier = multiplier * grid%points (dim_innerloop)
+       end do
+       grid_index = grid_index + (indices(dim_outerloop) - 1) * multiplier
+    end do
+  end function grid_get_index
+
+@ %def grid_get_index
+@
+\subsection{Grid manipulations}
+Given a point in the hypercube [[x]] and its value [[y]], we update
+the grids, such that the stepwise function $f$ defined by the grid is
+$f(x_i)\geq y_i\;\forall \{x_i, y_i\}$.
+<<Grids: grid: TBP>>=
+  procedure :: update_maxima => grid_update_maxima
+<<Grids: sub interfaces>>=
+    module subroutine grid_update_maxima (grid, x, y)
+      class(grid_t), intent(inout) :: grid
+      real(default), dimension(:), intent(in) :: x
+      real(default), intent(in) :: y
+    end subroutine grid_update_maxima
+<<Grids: procedures>>=
+  module subroutine grid_update_maxima (grid, x, y)
+    class(grid_t), intent(inout) :: grid
+    real(default), dimension(:), intent(in) :: x
+    real(default), intent(in) :: y
+    integer, dimension(1:size(x)) :: indices
+    indices = grid%get_segment (x)
+    if (grid%get_value (indices) < y) then
+       grid%values (grid%get_index (indices)) = y
+    end if
+  end subroutine grid_update_maxima
+
+@ %def grid_update_maxima
+@ More general cases have to be thought through when they are needed.
+\emph{This is inefficient and non-general}.
+<<Grids: grid: TBP>>=
+  procedure :: get_maximum_in_3d => grid_get_maximum_in_3d
+<<Grids: sub interfaces>>=
+    module function grid_get_maximum_in_3d (grid, projected_index) result (maximum)
+      real(default) :: maximum
+      class(grid_t), intent(in) :: grid
+      integer, intent(in) :: projected_index
+    end function grid_get_maximum_in_3d
+<<Grids: procedures>>=
+  module function grid_get_maximum_in_3d (grid, projected_index) result (maximum)
+    real(default) :: maximum
+    class(grid_t), intent(in) :: grid
+    integer, intent(in) :: projected_index
+    real(default) :: val
+    integer :: i, j
+    maximum = zero
+    do i = 1, grid%points(1)
+       do j = 1, grid%points(2)
+          val = grid%get_value ([i, j, projected_index])
+          if (val > maximum) then
+             maximum = val
+          end if
+       end do
+    end do
+
+  end function grid_get_maximum_in_3d
+
+@ %def grid_get_maximum_in_3d
+@
+<<Grids: grid: TBP>>=
+  procedure :: is_non_zero_everywhere => grid_is_non_zero_everywhere
+<<Grids: sub interfaces>>=
+    pure module function grid_is_non_zero_everywhere (grid) result (yorn)
+      logical :: yorn
+      class(grid_t), intent(in) :: grid
+    end function grid_is_non_zero_everywhere
+<<Grids: procedures>>=
+  pure module function grid_is_non_zero_everywhere (grid) result (yorn)
+    logical :: yorn
+    class(grid_t), intent(in) :: grid
+    yorn = all (abs (grid%values) > zero)
+  end function grid_is_non_zero_everywhere
+
+@ %def grid_is_non_zero_everywhere
+@ Returns true if any value of the grid is non-zero.
+We need this to determine whether the grid has been filled during integration.
+<<Grids: grid: TBP>>=
+  procedure :: has_non_zero_entries => grid_has_non_zero_entries
+<<Grids: sub interfaces>>=
+    pure module function grid_has_non_zero_entries (grid) result (non_zero)
+      logical :: non_zero
+      class(grid_t), intent(in) :: grid
+    end function grid_has_non_zero_entries
+<<Grids: procedures>>=
+  pure module function grid_has_non_zero_entries (grid) result (non_zero)
+    logical :: non_zero
+    class(grid_t), intent(in) :: grid
+    non_zero = any (abs (grid%values) > zero)
+  end function grid_has_non_zero_entries
+
+@ %def grid_has_non_zero_entries
+@ MPI: We allow for several grids in a parallelized run to be combined with [[MPI_reduce]].
+The operator has to be specified. We do not check on any specifications.
+<<MPI: Grids: grid: TBP>>=
+  procedure :: mpi_reduce => grid_mpi_reduce
+<<MPI: Grids: sub interfaces>>=
+    module subroutine grid_mpi_reduce (grid, operator)
+      class(grid_t), intent(inout) :: grid
+      type(MPI_op), intent(in) :: operator
+    end subroutine grid_mpi_reduce
+<<MPI: Grids: procedures>>=
+  module subroutine grid_mpi_reduce (grid, operator)
+    class(grid_t), intent(inout) :: grid
+    type(MPI_op), intent(in) :: operator
+    real(default), dimension(size (grid%values)) :: root_values
+    integer :: rank
+    call MPI_Comm_rank (MPI_COMM_WORLD, rank)
+    call MPI_Reduce (grid%values, root_values, size (grid%values),&
+         & MPI_DOUBLE_PRECISION, operator, 0, MPI_COMM_WORLD)
+    if (rank == 0) then
+       grid%values = root_values
+    end if
+  end subroutine grid_mpi_reduce
+
+@ %def grid_mpi_reduce
+\subsection{Input and Output to screen and disk}
+
+<<Grids: grid: TBP>>=
+  procedure :: write => grid_write
+<<Grids: sub interfaces>>=
+    module subroutine grid_write (grid, unit)
+      class(grid_t), intent(in) :: grid
+      integer, intent(in), optional :: unit
+    end subroutine grid_write
+<<Grids: procedures>>=
+  module subroutine grid_write (grid, unit)
+    class(grid_t), intent(in) :: grid
+    integer, intent(in), optional :: unit
+    integer :: u, i
+    u = given_output_unit (unit);  if (u < 0)  return
+    write (u, "(1X,A)") "Grid"
+    write (u, "(2X,A,2X)", advance='no') "Number of points per dimension:"
+    if (allocated (grid%points)) then
+       do i = 1, size (grid%points)
+          write (u, "(I12,1X)", advance='no') &
+               grid%points (i)
+       end do
+    end if
+    write (u, *)
+    write (u, "(2X,A)") "Values of the grid:"
+    if (allocated (grid%values)) then
+       do i = 1, size (grid%values)
+          write (u, "(" // DEFAULT_OUTPUT_PRECISION // ",1X)") &
+               grid%values (i)
+       end do
+    end if
+    call grid%compute_and_write_mean_and_max (u)
+  end subroutine grid_write
+
+@ %def grid_write
+@
+<<Grids: grid: TBP>>=
+  procedure :: compute_and_write_mean_and_max => &
+       grid_compute_and_write_mean_and_max
+<<Grids: sub interfaces>>=
+    module subroutine grid_compute_and_write_mean_and_max (grid, unit)
+      class(grid_t), intent(in) :: grid
+      integer, intent(in), optional :: unit
+    end subroutine grid_compute_and_write_mean_and_max
+<<Grids: procedures>>=
+  module subroutine grid_compute_and_write_mean_and_max (grid, unit)
+    class(grid_t), intent(in) :: grid
+    integer, intent(in), optional :: unit
+    integer :: u, i, n_values
+    real(default) :: mean, val, maximum
+    u = given_output_unit (unit);  if (u < 0)  return
+    mean = zero
+    maximum = zero
+    if (allocated (grid%values)) then
+       n_values = size (grid%values)
+       do i = 1, n_values
+          val = grid%values (i)
+          mean = mean + val / n_values
+          if (val > maximum) then
+             maximum = val
+          end if
+       end do
+       write (msg_buffer, "(A," // FMT_12 // ")") &
+            "Grid: Mean value of the grid: ", mean
+       call msg_message ()
+       write (msg_buffer, "(A," // FMT_12 // ")") &
+            "Grid: Max value of the grid: ", maximum
+       call msg_message ()
+       if (maximum > zero) then
+          write (msg_buffer, "(A," // FMT_12 // ")") &
+               "Grid: Mean/Max value of the grid: ", mean / maximum
+          call msg_message ()
+       end if
+    else
+       call msg_warning ("Grid: Grid is not allocated!")
+    end if
+  end subroutine grid_compute_and_write_mean_and_max
+
+@ %def grid_compute_and_write_mean_and_max
+@
+<<Grids: grid: TBP>>=
+  procedure :: save_to_file => grid_save_to_file
+<<Grids: sub interfaces>>=
+    module subroutine grid_save_to_file (grid, file)
+      class(grid_t), intent(in) :: grid
+      character(len=*), intent(in) :: file
+    end subroutine grid_save_to_file
+<<Grids: procedures>>=
+  module subroutine grid_save_to_file (grid, file)
+    class(grid_t), intent(in) :: grid
+    character(len=*), intent(in) :: file
+    integer :: iostat, u, i
+    u = free_unit ()
+    open (file=file, unit=u, action='write')
+    if (allocated (grid%points)) then
+       write (u, "(I12)") size (grid%points)
+       do i = 1, size (grid%points)
+          write (u, "(I12,1X)", advance='no', iostat=iostat) &
+               grid%points (i)
+       end do
+    end if
+    write (u, *)
+    if (allocated (grid%values)) then
+       do i = 1, size (grid%values)
+          write (u, "(" // DEFAULT_OUTPUT_PRECISION // ",1X)", &
+               advance='no', iostat=iostat) grid%values (i)
+       end do
+    end if
+    if (iostat /= 0) then
+       call msg_warning &
+            ('grid_save_to_file: Could not save grid to file')
+    end if
+    close (u)
+  end subroutine grid_save_to_file
+
+@ %def grid_save_to_file
+@
+<<Grids: parameters>>=
+  character(len=*), parameter :: DEFAULT_OUTPUT_PRECISION = FMT_16
+@ %def DEFAULT_OUTPUT_PRECISION
+@
+<<Grids: public>>=
+  public :: verify_points_for_grid
+<<Grids: sub interfaces>>=
+    module function verify_points_for_grid (file, points) result (valid)
+      logical :: valid
+      character(len=*), intent(in) :: file
+      integer, dimension(:), intent(in) :: points
+    end function verify_points_for_grid
+<<Grids: procedures>>=
+  module function verify_points_for_grid (file, points) result (valid)
+    logical :: valid
+    character(len=*), intent(in) :: file
+    integer, dimension(:), intent(in) :: points
+    integer, dimension(:), allocatable :: points_from_file
+    integer :: u
+    call load_points_from_file (file, u, points_from_file)
+    close (u)
+    if (allocated (points_from_file)) then
+      valid = all (points == points_from_file)
+    else
+      valid = .false.
+    end if
+  end function verify_points_for_grid
+
+@ %def verify_points_for_grid
+@ Returns the [[unit]] that has opened the input [[file]] and read the
+first two lines. The caller has to close it. Furthermore, we return
+[[points]] containing the number of points in each dimension.
+<<Grids: procedures>>=
+  subroutine load_points_from_file (file, unit, points)
+    character(len=*), intent(in) :: file
+    integer, intent(out) :: unit
+    integer, dimension(:), allocatable :: points
+    integer :: iostat, n_dimensions, i_dim
+    unit = free_unit ()
+    open (file=file, unit=unit, action='read', iostat=iostat)
+    if (iostat /= 0)  return
+    read (unit, "(I12)", iostat=iostat) n_dimensions
+    if (iostat /= 0)  return
+    allocate (points (n_dimensions))
+    do i_dim = 1, size (points)
+       read (unit, "(I12,1X)", advance='no', iostat=iostat) &
+            points (i_dim)
+    end do
+    if (iostat /= 0)  return
+    read (unit, *)
+    if (iostat /= 0)  return
+  end subroutine load_points_from_file
+
+@ %def procedure
+@
+<<Grids: grid: TBP>>=
+  procedure :: load_from_file => grid_load_from_file
+<<Grids: sub interfaces>>=
+    module subroutine grid_load_from_file (grid, file)
+      class(grid_t), intent(out) :: grid
+      character(len=*), intent(in) :: file
+    end subroutine grid_load_from_file
+<<Grids: procedures>>=
+  module subroutine grid_load_from_file (grid, file)
+    class(grid_t), intent(out) :: grid
+    character(len=*), intent(in) :: file
+    integer :: iostat, u, i
+    integer, dimension(:), allocatable :: points
+    call load_points_from_file (file, u, points)
+    if (.not. allocated (points))  return
+    call grid%init (points)
+    do i = 1, size (grid%values)
+       read (u, "(" // DEFAULT_OUTPUT_PRECISION // ",1X)", advance='no', iostat=iostat) &
+            grid%values (i)
+    end do
+    if (iostat /= 0) then
+       call msg_warning ('grid_load_from_file: Could not load grid from file')
+    end if
+    close (u)
+  end subroutine grid_load_from_file
+
+@ %def grid_load_from_file
+@
+\subsection{Unit tests}
+Test module, followed by the corresponding implementation module.
+<<[[grids_ut.f90]]>>=
+<<File header>>
+
+module grids_ut
+  use unit_tests
+  use grids_uti
+
+<<Standard module head>>
+
+<<Grids: public test>>
+
+contains
+
+<<Grids: test driver>>
+
+end module grids_ut
+@ %def grids_ut
+@
+<<[[grids_uti.f90]]>>=
+<<File header>>
+
+module grids_uti
+
+<<Use kinds>>
+  use constants, only: zero, one, two, three, four, tiny_07
+  use file_utils, only: delete_file
+  use numeric_utils
+
+  use grids
+
+<<Standard module head>>
+
+<<Grids: test declarations>>
+
+contains
+
+<<Grids: tests>>
+
+end module grids_uti
+@ %def grids_ut
+@ API: driver for the unit tests below.
+<<Grids: public test>>=
+  public :: grids_test
+<<Grids: test driver>>=
+  subroutine grids_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<Grids: execute tests>>
+  end subroutine grids_test
+
+@ %def grids_test
+@
+\subsubsection{Test Index Function}
+<<Grids: execute tests>>=
+  call test(grids_1, "grids_1", &
+       "Test Index Function", u, results)
+<<Grids: test declarations>>=
+  public :: grids_1
+<<Grids: tests>>=
+  subroutine grids_1 (u)
+    integer, intent(in) :: u
+    type(grid_t) :: grid
+    write (u, "(A)")  "* Test output: grids_1"
+    write (u, "(A)")  "*   Purpose: Test Index Function"
+    write (u, "(A)")
+
+    call grid%init ([3])
+    call grid%write(u)
+    call assert (u, grid%get_index([1]) == 1, "grid%get_index(1) == 1")
+    call assert (u, grid%get_index([2]) == 2, "grid%get_index(2) == 2")
+    call assert (u, grid%get_index([3]) == 3, "grid%get_index(3) == 3")
+    call grid%final ()
+
+    call grid%init ([3,3])
+    call grid%write(u)
+    call assert (u, grid%get_index([1,1]) == 1, "grid%get_index(1,1) == 1")
+    call assert (u, grid%get_index([2,1]) == 2, "grid%get_index(2,1) == 2")
+    call assert (u, grid%get_index([3,1]) == 3, "grid%get_index(3,1) == 3")
+    call assert (u, grid%get_index([1,2]) == 4, "grid%get_index(1,2) == 4")
+    call assert (u, grid%get_index([2,2]) == 5, "grid%get_index(2,2) == 5")
+    call assert (u, grid%get_index([3,2]) == 6, "grid%get_index(3,2) == 6")
+    call assert (u, grid%get_index([1,3]) == 7, "grid%get_index(1,3) == 7")
+    call assert (u, grid%get_index([2,3]) == 8, "grid%get_index(2,3) == 8")
+    call assert (u, grid%get_index([3,3]) == 9, "grid%get_index(3,3) == 9")
+    call grid%final ()
+
+    call grid%init ([3,3,2])
+    call grid%write(u)
+    call assert (u, grid%get_index([1,1,1]) == 1,   "grid%get_index(1,1,1) == 1")
+    call assert (u, grid%get_index([2,1,2]) == 2+9, "grid%get_index(2,1,2) == 2+9")
+    call assert (u, grid%get_index([3,3,1]) == 9,   "grid%get_index(3,3,1) == 3")
+    call assert (u, grid%get_index([3,1,2]) == 3+9, "grid%get_index(3,1,2) == 4+9")
+    call assert (u, grid%get_index([2,2,1]) == 5,   "grid%get_index(2,2,1) == 5")
+    call assert (u, grid%get_index([3,2,2]) == 6+9, "grid%get_index(3,2,2) == 6+9")
+    call assert (u, grid%get_index([1,3,1]) == 7,   "grid%get_index(1,3,1) == 7")
+    call assert (u, grid%get_index([2,3,2]) == 8+9, "grid%get_index(2,3,2) == 8+9")
+    call assert (u, grid%get_index([3,3,2]) == 9+9, "grid%get_index(3,3,2) == 9+9")
+    call grid%final ()
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: grids_1"
+  end subroutine grids_1
+
+@ %def grids_1
+@
+\subsubsection{Saving and Loading}
+<<Grids: execute tests>>=
+  call test(grids_2, "grids_2", &
+            "Saving and Loading", u, results)
+<<Grids: test declarations>>=
+  public :: grids_2
+<<Grids: tests>>=
+  subroutine grids_2 (u)
+    integer, intent(in) :: u
+    type(grid_t) :: grid
+    write (u, "(A)")  "* Test output: grids_2"
+    write (u, "(A)")  "*   Purpose: Saving and Loading"
+    write (u, "(A)")
+
+    call grid%init ([3])
+    call grid%set_values ([one, two, three])
+    call grid%save_to_file ('grids_2_test')
+    call grid%final ()
+
+    call assert (u, verify_points_for_grid('grids_2_test', [3]), &
+         "verify_points_for_grid")
+    call grid%load_from_file ('grids_2_test')
+    call grid%write (u)
+    call assert (u, nearly_equal (grid%get_value([1]), one),   "grid%get_value(1) == 1")
+    call assert (u, nearly_equal (grid%get_value([2]), two),   "grid%get_value(2) == 2")
+    call assert (u, nearly_equal (grid%get_value([3]), three), "grid%get_value(3) == 3")
+    call grid%final ()
+
+    call grid%init ([3,3])
+    call grid%set_values ([one, two, three, four, zero, zero, zero, zero, zero])
+    call grid%save_to_file ('grids_2_test')
+    call grid%final ()
+
+    call assert (u, verify_points_for_grid('grids_2_test', [3,3]), &
+         "verify_points_for_grid")
+    call grid%load_from_file ('grids_2_test')
+    call grid%write (u)
+    call assert (u, nearly_equal (grid%get_value([1,1]), one),   "grid%get_value(1,1) == 1")
+    call assert (u, nearly_equal (grid%get_value([2,1]), two),   "grid%get_value(2,1) == 2")
+    call assert (u, nearly_equal (grid%get_value([3,1]), three), "grid%get_value(3,1) == 3")
+    call assert (u, nearly_equal (grid%get_value([1,2]), four),  "grid%get_value(1,2) == 4")
+    call delete_file ('grids_2_test')
+
+    call grid%load_from_file ('grids_2_test')
+    call assert (u, .not. verify_points_for_grid('grids_2_test', [3,3]), &
+         "verify_points_for_grid")
+    call grid%write (u)
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: grids_2"
+  end subroutine grids_2
+
+@ %def grids_2
+@
+\subsubsection{Get Segments}
+<<Grids: execute tests>>=
+  call test(grids_3, "grids_3", &
+            "Get Segments", u, results)
+<<Grids: test declarations>>=
+  public :: grids_3
+<<Grids: tests>>=
+  subroutine grids_3 (u)
+    integer, intent(in) :: u
+    type(grid_t) :: grid
+    integer, dimension(2) :: fail
+    write (u, "(A)")  "* Test output: grids_3"
+    write (u, "(A)")  "*   Purpose: Get Segments"
+    write (u, "(A)")
+
+    call grid%init ([3])
+    call assert (u, all(grid%get_segment([0.00_default]) == [1]), &
+                   "all(grid%get_segment([0.00_default]) == [1])")
+    call assert (u, all(grid%get_segment([0.32_default]) == [1]), &
+                   "all(grid%get_segment([0.32_default]) == [1])")
+    call assert (u, all(grid%get_segment([0.52_default]) == [2]), &
+                   "all(grid%get_segment([0.52_default]) == [2])")
+    call assert (u, all(grid%get_segment([1.00_default]) == [3]), &
+                   "all(grid%get_segment([1.00_default]) == [3])")
+    call grid%final ()
+
+    call grid%init ([3,3])
+    call assert (u, all(grid%get_segment([0.00_default,0.00_default]) == [1,1]), &
+                   "all(grid%get_segment([0.00_default,0.00_default]) == [1,1])")
+    call assert (u, all(grid%get_segment([0.32_default,0.32_default]) == [1,1]), &
+                   "all(grid%get_segment([0.32_default,0.32_default]) == [1,1])")
+    call assert (u, all(grid%get_segment([0.52_default,0.52_default]) == [2,2]), &
+                   "all(grid%get_segment([0.52_default,0.52_default]) == [2,2])")
+    call assert (u, all(grid%get_segment([1.00_default,1.00_default]) == [3,3]), &
+                   "all(grid%get_segment([1.00_default,1.00_default]) == [3,3])")
+    write (u, "(A)")  "* A double error is expected"
+    fail = grid%get_segment([1.10_default,1.10_default], u)
+    call grid%final ()
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: grids_3"
+  end subroutine grids_3
+
+@ %def grids_3
+@
+\subsubsection{Update Maxima}
+<<Grids: execute tests>>=
+  call test(grids_4, "grids_4", &
+            "Update Maxima", u, results)
+<<Grids: test declarations>>=
+  public :: grids_4
+<<Grids: tests>>=
+  subroutine grids_4 (u)
+    integer, intent(in) :: u
+    type(grid_t) :: grid
+    write (u, "(A)")  "* Test output: grids_4"
+    write (u, "(A)")  "*   Purpose: Update Maxima"
+    write (u, "(A)")
+
+    call grid%init ([4,4])
+    call grid%update_maxima ([0.1_default, 0.0_default], 0.3_default)
+    call grid%update_maxima ([0.9_default, 0.95_default], 1.7_default)
+    call grid%write (u)
+    call assert_equal (u, grid%get_value([1,1]), 0.3_default, &
+               "grid%get_value([1,1]")
+    call assert_equal (u, grid%get_value([2,2]), 0.0_default, &
+               "grid%get_value([2,2]")
+    call assert_equal (u, grid%get_value([4,4]), 1.7_default, &
+               "grid%get_value([4,4]")
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: grids_4"
+  end subroutine grids_4
+
+@ %def grids_4
+@
+\subsubsection{Finding and checking}
+<<Grids: execute tests>>=
+  call test(grids_5, "grids_5", &
+            "Finding and checking", u, results)
+<<Grids: test declarations>>=
+  public :: grids_5
+<<Grids: tests>>=
+  subroutine grids_5 (u)
+    integer, intent(in) :: u
+    type(grid_t) :: grid
+    real(default) :: first, second
+    write (u, "(A)")  "* Test output: grids_5"
+    write (u, "(A)")  "*   Purpose: Finding and checking"
+    write (u, "(A)")
+
+    call grid%init ([2,2,2])
+    first = one / two - tiny_07
+    second = two / two - tiny_07
+    call grid%update_maxima ([0.1_default, 0.0_default, first], 0.3_default)
+    call grid%update_maxima ([0.9_default, 0.95_default, second], 1.7_default)
+    call grid%write (u)
+    call assert (u, .not. grid%is_non_zero_everywhere (), &
+               ".not. grid%is_non_zero_everywhere (")
+    call assert_equal (u, grid%get_maximum_in_3d (1), 0.3_default, &
+         "grid%get_maximum_in_3d (1)")
+    call assert_equal (u, grid%get_maximum_in_3d (2), 1.7_default, &
+         "grid%get_maximum_in_3d (2)")
+
+    call grid%update_maxima ([0.9_default, 0.95_default, first], 1.8_default)
+    call grid%update_maxima ([0.1_default, 0.95_default, first], 1.5_default)
+    call grid%update_maxima ([0.9_default, 0.15_default, first], 1.5_default)
+    call grid%update_maxima ([0.1_default, 0.0_default, second], 0.2_default)
+    call grid%update_maxima ([0.1_default, 0.9_default, second], 0.2_default)
+    call grid%update_maxima ([0.9_default, 0.0_default, second], 0.2_default)
+    call grid%write (u)
+    call assert (u, grid%is_non_zero_everywhere (), &
+               "grid%is_non_zero_everywhere (")
+    call assert_equal (u, grid%get_maximum_in_3d (1), 1.8_default, &
+         "grid%get_maximum_in_3d (1)")
+    call assert_equal (u, grid%get_maximum_in_3d (2), 1.7_default, &
+         "grid%get_maximum_in_3d (2)")
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: grids_5"
+  end subroutine grids_5
+
+@ %def grids_5
+@ One could think of multiple implementations of a generic type.
+<<[[solver.f90]]>>=
+<<File header>>
+
+module solver
+
+<<Use kinds>>
+  use constants, only: tiny_10
+
+<<Standard module head>>
+
+<<Solver: public>>
+
+<<Solver: parameters>>
+
+<<Solver: types>>
+
+<<Solver: interfaces>>
+
+  interface
+<<Solver: sub interfaces>>
+  end interface
+
+end module solver
+@ %def solver
+@
+<<[[solver_sub.f90]]>>=
+<<File header>>
+
+submodule (solver) solver_s
+
+  use numeric_utils
+  use diagnostics
+
+  implicit none
+
+contains
+
+<<Solver: procedures>>
+
+end submodule solver_s
+
+@ %def solver_s
+@
+<<Solver: public>>=
+  public :: solver_function_t
+<<Solver: types>>=
+  type, abstract :: solver_function_t
+  contains
+    procedure(solver_function_evaluate), deferred :: evaluate
+  end type solver_function_t
+
+@ %def solver_function_t
+@
+<<Solver: interfaces>>=
+  abstract interface
+     function solver_function_evaluate (solver_f, x) result (f)
+       import
+       complex(default) :: f
+       class(solver_function_t), intent(in) :: solver_f
+       real(default), intent(in) :: x
+     end function
+  end interface
+
+@ %def solver_function_evaluate
+@
+<<Solver: public>>=
+  public :: solve_secant
+<<Solver: sub interfaces>>=
+    module function solve_secant &
+         (func, lower_start, upper_start, success, precision) result (x0)
+      class(solver_function_t), intent(in) :: func
+      real(default) :: x0
+      real(default), intent(in) :: lower_start, upper_start
+      real(default), intent(in), optional :: precision
+      logical, intent(out) :: success
+    end function solve_secant
+<<Solver: procedures>>=
+  module function solve_secant &
+       (func, lower_start, upper_start, success, precision) result (x0)
+    class(solver_function_t), intent(in) :: func
+    real(default) :: x0
+    real(default), intent(in) :: lower_start, upper_start
+    real(default), intent(in), optional :: precision
+    logical, intent(out) :: success
+    real(default) :: desired, x_curr, x_next, f_curr, f_next, x_new
+    integer :: n_iter
+    desired = DEFAULT_PRECISION; if (present(precision)) desired = precision
+    x_curr = lower_start
+    x_next = upper_start
+    n_iter = 0
+    success = .false.
+    SEARCH: do
+       n_iter = n_iter + 1
+       f_curr = real( func%evaluate (x_curr) )
+       f_next = real( func%evaluate (x_next) )
+       <<Exit if close to zero and handle exceptions>>
+       x_new = x_next - (x_next - x_curr) / (f_next - f_curr) * f_next
+       x_curr = x_next
+       x_next = x_new
+    end do SEARCH
+    if (x0 < lower_start .or. x0 > upper_start) then
+       call msg_warning ("solve: The root of the function is not in boundaries")
+       return
+    end if
+    success = .true.
+  end function solve_secant
+
+@ %def solve_secant
+<<Exit if close to zero and handle exceptions>>=
+if (abs (f_next) < desired) then
+   x0 = x_next
+   exit
+end if
+if (n_iter > MAX_TRIES) then
+   call msg_warning ("solve: Couldn't find root of function")
+   return
+end if
+if (vanishes (f_next - f_curr)) then
+   x_next = x_next + (x_next - x_curr) / 10
+   cycle
+end if
+
+@
+@ Implements the bisection root-finding method to find a root of [[func]]
+between [[lower_start]] and [[upper_start]] with tolerance [[precision]].
+<<Solver: public>>=
+  public :: solve_interval
+<<Solver: sub interfaces>>=
+    module function solve_interval &
+         (func, lower_start, upper_start, success, precision) result (x0)
+      class(solver_function_t), intent(in) :: func
+      real(default) :: x0
+      real(default), intent(in) :: lower_start, upper_start
+      real(default), intent(in), optional :: precision
+      logical, intent(out) :: success
+    end function solve_interval
+<<Solver: procedures>>=
+  module function solve_interval &
+       (func, lower_start, upper_start, success, precision) result (x0)
+    class(solver_function_t), intent(in) :: func
+    real(default) :: x0
+    real(default), intent(in) :: lower_start, upper_start
+    real(default), intent(in), optional :: precision
+    logical, intent(out) :: success
+    real(default) :: desired
+    real(default) :: x_low, x_high, x_half
+    real(default) :: f_low, f_high, f_half
+    integer :: n_iter
+    success = .false.
+    desired = DEFAULT_PRECISION; if (present(precision)) desired = precision
+    x0 = lower_start
+    x_low = lower_start
+    x_high = upper_start
+    f_low = real( func%evaluate (x_low) )
+    f_high = real( func%evaluate (x_high) )
+    if (f_low * f_high > 0) return
+    if (x_low > x_high) then
+       call display_solver_status()
+       call msg_fatal ("Interval solver: Upper bound must be &
+                       &greater than lower bound")
+    end if
+    n_iter = 0
+    do n_iter = 1, MAX_TRIES
+       x_half = (x_high + x_low)/2
+       f_half = real( func%evaluate (x_half) )
+       if (abs (f_half) <= desired) then
+          x0 = x_half
+          exit
+       end if
+       if (f_low * f_half > 0._default) then
+          x_low = x_half
+          f_low = f_half
+       else
+          x_high = x_half
+          f_high = f_half
+       end if
+    end do
+    if (x0 < lower_start .or. x0 > upper_start) then
+       call msg_warning ("Interval solver: The root of the function&
+                          & is out of boundaries")
+       return
+    end if
+    success = .true.
+  contains
+    subroutine display_solver_status ()
+       print *, '================='
+       print *, 'Status of interval solver: '
+       print *, 'initial values: ', lower_start, upper_start
+       print *, 'iteration: ', n_iter
+       print *, 'x_low: ', x_low, 'f_low: ', f_low
+       print *, 'x_high: ', x_high, 'f_high: ', f_high
+       print *, 'x_half: ', x_half, 'f_half: ', f_half
+    end subroutine display_solver_status
+  end function solve_interval
+
+@ %def solve_interval
+@
+<<Solver: public>>=
+  public :: solve_qgaus
+<<Solver: sub interfaces>>=
+    module function solve_qgaus (integrand, grid) result (integral)
+      class(solver_function_t), intent(in) :: integrand
+      complex(default) :: integral
+      real(default), dimension(:), intent(in) :: grid
+    end function solve_qgaus
+<<Solver: procedures>>=
+  module function solve_qgaus (integrand, grid) result (integral)
+    class(solver_function_t), intent(in) :: integrand
+    complex(default) :: integral
+    real(default), dimension(:), intent(in) :: grid
+    integer :: i, j
+    real(default) :: xm, xr
+    real(default), dimension(5) :: dx, &
+      w = (/ 0.2955242247_default, 0.2692667193_default, &
+        0.2190863625_default, 0.1494513491_default, 0.0666713443_default /), &
+      x = (/ 0.1488743389_default, 0.4333953941_default, 0.6794095682_default, &
+        0.8650633666_default, 0.9739065285_default /)
+    integral = 0.0_default
+    if ( size(grid) < 2 ) then
+      call msg_warning ("solve_qgaus: size of integration grid smaller than 2.")
+      return
+    end if
+    do i=1, size(grid)-1
+      xm = 0.5_default * ( grid(i+1) + grid(i) )
+      xr = 0.5_default * ( grid(i+1) - grid(i) )
+      do j=1, 5
+        dx(j) = xr * x(j)
+        integral = integral + xr * w(j) * &
+          ( integrand%evaluate (xm+dx(j)) + integrand%evaluate (xm-dx(j)) )
+      end do
+    end do
+  end function solve_qgaus
+
+@ %def solve_qgaus
+@
+<<Solver: parameters>>=
+  real(default), parameter, public :: DEFAULT_PRECISION = tiny_10
+@ %def name
+@
+<<Solver: parameters>>=
+  integer, parameter :: MAX_TRIES = 10000
+@ %def MAX_TRIES
+@
+\subsection{Unit tests}
+Test module, followed by the corresponding implementation module.
+<<[[solver_ut.f90]]>>=
+<<File header>>
+
+module solver_ut
+  use unit_tests
+  use solver_uti
+
+<<Standard module head>>
+
+<<Solver: public test>>
+
+contains
+
+<<Solver: test driver>>
+
+end module solver_ut
+@ %def solver_ut
+@
+<<[[solver_uti.f90]]>>=
+<<File header>>
+
+module solver_uti
+
+<<Use kinds>>
+  use constants, only: zero, one, two
+  use numeric_utils
+
+  use solver
+
+<<Standard module head>>
+
+<<Solver: test declarations>>
+
+<<Solver: test types>>
+
+contains
+
+<<Solver: tests>>
+
+<<Solver: test auxiliary>>
+
+end module solver_uti
+@ %def solver_ut
+@ API: driver for the unit tests below.
+<<Solver: public test>>=
+  public :: solver_test
+<<Solver: test driver>>=
+  subroutine solver_test (u, results)
+    integer, intent(in) :: u
+    type(test_results_t), intent(inout) :: results
+  <<Solver: execute tests>>
+  end subroutine solver_test
+
+@ %def solver_test
+@
+\subsubsection{Test functions}
+<<Solver: test types>>=
+  type, extends (solver_function_t) :: test_function_1_t
+  contains
+    procedure :: evaluate => test_func_1
+  end type test_function_1_t
+
+@ %def test_function_1_t
+@
+<<Solver: test types>>=
+  type, extends (solver_function_t) :: test_function_2_t
+  contains
+    procedure :: evaluate => test_func_2
+  end type test_function_2_t
+
+@ %def test_function_2_t
+@
+<<Solver: test types>>=
+  type, extends (solver_function_t) :: test_function_3_t
+  contains
+    procedure :: evaluate => test_func_3
+  end type test_function_3_t
+
+@ %def test_function_3_t
+@
+<<Solver: test types>>=
+  type, extends (solver_function_t) :: test_function_4_t
+  contains
+    procedure :: evaluate => test_func_4
+  end type test_function_4_t
+
+@ %def test_function_4_t
+@
+<<Solver: test auxiliary>>=
+  function test_func_1 (solver_f, x) result (f)
+    complex(default) :: f
+    class(test_function_1_t), intent(in) :: solver_f
+    real(default), intent(in) :: x
+    f = x
+  end function test_func_1
+
+  function test_func_2 (solver_f, x) result (f)
+    complex(default) :: f
+    class(test_function_2_t), intent(in) :: solver_f
+    real(default), intent(in) :: x
+    f = x ** 2
+  end function test_func_2
+
+  function test_func_3 (solver_f, x) result (f)
+    complex(default) :: f
+    class(test_function_3_t), intent(in) :: solver_f
+    real(default), intent(in) :: x
+    f = x ** 3
+  end function test_func_3
+
+  function test_func_4 (solver_f, x) result (f)
+    complex(default) :: f
+    class(test_function_4_t), intent(in) :: solver_f
+    real(default), intent(in) :: x
+    real(default) :: s, cutoff
+    s = 100.0_default
+    cutoff = 1.01_default
+    if (x < cutoff) then
+       f = - (log (s) * log (log (s) / log(cutoff**2)) - log (s / cutoff**2)) - &
+         log (one/two)
+    else
+       f = - (log (s) * log (log (s) / log(x**2)) - log (s / x**2)) - &
+            log (one/two)
+    end if
+  end function test_func_4
+
+@ %def test_func_1
+@
+\subsubsection{Solve trivial functions}
+<<Solver: execute tests>>=
+  call test(solver_1, "solver_1", &
+            "Solve trivial functions", u, results)
+<<Solver: test declarations>>=
+  public :: solver_1
+<<Solver: tests>>=
+  subroutine solver_1 (u)
+    integer, intent(in) :: u
+    real(default) :: zero_position
+    logical :: success
+    type(test_function_1_t) :: test_func_1
+    type(test_function_2_t) :: test_func_2
+    type(test_function_3_t) :: test_func_3
+    type(test_function_4_t) :: test_func_4
+    write (u, "(A)")  "* Test output: solver_1"
+    write (u, "(A)")  "*   Purpose: Solve trivial functions"
+    write (u, "(A)")
+
+    zero_position = solve_interval (test_func_1, -one, one, success)
+    call assert (u, success, "success")
+    call assert_equal (u, zero_position, zero, "test_func_1: zero_position")
+
+    zero_position = solve_interval (test_func_4, two, 10.0_default, success)
+    call assert (u, success, "success")
+    call assert_equal (u, zero_position, &
+         3.5216674011865940283397224_default, &
+         "test_func_4: zero_position", rel_smallness=1000*DEFAULT_PRECISION)
+
+    write (u, "(A)")
+    write (u, "(A)")  "* Test output end: solver_1"
+  end subroutine solver_1
+
+@ %def solver_1
+@
+

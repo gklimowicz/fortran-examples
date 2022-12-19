@@ -1,0 +1,56 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+#
+# Test: Integrate cross section with different settings for iterations and number of calls (VAMP2).
+#       Depending on the (partly) change of the settings, we keep previous results or completely discard previous results (and grids). 
+
+model = "QED"
+ee = 0.30286
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 1234
+
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp2"
+
+process vamp2_3_p1 = "e-", "e+" => "mu-", "mu+"
+
+sqrts = 1000
+
+integrate (vamp2_3_p1) {
+   iterations = 4:200:"gw", 1:100
+}
+
+!! Override commandline option for grids.
+?rebuild_grids = false
+
+!! First pass: Keep first four iterations and add two iteration.
+!! Final pass: Redo.
+integrate (vamp2_3_p1) {
+   iterations = 6:200:"gw", 1:100
+}
+
+!! First pass: Keep.
+!! Final pass: Keep first iteration, add second iteration.
+integrate (vamp2_3_p1) {
+   iterations = 6:200:"gw", 2:100
+}
+
+!! First pass: Keep.
+!! Final pass: Redo.
+integrate (vamp2_3_p1) {
+   iterations = 6:200:"gw", 2:200
+}
+
+!! First pass: Redo (as we request lessly refined grids).
+!! Final pass: Redo.
+integrate (vamp2_3_p1) {
+   iterations = 4:200:"gw", 2:100
+}

@@ -1,0 +1,95 @@
+# DrellYanMatchingW.sin
+# Simple complete physics example: DY with Matched WHIZARD shower
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+
+
+model = SM
+alias quark = u:d:s:c
+alias antiq = U:D:S:C
+process qqee = quark:antiq, quark:antiq => e1, E1
+process qqeeg = quark:antiq, quark:antiq => e1, E1, g
+process qgeeq = quark:antiq, g => e1, E1, quark:antiq
+process gqeeq = g, quark:antiq => e1, E1, quark:antiq
+
+ms = 0
+mc = 0
+
+compile
+
+sqrts = 1960 GeV
+beams = p, pbar => lhapdf
+
+$title = "Pt of Z"
+$x_label = "Pt / GeV"
+$y_label = "N"
+histogram Pt_distribution (0, 250, 1)
+
+ps_isr_primordial_kt_width = 0
+ps_isr_tscalefactor = 1
+
+?ps_fsr_active = true
+?ps_isr_active = true
+?hadronization_active = true
+$shower_method = "WHIZARD"
+?ps_isr_pt_ordered = false
+?ps_isr_only_onshell_emitted_partons = true
+ps_max_n_flavors = 5
+ps_mass_cutoff = 0.5
+
+### MSTP(5)=108 : Rick Field's CDF Tune D6 using CTEQ6L1
+### MSTP(81)=0  : no multiple interactions
+### MSTJ(41)=1  : only QCD branchings
+### MSTJ(21)=0  : no decays
+### MSTP(68)=0  : hopefully turn off PYTHIA's matching
+$ps_PYTHIA_PYGIVE = "MSTP(5)=108;MSTP(81)=0;MSTJ(41)=1;MSTJ(21)=0;MSTP(68)=0"
+
+?mlm_matching = true
+mlm_ptmin = 5 GeV
+mlm_etamax = 2.5
+mlm_Rmin = 1
+mlm_nmaxMEjets = 1
+
+cuts = all M > 80 GeV [combine [e1,E1]]
+       and all M < 100 GeV [combine [e1,E1]]
+       and all Pt > mlm_ptmin [g:quark:antiq]
+       and all abs(Eta) < mlm_etamax [g:quark:antiq]
+
+integrate (qqee, qqeeg, qgeeq, gqeeq) { iterations = 2:20000 }
+
+n_events = 500
+
+?rebuild_events = true
+$sample = "DrellYanMatchingW"
+sample_format = lhef
+
+analysis = record Pt_distribution (eval Pt [combine [e1,E1]])
+
+checkpoint = 10
+
+simulate (qqee, qqeeg, qgeeq, gqeeq)
+
+show (results)

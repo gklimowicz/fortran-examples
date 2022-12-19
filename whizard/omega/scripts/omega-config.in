@@ -1,0 +1,71 @@
+#!/bin/sh
+
+##
+## Gives information on the build-time O'Mega configuration.
+##
+########################################################################
+#
+# Copyright (C) 1999-2022 by
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     Christian Speckner <cnspeckn@googlemail.com>
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+prefix="@prefix@"
+
+usage () {
+cat <<EOI
+usage: omega-config [options]
+
+Gives information on the build-time O'Mega configuration.
+
+Available options:
+   --libdir          : directory containing the O'Mega libraries
+   --version         : O'Mega version
+   --ocamlopt        : O'Caml native code compiler
+   --ocamlflags      : O'Caml compiler flags
+   --fcversion       : Fortran compiler version
+EOI
+}
+
+test -z "$1" && usage
+while test -n "$1"; do
+   case "$1" in
+      "--libdir")
+         echo "@LIBDIR@/omega"
+         ;;
+      "--version")
+         echo "@PACKAGE_VERSION@"
+         ;;
+      "--ocamlopt")
+         echo "@OCAMLOPT@"
+         ;;
+      "--ocamlflags")
+         echo ""
+         ;;
+      "--fcversion")
+         echo "@FC_ID_STRING@"
+         ;;
+
+      *)
+         usage
+         ;;
+   esac
+   shift
+done

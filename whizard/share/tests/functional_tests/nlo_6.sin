@@ -1,0 +1,42 @@
+# SINDARIN input for WHIZARD self-test
+# Testing complete NLO-calculation with more than 5 components
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$loop_me_method = "dummy"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+!!! Final-state top quarks are on-shell, set width to zero
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+$real_partition_mode = "on"
+real_partition_scale = 10 GeV
+$fks_mapping_type = "resonances"
+
+alias pr = u:d:U:D
+
+process nlo_6_p1 = pr, pr => t, T { nlo_calculation = virtual }
+
+seed = 1
+
+# sqrts = 500 GeV
+sqrts = 13000 GeV
+
+error_threshold = 1E-5
+
+beams = p, p => pdf_builtin
+
+integrate (nlo_6_p1) { iterations = 1:100 }

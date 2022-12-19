@@ -1,0 +1,354 @@
+########################################################################
+# Two-Higgs doublet model (THDM) with trivial flavor structure
+model "THDM"
+
+# Independent parameters
+### DO NOT CHANGE THE ORDER OF THESE PARAMETERS
+parameter GF      = 1.16639E-5   # Fermi constant
+parameter mZ      = 91.1882      # Z-boson mass  
+parameter mW      = 80.419       # W-boson mass  
+parameter alphas  = 0.1178       # Strong coupling constant (Z point)
+parameter me      = 0.000510997  # electron mass                       
+parameter mmu     = 0.105658389  # muon mass                         
+parameter mtau    = 1.77705      # tau-lepton mass
+parameter ms      = 0.095        # s-quark mass                         
+parameter mc      = 1.2          # c-quark mass                         
+parameter mb      = 4.2          # b-quark mass                         
+parameter mtop    = 173.1        # t-quark mass                         
+parameter wtop    = 1.523        # t-quark width
+parameter wZ      = 2.443        # Z-boson width
+parameter wW      = 2.049        # W-boson width
+parameter khgaz   = 0.000	 # anomaly Higgs couplings K factors
+parameter khgaga  = 0.000	 # anomaly Higgs couplings K factors
+parameter khgg 	  = 0.000	 # anomaly Higgs couplings K factors
+parameter xi0     = 1.000	 # R_xi parameter for Z-boson
+parameter xipm    = 1.000	 # R_xi parameter for W-boson
+parameter mHh     = 125          # Higgs h mass
+parameter wHh     = 0.004143     # Higgs h width 
+parameter mHH     = 500          # Higgs H mass
+parameter wHH     = 1.000        # Higgs H width 
+parameter mHA     = 500          # Higgs A mass
+parameter wHA     = 1.000        # Higgs A width 
+parameter mHp     = 500          # Higgs charged mass
+parameter wHp     = 1.000        # Higgs charged width 
+parameter R_11    = 1.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_12    = 0.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_13    = 0.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_21    = 0.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_22    = 1.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_23    = 0.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_31    = 0.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_32    = 0.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter R_33    = 1.000	 # Mix. matrix: Si = Rji hj; hj= (h,H,A)
+parameter lamb_1  = 1.0          # Higgs potential parameter 
+parameter lamb_2  = 1.0          # Higgs potential parameter
+parameter lamb_3  = 1.0          # Higgs potential parameter
+parameter lamb_4  = 1.0          # Higgs potential parameter
+parameter lamb_5R = 0.0          # Higgs potential parameter
+parameter lamb_5I = 1.0          # Higgs potential parameter
+parameter lamb_6R = 0.0          # Higgs potential parameter
+parameter lamb_6I = 1.0          # Higgs potential parameter
+parameter lamb_7R = 1.0          # Higgs potential parameter
+parameter lamb_7I = 0.0          # Higgs potential parameter
+parameter zetauR = 1.0          # Aligned Yukawa parameter 
+parameter zetauI = 1.0          # Aligned Yukawa parameter 
+parameter zetadR = 1.0          # Aligned Yukawa parameter 
+parameter zetadI = 1.0          # Aligned Yukawa parameter 
+parameter zetalR = 1.0          # Aligned Yukawa parameter 
+parameter zetalI = 1.0          # Aligned Yukawa parameter 
+
+# Dependent parameters
+derived v     = 1 / sqrt (sqrt (2.) * GF)     # v (Higgs vev)
+derived cw    = mW / mZ                       # cos(theta-W)
+derived sw    = sqrt (1-cw**2)                # sin(theta-W)
+derived ee    = 2 * sw * mW / v               # em-coupling (GF scheme)
+derived alpha_em_i = 4 * pi / ee**2           # inverse fine structure const
+
+########################################################################
+# Particle content
+
+# The quarks
+particle D_QUARK 1  parton
+  spin 1/2  charge -1/3	  isospin -1/2  color 3
+  name d down
+  anti dbar D "d~" 
+  tex_anti "\bar{d}"
+particle U_QUARK 2  parton
+  spin 1/2  charge  2/3  isospin  1/2  color 3
+  name u up
+  anti ubar U "u~" 
+  tex_anti "\bar{u}"
+particle S_QUARK 3  like D_QUARK
+  name s strange
+  anti sbar S "s~" 
+  tex_anti "\bar{s}"
+  mass ms
+particle C_QUARK 4  like U_QUARK
+  name c charm
+  anti cbar C "c~" 
+  tex_anti "\bar{c}"
+  mass mc
+particle B_QUARK 5  like D_QUARK
+  name b bottom
+  anti bbar B "b~" 
+  tex_anti "\bar{b}"
+  mass mb
+particle T_QUARK 6  like U_QUARK
+  name t top
+  anti tbar T "t~" 
+  tex_anti "\bar{t}"
+  mass mtop  width wtop
+
+# The leptons
+particle E_LEPTON 11
+  spin 1/2  charge  -1   isospin -1/2  
+  name "e-" e1 electron e
+  anti "e+" E1 positron 
+  tex_name "e^-"
+  tex_anti "e^+"
+  mass me
+particle E_NEUTRINO 12 left
+  spin 1/2  isospin  1/2
+  name nue n1 "nu_e" ve "e-neutrino" 
+  anti nuebar N1 "ve~"             
+  tex_name "\nu_e"
+  tex_anti "\bar\nu_e"
+particle MU_LEPTON 13  like E_LEPTON
+  name "mu-" e2 mu muon 
+  anti "mu+" E2       
+  tex_name "\mu^-"
+  tex_anti "\mu^+"
+  mass mmu
+particle MU_NEUTRINO 14  like E_NEUTRINO
+  name numu "nu_mu" n2 vm "mu-neutrino" 
+  anti numubar N2 "vm~"
+  tex_name "\nu_\mu"
+  tex_anti "\bar\nu_\mu"
+particle TAU_LEPTON 15  like E_LEPTON
+  name "tau-" e3 tau "ta-" tauon 
+  anti "tau+" E3 "ta+"        
+  tex_name "\tau^-"
+  tex_anti "\tau^+"
+  mass mtau
+particle TAU_NEUTRINO 16  like E_NEUTRINO
+  name nutau "nu_tau" n3 vt "tau_neutrino" 
+  anti nutaubar N3 "vt~"               
+  tex_name "\nu_\tau"
+  tex_anti "\bar\nu_\tau"
+
+# The vector bosons
+particle GLUON 21  parton gauge
+  spin 1  color 8
+  name gl g G gluon
+particle PHOTON 22  gauge
+  spin 1
+  name A gamma photon 
+  tex_name "\gamma"
+particle Z_BOSON 23  gauge
+  spin 1
+  name Z
+  mass mZ  width wZ
+particle W_BOSON 24  gauge
+  spin 1  charge 1
+  name "W+" Wp 
+  anti "W-" Wm
+  tex_name "W^+"
+  tex_anti "W^-"
+  mass mW  width wW
+
+# The Higgses
+particle HIGGSh 25
+  spin 0
+  name Hh h0
+  tex_name "h^0"
+  mass mHh  width wHh
+particle HIGGSH 35
+  spin 0
+  name HH H0
+  tex_name "H^0"
+  mass mHH  width wHH
+particle HIGGSA 36
+  spin 0
+  name HA A0
+  tex_name "A^0"
+  mass mHA  width wHA
+particle HIGGSp 37
+  spin 0 charge 1
+  name Hp "H+"
+  anti Hm "H-"
+  tex_name "H^+"
+  tex_anti "H^-"
+  mass mHp  width wHp
+
+# Hadrons
+particle PROTON 2212
+  spin 1/2  charge 1
+  name p "p+"
+  anti pbar "p-"
+
+# Beam remnants for proton colliders
+particle HADRON_REMNANT 90
+  name hr
+  tex_name "had_r"
+particle HADRON_REMNANT_SINGLET 91
+  name hr1
+  tex_name "had_r^{(1)}"
+particle HADRON_REMNANT_TRIPLET 92
+  color 3
+  name hr3
+  tex_name "had_r^{(3)}"
+  anti hr3bar
+  tex_anti "had_r^{(\bar 3)}"
+particle HADRON_REMNANT_OCTET 93
+  color 8
+  name hr8
+  tex_name "had_r^{(8)}"
+
+########################################################################
+# Vertices of the Standard model
+# In graphs with identical structure the first vertex is kept for phase space
+# therefore, lighter particles come before heavier ones.
+
+# QED
+vertex D d A 
+vertex U u A 
+vertex S s A 
+vertex C c A 
+vertex B b A 
+vertex T t A 
+
+vertex E1 e1 A 
+vertex E2 e2 A 
+vertex E3 e3 A 
+
+# QCD
+vertex G G G 
+vertex G G G G
+
+vertex D d G 
+vertex U u G 
+vertex S s G 
+vertex C c G 
+vertex B b G 
+vertex T t G 
+
+# Neutral currents
+vertex D d Z 
+vertex U u Z 
+vertex S s Z 
+vertex C c Z 
+vertex B b Z 
+vertex T t Z 
+
+vertex E1 e1 Z 
+vertex E2 e2 Z 
+vertex E3 e3 Z 
+vertex N1 n1 Z
+vertex N2 n2 Z 
+vertex N3 n3 Z 
+
+
+# Charged currents
+vertex U d Wp 
+vertex C s Wp 
+vertex T b Wp 
+vertex D u Wm 
+vertex S c Wm 
+vertex B t Wm 
+
+vertex N1 e1 Wp 
+vertex N2 e2 Wp 
+vertex N3 e3 Wp 
+vertex E1 n1 Wm 
+vertex E2 n2 Wm 
+vertex E3 n3 Wm 
+
+# Yukawa
+### keeping only 3rd generation for the moment
+#vertex U u Hh
+#vertex U u HH
+#vertex U u HA
+vertex C c Hh
+vertex C c HH
+vertex C c HA
+vertex T t Hh
+vertex T t HH
+vertex T t HA
+#vertex D d Hh
+#vertex D d HH
+#vertex D d HA
+vertex S s Hh
+vertex S s HH
+vertex S s HA
+vertex B b Hh
+vertex B b HH
+vertex B b HA
+#vertex U d Hp
+vertex C s Hp
+vertex T b Hp
+#vertex D u Hm
+vertex S c Hm
+vertex B t Hm
+#vertex E1 n1 Hm
+vertex E2 n2 Hm
+vertex E3 n3 Hm
+#vertex N1 e1 Hp
+vertex N2 e2 Hp
+vertex N3 e3 Hp
+#vertex E1 e1 Hh
+#vertex E1 e1 HH
+#vertex E1 e1 HA
+vertex E2 e2 Hh
+vertex E2 e2 HH
+vertex E2 e2 HA
+vertex E3 e3 Hh
+vertex E3 e3 HH
+vertex E3 e3 HA
+
+
+# Vector-boson self-interactions
+vertex Wp Wm A
+vertex Wp Wm Z
+
+vertex Wp Wm Z Z
+vertex Wp Wp Wm Wm
+vertex Wp Wm Z A
+vertex Wp Wm A A
+
+# Higgs - vector boson
+#vertex H Z A
+#vertex H A A
+#vertex H g g 
+vertex Hh Z Z
+vertex HH Z Z
+vertex HA Z Z
+vertex Hh Wp Wm
+vertex HH Wp Wm
+vertex HA Wp Wm
+
+vertex A Hp Hm
+vertex Z Hp Hm
+vertex Z Hh HH
+vertex Z Hh HA
+vertex Z HA HH
+vertex Wp Hm Hh
+vertex Wp Hm HH
+vertex Wp Hm HA
+vertex Wm Hp Hh
+vertex Wm Hp HH
+vertex Wm Hp HA
+
+# Higgs self-interactions
+vertex Hp Hm Hh
+vertex Hp Hm HH
+vertex Hp Hm HA
+vertex Hh Hh Hh
+vertex Hh Hh HH
+vertex Hh Hh HA
+vertex HH HH Hh
+vertex HH HH HH
+vertex HH HH HA
+vertex HA HA Hh
+vertex HA HA HH
+vertex HA HA HA
+vertex Hh HH HA

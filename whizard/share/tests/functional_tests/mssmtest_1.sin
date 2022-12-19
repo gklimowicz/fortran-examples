@@ -1,0 +1,28 @@
+# SINDARIN input for WHIZARD self-test
+
+model = MSSM
+
+read_slha ("sps1ap_decays.slha")
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process mssmtest_se_1 =	e1, E1	=>	se1, SE1
+
+compile
+
+!---------------------------------------------
+
+me = 0
+
+sqrts = 1 TeV
+beams = e1, E1
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (mssmtest_se_1) { iterations = 3:5000 }

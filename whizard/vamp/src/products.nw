@@ -1,0 +1,32 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP products code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Products}
+<<[[products.f90]]>>=
+! products.f90 --
+<<Copyleft notice>>
+module products
+  use kinds
+  implicit none
+  private
+  public :: dot, sp, spc
+contains
+  pure function dot (p, q) result (pq)
+    real(kind=default), dimension(0:), intent(in) :: p, q
+    real(kind=default) :: pq
+    pq = p(0)*q(0) - dot_product (p(1:), q(1:))
+  end function dot
+  pure function sp (p, q) result (sppq)
+    real(kind=default), dimension(0:), intent(in) :: p, q
+    complex(kind=default) :: sppq
+    sppq = cmplx (p(2), p(3), kind=default) * sqrt ((q(0)-q(1))/(p(0)-p(1))) &
+         - cmplx (q(2), q(3), kind=default) * sqrt ((p(0)-p(1))/(q(0)-q(1)))
+  end function sp
+  pure function spc (p, q) result (spcpq)
+    real(kind=default), dimension(0:), intent(in) :: p, q
+    complex(kind=default) :: spcpq
+    spcpq = conjg (sp (p, q))
+  end function spc
+end module products
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

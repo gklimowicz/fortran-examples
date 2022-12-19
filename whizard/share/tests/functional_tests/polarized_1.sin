@@ -1,0 +1,28 @@
+# Validating polarized event output
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+model = SM
+process polarized_1_p1 = e1, E1 =>  e3, E3
+compile
+
+sqrts = 500 GeV
+beams = e1, E1
+
+iterations = 1:100
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+seed = 0
+integrate (polarized_1_p1)
+
+?polarized_events = true
+polarized e3, E3
+n_events = 1
+sample_format = hepevt, stdhep_ev4
+simulate (polarized_1_p1)

@@ -1,0 +1,39 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+model = QED
+process qedtest_9_p = e1, E1 => e2, E2
+
+me = 0
+mmu = 0
+
+seed = 0
+
+sqrts = 500 GeV
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 3:1000, 3:1000
+n_events = 1
+
+?rebuild_phase_space = true
+?rebuild_grids = true
+?rebuild_events = true
+integrate (qedtest_9_p)
+simulate (qedtest_9_p)
+
+mtau = 0   ! process doesn't depend on this
+?check_phs_file = false
+?rebuild_phase_space = false
+?check_grid_file = false
+?rebuild_grids = false
+integrate (qedtest_9_p)
+?rebuild_events = false
+?check_event_file = false
+simulate (qedtest_9_p)
+

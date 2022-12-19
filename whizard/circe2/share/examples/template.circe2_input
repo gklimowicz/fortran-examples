@@ -1,0 +1,134 @@
+# template.circe2_input
+########################################################################
+#
+# This is a template for Circe2 input files.  The 'variables' "@...@"
+# should be expanded, e.g. by the script fill_circe2_template in this
+# directory.
+#
+# It is intended as a starting point for processing your own Guinea-Pig
+# output files
+#
+# Note that you need to instruct Guinea-Pig++ to produce the event files.
+# This is not documented very well and the default parameters won't do
+# It  In $PARAMETERS set
+#
+#   do_lumi=7;
+#   num_lumi=100000000;
+#   num_lumi_eg=100000000;
+#   num_lumi_gg=100000000;
+#
+# where the num_lumi* parameters could be even higher!
+#
+########################################################################
+
+{ ######################################################################
+  # All spectra descriptions will be written to this file, which will
+  # later be loaded by circe2_load()
+  ######################################################################
+  file = "@prefix@beams.circe"
+
+  { ####################################################################
+    # The design should be a descriptive name, e.g. ILC or CLIC
+    ####################################################################
+    design = "@design@"
+
+    ####################################################################
+    # The sqrt(s) of the design
+    ####################################################################
+    roots = @roots@
+
+    ####################################################################
+    # If scale = roots/2, energies will be scaled to the interval [0,1]
+    ####################################################################
+    scale = @scale@
+
+    ####################################################################
+    # If there are not enough events in the Guinea-Pig output, it will
+    # make sense to reduce the number of bins.
+    ####################################################################
+    bins = 100
+
+    { ##################################################################
+      # We start with the electron/positron collisions
+      ##################################################################
+      pid/1 = electron pid/2 = positron
+
+      ##################################################################
+      # For now, we ignore any polarization that might be in the
+      # Guinea-Pig output file
+      ##################################################################
+      pol = 0
+
+      ##################################################################
+      # This is the file from which we read the Guinea-Pig output
+      # ("lumi.ee.out" is the Guinea-Pig++ convention).  The numbers
+      # are ASCII formatted and we use only then first two numbers
+      # in each line, corresponding to the energies.
+      ##################################################################
+      events = "@prefix@lumi.ee.out" ascii columns = 2
+
+      ##################################################################
+      # NB: Guinea-Pig++ reports the luminosities PER BUNCH CROSSING and
+      #     we must multiply by the repetition rate f_rep (in Hertz) and
+      #     the number of bunches n_b.
+      ##################################################################
+      lumi = @lumi_ee@
+
+      ##################################################################
+      # This is an optional two dimensional representation of the
+      # histogram, for easy inspection with Mathematica(TM).
+      ##################################################################
+      histogram = "@prefix@lumi-ee.histogram"
+
+      ##################################################################
+      # Both energies are recorded as fractions in the interval [0,1]
+      # and we don't allow the boundaries to float.
+      ##################################################################
+      min = 0 max = 1 fix = *
+
+      ##################################################################
+      # Ten iteraions for adapting the histograms are usually enough.
+      ##################################################################
+      iterations = 10
+
+      ##################################################################
+      # Applying a gaussian smoothing filter of width 5 bins doesn't
+      # distort too much (assuming 100 bins) and produces a nice
+      # result.  However, we should treat the unattenuated electrons
+      # and positrons speciall.  Note the open and closed intervals.
+      ##################################################################
+      smooth = 5 [0,1) [0,1)
+      smooth = 5 [1] [0,1)
+      smooth = 5 [0,1) [1] }
+
+    { ##################################################################
+      # Electrons and photons
+      ##################################################################
+      pid/1 = electron pid/2 = gamma pol = 0
+      events = "@prefix@lumi.eg.out" ascii columns = 2 lumi = @lumi_eg@
+      histogram = "@prefix@lumi-eg.histogram"
+      min = 0 max = 1 fix = *
+      iterations = 10
+      smooth = 5 [0,1) [0,1]
+      smooth = 5 [1] [0,1] }
+
+    { ##################################################################
+      # Photons and electrons
+      ##################################################################
+      pid/1 = gamma pid/2 = electron pol = 0
+      events = "@prefix@lumi.ge.out" ascii columns = 2 lumi = @lumi_ge@
+      histogram = "@prefix@lumi-ge.histogram"
+      min = 0 max = 1 fix = *
+      iterations = 10
+      smooth = 5 [0,1] [0,1)
+      smooth = 5 [0,1] [1] }
+
+    { ##################################################################
+      # Photons and photons
+      ##################################################################
+      pid/1 = gamma pid/2 = gamma pol = 0
+      events = "@prefix@lumi.gg.out" ascii columns = 2 lumi = @lumi_gg@
+      histogram = "@prefix@lumi-gg.histogram"
+      min = 0 max = 1 fix = *
+      iterations = 10
+      smooth = 5 [0,1] [0,1] } } } 

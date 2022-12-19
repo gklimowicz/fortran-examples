@@ -1,0 +1,338 @@
+* Test output: commands_29
+*   Purpose: test SLHA interface
+
+*  Initialization
+
+*  Model MSSM, read SLHA file
+
+model = "MSSM"
+?slha_read_decays = true
+read_slha ("sps1ap_decays.slha")
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_model> <cmd_log> <cmd_slha>
+|  +  <cmd_model>  =  model '=' <string_literal>
+|  |  +  model  = [keyword] model
+|  |  +  '='  = [keyword] =
+|  |  +  <string_literal>  = "MSSM"
+|  +  <cmd_log>  =  '?' <var_name> '=' <lexpr>
+|  |  +  '?'  = [keyword] ?
+|  |  +  <var_name>  = slha_read_decays
+|  |  +  '='  = [keyword] =
+|  |  +  <lexpr>  =  <lsinglet>
+|  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  +  <lterm>  =  true
+|  |  |  |  |  +  true  = [keyword] true
+|  +  <cmd_slha>  =  read_slha <slha_arg>
+|  |  +  read_slha  = [keyword] read_slha
+|  |  +  <slha_arg>  =  <string_literal>
+|  |  |  +  <string_literal>  = "sps1ap_decays.slha"
+
+* Compile command list
+
+ model = "MSSM"
+ var: ?slha_read_decays (logical, intrinsic)
+ slha: file name  = sps1ap_decays.slha
+ slha: write mode = F
+
+* Model MSSM, default values:
+
+model "MSSM"
+ ! md5sum = '8C3D4C41EAB3F0130AC31A7397D0ABDE'
+
+   parameter GF =  1.166390000000E-05
+   parameter mZ =  9.118820000000E+01
+   parameter wZ =  2.443000000000E+00
+   parameter mW =  8.041900000000E+01
+   parameter wW =  2.049000000000E+00
+   parameter me =  5.110000000000E-04
+   parameter mmu =  1.057000000000E-01
+   parameter mtau =  1.777000000000E+00
+   parameter ms =  1.200000000000E-01
+   parameter mc =  1.250000000000E+00
+   parameter mb =  4.200000000000E+00
+   parameter mtop =  1.740000000000E+02
+   parameter wtop =  1.523000000000E+00
+   parameter alphas =  1.178000000000E-01
+   parameter mtype =  1.000000000000E+00
+   parameter m_zero =  1.000000000000E+02
+   parameter m_half =  2.500000000000E+02
+   parameter A0 = -1.000000000000E+02
+   parameter tanb =  1.000000000000E+01
+   parameter sgn_mu =  1.000000000000E+00
+   parameter Lambda =  4.000000000000E+04
+   parameter M_mes =  8.000000000000E+04
+   parameter N_5 =  3.000000000000E+00
+   parameter c_grav =  1.000000000000E+00
+   parameter m_grav =  6.000000000000E+04
+   parameter Ae_33 =  0.000000000000E+00
+   parameter Au_33 =  0.000000000000E+00
+   parameter Ad_33 =  0.000000000000E+00
+   parameter mh =  1.250000000000E+02
+   parameter wh =  4.143000000000E-03
+   parameter mHH =  1.000000000000E+03
+   parameter mHA =  1.000000000000E+03
+   parameter mHpm =  1.000000000000E+03
+   parameter wHH =  0.000000000000E+00
+   parameter wHpm =  0.000000000000E+00
+   parameter wHA =  0.000000000000E+00
+   parameter al_h =  0.000000000000E+00
+   parameter mu_h =  1.000000000000E+03
+   parameter tanb_h =  1.000000000000E+01
+   parameter msu1 =  1.000000000000E+03
+   parameter msd1 =  1.000000000000E+03
+   parameter msc1 =  1.000000000000E+03
+   parameter mss1 =  1.000000000000E+03
+   parameter mstop1 =  1.000000000000E+03
+   parameter msb1 =  1.000000000000E+03
+   parameter msu2 =  1.000000000000E+03
+   parameter msd2 =  1.000000000000E+03
+   parameter msc2 =  1.000000000000E+03
+   parameter mss2 =  1.000000000000E+03
+   parameter mstop2 =  1.000000000000E+03
+   parameter msb2 =  1.000000000000E+03
+   parameter mse1 =  1.000000000000E+03
+   parameter msne =  1.000000000000E+03
+   parameter msmu1 =  1.000000000000E+03
+   parameter msnmu =  1.000000000000E+03
+   parameter mstau1 =  1.000000000000E+03
+   parameter msntau =  1.000000000000E+03
+   parameter mse2 =  1.000000000000E+03
+   parameter msmu2 =  1.000000000000E+03
+   parameter mstau2 =  1.000000000000E+03
+   parameter mgg =  1.000000000000E+03
+   parameter mch1 =  1.000000000000E+03
+   parameter mch2 =  1.000000000000E+03
+   parameter mneu1 =  1.000000000000E+03
+   parameter mneu2 =  1.000000000000E+03
+   parameter mneu3 =  1.000000000000E+03
+   parameter mneu4 =  1.000000000000E+03
+   parameter wsu1 =  0.000000000000E+00
+   parameter wsd1 =  0.000000000000E+00
+   parameter wsc1 =  0.000000000000E+00
+   parameter wss1 =  0.000000000000E+00
+   parameter wstop1 =  0.000000000000E+00
+   parameter wsb1 =  0.000000000000E+00
+   parameter wsu2 =  0.000000000000E+00
+   parameter wsd2 =  0.000000000000E+00
+   parameter wsc2 =  0.000000000000E+00
+   parameter wss2 =  0.000000000000E+00
+   parameter wstop2 =  0.000000000000E+00
+   parameter wsb2 =  0.000000000000E+00
+   parameter wse1 =  0.000000000000E+00
+   parameter wsne =  0.000000000000E+00
+   parameter wsmu1 =  0.000000000000E+00
+   parameter wsnmu =  0.000000000000E+00
+   parameter wstau1 =  0.000000000000E+00
+   parameter wsntau =  0.000000000000E+00
+   parameter wse2 =  0.000000000000E+00
+   parameter wsmu2 =  0.000000000000E+00
+   parameter wstau2 =  0.000000000000E+00
+   parameter wgg =  0.000000000000E+00
+   parameter wch1 =  0.000000000000E+00
+   parameter wch2 =  0.000000000000E+00
+   parameter wneu1 =  0.000000000000E+00
+   parameter wneu2 =  0.000000000000E+00
+   parameter wneu3 =  0.000000000000E+00
+   parameter wneu4 =  0.000000000000E+00
+   parameter mt_11 =  1.000000000000E+00
+   parameter mt_12 =  0.000000000000E+00
+   parameter mt_21 =  0.000000000000E+00
+   parameter mt_22 =  1.000000000000E+00
+   parameter mb_11 =  1.000000000000E+00
+   parameter mb_12 =  0.000000000000E+00
+   parameter mb_21 =  0.000000000000E+00
+   parameter mb_22 =  1.000000000000E+00
+   parameter ml_11 =  1.000000000000E+00
+   parameter ml_12 =  0.000000000000E+00
+   parameter ml_21 =  0.000000000000E+00
+   parameter ml_22 =  1.000000000000E+00
+   parameter mn_11 =  1.000000000000E+00
+   parameter mn_12 =  0.000000000000E+00
+   parameter mn_13 =  0.000000000000E+00
+   parameter mn_14 =  0.000000000000E+00
+   parameter mn_21 =  0.000000000000E+00
+   parameter mn_22 =  1.000000000000E+00
+   parameter mn_23 =  0.000000000000E+00
+   parameter mn_24 =  0.000000000000E+00
+   parameter mn_31 =  0.000000000000E+00
+   parameter mn_32 =  0.000000000000E+00
+   parameter mn_33 =  1.000000000000E+00
+   parameter mn_34 =  0.000000000000E+00
+   parameter mn_41 =  0.000000000000E+00
+   parameter mn_42 =  0.000000000000E+00
+   parameter mn_43 =  0.000000000000E+00
+   parameter mn_44 =  1.000000000000E+00
+   parameter mu_11 =  1.000000000000E+00
+   parameter mu_12 =  0.000000000000E+00
+   parameter mu_21 =  0.000000000000E+00
+   parameter mu_22 =  1.000000000000E+00
+   parameter mv_11 =  1.000000000000E+00
+   parameter mv_12 =  0.000000000000E+00
+   parameter mv_21 =  0.000000000000E+00
+   parameter mv_22 =  1.000000000000E+00
+   derived v =  2.462184581018E+02
+   derived cw =  8.819013863636E-01
+   derived sw =  4.714339240339E-01
+   derived ee =  3.079561542961E-01
+   derived alpha_em_i =  1.325049458125E+02
+
+* Selected global variables
+
+mch1 =>  1.000000000000E+03
+wch1 =>  0.000000000000E+00
+
+* Execute command list
+
+* Model MSSM, values from SLHA file
+
+model "MSSM"
+ ! md5sum = '8C3D4C41EAB3F0130AC31A7397D0ABDE'
+
+   parameter GF =  1.166390000000E-05
+   parameter mZ =  9.118760000000E+01
+   parameter wZ =  2.443000000000E+00
+   parameter mW =  8.039165480000E+01
+   parameter wW =  2.049000000000E+00
+   parameter me =  5.110000000000E-04
+   parameter mmu =  1.057000000000E-01
+   parameter mtau =  1.777000000000E+00
+   parameter ms =  1.200000000000E-01
+   parameter mc =  1.250000000000E+00
+   parameter mb =  4.849421480000E+00
+   parameter mtop =  1.729000000000E+02
+   parameter wtop =  1.523000000000E+00
+   parameter alphas =  1.190000000000E-01
+   parameter mtype =  1.000000000000E+00
+   parameter m_zero =  7.000000000000E+01
+   parameter m_half =  2.500000000000E+02
+   parameter A0 = -3.000000000000E+02
+   parameter tanb =  1.037442950000E+01
+   parameter sgn_mu =  1.000000000000E+00
+   parameter Lambda =  4.000000000000E+04
+   parameter M_mes =  8.000000000000E+04
+   parameter N_5 =  3.000000000000E+00
+   parameter c_grav =  1.000000000000E+00
+   parameter m_grav =  6.000000000000E+04
+   parameter Ae_33 = -4.452151500000E+02
+   parameter Au_33 = -5.651405280000E+02
+   parameter Ad_33 = -9.433535140000E+02
+   parameter mh =  1.160363140000E+02
+   parameter wh =  3.966199150000E-03
+   parameter mHH =  4.249688460000E+02
+   parameter mHA =  4.248763700000E+02
+   parameter mHpm =  4.327480110000E+02
+   parameter wHH =  1.200599260000E+00
+   parameter wHpm =  8.944540260000E-01
+   parameter wHA =  1.603115740000E+00
+   parameter al_h = -1.107073910000E-01
+   parameter mu_h =  3.960268140000E+02
+   parameter tanb_h =  1.000000000000E+01
+   parameter msu1 =  5.646713860000E+02
+   parameter msd1 =  5.701149560000E+02
+   parameter msc1 =  5.646713860000E+02
+   parameter mss1 =  5.701149560000E+02
+   parameter mstop1 =  3.664594700000E+02
+   parameter msb1 =  5.062718210000E+02
+   parameter msu2 =  5.471691610000E+02
+   parameter msd2 =  5.468626240000E+02
+   parameter msc2 =  5.471691610000E+02
+   parameter mss2 =  5.468626240000E+02
+   parameter mstop2 =  5.854550790000E+02
+   parameter msb2 =  5.456899170000E+02
+   parameter mse1 =  1.898689610000E+02
+   parameter msne =  1.725222320000E+02
+   parameter msmu1 =  1.898689610000E+02
+   parameter msnmu =  1.725222320000E+02
+   parameter mstau1 =  1.078608030000E+02
+   parameter msntau =  1.704982350000E+02
+   parameter mse2 =  1.252867620000E+02
+   parameter msmu2 =  1.252867620000E+02
+   parameter mstau2 =  1.949060790000E+02
+   parameter mgg =  6.070679270000E+02
+   parameter mch1 =  1.836703610000E+02
+   parameter mch2 =  4.153923410000E+02
+   parameter mneu1 =  9.771411270000E+01
+   parameter mneu2 =  1.838935410000E+02
+   parameter mneu3 = -4.005242410000E+02
+   parameter mneu4 =  4.139423290000E+02
+   parameter wsu1 =  5.530561730000E+00
+   parameter wsd1 =  5.353735850000E+00
+   parameter wsc1 =  5.530561730000E+00
+   parameter wss1 =  5.353735850000E+00
+   parameter wstop1 =  1.454417110000E+00
+   parameter wsb1 =  4.368142490000E+00
+   parameter wsu2 =  1.165373070000E+00
+   parameter wsd2 =  2.911765170000E-01
+   parameter wsc2 =  1.165373070000E+00
+   parameter wss2 =  2.911765170000E-01
+   parameter wstop2 =  6.341543780000E+00
+   parameter wsb2 =  1.043469030000E+00
+   parameter wse1 =  1.183611840000E-01
+   parameter wsne =  1.214729650000E-01
+   parameter wsmu1 =  1.183611840000E-01
+   parameter wsnmu =  1.214729650000E-01
+   parameter wstau1 =  1.694259330000E-02
+   parameter wsntau =  1.173548430000E-01
+   parameter wse2 =  9.893459580000E-02
+   parameter wsmu2 =  9.893459580000E-02
+   parameter wstau2 =  1.802655860000E-01
+   parameter wgg =  5.631883100000E+00
+   parameter wch1 =  7.729070990000E-02
+   parameter wch2 =  3.224713060000E+00
+   parameter wneu1 =  0.000000000000E+00
+   parameter wneu2 =  8.279059000000E-02
+   parameter wneu3 =  2.366677810000E+00
+   parameter wneu4 =  2.960827710000E+00
+   parameter mt_11 =  5.631224330000E-01
+   parameter mt_12 =  8.263734780000E-01
+   parameter mt_21 = -8.263734780000E-01
+   parameter mt_22 =  5.631224330000E-01
+   parameter mb_11 =  9.361856430000E-01
+   parameter mb_12 =  3.515059630000E-01
+   parameter mb_21 = -3.515059630000E-01
+   parameter mb_22 =  9.361856430000E-01
+   parameter ml_11 =  3.224884490000E-01
+   parameter ml_12 =  9.465733990000E-01
+   parameter ml_21 = -9.465733990000E-01
+   parameter ml_22 =  3.224884490000E-01
+   parameter mn_11 = -9.890818960000E-01
+   parameter mn_12 =  4.949888880000E-02
+   parameter mn_13 = -1.311999980000E-01
+   parameter mn_14 =  4.531471030000E-02
+   parameter mn_21 = -8.542412770000E-02
+   parameter mn_22 = -9.590619100000E-01
+   parameter mn_23 =  2.383289910000E-01
+   parameter mn_24 = -1.268946980000E-01
+   parameter mn_31 =  5.574860820000E-02
+   parameter mn_32 = -8.432159250000E-02
+   parameter mn_33 = -6.972091930000E-01
+   parameter mn_34 = -7.097050820000E-01
+   parameter mn_41 =  1.063570090000E-01
+   parameter mn_42 = -2.657818330000E-01
+   parameter mn_43 = -6.632384140000E-01
+   parameter mn_44 =  6.914933190000E-01
+   parameter mu_11 = -9.377940190000E-01
+   parameter mu_12 =  3.471921340000E-01
+   parameter mu_21 =  3.471921340000E-01
+   parameter mu_22 =  9.377940190000E-01
+   parameter mv_11 = -9.826000030000E-01
+   parameter mv_12 =  1.857343100000E-01
+   parameter mv_21 =  1.857343100000E-01
+   parameter mv_22 =  9.826000030000E-01
+   derived v =  2.462184581018E+02
+   derived cw =  8.816073106431E-01
+   derived sw =  4.719836330008E-01
+   derived ee =  3.082104045974E-01
+   derived alpha_em_i =  1.322864228407E+02
+
+* Selected global variables
+
+mch1 =>  1.836703610000E+02
+wch1 =>  7.729070990000E-02
+
+* Cleanup
+
+* Test output end: commands_29

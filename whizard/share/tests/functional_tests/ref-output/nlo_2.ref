@@ -1,0 +1,116 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$loop_me_method = "dummy"
+openmp_num_threads = 1
+SM.wtop =>  0.00000E+00
+SM.mtop =>  1.75000E+02
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+| Process library 'nlo_2_lib': recorded process 'nlo_2_p1'
+seed = 2222
+sqrts =  5.00000E+02
+error_threshold =  1.00000E-05
+| Integrate: current process library needs compilation
+| Process library 'nlo_2_lib': compiling ...
+| Process library 'nlo_2_lib': writing makefile
+| Process library 'nlo_2_lib': removing old files
+| Process library 'nlo_2_lib': writing driver
+| Process library 'nlo_2_lib': creating source code
+| Process library 'nlo_2_lib': compiling sources
+| Process library 'nlo_2_lib': linking
+| Process library 'nlo_2_lib': loading
+| Process library 'nlo_2_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2222
+| Initializing integration for process nlo_2_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e+  (mass = 5.1099700E-04 GeV)
+|   e-  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'nlo_2_p1.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'nlo_2_p1.i3.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'nlo_2_p1'
+|   Library name  = 'nlo_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'nlo_2_p1_i1':   e+, e- => t, tbar [omega]
+|     2: 'nlo_2_p1_i2':   e+, e- => t, tbar, gl [omega], [real]
+|     3: 'nlo_2_p1_i3':   e+, e- => t, tbar [dummy], [virtual]
+|     4: 'nlo_2_p1_i4':   e+, e- => t, tbar [inactive], [subtraction]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 1 channels, 5 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: no equivalences between channels used.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'nlo_2_p1' part 'born'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     6.198E+02   2.83E+01    4.56    0.46    55.8
+|-----------------------------------------------------------------------------|
+   1        100     6.198E+02   2.83E+01    4.56    0.46    55.8
+|=============================================================================|
+| Starting integration for process 'nlo_2_p1' part 'real'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 5 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100    -7.272E+01   4.21E+00    5.79    0.58    43.6
+|-----------------------------------------------------------------------------|
+   1        100    -7.272E+01   4.21E+00    5.79    0.58    43.6
+|=============================================================================|
+| Starting integration for process 'nlo_2_p1' part 'virtual'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     1.999E+01   0.00E+00    0.00    0.00   100.0
+|-----------------------------------------------------------------------------|
+   1        100     1.999E+01   0.00E+00    0.00    0.00   100.0
+|=============================================================================|
+| Integrate: sum of all components
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          0     5.670E+02   2.86E+01    5.04    0.00    50.1
+| NLO Correction: [O(alpha_s+1)/O(alpha_s)]
+|  (  -8.51 +-   0.78 ) %
+|=============================================================================|
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Total number of regions:     2
+ alr ||             flst_real || i_real ||  em || mul || nreg ||       ftuples ||         flst_born ||  i_born || corr
+   1 || [-11, 11,  6, -6, 21] ||      1 ||   3 ||   1 ||    2 || {(3,5),(4,5)} || [-11, 11,  6, -6] ||       1 ||  qcd
+   2 || [-11, 11,  6, -6, 21] ||      1 ||   4 ||   1 ||    2 || {(3,5),(4,5)} || [-11, 11,  6, -6] ||       1 ||  qcd
+------------------------------------------------------------------------

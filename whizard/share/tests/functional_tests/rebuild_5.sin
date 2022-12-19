@@ -1,0 +1,33 @@
+# SINDARIN input for WHIZARD self-test
+
+model = SM
+$method = "omega"
+
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+process rebuild_5p = e1, E1 => Wp, Wm
+process rebuild_5d = Wp => n2, E2
+
+compile
+
+seed = 0
+
+sqrts = 1 TeV
+integrate (rebuild_5p) { iterations = 1:100 }
+integrate (rebuild_5d) { iterations = 1:100 }
+
+unstable Wp (rebuild_5d)
+
+observable emu
+
+n_events = 2
+simulate (rebuild_5p) { analysis = record emu (eval E [E2]) }
+
+write_analysis { $out_file = "rebuild_5.dat" }
+

@@ -1,0 +1,156 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+SM.me =>  0.000000000000E+00
+seed = 0
+| Process library 'smtest_12_lib': recorded process 'smtest_12p'
+| Process library 'smtest_12_lib': recorded process 'smtest_12d'
+| Process library 'smtest_12_lib': compiling ...
+| Process library 'smtest_12_lib': writing makefile
+| Process library 'smtest_12_lib': removing old files
+| Process library 'smtest_12_lib': writing driver
+| Process library 'smtest_12_lib': creating source code
+| Process library 'smtest_12_lib': compiling sources
+| Process library 'smtest_12_lib': linking
+| Process library 'smtest_12_lib': loading
+| Process library 'smtest_12_lib': ... success.
+openmp_num_threads = 1
+$integration_method = "midpoint"
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process smtest_12d:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   t  (mass = 1.7310000E+02 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'smtest_12d.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'smtest_12d'
+|   Library name  = 'smtest_12_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'smtest_12d_i1':   t => b, W+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'smtest_12d'
+| Integrate: iterations = 1:10
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Midpoint rule
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          9  1.4952894E+00  0.00E+00    0.00    0.00*  78.33
+|-----------------------------------------------------------------------------|
+   1          9  1.4952894E+00  0.00E+00    0.00    0.00   78.33
+|=============================================================================|
+sqrts =  5.000000000000E+02
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process smtest_12p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'smtest_12p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'smtest_12p'
+|   Library name  = 'smtest_12_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'smtest_12p_i1':   e-, e+ => t, tbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'smtest_12p'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  5.4932662E+02  5.10E-01    0.09    0.03*  48.33
+|-----------------------------------------------------------------------------|
+   1        800  5.4932662E+02  5.10E-01    0.09    0.03   48.33
+|=============================================================================|
+| Unstable particle t: computed branching ratios:
+|   smtest_12d: 1.0000000E+00   b, W+
+|   Total width = 1.4952894E+00 GeV (computed)
+|               = 1.5230000E+00 GeV (preset)
+|   Decay options: helicity treated exactly
+?unweighted = false
+n_events = 1
+| Starting simulation for process 'smtest_12p'
+| Simulate: using integration grids from file 'smtest_12p.m1.vg'
+| Simulate: activating decays
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Events: writing to ASCII file 'smtest_12p.evt'
+| Events: writing to ASCII file 'smtest_12p.debug'
+| Events: writing to raw file 'smtest_12p.evx'
+| Events: generating 1 weighted, unpolarized events ...
+| Events: event normalization mode 'sigma'
+|         ... event sample complete.
+| Events: closing ASCII file 'smtest_12p.evt'
+| Events: closing ASCII file 'smtest_12p.debug'
+| Events: closing raw file 'smtest_12p.evx'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of smtest_12p.evt:
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = F
+   Normalization      = 'sigma'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  2.641333844291E-02
+   Squared matrix el. (prc) =  2.641333844291E-02
+   Event weight (ref)       =  5.905155897757E+02
+   Event weight (prc)       =  5.905155897757E+02
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 1
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.000000000000E+00
+   Analysis flag      = T
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  5.000000000000E+02
+sqrts_hat* =>  5.000000000000E+02
+n_in* => 2
+n_out* => 3
+n_tot* => 5
+$process_id* => "smtest_12p"
+process_num_id* => [unknown integer]
+sqme* =>  2.641333844291E-02
+sqme_ref* =>  2.641333844291E-02
+event_index* => 1
+event_weight* =>  5.905155897757E+02
+event_weight_ref* =>  5.905155897757E+02
+event_excess* =>  0.000000000000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00,-2.5000000E+02| 0.000000000000E+00| 1)
+ 2 prt(i:-11|-2.5000000E+02; 0.0000000E+00, 0.0000000E+00, 2.5000000E+02| 0.000000000000E+00| 2)
+ 3 prt(o:-6| 2.5000000E+02; 1.2109549E+02,-1.2782946E+02,-3.9139500E+01| 2.996361000000E+04| 3)
+ 4 prt(o:5| 6.6407818E+01; 1.5434471E+01, 5.9848060E+01,-2.3923735E+01| 1.764000000000E+01| 4)
+ 5 prt(o:24| 1.8359218E+02;-1.3652997E+02, 6.7981400E+01, 6.3063235E+01| 6.467215561000E+03| 5)
+========================================================================

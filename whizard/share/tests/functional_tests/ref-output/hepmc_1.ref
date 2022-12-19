@@ -1,0 +1,71 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+seed = 0
+| Process library 'hepmc_1_lib': recorded process 'hepmc_1_p'
+sqrts =  1.000000000000E+03
+| Integrate: current process library needs compilation
+| Process library 'hepmc_1_lib': compiling ...
+| Process library 'hepmc_1_lib': writing makefile
+| Process library 'hepmc_1_lib': removing old files
+| Process library 'hepmc_1_lib': writing driver
+| Process library 'hepmc_1_lib': creating source code
+| Process library 'hepmc_1_lib': compiling sources
+| Process library 'hepmc_1_lib': linking
+| Process library 'hepmc_1_lib': loading
+| Process library 'hepmc_1_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process hepmc_1_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 5.1100000E-04 GeV)
+|   e+  (mass = 5.1100000E-04 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'hepmc_1_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'hepmc_1_p'
+|   Library name  = 'hepmc_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'hepmc_1_p_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'hepmc_1_p'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  8.4620428E+01  1.81E+00    2.14    0.21*  65.91
+|-----------------------------------------------------------------------------|
+   1        100  8.4620428E+01  1.81E+00    2.14    0.21   65.91
+|=============================================================================|
+n_events = 1
+openmp_num_threads = 1
+| Starting simulation for process 'hepmc_1_p'
+| Simulate: using integration grids from file 'hepmc_1_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.1817E-02
+| Events: writing to HepMC file 'hepmc_1_p.hepmc'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing HepMC file 'hepmc_1_p.hepmc'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

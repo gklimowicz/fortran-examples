@@ -1,0 +1,111 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "unit_test"
+| Process library 'testproc_8_lib': recorded process 'testproc_8_p'
+| Process library 'testproc_8_lib': recorded process 'testproc_8_d'
+seed = 0
+Test.ff =>  4.000000000000E-01
+| Process library 'testproc_8_lib': compiling ...
+| Process library 'testproc_8_lib': ... success.
+$phs_method = "single"
+$integration_method = "midpoint"
+sqrts =  1.000000000000E+03
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process testproc_8_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   s  (mass = 1.2500000E+02 GeV)
+|   s  (mass = 1.2500000E+02 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'testproc_8_p'
+|   Library name  = 'testproc_8_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'testproc_8_p_i1':   s, s => s, s [unit_test]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: single-particle
+Warning: No cuts have been defined.
+| Starting integration for process 'testproc_8_p'
+| Integrate: iterations = 1:1000
+| Integrator: 1 channels, 2 dimensions
+| Integrator: Midpoint rule: 1 binned dimensions
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00*  96.82
+|-----------------------------------------------------------------------------|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00   96.82
+|=============================================================================|
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process testproc_8_d:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   s  (mass = 1.2500000E+02 GeV)
+| ------------------------------------------------------------------------
+| Process [decay]: 'testproc_8_d'
+|   Library name  = 'testproc_8_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'testproc_8_d_i1':   s => f, fbar [unit_test]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: single-particle
+Warning: No cuts have been defined.
+| Starting integration for process 'testproc_8_d'
+| Integrate: iterations = 1:1000
+| Integrator: 1 channels, 2 dimensions
+| Integrator: Midpoint rule: 1 binned dimensions
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  5.7295780E-04  0.00E+00    0.00    0.00*  60.00
+|-----------------------------------------------------------------------------|
+   1       1000  5.7295780E-04  0.00E+00    0.00    0.00   60.00
+|=============================================================================|
+| Unstable particle s: computed branching ratios:
+|   testproc_8_d: 1.0000000E+00   f, fbar
+|   Total width = 5.7295780E-04 GeV (computed)
+|               = 0.0000000E+00 GeV (preset)
+|   Decay options: helicity treated exactly
+?read_raw = false
+?write_raw = false
+n_events = 1
+| Starting simulation for process 'testproc_8_p'
+| Simulate: activating decays
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.2909E-04
+| Events: writing to ASCII file 'testproc_8_p.lha'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing ASCII file 'testproc_8_p.lha'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of testproc_8_p.lha:
+ 25 25  5.0000000000E+02  5.0000000000E+02 -1 -1 -1 -1 3 1
+  7.7464622036E+00  0.0000000000E+00  1.0000000000E+00 1
+     8     1  1.0000000000E+00  1.000000E+03 -1.000000E+00 -1.000000E+00
+    25    25    25    25     6    -6     6    -6
+     0     0     1     1     3     3     4     4
+     0     0     2     2     0     0     0     0
+     0     0     0     0   501     0   502     0
+     0     0     0     0     0   501     0   502
+    -1    -1     2     2     1     1     1     1
+     9     9     9     9     9     9     9     9
+     1  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  4.8412291828E+02
+     2  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00 -4.8412291828E+02
+     3  5.0000000000E+02  2.4982052201E+01  2.1865361432E+02  4.3120933897E+02
+     4  5.0000000000E+02 -2.4982052201E+01 -2.1865361432E+02 -4.3120933897E+02
+     5  3.8705531587E+02  3.0702472137E+01  1.6774975877E+02  3.4384472394E+02
+     6  1.1294468413E+02 -5.7204199360E+00  5.0903855550E+01  8.7364615028E+01
+     7  3.5478152349E+02 -3.2216362815E+01 -1.3845904347E+02 -3.2118706179E+02
+     8  1.4521847651E+02  7.2343106141E+00 -8.0194570843E+01 -1.1002227718E+02

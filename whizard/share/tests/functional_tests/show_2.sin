@@ -1,0 +1,72 @@
+# SINDARIN input for WHIZARD self-test
+
+seed = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+model = SM
+
+process show_2_p1 = H => b, bbar
+
+error_threshold = 1e-8
+unstable H (show_2_p1)
+polarized b, bbar
+
+sqrts = 14 TeV
+$lhapdf_dir = "/lhapdf/dir"
+$lhapdf_file = "datafile.lhapdf"
+$lhapdf_photon_file = "photonfile.lhapdf"
+lhapdf_member = 4
+lhapdf_photon_scheme = 1
+int foo = 42
+
+beams = p, p => pdf_builtin
+show (beams)
+clear (beams)
+show (beams)
+ 
+iterations = 1:1000, 3:5000:"gw"
+show (iterations)
+clear (iterations)
+show (iterations)
+
+show (polarized)
+clear (polarized)
+show (polarized)
+
+show (unstable)
+clear (unstable)
+show (unstable)
+
+cuts = true
+scale = 1
+factorization_scale = 2
+renormalization_scale = 3
+weight = 4
+selection = false
+reweight = 5
+analysis = true
+
+show (cuts, scale, factorization_scale, renormalization_scale, weight)
+show (selection, reweight, analysis)
+clear (cuts, scale, factorization_scale, renormalization_scale, weight)
+clear (selection, reweight, analysis)
+show (cuts, scale, factorization_scale, renormalization_scale, weight)
+show (selection, reweight, analysis)
+
+show (sqrts, $lhapdf_dir, ?unweighted)
+show (me, foo)
+clear (sqrts, $lhapdf_dir, ?unweighted)
+clear (real_precision, me, foo)
+show (sqrts, $lhapdf_dir, ?unweighted)
+show (e1, me, foo)
+
+expect (i == 2) { int i = 2 }
+show (expect)
+clear (expect)
+show (expect)
+
+

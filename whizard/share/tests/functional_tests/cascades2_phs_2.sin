@@ -1,0 +1,33 @@
+# SINDARIN input for WHIZARD self-test
+
+# Test: fast_wood2 generation of phase-space configuration for e+e- to two leptons and four quarks
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+beams = e1, E1
+
+?omega_write_phs_output = true !! must be set *before* process definition
+
+!! The test does not require that the quarks are massless.
+!! We keep them massless for convenience.
+ms = 0
+mc = 0
+
+!! It is sufficient to test only one of those two processes.
+!! Both processes require approximately the same runtime.
+process cascades2_phs_2_1 = e1, E1 => e1, N1, C, S, c, c
+!! process cascades2_phs_2_2 = e1, E1 => e1, N1, C, S, c, c { $restrictions = "^gs" }
+
+sqrts = 500 GeV
+
+!! No cuts required.
+
+integrate (cascades2_phs_2_1) {?phs_only = true $phs_method = "fast_wood"}
+!! integrate (cascades2_phs_2_2) {?phs_only = true $phs_method = "fast_wood"}

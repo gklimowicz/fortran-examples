@@ -1,0 +1,28 @@
+# SINDARIN input for WHIZARD self-test
+# Check library (re)compilation
+model = "QED"
+?logging = true
+
+# Start a new library
+?rebuild_library = true
+library = "libraries_1_lib"
+
+process libraries_1_p1 = e1, E1 => e2, E2
+
+# Compile and load
+compile
+
+# This should do nothing
+?rebuild_library = false
+compile
+
+# Reopen the library
+process libraries_1_p2 = e1, E1 => e3, E3
+
+# Compile only the new part
+compile
+
+# Rebuild everything
+?rebuild_library = true
+compile
+

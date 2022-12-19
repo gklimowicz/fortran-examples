@@ -1,0 +1,234 @@
+%%
+%% This is file `thopp.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% thopp.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 by Thorsten.Ohl@Physik.TH-Darmstadt.de
+%% 
+%% This file is NOT the source for thopp, because almost all comments
+%% have been stripped from it.  It is NOT the preferred form of thopp
+%% for making modifications to it.
+%% 
+%% Therefore you can NOT redistribute and/or modify THIS file.  You can
+%% however redistribute the complete source (thopp.dtx and thopp.ins)
+%% and/or modify it under the terms of the GNU General Public License as
+%% published by  the Free Software Foundation; either version 2, or (at
+%% your option) any later version.
+%% 
+%% Thopp is distributed in the hope that it will be useful, but
+%% WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program; if not, write to the Free Software
+%% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \CheckSum{294}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+{\def\RCS#1#2\endRCS{%
+  \ifx$#1%
+    \@RCS $#2 \endRCS
+  \else
+    \@RCS $*: #1#2$ \endRCS
+  \fi}%
+ \def\@RCS $#1: #2,v #3 #4 #5 #6$ \endRCS{%
+   \gdef\filename{#2}%
+   \gdef\fileversion{v#3}%
+   \gdef\filedate{#4}%
+   \gdef\docdate{#4}}%
+\RCS $Id: thopp.dtx,v 1.8 1998/05/23 16:38:40 ohl Exp $ \endRCS}%
+\ProvidesPackage{thopp}[\filedate\space Thorsten's PrePrints for LaTeX]
+\typeout{Package: `thopp'
+   \fileversion\space <\filedate> (tho) PRELIMINARY TEST RELEASE}
+\wlog{English documentation \@spaces<\docdate> (tho)}
+\DeclareOption{euler}{\eulertrue}
+\DeclareOption{noeuler}{\eulerfalse}
+\newif\ifeuler
+\DeclareOption{papersave}{\papersavetrue}
+\DeclareOption{nopapersave}{\papersavefalse}
+\newif\ifpapersave
+\DeclareOption{title}{\notitlefalse}
+\DeclareOption{notitle}{\notitletrue}
+\newif\ifnotitle
+\DeclareOption{nodvips}{%
+  \PackageWarning{thopp}{option `nodvips' obsolete}}
+\DeclareOption{logo}{\logotrue}
+\DeclareOption{nologo}{\logofalse}
+\newif\iflogo
+\logotrue
+\ProcessOptions
+\def\enforce@landscape{%
+  \ifdim\paperwidth<\paperheight
+    \@tempdima = \paperheight
+    \paperheight = \paperwidth
+    \paperwidth = \@tempdima
+  \fi}
+\def\vmargins@setup#1#2{%
+  \topmargin = -1in
+  \advance\topmargin by #1
+  \textheight = \paperheight
+  \advance\textheight by -#1
+  \advance\textheight by -\headheight
+  \advance\textheight by -\headsep
+  \advance\textheight by -\footskip
+  \advance\textheight by -#2
+  \divide\textheight by \baselineskip
+  \@tempcnta = \textheight
+  \textheight = \@tempcnta\baselineskip
+  \advance\textheight by \topskip}
+\def\hmargins@setup#1#2#3{%
+  \@twosidetrue
+  \evensidemargin = #1
+  \advance\evensidemargin by -1in
+  \oddsidemargin = #2
+  \divide\oddsidemargin by 2
+  \advance\oddsidemargin by -1in
+  \textwidth = \paperwidth
+  \advance\textwidth by -#1
+  \advance\textwidth by -#2
+  \advance\textwidth by -#3
+  \divide\textwidth by 2
+  \titlepagewidth =  \paperwidth
+  \advance\titlepagewidth by -#1
+  \advance\titlepagewidth by -#3
+  \abstractwidth = \titlepagewidth
+  \advance\abstractwidth by -2in}
+\newlength\titlepagewidth
+\newlength\abstractwidth
+\enforce@landscape
+\vmargins@setup{0.3in}{0.3in}%
+\hmargins@setup{0.5in}{0.5in}{0.5in}%
+\def\preprintno#1{\gdef\thepreprintno{#1}}
+\def\thepreprintno{}
+\let\orig@maketitle\maketitle
+\ifpapersave
+  \def\maketitle{%
+    \orig@maketitle
+    \thispagestyle{empty}%
+    \setcounter{page}{0}}%
+\else
+  \let\maketitle\relax
+  \def\reallymaketitle{{%
+    \textwidth = \titlepagewidth
+    \columnwidth = \textwidth
+    \hsize = \columnwidth
+    \thispagestyle{empty}%
+    \def\thefootnote{\fnsymbol{footnote}}%
+    \let\thanks\footnote
+    \begin{flushright}%
+      \baselineskip = 3ex
+      \iflogo
+        \Athena\\
+      \fi
+      \thepreprintno\\
+      \@date
+    \end{flushright}%
+    \vfill
+    \begin{center}%
+      \LARGE
+      \ifeuler
+        \textbf{\@title}
+      \else
+        \@title
+      \fi
+    \end{center}%
+    \vfill
+    \begin{center}%
+      \large
+      \baselineskip = 3ex
+      \@author
+    \end{center}%
+    \vfill
+    \normalsize
+    \begin{center}%
+      \textbf{Abstract}\\
+      \vspace{2ex}%
+      \usebox{\abstractbox}%
+    \end{center}%
+    \clearpage
+    \thispagestyle{empty}%
+    \hfil
+    \clearpage}%
+    \setcounter{page}{2}%
+    \setcounter{footnote}{0}%
+    \renewcommand{\thefootnote}{\arabic{footnote}}}%
+  \def\abstract{%
+    \begin{lrbox}{\abstractbox}%
+      \begin{minipage}{\abstractwidth}}%
+  \def\endabstract{%
+      \end{minipage}%
+    \end{lrbox}%
+    \reallymaketitle}%
+  \newsavebox{\abstractbox}%
+  \savebox{\abstractbox}{Fill in the abstract, dude!}%
+\fi
+\ifnotitle
+  \def\reallymaketitle{%
+    \PackageWarning{thopp}{won't make title (you asked for it!)}%
+    \setcounter{page}{2}%
+    \setcounter{footnote}{0}%
+    \renewcommand{\thefootnote}{\arabic{footnote}}}%
+\fi
+\ifeuler
+  \IfFileExists{euler.sty}%
+   {\RequirePackage{euler}%
+    \renewcommand{\mathcal}{\scr}}%
+   {\PackageWarning{thopp}{can't load euler.sty}}%
+  \IfFileExists{beton.sty}%
+   {\RequirePackage{beton}%
+    \AtBeginDocument{%
+      \DeclareFontShape\encodingdefault{ccr}{bx}{n}%
+        {<->ssub*cmss/sbc/n}{}%
+      \DeclareFontShape\encodingdefault{ccr}{bx}{it}%
+        {<->ssub*cmss/sbc/it}{}%
+      \DeclareFontShape\encodingdefault{ccr}{bx}{sl}%
+        {<->ssub*cmss/sbc/sl}{}%
+      \DeclareFontShape\encodingdefault{ccr}{bx}{sc}%
+        {<->ssub*cmss/sbc/sc}{}}}%
+   {\PackageWarning{thopp}{can't load beton.sty}}%
+\fi
+\batchmode
+\font\Athenafont=athena
+\errorstopmode
+\ifx\Athenafont\nullfont
+  \def\Athena{\quad
+    \typeout{tholet: File athena.tfm not found, Athena left blank.}}%
+\else
+  \def\Athena{{\Athenafont A}}%
+\fi
+\def\THDlogofont{%
+  \fontencoding{OT1}%
+  \fontfamily{cmr}%
+  \fontshape{it}%
+  \fontseries{m}%
+  \fontsize{17.28}{20}%
+  \selectfont}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput
+%%
+%% End of file `thopp.sty'.

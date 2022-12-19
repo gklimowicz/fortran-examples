@@ -1,0 +1,134 @@
+!!! Process: light quark production at ILC
+!!! Reported by: CW on 2015-07-15
+!!! Purpose: Tests functionality of NLO-setups using all possible 
+!!!          combinations of OMega and GoSam for Born-, Real-
+!!!          and correlation-matrix-elements.
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+!seed = 0
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.3E-005
+wZ = 2.4952
+wW = 2.124
+printf " alpha_em %g" (alpha_em_i)
+
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+!!! The expected value for (NLO-LO)/LO is alpha_s / pi
+?alphas_is_fixed = true
+?alphas_from_mz = false
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+
+!!! The loop methods is fixed for the whole test
+$loop_me_method = "gosam"
+
+sqrts = 500 GeV
+
+iterations = 3:10000:"gw"
+
+# ---1
+$born_me_method = "omega"
+$real_tree_me_method = "omega"
+$correlation_me_method = "omega"
+
+# Need to define the process anew after each method switch
+process nlo_gosam_omomom = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_omomom)
+show (integral(nlo_gosam_omomom))
+show (error(nlo_gosam_omomom))
+
+
+# ---2
+$born_me_method = "gosam"
+$real_tree_me_method = "omega"
+$correlation_me_method = "omega"
+
+process nlo_gosam_olomom = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_olomom)
+show (integral(nlo_gosam_olomom))
+show (error(nlo_gosam_olomom))
+
+
+# ---3
+$born_me_method = "omega"
+$real_tree_me_method = "gosam"
+$correlation_me_method = "omega"
+
+process nlo_gosam_omolom = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_omolom)
+show (integral(nlo_gosam_omolom))
+show (error(nlo_gosam_omolom))
+
+
+# ---4
+$born_me_method = "gosam"
+$real_tree_me_method = "gosam"
+$correlation_me_method = "omega"
+
+process nlo_gosam_ololom = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_ololom)
+show (integral(nlo_gosam_ololom))
+show (error(nlo_gosam_ololom))
+
+
+# ---5
+$born_me_method = "omega"
+$real_tree_me_method = "omega"
+$correlation_me_method = "gosam"
+
+process nlo_gosam_omomol = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_omomol)
+show (integral(nlo_gosam_omomol))
+show (error(nlo_gosam_omomol))
+
+
+# ---6
+$born_me_method = "gosam"
+$real_tree_me_method = "omega"
+$correlation_me_method = "gosam"
+
+process nlo_gosam_olomol = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_olomol)
+show (integral(nlo_gosam_olomol))
+show (error(nlo_gosam_olomol))
+
+
+# ---7
+$born_me_method = "omega"
+$real_tree_me_method = "gosam"
+$correlation_me_method = "gosam"
+
+process nlo_gosam_omolol = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_omolol)
+show (integral(nlo_gosam_omolol))
+show (error(nlo_gosam_omolol))
+
+
+# ---8
+$born_me_method = "gosam"
+$real_tree_me_method = "gosam"
+$correlation_me_method = "gosam"
+
+process nlo_gosam_ololol = E1, e1 => u, U { nlo_calculation = full }
+integrate (nlo_gosam_ololol)
+show (integral(nlo_gosam_ololol))
+show (error(nlo_gosam_ololol))

@@ -1,0 +1,55 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process isr_epa_1a = e1, A => e1, A
+
+compile
+
+sqrts = 100 GeV
+cuts = 
+all E > 10 GeV [e1]
+and
+all E > 1 GeV [A]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 1:1000
+
+me = 0
+
+isr_mass = 511 keV
+isr_q_max = 2 GeV
+?isr_recoil = false
+
+epa_mass = 511 keV
+epa_x_min = 0.01
+epa_q_max = 1 GeV
+?epa_recoil = false
+
+beams = e1, E1 => isr, epa
+
+seed = 0
+integrate (isr_epa_1a)
+
+?isr_handler = true
+?epa_handler = true
+$isr_handler_mode = "recoil"
+$epa_handler_mode = "recoil"
+
+histogram q_isr (0, 4 GeV, 0.2 GeV)
+histogram q_epa (0, 4 GeV, 0.2 GeV)
+analysis =
+  record q_isr (abs (eval M [beam e1, outgoing A]))
+and
+  record q_epa (abs (eval M [beam E1, outgoing E1]))
+
+simulate (isr_epa_1a) { n_events = 100 }
+
+$out_file = "isr_epa_1a.dat"
+write_analysis

@@ -1,0 +1,133 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+| Process library 'hepmc_9_lib': recorded process 'hepmc_9_p'
+sqrts =  8.000000000000E+03
+openmp_num_threads = 1
+n_events = 1
+?unweighted = true
+?read_raw = false
+?write_raw = false
+$sample = "hepmc_9a"
+?keep_beams = true
+| Starting simulation for process 'hepmc_9_p'
+| Simulate: process 'hepmc_9_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'hepmc_9_lib': compiling ...
+| Process library 'hepmc_9_lib': writing makefile
+| Process library 'hepmc_9_lib': removing old files
+| Process library 'hepmc_9_lib': writing driver
+| Process library 'hepmc_9_lib': creating source code
+| Process library 'hepmc_9_lib': compiling sources
+| Process library 'hepmc_9_lib': linking
+| Process library 'hepmc_9_lib': loading
+| Process library 'hepmc_9_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process hepmc_9_p:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 8.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'hepmc_9_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'hepmc_9_p'
+|   Library name  = 'hepmc_9_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'hepmc_9_p_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'hepmc_9_p'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  3.6977136E+07  2.01E+07   54.45   17.22*   0.62
+|-----------------------------------------------------------------------------|
+   1       1000  3.6977136E+07  2.01E+07   54.45   17.22    0.62
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'hepmc_9_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7044E-08
+| Events: writing to HepMC file 'hepmc_9a.hepmc'
+| Events: writing to weight stream file 'hepmc_9a.weights.dat'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.10 %
+Warning: Encountered events with excess weight: 1 events (100.000 %)
+| Maximum excess weight = 1.127E-01
+| Average excess weight = 1.127E-01
+| Events: closing HepMC file 'hepmc_9a.hepmc'
+| Events: closing weight stream file 'hepmc_9a.weights.dat'
+QCD.alphas =>  2.356000000000E-01
+$rescan_input_format = "hepmc"
+$sample = "hepmc_9b"
+?update_sqme = true
+| Starting simulation for process 'hepmc_9_p'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'hepmc_9_p.i1.phs'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7044E-08
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from HepMC file 'hepmc_9a.hepmc'
+| Events: writing to weight stream file 'hepmc_9b.weights.dat'
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'hepmc_9b.weights.dat'
+| Events: closing HepMC file 'hepmc_9a.hepmc'
+$rescan_input_format = "hepmc"
+$sample = "hepmc_9c"
+?update_sqme = true
+?use_alphas_from_file = true
+| Starting simulation for process 'hepmc_9_p'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+Warning: Reading phs file: MD5 sum check disabled
+| Phase space: keeping configuration file 'hepmc_9_p.i1.phs'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7044E-08
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from HepMC file 'hepmc_9a.hepmc'
+| Events: writing to weight stream file 'hepmc_9c.weights.dat'
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'hepmc_9c.weights.dat'
+| Events: closing HepMC file 'hepmc_9a.hepmc'
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of hepmc_9a.weights.dat
+0  1.00000000XXE+00  7.77819503XXE+04  7.77819503XXE+04 1
+Contents of hepmc_9b.weights.dat
+0  1.00000000XXE+00  3.11127801XXE+05  0.00000000XXE+00 1
+Contents of hepmc_9c.weights.dat
+0  1.00000000XXE+00  7.77819503XXE+04  0.00000000XXE+00 1

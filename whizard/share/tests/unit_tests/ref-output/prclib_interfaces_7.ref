@@ -1,0 +1,44 @@
+* Test output: prclib_interfaces_7
+*   Purpose: compile and link process library
+*            with (fake) matrix-element code as a Fortran module
+*            then clean up generated files
+
+* Create a prclib driver object (1 process)
+* Write makefile
+* Write driver source code
+* Write matrix-element source code
+* Compile source code
+* Link library
+* File check
+
+  test7.f90 = T
+  tpr_test7.mod = T
+  test7.lo = T
+  prclib7.makefile = T
+  prclib7.f90 = T
+  prclib7.lo = T
+  prclib7.la = T
+
+* Delete library
+
+  prclib7.la = F
+
+* Delete object code
+
+  test7.lo = F
+  tpr_test7.mod = F
+  prclib7.lo = F
+
+* Delete source code
+
+  test7.f90 = F
+
+* Delete driver source code
+
+  prclib7.f90 = F
+
+* Delete makefile
+
+  prclib7.makefile = F
+
+* Test output end: prclib_interfaces_7

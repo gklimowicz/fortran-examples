@@ -1,0 +1,192 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+| Switching to model 'SM', scheme 'GF_MW_MZ'
+$blha_ew_scheme = "alpha_qed"
+SM.mZ =>  9.118800000000E+01
+SM.mW =>  8.041900200000E+01
+SM.mH =>  1.250000000000E+02
+SM.GF =>  1.166390000000E-05
+SM.wZ =>  0.000000000000E+00
+SM.wtop =>  0.000000000000E+00
+SM.wW =>  0.000000000000E+00
+SM.wH =>  0.000000000000E+00
+SM.ms =>  0.000000000000E+00
+SM.mc =>  0.000000000000E+00
+SM.mb =>  0.000000000000E+00
+SM.mtop =>  1.732000000000E+02
+SM.me =>  0.000000000000E+00
+SM.mmu =>  0.000000000000E+00
+SM.mtau =>  1.777000000000E+00
+SM.alphas =>  1.180000000000E-01
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alphas_nf = 5
+alphas_order = 2
+[user variable] jet = PDG(2, -2, 1, -1, 3, -3, 4, -4, 5, -5, 21)
+$exclude_gauge_splittings = "t"
+$method = "openloops"
+seed = 8131
+sqrts =  1.000000000000E+03
+jet_algorithm = 2
+jet_r =  5.000000000000E-01
+$integration_method = "vamp2"
+$rng_method = "rng_stream"
+| End of included 'nlo_settings.sin'
+?pacify = true
+[user variable] pr = PDG(2, -2, 1, -1, 3, -3, 21)
+[user variable] jet = PDG(2, -2, 1, -1, 3, -3, 21)
+$exclude_gauge_splittings = "c:b:t"
+?alphas_from_mz = false
+?alphas_from_lhapdf = true
+alphas_nf = 5
+alphas_order = 2
+alpha_power = 1
+alphas_power = 1
+$lhapdf_file = "MSTW2008nlo68cl"
+sqrts =  1.30000E+04
+seed = 31415
+$rng_method = "rng_stream"
+$integration_method = "vamp2"
+$real_partition_mode = "on"
+real_partition_scale =  1.00000E+01
+$restrictions = "!W+:W-"
+| Process library 'nlo_ppzj_real_partition_lib': recorded process 'ppzj_wp'
+| Integrate: current process library needs compilation
+| Process library 'nlo_ppzj_real_partition_lib': compiling ...
+| Process library 'nlo_ppzj_real_partition_lib': writing makefile
+| Process library 'nlo_ppzj_real_partition_lib': removing old files
+| Process library 'nlo_ppzj_real_partition_lib': writing driver
+| Process library 'nlo_ppzj_real_partition_lib': creating source code
+| Process library 'nlo_ppzj_real_partition_lib': compiling sources
+| Process library 'nlo_ppzj_real_partition_lib': linking
+| Process library 'nlo_ppzj_real_partition_lib': loading
+| Process library 'nlo_ppzj_real_partition_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing RNG Stream random-number generator
+| RNG: Setting seed for random-number generator to 31415
+| Initializing integration for process ppzj_wp:
+| Beam structure: p, p => lhapdf
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.300000000000E+04 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'ppzj_wp.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'ppzj_wp.i3.phs'
+| Phase space: generating configuration ...
+Warning:  Intermediate decay of zero-width particle Z may be possible.
+Warning:  Intermediate decay of zero-width particle H may be possible.
+Warning:  Intermediate decay of zero-width particle W+ may be possible.
+Warning:  Intermediate decay of zero-width particle W- may be possible.
+| Phase space: ... success.
+| Phase space: writing configuration file 'ppzj_wp.i6.phs'
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| ------------------------------------------------------------------------
+| Process [scattering]: 'ppzj_wp'
+|   Library name  = 'nlo_ppzj_real_partition_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'ppzj_wp_i1':   u:ubar:d:dbar:s:sbar:gl, u:ubar:d:dbar:s:sbar:gl => Z, u:ubar:d:dbar:s:sbar:gl [inactive]
+|     2: 'ppzj_wp_i2':   dbar:d:ubar:u:sbar:s:gl, dbar:d:ubar:u:sbar:s:gl => Z, d:dbar:u:ubar:s:sbar:gl, d:dbar:u:ubar:s:sbar:gl [openloops], [real]
+|     3: 'ppzj_wp_i3':   u:ubar:d:dbar:s:sbar:gl, u:ubar:d:dbar:s:sbar:gl => Z, u:ubar:d:dbar:s:sbar:gl [inactive], [virtual]
+|     4: 'ppzj_wp_i4':   u:ubar:d:dbar:s:sbar:gl, u:ubar:d:dbar:s:sbar:gl => Z, u:ubar:d:dbar:s:sbar:gl [inactive], [subtraction]
+|     5: 'ppzj_wp_i5':   u:ubar:d:dbar:s:sbar:gl, u:ubar:d:dbar:s:sbar:gl => Z, u:ubar:d:dbar:s:sbar:gl [inactive], [dglap]
+|     6: 'ppzj_wp_i6':   dbar:d:ubar:u:sbar:s:gl, dbar:d:ubar:u:sbar:s:gl => Z, d:dbar:u:ubar:s:sbar:gl, d:dbar:u:ubar:s:sbar:gl [openloops], [real]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 5 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 3 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 36 channels, 5 dimensions
+| Phase space: found 36 channels, collected in 9 groves.
+| Phase space: Using 108 equivalences between channels.
+| Phase space: wood
+| Beam structure: lhapdf, none => none, lhapdf
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Using user-defined general scale.
+| Starting integration for process 'ppzj_wp' part 'real'
+| Integrate: iterations = 2:1000:"gw", 2:1000
+| Integrator: 2 chains, 5 channels, 7 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'ppzj_wp.m2.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'ppzj_wp.m2.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        948    -2.844E+07   1.86E+07   65.34   20.12     0.6
+   2       1001    -1.538E+07   4.46E+06   29.02    9.18     1.6
+|-----------------------------------------------------------------------------|
+   2       1949    -1.609E+07   4.34E+06   26.97   11.91     1.6    0.47   2
+|-----------------------------------------------------------------------------|
+   3       1001    -1.228E+07   2.15E+06   17.47    5.53     1.9
+   4       1001    -1.466E+07   2.21E+06   15.06    4.76     2.0
+|-----------------------------------------------------------------------------|
+   4       2002    -1.344E+07   1.54E+06   11.45    5.12     2.0    0.60   2
+|=============================================================================|
+| Starting integration for process 'ppzj_wp' part 'real'
+| Integrate: iterations = 2:1000:"gw", 2:1000
+| Integrator: 9 chains, 36 channels, 7 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'ppzj_wp.m5.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'ppzj_wp.m5.vg2'.
+| VAMP2: set chain: use chained weights.
+   1       1002     5.362E+06   2.96E+06   55.12   17.45     3.7
+   2       1002     7.842E+06   1.52E+06   19.42    6.15     3.5
+|-----------------------------------------------------------------------------|
+   2       2004     7.322E+06   1.35E+06   18.49    8.28     3.5    0.56   2
+|-----------------------------------------------------------------------------|
+   3       1002     1.706E+07   4.23E+06   24.82    7.86     4.3
+   4       1002     1.242E+07   2.52E+06   20.28    6.42     4.7
+|-----------------------------------------------------------------------------|
+   4       2004     1.363E+07   2.17E+06   15.88    7.11     4.7    0.89   2
+|=============================================================================|
+| Integrate: sum of all components
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          0     1.972E+05   2.66E+06 1346.81    0.00     0.1
+|=============================================================================|
+| There were no errors and    4 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

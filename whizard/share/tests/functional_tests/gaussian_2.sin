@@ -1,0 +1,52 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process gaussian_2_p1 = "e-", "e+" => "mu-", "mu+"
+process gaussian_2_p2 = "e-", "e+" => "mu-", "mu+"
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+int n = 1000
+
+cuts = sqrts_hat > 50
+
+n_events = 10000
+
+beams = "e-", "e+" => gaussian
+gaussian_spread1 = 10%
+gaussian_spread2 = 0
+integrate (gaussian_2_p1) { iterations = 3:n:"wg", 3:n }
+
+# Observable: expect avg = 250, err(rel) = 10% / sqrt(n_events)
+observable s1
+analysis = record s1 (eval E [incoming particle])
+simulate (gaussian_2_p1) { n_events = 100 }
+
+beams = "e-", "e+" => gaussian
+gaussian_spread1 = 10% * sqrt(2.)
+gaussian_spread2 = 10% * sqrt(2.)
+integrate (gaussian_2_p2) { iterations = 3:n:"wg", 3:n }
+
+# Observable: expect avg = 500, err(rel) = 10% / sqrt(n_events)
+observable s2
+analysis = record s2 (sqrts_hat)
+simulate (gaussian_2_p2) { n_events = 100 }
+
+write_analysis

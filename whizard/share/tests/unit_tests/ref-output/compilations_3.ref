@@ -1,0 +1,114 @@
+* Test output: compilations_3
+*   Purpose: make static executable
+
+* Initialize library
+
+ Compilation object:
+   executable        = 'compilations_3'
+   process libraries = 'compilations_3_lib'
+
+* Write dispatcher
+
+! Whizard: process libraries for executable 'compilations_3'
+! Automatically generated file, do not edit
+subroutine dispatch_prclib_static (driver, basename, modellibs_ldflags)
+  use iso_varying_string, string_t => varying_string
+  use prclib_interfaces
+  use compilations_3_lib_driver
+  implicit none
+  class(prclib_driver_t), intent(inout), allocatable :: driver
+  type(string_t), intent(in) :: basename
+  logical, intent(in), optional :: modellibs_ldflags
+  select case (char (basename))
+  case ('compilations_3_lib')
+     allocate (compilations_3_lib_driver_t :: driver)
+  end select
+end subroutine dispatch_prclib_static
+
+subroutine get_prclib_static (libname)
+  use iso_varying_string, string_t => varying_string
+  implicit none
+  type(string_t), dimension(:), intent(inout), allocatable :: libname
+  allocate (libname (1))
+  libname(1) = 'compilations_3_lib'
+end subroutine get_prclib_static
+
+* Write Makefile
+
+# WHIZARD: Makefile for executable 'compilations_3'
+# Automatically generated file, do not edit
+
+# Executable name
+EXE = compilations_3
+
+# Compiler
+FC = fortran-compiler
+CXX = c++-compiler
+
+# Included libraries
+FCINCL = my-includes
+
+# Compiler flags
+FCFLAGS = my-fcflags
+FCLIBS = my-fclibs
+CXXFLAGS = my-cxxflags
+CXXLIBSS = my-cxxlibs
+LDFLAGS = my-ldflags
+LDFLAGS_STATIC = my-ldflags-static
+LDFLAGS_HEPMC = my-ldflags-hepmc
+LDFLAGS_LCIO = my-ldflags-lcio
+LDFLAGS_HOPPET = my-ldflags-hoppet
+LDFLAGS_LOOPTOOLS = my-ldflags-looptools
+LDWHIZARD = my-ldwhizard
+
+# Libtool
+LIBTOOL = my-libtool
+FCOMPILE = $(LIBTOOL) --tag=FC --mode=compile
+LINK = $(LIBTOOL) --tag=FC --mode=link
+
+# Compile commands (default)
+LTFCOMPILE = $(FCOMPILE) $(FC) -c $(FCINCL) $(FCFLAGS)
+
+# Default target
+all: link
+
+# Libraries
+LIBRARIES += compilations_3_lib.la
+compilations_3_lib.la:
+	$(MAKE) -f compilations_3_lib.makefile
+
+# Library dispatcher
+DISP = $(EXE)_prclib_dispatcher
+$(DISP).lo: $(DISP).f90 $(LIBRARIES)
+	$(LTFCOMPILE) $<
+
+# Executable
+$(EXE): $(DISP).lo $(LIBRARIES)
+	$(LINK) $(FC) -static $(FCFLAGS) \
+	   $(LDWHIZARD) $(LDFLAGS) \
+	   -o $(EXE) $^ \
+	   $(LDFLAGS_HEPMC) $(LDFLAGS_LCIO) $(LDFLAGS_HOPPET) \
+	   $(LDFLAGS_LOOPTOOLS) $(LDFLAGS_STATIC)
+
+# Main targets
+link: compile $(EXE)
+compile: $(LIBRARIES) $(DISP).lo
+.PHONY: link compile
+
+# Cleanup targets
+clean-exe:
+	rm -f $(EXE)
+clean-objects:
+	rm -f $(DISP).lo
+clean-source:
+	rm -f $(DISP).f90
+clean-makefile:
+	rm -f $(EXE).makefile
+
+clean: clean-exe clean-objects clean-source
+distclean: clean clean-makefile
+.PHONY: clean distclean
+
+* Cleanup
+
+* Test output end: compilations_3

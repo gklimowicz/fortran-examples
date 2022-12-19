@@ -1,0 +1,49 @@
+!!! Tests the integration of an NLO process with multiple
+!!! flavors in the final-state.
+!!! We choose only down-type quarks. This way, the integrals
+!!! of the subprocesses are identical and it is easier to
+!!! compare them to the total result.
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$loop_me_method = "openloops"
+$real_tree_me_method = "openloops"
+$correlation_me_method = "openloops"
+
+$openloops_allowed_libs = "ppllj"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = true
+?alphas_from_mz = false
+alphas = 0.1178
+
+ms = 0
+mc = 0
+mb = 0
+
+process openloops_5_p1_nlo = E1, e1 => d:D:s:S:b:B, d:D:s:S:b:B { nlo_calculation = full }
+process openloops_5_p2_nlo = E1, e1 => D, d { nlo_calculation = full }
+process openloops_5_p3_nlo = E1, e1 => S, s { nlo_calculation = full }
+process openloops_5_p4_nlo = E1, e1 => B, b { nlo_calculation = full }
+
+sqrts = 500 GeV
+iterations = 1:100
+tolerance = 0.001
+
+integrate (openloops_5_p1_nlo) { seed = 0 }
+integrate (openloops_5_p2_nlo) { seed = 0 }
+integrate (openloops_5_p3_nlo) { seed = 0 }
+integrate (openloops_5_p4_nlo) { seed = 0 }
+
+expect (integral (openloops_5_p1_nlo) == integral (openloops_5_p2_nlo)
+       + integral (openloops_5_p3_nlo) + integral (openloops_5_p4_nlo))

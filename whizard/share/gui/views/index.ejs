@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <% include header %>
+  <body>
+
+    <% include navbar %>
+    <div class="container">
+      <div class="page-header">
+        <h1>
+          Whizard<small>GUI</small>
+          <img src="public/images/Whizard-Logo.svg" width="5%" height="auto">
+        </h1>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="panel panel-primary">
+            <div class="panel-heading">Settings</div>
+            <div class="panel-body">
+              <div>
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                  <li role="presentation" class="active">
+                    <a href="#basic" aria-controls="home" role="tab"
+                            data-toggle="tab">Basic Settings</a></li>
+                  <li role="presentation">
+                    <a href="#int" aria-controls="int" role="tab"
+                         data-toggle="tab" id="tab_button_integrate">Integration
+                    </a></li>
+                    <li role="presentation">
+                      <a href="#sim" aria-controls="sim" role="tab"
+                           data-toggle="tab" id="tab_button_simulate">Simulation
+                      </a></li>
+                      <li role="presentation">
+                        <a href="#cuts" aria-controls="cuts" role="tab"
+                               id="tab_button_cuts" data-toggle="tab">Cuts</a></li>
+                      <li role="presentation">
+                        <a href="#scan" aria-controls="scan" role="tab"
+                               data-toggle="tab" id="tab_button_scan">Scan</a></li>
+                      <li role="presentation">
+                        <a href="#nlo" aria-controls="nlo" role="tab"
+                             data-toggle="tab">NLO</a></li>
+                      <li role="presentation">
+                        <a href="#beams" aria-controls="beams" role="tab"
+                                 data-toggle="tab">Beams</a></li>
+                      <li role="presentation">
+                        <a href="#preview" aria-controls="preview" role="tab"
+                                     data-toggle="tab" id="tab_button_preview">
+                          <span class="glyphicon glyphicon-search"
+                                aria-hidden="true"></span> Preview file</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content">
+                  <!-- Basic settings -->
+                  <br />
+                  <% include tab_basic %>
+                  <% include tab_integration %>
+                  <% include tab_simulation %>
+                  <% include tab_cuts %>
+                  <% include tab_scan %>
+                  <div role="tabpanel" class="tab-pane" id="nlo">
+                    "In preparation"</div>
+                  <div role="tabpanel" class="tab-pane" id="beams">
+                    "Also in preparation"</div>
+                  <div role="tabpanel" class="tab-pane" id="preview"></div>
+                </div>
+              </div>
+              <br><br>
+              <p class="btn-block">
+              <div class="btn-group" role="group" aria-label="...">
+                <button type="button" class="btn btn-primary btn-lg savesin">
+                  Save Sindarin</button>
+                <div class="btn-group">
+                  <button type="button" class="btn btn-success btn-lg runwhiz">
+                    Run Whizard</button>
+                  <button type="button"
+                          class="btn btn-success btn-lg dropdown-toggle runarrow"
+                          data-toggle="dropdown" aria-haspopup="true"
+                                                 aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">Toggle Dropdown</span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="runwhiz" opt="--rebuild" href="#">
+                        Run & Rebuild All</a></li>
+                    <li><a class="runwhiz" opt="--rebuild-events" href="#">
+                        Run & Rebuild Events</a></li>
+                    <li><a class="runwhiz" opt="--rebuild-grids" href="#">
+                        Run & Integrate</a></li>
+                  </ul>
+                </div>
+              </div>
+              </p>
+              <p id="controller"></p>
+            </div>
+          </div>
+        </div>
+        <!-- Output container -->
+        <div class="col-md-6">
+          <div class="panel panel-primary">
+            <div class="panel-heading">Output</div>
+            <div class="panel-body" >
+              <div>
+                <!-- Nav tabs -->
+              <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active">
+                  <a href="#out_whiz" aria-controls="out_whiz" role="tab"
+                                 data-toggle="tab">Log</a></li>
+                <li role="presentation">
+                  <a href="#out_hist" aria-controls="out_hist" role="tab"
+                                 data-toggle="tab">Plots</a></li>
+              </ul>
+              <!-- Loader -->
+              <div id="pbar">
+                <div class="loader"></div>
+              </div>
+              <!-- Output TAB Panel -->
+              <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="out_whiz">
+                  <div class="panel-body outputcontainer">
+                    <pre id="whizoutput" style="max-height: 700px;"></pre>
+                  </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="out_hist">
+                  <!-- AM: under consideration
+                    <embed id="out-hist-pdf" src="" width="100%" height="700px">
+                  -->
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <!-- Models popover container -->
+      <div id ="pop_models" style="visibility: hidden;"></div>
+      <!-- Alias popover container -->
+      <div id="pop_aliases" style="visibility: hidden;"></div>
+      <!-- Process popover container -->
+      <div id="pop_process" style="visibility: hidden;"></div>
+      <!-- Simulation-Histogram-popover -->
+      <div style="visibility: hidden;" id="pop_sim_subevent"
+                                       class="row top17 centered-pills">
+        <ul class="nav nav-pills" id="pop_sim_subevent_list" role="tablist"></ul>
+      </div>
+      <% include footer %>
+    </div>
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <!--<script src="https://code.jquery.com/jquery.js"></script>-->
+    <!-- TODO: (bcn 2016-07-01) get a minified version -->
+    <script src=public/jquery.js></script>
+    <script src="browser/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+* Test output: particle_specifiers_2
+*   Purpose: Create and display particle expressions
+
+* Basic expressions
+
+a
+a + b
+a, b
+
+* Nested expressions
+
+a + b, c
+(a, b), c
+a + (b + c)
+a + (b, c), d
+(a, b) + (c, d)
+a + b, c, d + e + f
+
+* Expand as sum
+
+a
+(a, c) + (b, c)
+a, b, c
+a + b + c
+(a, d) + (b, c, d)
+(a, b) + (c, d)
+(a, c, d) + (a, c, e) + (a, c, f) + (b, c, d) + (b, c, e) + (b, c, f)
+
+* Transform to arrays:
+* Atomic specifier
+a
+
+* List
+a, b, c
+
+* Sum of atoms
+a
+b
+c
+
+* Sum of lists
+a, c, d
+a, c, e
+a, c, f
+b, c, d
+b, c, e
+b, c, f
+
+* Test output end: particle_specifiers_2

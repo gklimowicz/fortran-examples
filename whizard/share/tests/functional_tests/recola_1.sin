@@ -1,0 +1,34 @@
+# SINDARIN input for WHIZARD self-test
+# Testing integration of LO RECOLA matrix elements
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$method = "recola"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+process recola_1_p1 = E1, e1 => E2, e2
+
+seed = 1
+
+sqrts = 100 GeV
+iterations = 1:100
+
+integrate (recola_1_p1)
+
+sample_format = debug
+?sample_pacify = true
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+
+n_events = 2
+simulate (recola_1_p1)

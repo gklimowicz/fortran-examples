@@ -1,0 +1,150 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+module grids
+
+  use kinds, only: default
+  use mpi_f08 !NODEP!
+
+  implicit none
+  private
+
+  public :: grid_t
+  public :: verify_points_for_grid
+
+  type :: grid_t
+     private
+     real(default), dimension(:), allocatable :: values
+     integer, dimension(:), allocatable :: points
+  contains
+     generic :: init => init_base, init_simple
+     procedure :: init_base => grid_init_base
+     procedure :: init_simple => grid_init_simple
+     procedure :: set_values => grid_set_values
+     procedure :: final => grid_final
+     generic :: get_value => get_value_from_x, get_value_from_indices
+     procedure :: get_value_from_x => grid_get_value_from_x
+     procedure :: get_value_from_indices => grid_get_value_from_indices
+     procedure :: get_segment => grid_get_segment
+     procedure :: get_index => grid_get_index
+     procedure :: update_maxima => grid_update_maxima
+     procedure :: get_maximum_in_3d => grid_get_maximum_in_3d
+     procedure :: is_non_zero_everywhere => grid_is_non_zero_everywhere
+     procedure :: has_non_zero_entries => grid_has_non_zero_entries
+     procedure :: mpi_reduce => grid_mpi_reduce
+     procedure :: write => grid_write
+     procedure :: compute_and_write_mean_and_max => &
+          grid_compute_and_write_mean_and_max
+     procedure :: save_to_file => grid_save_to_file
+     procedure :: load_from_file => grid_load_from_file
+  end type grid_t
+
+
+  interface
+    pure module subroutine grid_init_base (grid, points)
+      class(grid_t), intent(inout) :: grid
+      integer, dimension(:), intent(in) :: points
+    end subroutine grid_init_base
+    pure module subroutine grid_init_simple (grid, dimensions)
+      class(grid_t), intent(inout) :: grid
+      integer, intent(in) :: dimensions
+    end subroutine grid_init_simple
+    module subroutine grid_set_values (grid, values)
+      class(grid_t), intent(inout) :: grid
+      real(default), dimension(:), intent(in) :: values
+    end subroutine grid_set_values
+    pure module subroutine grid_final (grid)
+      class(grid_t), intent(inout) :: grid
+    end subroutine grid_final
+    module function grid_get_value_from_indices (grid, indices)
+      real(default) :: grid_get_value_from_indices
+      class(grid_t), intent(in) :: grid
+      integer, dimension(:), intent(in) :: indices
+    end function grid_get_value_from_indices
+    module function grid_get_value_from_x (grid, x)
+      real(default) :: grid_get_value_from_x
+      class(grid_t), intent(in) :: grid
+      real(default), dimension(:), intent(in) :: x
+    end function grid_get_value_from_x
+    module function grid_get_segment (grid, x, unit) result (segment)
+      class(grid_t), intent(in) :: grid
+      real(default), dimension(:), intent(in) :: x
+      integer, intent(in), optional :: unit
+      integer, dimension(1:size (x)) :: segment
+    end function grid_get_segment
+    pure module function grid_get_index (grid, indices) result (grid_index)
+      integer :: grid_index
+      class(grid_t), intent(in) :: grid
+      integer, dimension(:), intent(in) :: indices
+    end function grid_get_index
+    module subroutine grid_update_maxima (grid, x, y)
+      class(grid_t), intent(inout) :: grid
+      real(default), dimension(:), intent(in) :: x
+      real(default), intent(in) :: y
+    end subroutine grid_update_maxima
+    module function grid_get_maximum_in_3d (grid, projected_index) result (maximum)
+      real(default) :: maximum
+      class(grid_t), intent(in) :: grid
+      integer, intent(in) :: projected_index
+    end function grid_get_maximum_in_3d
+    pure module function grid_is_non_zero_everywhere (grid) result (yorn)
+      logical :: yorn
+      class(grid_t), intent(in) :: grid
+    end function grid_is_non_zero_everywhere
+    pure module function grid_has_non_zero_entries (grid) result (non_zero)
+      logical :: non_zero
+      class(grid_t), intent(in) :: grid
+    end function grid_has_non_zero_entries
+    module subroutine grid_mpi_reduce (grid, operator)
+      class(grid_t), intent(inout) :: grid
+      type(MPI_op), intent(in) :: operator
+    end subroutine grid_mpi_reduce
+    module subroutine grid_write (grid, unit)
+      class(grid_t), intent(in) :: grid
+      integer, intent(in), optional :: unit
+    end subroutine grid_write
+    module subroutine grid_compute_and_write_mean_and_max (grid, unit)
+      class(grid_t), intent(in) :: grid
+      integer, intent(in), optional :: unit
+    end subroutine grid_compute_and_write_mean_and_max
+    module subroutine grid_save_to_file (grid, file)
+      class(grid_t), intent(in) :: grid
+      character(len=*), intent(in) :: file
+    end subroutine grid_save_to_file
+    module function verify_points_for_grid (file, points) result (valid)
+      logical :: valid
+      character(len=*), intent(in) :: file
+      integer, dimension(:), intent(in) :: points
+    end function verify_points_for_grid
+    module subroutine grid_load_from_file (grid, file)
+      class(grid_t), intent(out) :: grid
+      character(len=*), intent(in) :: file
+    end subroutine grid_load_from_file
+  end interface
+
+end module grids

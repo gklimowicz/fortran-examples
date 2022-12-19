@@ -1,0 +1,717 @@
+########################################################################
+# U(niversal) E(xtra) D(imensions)
+model "UED"
+
+# Independent parameters
+### DO NOT CHANGE THE ORDER OF THESE PARAMETERS
+parameter GF       = 1.16639E-5   # Fermi constant
+parameter mZ       = 91.1882      # Z-boson mass  
+parameter mW       = 80.419       # W-boson mass  
+parameter mH       = 125          # Higgs mass
+parameter alphas   = 1.218        # Strong coupling constant (Z point)
+parameter me       = 0.000511     # electron mass                       
+parameter mmu      = 0.1057       # muon mass                         
+parameter mtau     = 1.777        # tau-lepton mass
+parameter ms       = 0.12         # s-quark mass                         
+parameter mc       = 1.25         # c-quark mass                         
+parameter mb       = 4.2          # b-quark mass                         
+parameter mtop     = 174          # t-quark mass                         
+parameter wtop     = 1.523        # t-quark width
+parameter wZ       = 2.443        # Z-boson width
+parameter wW       = 2.049        # W-boson width
+parameter wH       = 0.004143     # Higgs width  
+parameter mGG	   = 1000	  # Graviton mass
+parameter wGG      = 0.0001	  # Graviton width
+parameter khgaz    = 0.000	  # anomaly Higgs couplings K factors
+parameter khgaga   = 0.000	  # anomaly Higgs couplings K factors
+parameter khgg 	   = 0.000	  # anomaly Higgs couplings K factors
+parameter ggrav	   = 1.000	  # gravitational coupling
+parameter mgk1     = 1000	  # 1. KK gluon mass
+parameter wgk1     = 1.00	  # 1. KK gluon width
+parameter mgk2     = 2000	  # 2. KK gluon mass
+parameter wgk2     = 1.00	  # 2. KK gluon width
+parameter mb1      = 1000	  # 1. KK photon mass
+parameter wb1      = 1.00	  # 1. KK photon width
+parameter mb2      = 2000	  # 2. KK photon mass
+parameter wb2      = 1.00	  # 2. KK photon width
+parameter mz1      = 1000	  # 1. KK Z mass
+parameter wz1      = 1.00	  # 1. KK Z width
+parameter mz2      = 2000	  # 2. KK Z mass
+parameter wz2      = 1.00	  # 2. KK Z width
+parameter mw1      = 1000	  # 1. KK W mass
+parameter ww1      = 1.00	  # 1. KK W width
+parameter mw2      = 2000	  # 2. KK W mass
+parameter ww2      = 1.00	  # 2. KK W width
+parameter mek1l    = 1000         # 1. KK left electron mass
+parameter mmuk1l   = 1000         # 1. KK left muon mass                         
+parameter mtauk1l  = 1000         # 1. KK left tau-lepton mass
+parameter mek1r    = 1000         # 1. KK right electron mass
+parameter mmuk1r   = 1000         # 1. KK right muon mass
+parameter mtauk1r  = 1000         # 1. KK right tau-lepton mass
+parameter mnuek1   = 1000         # 1. KK electron-neutrino mass
+parameter mnumuk1  = 1000         # 1. KK muon-neutrino mass
+parameter mnutauk1 = 1000         # 1. KK tau-lepton-neutrino mass
+parameter mek2l    = 2000         # 2. KK left electron mass
+parameter mmuk2l   = 2000         # 2. KK left muon mass                         
+parameter mtauk2l  = 2000         # 2. KK left tau-lepton mass
+parameter mek2r    = 2000         # 2. KK right electron mass
+parameter mmuk2r   = 2000         # 2. KK right muon mass
+parameter mtauk2r  = 2000         # 2. KK right tau-lepton mass
+parameter mnuek2   = 2000         # 2. KK electron-neutrino mass
+parameter mnumuk2  = 2000         # 2. KK muon-neutrino mass
+parameter mnutauk2 = 2000         # 2. KK tau-lepton-neutrino mass
+parameter wek1l    = 1.0          # 1. KK left electron mass
+parameter wmuk1l   = 1.0          # 1. KK left muon mass                         
+parameter wtauk1l  = 1.0          # 1. KK left tau-lepton mass
+parameter wek1r    = 1.0          # 1. KK right electron mass
+parameter wmuk1r   = 1.0          # 1. KK right muon mass
+parameter wtauk1r  = 1.0          # 1. KK right tau-lepton mass
+parameter wnuek1   = 1.0          # 1. KK electron-neutrino mass
+parameter wnumuk1  = 1.0          # 1. KK muon-neutrino mass
+parameter wnutauk1 = 1.0          # 1. KK tau-lepton-neutrino mass
+parameter wek2l    = 2.0          # 2. KK left electron mass
+parameter wmuk2l   = 2.0          # 2. KK left muon mass                         
+parameter wtauk2l  = 2.0          # 2. KK left tau-lepton mass
+parameter wek2r    = 2.0          # 2. KK right electron mass
+parameter wmuk2r   = 2.0          # 2. KK right muon mass
+parameter wtauk2r  = 2.0          # 2. KK right tau-lepton mass
+parameter wnuek2   = 2.0          # 2. KK electron-neutrino mass
+parameter wnumuk2  = 2.0          # 2. KK muon-neutrino mass
+parameter wnutauk2 = 2.0          # 2. KK tau-lepton-neutrino mass
+parameter muk1l    = 1000         # 1. KK left u-quark mass
+parameter mdk1l    = 1000         # 1. KK left d-quark mass
+parameter mck1l    = 1000         # 1. KK left c-quark mass
+parameter msk1l    = 1000         # 1. KK left s-quark mass
+parameter mtk1l    = 1000         # 1. KK left t-quark mass
+parameter mbk1l    = 1000         # 1. KK left b-quark mass
+parameter muk1r    = 1000         # 1. KK right u-quark mass
+parameter mdk1r    = 1000         # 1. KK right d-quark mass
+parameter mck1r    = 1000         # 1. KK right c-quark mass
+parameter msk1r    = 1000         # 1. KK right s-quark mass
+parameter mtk1r    = 1000         # 1. KK right t-quark mass
+parameter mbk1r    = 1000         # 1. KK right b-quark mass
+parameter muk2l    = 2000         # 2. KK left u-quark mass
+parameter mdk2l    = 2000         # 2. KK left d-quark mass
+parameter mck2l    = 2000         # 2. KK left c-quark mass
+parameter msk2l    = 2000         # 2. KK left s-quark mass
+parameter mtk2l    = 2000         # 2. KK left t-quark mass
+parameter mbk2l    = 2000         # 2. KK left b-quark mass
+parameter muk2r    = 2000         # 2. KK right u-quark mass
+parameter mdk2r    = 2000         # 2. KK right d-quark mass
+parameter mck2r    = 2000         # 2. KK right c-quark mass
+parameter msk2r    = 2000         # 2. KK right s-quark mass
+parameter mtk2r    = 2000         # 2. KK right t-quark mass
+parameter mbk2r    = 2000         # 2. KK right b-quark mass
+parameter wuk1l    = 1.0          # 1. KK left u-quark mass
+parameter wdk1l    = 1.0          # 1. KK left d-quark mass
+parameter wck1l    = 1.0          # 1. KK left c-quark mass
+parameter wsk1l    = 1.0          # 1. KK left s-quark mass
+parameter wtk1l    = 1.0          # 1. KK left t-quark mass
+parameter wbk1l    = 1.0          # 1. KK left b-quark mass
+parameter wuk1r    = 1.0          # 1. KK right u-quark mass
+parameter wdk1r    = 1.0          # 1. KK right d-quark mass
+parameter wck1r    = 1.0          # 1. KK right c-quark mass
+parameter wsk1r    = 1.0          # 1. KK right s-quark mass
+parameter wtk1r    = 1.0          # 1. KK right t-quark mass
+parameter wbk1r    = 1.0          # 1. KK right b-quark mass
+parameter wuk2l    = 2.0          # 2. KK left u-quark mass
+parameter wdk2l    = 2.0          # 2. KK left d-quark mass
+parameter wck2l    = 2.0          # 2. KK left c-quark mass
+parameter wsk2l    = 2.0          # 2. KK left s-quark mass
+parameter wtk2l    = 2.0          # 2. KK left t-quark mass
+parameter wbk2l    = 2.0          # 2. KK left b-quark mass
+parameter wuk2r    = 2.0          # 2. KK right u-quark mass
+parameter wdk2r    = 2.0          # 2. KK right d-quark mass
+parameter wck2r    = 2.0          # 2. KK right c-quark mass
+parameter wsk2r    = 2.0          # 2. KK right s-quark mass
+parameter wtk2r    = 2.0          # 2. KK right t-quark mass
+parameter wbk2r    = 2.0          # 2. KK right b-quark mass
+parameter mh1u     = 1000         # 1. KK up-Higgs mass
+parameter wh1u     = 1.0          # 1. KK up-Higgs width
+parameter mh1d     = 1000         # 1. KK down-Higgs mass
+parameter wh1d     = 1.0          # 1. KK down-Higgs width
+parameter mh2u     = 2000         # 2. KK up-Higgs mass
+parameter wh2u     = 1.0          # 2. KK up-Higgs width
+parameter mh2d     = 2000         # 2. KK down-Higgs mass
+parameter wh2d     = 1.0          # 2. KK down-Higgs width
+	
+# Dependent parameters
+derived v     = 1 / sqrt (sqrt (2.) * GF)     # v (Higgs vev)
+derived cw    = mW / mZ                       # cos(theta-W)
+derived sw    = sqrt (1-cw**2)                # sin(theta-W)
+derived ee    = 2 * sw * mW / v               # em-coupling (GF scheme)
+derived alpha_em_i = 4 * pi / ee**2           # inverse fine structure const
+
+########################################################################
+# Particle content
+
+# The quarks
+particle D_QUARK 1  parton
+  spin 1/2  charge -1/3  isospin -1/2  color 3
+  name d down
+  anti dbar D "d~" 
+  tex_anti "\bar{d}"
+particle U_QUARK 2  parton
+  spin 1/2  charge  2/3  isospin  1/2  color 3
+  name u up
+  anti ubar U "u~" 
+  tex_anti "\bar{u}"
+particle S_QUARK 3  like D_QUARK
+  name s strange
+  anti sbar S "s~" 
+  tex_anti "\bar{s}"
+  mass ms
+particle C_QUARK 4  like U_QUARK
+  name c charm
+  anti cbar C "c~" 
+  tex_anti "\bar{c}"
+  mass mc
+particle B_QUARK 5  like D_QUARK
+  name b bottom
+  anti bbar B "b~"
+  tex_anti "\bar{b}"
+  mass mb
+particle T_QUARK 6  like U_QUARK
+  name t top
+  anti tbar T "t~" 
+  tex_anti "\bar{t}"
+  mass mtop  width wtop
+particle D_K1L_QUARK 4000001  
+  spin 1/2  charge -1/3  color 3
+  name dk1l
+  anti dk1lbar DK1L "dk1l~" 
+  tex_name "d_{1L}"
+  tex_anti "\bar{d}_{1L}"
+  mass mdk1l width wdk1l
+particle U_K1L_QUARK 4000002  
+  spin 1/2  charge  2/3  color 3
+  name uk1l
+  anti uk1lbar UK1L "uk1l~" 
+  tex_name "u_{1L}"
+  tex_anti "\bar{u}_{1L}"
+  mass muk1l width wuk1l
+particle S_K1L_QUARK 4000003  like D_K1L_QUARK
+  name sk1l
+  anti sk1lbar SK1L "sk1l~" 
+  tex_name "s_{1L}"
+  tex_anti "\bar{s}_{1L}"
+  mass msk1l width wsk1l
+particle C_K1L_QUARK 4000004  like U_K1L_QUARK
+  name ck1l
+  anti ck1lbar CK1L "ck1l~" 
+  tex_name "c_{1L}"
+  tex_anti "\bar{c}_{1L}"
+  mass mck1l width wck1l
+particle B_K1L_QUARK 4000005  like D_K1L_QUARK
+  name bk1l
+  anti bk1lbar BK1L "bk1l~" 
+  tex_name "b_{1L}"
+  tex_anti "\bar{b}_{1L}"
+  mass mbk1l width wbk1l
+particle T_K1L_QUARK 4000006  like U_K1L_QUARK
+  name tk1l topk1l
+  anti tk1lbar TK1L "tk1l~" 
+  tex_name "t_{1L}"
+  tex_anti "\bar{t}_{1L}"
+  mass mtk1l  width wtk1l
+particle D_K1R_QUARK 5000001 like D_K1L_QUARK 
+  name dk1r
+  anti dk1rbar DK1R "dk1r~" 
+  tex_name "d_{1R}"
+  tex_anti "\bar{d}_{1R}"
+  mass mdk1r width wdk1r
+particle U_K1R_QUARK 5000002 like U_K1L_QUARK
+  name uk1r
+  anti uk1rbar UK1R "uk1r~" 
+  tex_name "u_{1R}"
+  tex_anti "\bar{u}_{1R}"
+  mass muk1r width wuk1r
+particle S_K1R_QUARK 5000003  like D_K1L_QUARK
+  name sk1r
+  anti sk1rbar SK1R "sk1r~" 
+  tex_name "s_{1R}"
+  tex_anti "\bar{s}_{1R}"
+  mass msk1r width wsk1r
+particle C_K1R_QUARK 5000004  like U_K1L_QUARK
+  name ck1r
+  anti ck1rbar CK1R "ck1r~" 
+  tex_name "c_{1R}"
+  tex_anti "\bar{c}_{1R}"
+  mass mck1r width wck1r
+particle B_K1R_QUARK 5000005  like D_K1L_QUARK
+  name bk1r
+  anti bk1rbar BK1R "bk1r~" 
+  tex_name "b_{1R}"
+  tex_anti "\bar{b}_{1R}"
+  mass mbk1r width wbk1r
+particle T_K1R_QUARK 5000006  like U_K1L_QUARK
+  name tk1r topk1r
+  anti tk1rbar TK1R "tk1r~" 
+  tex_name "t_{1R}"
+  tex_anti "\bar{t}_{1R}"
+  mass mtk1r  width wtk1r
+particle D_K2L_QUARK 6000001 like D_K1L_QUARK
+  name dk2l
+  anti dk2lbar DK2L "dk2l~" 
+  tex_name "d_{2L}"
+  tex_anti "\bar{d}_{2L}"
+  mass mdk2l width wdk2l
+particle U_K2L_QUARK 6000002  like D_K1L_QUARK
+  name uk2l
+  anti uk2lbar UK2L "uk2l~" 
+  tex_name "u_{2L}"
+  tex_anti "\bar{u}_{2L}"
+  mass muk2l width wuk2l
+particle S_K2L_QUARK 6000003  like D_K2L_QUARK
+  name sk2l
+  anti sk2lbar SK2L "sk2l~" 
+  tex_name "s_{2L}"
+  tex_anti "\bar{s}_{2L}"
+  mass msk2l width wsk2l
+particle C_K2L_QUARK 6000004  like U_K2L_QUARK
+  name ck2l
+  anti ck2lbar CK2L "ck2l~" 
+  tex_name "c_{2L}"
+  tex_anti "\bar{c}_{2L}"
+  mass mck2l width wck2l
+particle B_K2L_QUARK 6000005  like D_K1L_QUARK
+  name bk2l
+  anti bk2lbar BK2L "bk2l~" 
+  tex_name "b_{2L}"
+  tex_anti "\bar{b}_{2L}"
+  mass mbk2l width wbk2l
+particle T_K2L_QUARK 6000006  like U_K1L_QUARK
+  name tk2l topk2l
+  anti tk2lbar TK2L "tk2l~" 
+  tex_name "t_{2L}"
+  tex_anti "\bar{t}_{2L}"
+  mass mtk2l  width wtk2l
+particle D_K2R_QUARK 7000001 like D_K2L_QUARK 
+  name dk2r
+  anti dk2rbar DK2R "dk2r~" 
+  tex_name "d_{2R}"
+  tex_anti "\bar{d}_{2R}"
+  mass mdk2r width wdk2r
+particle U_K2R_QUARK 7000002 like U_K1L_QUARK
+  name uk2r
+  anti uk2rbar UK2R "uk2r~" 
+  tex_name "u_{2R}"
+  tex_anti "\bar{u}_{2R}"
+  mass muk2r width wuk2r
+particle S_K2R_QUARK 7000003  like D_K1L_QUARK
+  name sk2r
+  anti sk2rbar SK2R "sk2r~" 
+  tex_name "s_{2R}"
+  tex_anti "\bar{s}_{2R}"
+  mass msk2r width wsk2r
+particle C_K2R_QUARK 7000004  like U_K1L_QUARK
+  name ck2r
+  anti ck2rbar CK2R "ck2r~" 
+  tex_name "\bar{c}_{2R}"
+  tex_anti "\bar{c}_{2R}"
+  mass mck2r width wck2r
+particle B_K2R_QUARK 7000005  like D_K1L_QUARK
+  name bk2r
+  anti bk2rbar BK2R "bk2r~" 
+  tex_name "b_{2R}"
+  tex_anti "\bar{b}_{2R}"
+  mass mbk2r width wbk2r
+particle T_K2R_QUARK 7000006  like U_K1L_QUARK
+  name tk2r topk2r
+  anti tk2rbar TK2R "tk2r~" 
+  tex_name "t_{2R}"
+  tex_anti "\bar{t}_{2R}"
+  mass mtk2r  width wtk2r
+
+# The leptons
+particle E_LEPTON 11
+  spin 1/2  charge  -1   isospin -1/2  
+  name "e-" e1 electron e 
+  anti "e+" E1 positron 
+  tex_name "e^-"
+  tex_anti "e^+"
+  mass me
+particle E_NEUTRINO 12 left
+  spin 1/2  isospin  1/2
+  name nue n1 "nu_e" ve "e-neutrino" 
+  anti nuebar N1 "ve~"             
+  tex_name "\nu_e"
+  tex_anti "\bar\nu_e"
+particle MU_LEPTON 13  like E_LEPTON
+  name "mu-" e2 mu muon 
+  anti "mu+" E2       
+  tex_name "\mu^-"
+  tex_anti "\mu^+"
+  mass mmu
+particle MU_NEUTRINO 14  like E_NEUTRINO
+  name numu "nu_mu" n2 vm "mu-neutrino" 
+  anti numubar N2 "vm~"              
+  tex_name "\nu_\mu"
+  tex_anti "\bar\nu_\mu"
+particle TAU_LEPTON 15  like E_LEPTON
+  name "tau-" e3 tau "ta-" tauon 
+  anti "tau+" E3 "ta+"        
+  tex_name "\tau^-"
+  tex_anti "\tau^+"
+  mass mtau
+particle TAU_NEUTRINO 16  like E_NEUTRINO
+  name nutau "nu_tau" n3 vt "tau_neutrino" 
+  anti nutaubar N3 "vt~"               
+  tex_name "\nu_\tau"
+  tex_anti "\bar\nu_\tau"
+particle E_K1L_LEPTON 4000011 like E_LEPTON
+  spin 1/2  charge  -1
+  name "ek1l-" ek1l ek1l1 
+  anti "ek1l+" EKDL1 
+  tex_name "e^-_{1L}" 
+  tex_anti "e^+_{1L}"
+  mass mek1l width wek1l
+particle E_K1_NEUTRINO 4000012 left
+  spin 1/2
+  name "nu_ek1" nuek1 n1k1 vek1  
+  anti nuek1bar N1K1 "vk1e~" 
+  tex_name "\nu_{1e}"
+  tex_anti "\bar{\nu_{1e}}"
+  mass mnuek1 width wnuek1
+particle MU_K1L_LEPTON 4000013  like E_LEPTON
+  name muk1l "muk1l-" ek1l2 
+  anti "muk1l+" E2K1L       
+  tex_name "\mu_{1L}^-"
+  tex_anti "\mu_{1L}^+"
+  mass mmuk1l width wmuk1l
+particle MU_K1_NEUTRINO 4000014  like E_NEUTRINO
+  name "nu_muk1" numuk1 n2k1 vmk1 
+  anti numuk1bar N2K1 "vmk1~"
+  tex_name "\nu_{1\mu}"
+  tex_anti "\bar\nu_{1\mu}"
+  mass mnumuk1 width wnumuk1
+particle TAU_K1L_LEPTON 4000015  like E_LEPTON
+  name tauk1l "tauk1l-" ek1l3 "tak1l-" 
+  anti "tauk1l+" E3K1L "tak1l+"        
+  tex_name "\tau^-_{1L}"
+  tex_anti "\tau^+_{1L}"
+  mass mtauk1l width wtauk1l
+particle TAU_K1_NEUTRINO 4000016  like E_NEUTRINO
+  name "nu_tauk1" nutauk1 n3k1 vtk1 
+  anti nutauk1bar N3K1 "vtk1~"  
+  tex_name "\nu_{1\tau}"
+  tex_anti "\bar\nu_{1\tau}"
+  mass mnutauk1 width wnutauk1
+particle E_K1R_LEPTON 5000011 like E_LEPTON
+  spin 1/2  charge  -1
+  name ek1r "ek1r-" ek1r1 
+  anti "ek1r+" EKR1 
+  tex_name "e^-_{1R}"
+  tex_anti "e^+_{1R}"
+  mass mek1r width wek1r
+particle MU_K1R_LEPTON 5000013  like E_LEPTON
+  name muk1r "muk1r-" e2k1r 
+  anti "muk1r+" E2K1R       
+  tex_name "\mu_{1R}^-"
+  tex_anti "\mu_{1R}^+"
+  mass mmuk1r width wmuk1r
+particle TAU_K1R_LEPTON 5000015  like E_LEPTON
+  name tauk1r "tauk1r-" e3k1r "tak1r-" 
+  anti "tauk1r+" E3K1R "tak1r+"        
+  tex_name "\tau^-_{1R}"
+  tex_anti "\tau^+_{1R}"
+  mass mtauk1r width wtauk1r
+particle E_K2L_LEPTON 6000011 like E_LEPTON
+  spin 1/2  charge  -1
+  name ek2l "ek2l-" ek2l1 
+  anti "ek2l+" EKDL2 
+  tex_name "e^-_{2L}"
+  tex_anti "e^+_{2L}"
+  mass mek2l width wek2l
+particle E_K2_NEUTRINO 6000012 left
+  spin 1/2
+  name "nu_ek2" nuek2 n1k2 vek2  
+  anti nuek2bar N1K2 "vk2e~" 
+  tex_name "\nu_{2e}"
+  tex_anti "\bar{\nu_{2e}}"
+  mass mnuek2 width wnuek2
+particle MU_K2L_LEPTON 6000013  like E_LEPTON
+  name muk2l "muk2l-" ek2l2 
+  anti "muk2l+" E2K2L       
+  tex_name  "\mu_{2L}^-"
+  tex_anti "\mu_{2L}^+"
+  mass mmuk2l width wmuk2l
+particle MU_K2_NEUTRINO 6000014  like E_NEUTRINO
+  name "nu_muk2" numuk2 n2k2 vmk2 
+  anti numuk2bar N2K2 "vmk2~" 
+  tex_name "\nu_{2\mu}"
+  tex_anti "\bar\nu_{2\mu}"
+  mass mnumuk2 width wnumuk2
+particle TAU_K2L_LEPTON 6000015  like E_LEPTON
+  name "tauk2l-" tauk2l ek2l3 "tak2l-" 
+  anti "tauk2l+" E3K2L "tak2l+"        
+  tex_name "\tau^-_{2L}"
+  tex_anti "\tau^+_{2L}"
+  mass mtauk2l width wtauk2l
+particle TAU_K2_NEUTRINO 6000016  like E_NEUTRINO
+  name "nu_tauk2" nutauk2 n3k2 vtk2 
+  anti nutauk2bar N3K2 "vtk2~"  
+  tex_name "\nu_{2\tau}"
+  tex_anti "\bar\nu_{2\tau}"
+  mass mnutauk2 width wnutauk2
+particle E_K2R_LEPTON 7000011 like E_LEPTON
+  spin 1/2  charge  -1
+  name ek2r "ek2r-" e1k2r1 
+  anti "ek2r+" E1KR2 
+  tex_name "e^-_{2R}"
+  tex_anti "e^+_{2R}"
+  mass mek2r width wek2r
+particle MU_K2R_LEPTON 7000013  like E_LEPTON
+  name muk2r "muk2r-" e2k2r 
+  anti "muk2r+" E2K2R       
+  tex_name "\mu_{2R}^-"
+  tex_anti "\mu_{2R}^+"
+  mass mmuk2r width wmuk2r
+particle TAU_K2R_LEPTON 7000015  like E_LEPTON
+  name "tauk2r-" tauk2r e3k2r "tak2r-" 
+  anti "tauk2r+" E3K2R "tak2r+"        
+  tex_name "\tau^-_{2R}"
+  tex_anti "\tau^+_{2R}"
+  mass mtauk2r width wtauk2r
+
+# The vector bosons
+particle GLUON 21  parton gauge
+  spin 1  color 8
+  name gl g G gluon
+particle PHOTON 22  gauge
+  spin 1
+  name A gamma photon 
+  tex_name "\gamma"
+particle Z_BOSON 23  gauge
+  spin 1
+  name Z
+  mass mZ  width wZ
+particle W_BOSON 24  gauge
+  spin 1  charge 1
+  name "W+" Wp
+  anti "W-" Wm
+  tex_name "W^+"
+  tex_anti "W^-"
+  mass mW  width wW
+particle GLUON_K1 4000021  gauge
+  spin 1  color 8
+  name gk1 "g_k1" GK1 "gluon_k1"
+  tex_name "g_1"
+  mass mgk1 width wgk1
+particle GLUON_K2 6000021  gauge
+  spin 1  color 8
+  name gk2 "g_k2" GK2 "gluon_k2"
+  tex_name "g_2"
+  mass mgk2 width wgk2
+particle PHOTON_B1 4000022  gauge
+  spin 1 
+  name b1 
+  tex_name "B_1"
+  mass mb1 width wb1
+particle PHOTON_B2 6000022  gauge
+  spin 1
+  name b2 
+  tex_name "B_2"
+  mass mb2 width wb2
+particle Z_BOSON_1 4000023  gauge
+  spin 1
+  name Z1
+  tex_name "Z_1"
+  mass mz1  width wz1
+particle Z_BOSON_2 6000023  gauge
+  spin 1
+  name Z2
+  tex_name "Z_2"
+  mass mz2  width wz2
+particle W_BOSON_1 4000024  gauge
+  spin 1  charge 1
+  name "W1+" W1p
+  anti "W1-" W1m
+  tex_name "W_1^+"
+  tex_anti "W_1^-"
+  mass mw1  width ww1
+particle W_BOSON_2 6000024  gauge
+  spin 1  charge 1
+  name "W2+" W2p
+  anti "W2-" W2m
+  tex_name "W^+_2"
+  tex_anti "W^-_2"
+  mass mw2  width ww2
+
+
+# The Higgs
+particle HIGGS 25
+  spin 0
+  name H h Higgs
+  mass mH  width wH
+particle HIGGS_U_1 4000036
+  spin 0
+  name "H1u+"
+  anti "H1u-"
+  tex_name "H_{1u}^+"
+  tex_anti "H_{1u}^-"
+  mass mh1u  width wh1u
+particle HIGGS_D_1 4000037
+  spin 0
+  name "H1d+"
+  anti "H1d-"
+  tex_name "H_{1d}^+"
+  tex_anti "H_{1d}^-"
+  mass mh1d  width wh1d
+particle HIGGS_U_2 6000036
+  spin 0
+  name "H2u+"
+  anti "H2u-"
+  tex_name "H_{2u}^+"
+  tex_anti "H_{2u}^-"
+  mass mh2u  width wh2u
+particle HIGGS_D_2 6000037
+  spin 0
+  name "H2d+"
+  anti "H2d-"
+  tex_name "H_{2d}^+"
+  tex_anti "H_{2d}^-"
+  mass mh2d  width wh2d
+
+# The Graviton
+particle GRAVITON 39
+  spin 2
+  name GG
+  tex_name "G"
+  mass mGG width wGG
+
+# Hadrons
+particle PROTON 2212
+  spin 1/2  charge 1
+  name p "p+"
+  anti pbar "p-"
+
+# Beam remnants for proton colliders
+particle HADRON_REMNANT 90
+  name hr
+  tex_name "had_r"
+particle HADRON_REMNANT_SINGLET 91
+  name hr1
+  tex_name "had_r^{(1)}"
+particle HADRON_REMNANT_TRIPLET 92
+  color 3
+  name hr3
+  tex_name "had_r^{(3)}"
+  anti hr3bar
+  tex_anti "had_r^{(\bar 3)}"
+particle HADRON_REMNANT_OCTET 93
+  color 8
+  name hr8
+  tex_name "had_r^{(8)}"
+
+########################################################################
+# Vertices of UED
+# In graphs with identical structure, the first vertex is kept for phase space,
+# therefore, lighter particles come before heavier ones.
+
+# QED
+vertex D d A 
+vertex U u A 
+vertex S s A 
+vertex C c A 
+vertex B b A 
+vertex T t A 
+
+vertex E1 e1 A 
+vertex E2 e2 A 
+vertex E3 e3 A 
+
+# QCD
+vertex G G G 
+vertex G G G G
+
+vertex D d G 
+vertex U u G 
+vertex S s G 
+vertex C c G 
+vertex B b G 
+vertex T t G 
+
+# Neutral currents
+vertex D d Z 
+vertex U u Z 
+vertex S s Z 
+vertex C c Z 
+vertex B b Z 
+vertex T t Z 
+
+vertex E1 e1 Z 
+vertex E2 e2 Z 
+vertex E3 e3 Z 
+vertex N1 n1 Z 
+vertex N2 n2 Z 
+vertex N3 n3 Z 
+
+# Charged currents
+vertex U d Wp 
+vertex C s Wp 
+vertex T b Wp 
+vertex D u Wm 
+vertex S c Wm 
+vertex B t Wm 
+
+vertex N1 e1 Wp 
+vertex N2 e2 Wp 
+vertex N3 e3 Wp 
+vertex E1 n1 Wm 
+vertex E2 n2 Wm 
+vertex E3 n3 Wm 
+
+# Yukawa (neutral)
+### keeping only 3rd generation for the moment
+# vertex S s H 
+# vertex C c H 
+vertex B b H 
+vertex T t H 
+# vertex E2 e2 H 
+vertex E3 e3 H 
+
+
+# Vector-boson self-interactions
+vertex Wp Wm A
+vertex Wp Wm Z
+
+vertex Wp Wm Z Z
+vertex Wp Wp Wm Wm
+vertex Wp Wm Z A
+vertex Wp Wm A A
+
+# Higgs - vector boson
+#vertex H Z A
+#vertex H A A
+#vertex H g g 
+
+vertex H Wp Wm
+vertex H Z Z
+vertex H H Wp Wm
+vertex H H Z Z
+
+# Higgs self-interactions
+vertex H H H
+vertex H H H H
+
+# Graviton vertices
+vertex GG H H
+vertex GG Z Z
+vertex GG Wp Wm
+vertex GG A A
+vertex GG gl gl
+vertex GG e1 E1
+vertex GG e2 E2
+vertex GG e3 E3
+vertex GG n1 N1
+vertex GG n2 N2
+vertex GG n3 N3
+vertex GG u U
+vertex GG d D
+vertex GG c C
+vertex GG s S
+vertex GG t T
+vertex GG b B
+
+

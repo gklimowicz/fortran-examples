@@ -1,0 +1,49 @@
+# SINDARIN input for WHIZARD self-test
+
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+me = 0
+$method = "omega"
+process pythia8_1_p1 = "e-", "e+" => "u", "ubar"
+! process pythia8_1_p1 = "e-", "e+" => "W+", "W-"
+
+compile ()
+
+seed = 1234
+$phs_method = "wood"
+$integration_method = "vamp2"
+$rng_method = "rng_stream"
+iterations = 3:1000:"g", 3:1000 
+sqrts = 1000
+cuts = all Pt > 100 [u:ubar]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (pythia8_1_p1)
+
+n_events = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+
+?allow_shower = true
+?ps_fsr_active = true
+$shower_method = "PYTHIA8"
+
+$sample = "pythia8_1a"
+simulate (pythia8_1_p1)
+
+?hadronization_active = true
+$hadronization_method = "PYTHIA8"
+
+$sample = "pythia8_1b"
+simulate (pythia8_1_p1)

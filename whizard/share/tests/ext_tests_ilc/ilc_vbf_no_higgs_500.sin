@@ -1,0 +1,55 @@
+include("ilc_settings.sin")
+
+!! Table 3. The backgrounds to Higgs production via vector boson fusion. All contributions from intermediate Higgs bosons are neglected.
+
+!! 3. Background via vector-boson fusion (Table 3)
+process higgs_back_electron_500_1_noqcd = e1, E1 => e1, E1, u, U, d, D { $restrictions   = "^gs && !H && ^ghgg:ghgaga:ghgaz" }
+process higgs_back_electron_500_1_qcd   = e1, E1 => e1, E1, u, U, d, D { $restrictions   = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_back_electron_500_2       = e1, E1 => e1, E1, u, U, e1, E1 { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_back_electron_500_3       = e1, E1 => e1, E1, u, U, e2, E2 { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_back_neutrino_500_1_noqcd = e1, E1 => n1, N1, u, D, d, U { $restrictions   = "^gs && !H && ^ghgg:ghgaga:ghgaz" }
+process higgs_back_neutrino_500_1_qcd   = e1, E1 => n1, N1, u, D, d, U { $restrictions   = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_back_neutrino_500_2       = e1, E1 => n1, N1, u, D, e1, N1 { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_back_neutrino_500_3       = e1, E1 => n1, N1, u, D, e2, N2 { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+
+compile
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 500 GeV
+alphas = 0.0891
+
+sqrts = 500 GeV
+beams = e1, E1
+
+$run_id = "500"
+
+integrate(higgs_back_electron_500_1_noqcd,
+	  higgs_back_electron_500_1_qcd,
+          higgs_back_electron_500_2,
+          higgs_back_electron_500_3,
+          higgs_back_neutrino_500_1_noqcd,
+          higgs_back_neutrino_500_1_qcd,
+          higgs_back_neutrino_500_2,
+          higgs_back_neutrino_500_3)
+
+tolerance = 2 * sqrt( error(higgs_back_electron_500_1_noqcd)**2 + 0.0021**2 )
+expect(integral(higgs_back_electron_500_1_noqcd) == 1.0261)
+tolerance = 2 * sqrt( error(higgs_back_electron_500_1_qcd)**2 + 0.0021**2 )
+expect(integral(higgs_back_electron_500_1_qcd) == 1.0539)
+tolerance = 2 * sqrt( error(higgs_back_electron_500_2)**2 + 1.2e-05**2 )
+expect(integral(higgs_back_electron_500_2) == 0.00417)
+tolerance = 2 * sqrt( error(higgs_back_electron_500_3)**2 + 1.6e-05**2 )
+expect(integral(higgs_back_electron_500_3) == 0.005873)
+tolerance = 2 * sqrt( error(higgs_back_neutrino_500_1_noqcd)**2 + 0.0009**2 )
+expect(integral(higgs_back_neutrino_500_1_noqcd) == 0.4425)
+tolerance = 2 * sqrt( error(higgs_back_neutrino_500_1_qcd)**2 + 0.001**2 )
+expect(integral(higgs_back_neutrino_500_1_qcd) == 0.4742)
+tolerance = 2 * sqrt( error(higgs_back_neutrino_500_2)**2 + 0.00034**2 )
+expect(integral(higgs_back_neutrino_500_2) == 0.16204)
+tolerance = 2 * sqrt( error(higgs_back_neutrino_500_3)**2 + 0.00027**2 )
+expect(integral(higgs_back_neutrino_500_3) == 0.14366)
+
+show(results)

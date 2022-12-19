@@ -1,0 +1,31 @@
+include("nlo_settings.sin")
+
+alias pr = u:U:d:D:s:S:c:C:b:B:gl
+
+$exclude_gauge_splittings = "t"
+
+$negative_sf = "positive"
+
+beams = p, p => lhapdf
+$lhapdf_file = "MSTW2008nlo68cl"
+sqrts = 13000 GeV
+
+alpha_power = 1
+alphas_power = 0
+
+?alphas_from_mz = false
+?alphas_from_lhapdf = true
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @pt_selected = select if Pt > 30 GeV [@clustered_jets] in
+       let subevt @eta_selected = select if abs(Eta) < 4 [@pt_selected] in
+       count [@eta_selected] >= 0
+
+scale = eval Ht/2 [Z:jet]
+
+?combined_nlo_integration = false
+relative_error_goal = 0.004
+
+process ppz = pr, pr => Z { nlo_calculation = full }
+
+integrate (ppz) { iterations = 1:100:"gw" }

@@ -1,0 +1,61 @@
+* Test output: process_configurations_1
+*   Purpose: configure test processes
+
+* Configure processes as prc_test, model Test
+*                     and omega, model QED
+
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: prc_config_lib_1
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = o
+
+ Process #1:
+ ID = 'prc_config_a'
+ ID(num) = 42
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = prc_config_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = '                                '
+
+ Process #2:
+ ID = 'prc_config_b'
+ ID(num) = 42
+ Scattering
+ Model = QED
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = prc_config_b_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = e+, e- => m+, m-
+   Method              = omega
+   Process variant     = omega
+     Model name        = "QED"
+     Mode string       = " -scatter"
+     Process string    = " 'e+ e- -> m+ m-'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = T
+     Extra options     = " "
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+========================================================================
+
+* Test output end: process_configurations_1

@@ -1,0 +1,468 @@
+#! /usr/bin/python
+# ufo-sanitizer.py -- read UFO files and write them back out
+########################################################################
+#
+#  Copyright (C) 2022 by
+#
+#      Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#      Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#      Juergen Reuter <juergen.reuter@desy.de>
+#
+#  WHIZARD is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2, or (at your option)
+#  any later version.
+#
+#  WHIZARD is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  *)
+#
+########################################################################
+
+########################################################################
+#
+#  This should take care of all sloppy UFO extensions that abuse
+#  the fact that UFO files are just python source files.
+#
+#  All python expressions are evaluated and the pure UFO
+#  is written out.
+#
+########################################################################
+
+whizard_version = '@VERSION@'
+ufo_sanitizer = 'UFO Sanitizer (Whizard version {})'.format(whizard_version)
+
+########################################################################
+import sys, errno, os
+
+if len (sys.argv) == 2 and sys.argv[1] in ['-h', '--help', 'help']:
+    print ('''usage: {n} INPUT OUTPUT
+
+{u}
+
+Evaluate all python expressions in the UFO model files
+from the directory INPUT and write new self-contained
+UFO model files to the directory OUTPUT.
+
+This allows the use of UFO models containing python hacks
+with matrix element generators that are not implemented in
+python and interpret the format described in the document
+arXiv:1108.2040 (plus propagator extensions) strictly.
+
+Since the output is intended to be used independently
+of python, there is no guaratee that all import statements
+are complete and correct.
+
+If your UFO model requires a special version of python, this
+script must be executed by this version.
+'''.format(n=sys.argv[0], u=ufo_sanitizer))
+    exit (0)
+elif len (sys.argv) != 3:
+    sys.stderr.write ('usage: {} input-dir output-dir\n'.format(sys.argv[0]))
+    exit (-1)
+elif sys.argv[1] == sys.argv[2]:
+    sys.stderr.write ('{}: error: input-dir and output-dir must differ\n'.format(sys.argv[0]))
+    exit (-1)
+
+input_dir = sys.argv[1]
+input_path = os.path.abspath(input_dir)
+output_dir = sys.argv[2]
+output_path = os.path.abspath(output_dir)
+sys.path = [input_path] + sys.path
+
+try:
+    os.mkdir (output_dir)
+except OSError as e:
+    if e.errno != errno.EEXIST:
+        raise
+
+########################################################################
+import fractions
+
+def rational_to_string (x):
+    r = fractions.Fraction(x).limit_denominator(1000)
+    if r.denominator > 1:
+        return '{}/{}'.format(r.numerator,r.denominator)
+    else:
+        return '{}'.format(r.numerator)
+
+########################################################################
+#
+# There are several errors in all UFO models:
+#
+#   * object_library.py defines 'goldstoneboson' but particle.py
+#     uses 'goldstone', as specified in the paper
+#
+#     This breaks the anti method that negates all unknown values,
+#     resulting in -True => -(1) => -1
+#
+#     Why do people put up with languages without strong static typing?
+#
+#   * the anti method forgets to copy the 'propagator' attribute.
+#
+########################################################################
+#
+# We must not use the require_args_all method, because it turns
+# out to be a moving target as well.  We need to make our own
+# list of manually handled attributes instead.
+#
+########################################################################a
+
+manual = [ 'pdg_code', 'name', 'antiname',
+           'spin', 'color', 'mass', 'width',
+           'texname', 'antitexname',
+           'charge', 'propagating', 'line',
+           'goldstone', 'goldstoneboson',
+           'propagator' ]
+
+ignored = [ 'selfconjugate' ]
+
+def get_anti_particle (p):
+    l = [q for q in particles.all_particles if q.pdg_code == - p.pdg_code]
+    if len (l) == 0:
+        return None
+    elif len (l) == 1:
+        return l[0]
+    else:
+        sys.stderr.write ('{}: fatal: ambiguous antiparticles of '
+                          '{!r}: {!r} \n'.format(sys.argv[0], p, l))
+        exit (-1)
+
+def dump_particle (p, s=sys.stdout):
+
+    # the 10 required attributes
+    s.write ('{!r} = Particle('.format(p))
+    s.write ('pdg_code = {!r}'.format(p.pdg_code))
+    s.write (',\n  name = {!r}'.format(p.name))
+    s.write (',\n  antiname = {!r}'.format(p.antiname))
+    s.write (',\n  spin = {!r}'.format(p.spin))
+    s.write (',\n  color = {!r}'.format(p.color))
+    s.write (',\n  mass = Param.{!r}'.format(p.mass))
+    s.write (',\n  width = Param.{!r}'.format(p.width))
+    s.write (',\n  texname = {!r}'.format(p.texname))
+    s.write (',\n  antitexname = {!r}'.format(p.antitexname))
+    s.write (',\n  charge = {}'.format(rational_to_string(p.charge)))
+
+    # optional attributes
+    if not p.propagating:
+        s.write (',\n  propagating = {!r}'.format(p.propagating))
+
+    if p.line != p.find_line_type():
+        s.write (',\n  line = {!r}'.format(p.line))
+
+
+    ####################################################################
+    #  Clean up the mess that the incomplete anti method creates!
+    ####################################################################
+    propagator = p.__dict__.get('propagator')
+    if propagator == None:
+        anti_particle = get_anti_particle (p)
+    if anti_particle != None:
+        propagator = anti_particle.__dict__.get('propagator')
+
+    if propagator != None:
+        ################################################################
+        # Why does object_library.py produce a dict with
+        # redundant entries?  This is never explained.
+        ################################################################
+        if isinstance (propagator, dict):
+            p1, p2 = propagator.values()
+            if p1 == p2:
+                s.write (',\n  propagator = Prop.{!r}'.format(p1))
+            else:
+                sys.stderr.write ('{}: fatal: unexpected propagator '
+                                  '{!r}\n'.format(sys.argv[0], propagator))
+                exit (-1)
+        else:
+            s.write (',\n  propagator = Prop.{!r}'.format(propagator))
+
+    # additional, undocumented, attributes
+    for name, value in p.__dict__.items():
+
+        if name in [ 'goldstone']: # [ 'goldstoneboson' ]
+            s.write (',\n  {} = {!r}'.format(name, value != 0))
+
+        elif name not in manual and name not in ignored:
+            s.write (',\n  {} = {!r}'.format(name, value))
+
+    s.write (')\n\n')
+
+
+########################################################################
+def dump_parameter (p, s=sys.stdout):
+    s.write ('{!r} = Parameter('.format(p))
+    s.write ('name = {!r}'.format(p.name))
+    s.write (',\n  nature = {!r}'.format(p.nature))
+    s.write (',\n  type = {!r}'.format(p.type))
+    s.write (',\n  value = {!r}'.format(p.value))
+    s.write (',\n  texname = {!r}'.format(p.texname))
+    if p.lhablock != None:
+        s.write (',\n  lhablock = {!r}'.format(p.lhablock))
+    if p.lhacode != None:
+        s.write (',\n  lhacode = {!r}'.format(p.lhacode))
+    s.write (')\n\n')
+
+
+########################################################################
+def dump_vertex (v, s=sys.stdout):
+
+    # add prefixes as expeced by our UFO parser
+    p = ['P.' + repr (p) for p in v.particles]
+    l = ['L.' + repr (l) for l in v.lorentz]
+    c = [str (c[0]) + ': C.' + repr (c[1]) for c in v.couplings.items()]
+
+    # the 10 required attributes
+    s.write ('{!r} = Vertex('.format(v))
+    s.write ('name = {!r}'.format(v.name))
+    s.write (',\n  particles = [{}]'.format(', '.join(p)))
+    s.write (',\n  color = {!r}'.format(v.color))
+    s.write (',\n  lorentz = [{}]'.format(', '.join(l)))
+    s.write (',\n  couplings = {}'.format('{' + ', '.join(c) + '}'))
+    s.write (')\n\n')
+
+
+########################################################################
+def dump_lorentz (l, s=sys.stdout):
+    s.write ('{!r} = Lorentz('.format(l))
+    s.write ('name = {!r}'.format(l.name))
+    s.write (',\n  spins = {!r}'.format(l.spins))
+    s.write (',\n  structure = {!r}'.format(l.structure))
+    s.write (')\n\n')
+
+
+########################################################################
+def dump_coupling (c, s=sys.stdout):
+    s.write ('{!r} = Coupling('.format(c))
+    s.write ('name = {!r}'.format(c.name))
+    s.write (',\n  value = {!r}'.format(c.value))
+    s.write (',\n  order = {!r}'.format(c.order))
+    s.write (')\n\n')
+
+
+########################################################################
+#
+#  There is a bug in the class CouplingOrder in object_library.py:
+#
+#  Since CouplingOrder inherits from object and not from UFOBaseClass,
+#  there is no __repr__ method and the usual
+#
+#    s.write ('{!r} = CouplingOrder('.format(o))
+#
+#  will write something like
+#
+#    <object_library.CouplingOrder object at 0x7f19b1d6cf90>
+#
+#  name is less robust, but will have to do for now.
+#
+# Also note that the objects are collected in coupling_orders.all_orders
+# and not in coupling_orders.all_coupling_orders as claimed
+# by arXiv:1108.2040.
+#
+########################################################################
+def dump_order (o, s=sys.stdout):
+    s.write ('{!s} = CouplingOrder('.format(o.name))
+    s.write ('name = {!r}'.format(o.name))
+    s.write (',\n  expansion_order = {!r}'.format(o.expansion_order))
+    s.write (',\n  hierarchy = {!r}'.format(o.hierarchy))
+    s.write (',\n  perturbative_expansion = {!r}'.format(o.perturbative_expansion))
+    s.write (')\n\n')
+
+
+########################################################################
+def dump_propagator (p, s=sys.stdout):
+    s.write ('{!r} = Propagator('.format(p))
+    s.write ('name = {!r}'.format(p.name))
+    s.write (',\n  numerator = {!r}'.format(p.numerator))
+    s.write (',\n  denominator = {!r}'.format(p.denominator))
+    s.write (')\n\n')
+
+
+########################################################################
+def dump_decay (d, s=sys.stdout):
+    w = ['(' + ', '.join(map (lambda p: 'P.' + repr (p), w[0])) +
+         '): ' + repr (w[1]) for w in d.partial_widths.items()]
+    s.write ('{!r} = Decay('.format(d))
+    s.write ('name = {!r}'.format(d.name))
+    s.write (',\n  particle = P.{!r}'.format(d.particle))
+    s.write (',\n  partial_widths = {}'.format('{' + ',\n'.join(w) + '}'))
+    s.write (')\n\n')
+
+
+########################################################################
+
+def failed (s):
+    sys.stderr.write ('{}: fatal: failed to load the module {} in {}!\n'.
+                      format(sys.argv[0], s, input_dir))
+    sys.stderr.write ('\nThis could be caused by an incompatible version ')
+    sys.stderr.write ('of python.\nSee the traceback for more information ')
+    sys.stderr.write ('and try again with python2 or python3!\n\n')
+    raise
+
+def missing (s):
+    sys.stderr.write ('{}: warning: no module {} in the UFO model {}!\n'.
+                      format(sys.argv[0], s, input_dir))
+
+########################################################################
+
+import time
+
+def header (s, m):
+    s.write ('''# {o!s}
+########################################################################
+#
+# generated {t!s} by {u!s}
+# ({p!s})
+# from {i!s}
+#
+########################################################################
+#
+# All python expressions in the input UFO model file have been evaluated
+# and the result has been written to file.
+#
+# This allows the use of UFO models containing python hacks
+# with matrix element generators that are not implemented in
+# python and interpret the format described in the document
+# arXiv:1108.2040 (plus propagator extensions) strictly.
+#
+# Since the output is intended to be used independently
+# of python, there is no guaratee that all import statements
+# are complete and correct.  Please notify us anyway if you
+# find any issues.
+#
+########################################################################
+
+'''.format(i=input_path + '/' + m + '.py',
+           o=output_path + '/' + m + '.py',
+           t=time.ctime(),
+           u=ufo_sanitizer,
+           p=os.path.abspath(sys.argv[0])))
+
+########################################################################
+
+try:
+    import particles
+except:
+    failed ('particles')
+else:
+    with open(output_dir + '/particles.py', 'w') as s:
+        header (s, 'particles')
+        s.write ('from __future__ import division\n'
+                 'from object_library import all_particles, Particle\n'
+                 'import parameters as Param\n'
+                 'import propagators as Prop\n\n')
+        [dump_particle (p, s) for p in particles.all_particles]
+        s.write ('# The End.\n')
+
+try:
+    import parameters
+except:
+    failed ('parameters')
+else:
+    with open(output_dir + '/parameters.py', 'w') as s:
+        header (s, 'parameters')
+        s.write ('from object_library import all_parameters, Parameter\n'
+                 'from function_library import complexconjugate, '
+                 're, im, csc, sec, acsc, asec, cot\n\n')
+        [dump_parameter (p, s) for p in parameters.all_parameters]
+        s.write ('# The End.\n')
+
+try:
+    import vertices
+except:
+    failed ('vertices')
+else:
+    with open(output_dir + '/vertices.py', 'w') as s:
+        header (s, 'vertices')
+        s.write ('from object_library import all_vertices, Vertex\n'
+                 'import particles as P\n'
+                 'import couplings as C\n'
+                 'import lorentz as L\n\n')
+        [dump_vertex (v, s) for v in vertices.all_vertices]
+        s.write ('# The End.\n')
+
+try:
+    import lorentz
+except:
+    failed ('lorentz')
+else:
+    with open(output_dir + '/lorentz.py', 'w') as s:
+        header (s, 'lorentz')
+        s.write ('from object_library import all_lorentz, Lorentz\n'
+                 'from function_library import complexconjugate, '
+                 're, im, csc, sec, acsc, asec, cot\n'
+                 'try:\n'
+                 '    import form_factors as ForFac\n'
+                 'except ImportError:\n'
+                 '    pass\n\n')
+        [dump_lorentz (l, s) for l in lorentz.all_lorentz]
+        s.write ('# The End.\n')
+
+try:
+    import couplings
+except:
+    failed ('couplings')
+else:
+    with open(output_dir + '/couplings.py', 'w') as s:
+        header (s, 'couplings')
+        s.write ('from object_library import all_couplings, Coupling\n'
+                 'from function_library import complexconjugate, '
+                 're, im, csc, sec, acsc, asec, cot\n\n')
+        [dump_coupling (c, s) for c in couplings.all_couplings]
+        s.write ('# The End.\n')
+
+try:
+    import coupling_orders
+except:
+    failed ('coupling_orders')
+    raise
+else:
+    with open(output_dir + '/coupling_orders.py', 'w') as s:
+        header (s, 'coupling_orders')
+        s.write ('from object_library import all_orders, CouplingOrder\n\n')
+        [dump_order (o, s) for o in coupling_orders.all_orders]
+        s.write ('# The End.\n')
+
+try:
+    import propagators
+except:
+    missing ('propagators')
+else:
+    with open(output_dir + '/propagators.py', 'w') as s:
+        header (s, 'propagators')
+        s.write ('from object_library import all_propagators, Propagator\n\n')
+        [dump_propagator (p, s) for p in propagators.all_propagators]
+        s.write ('# The End.\n')
+
+try:
+    import decays
+except:
+    missing ('decays')
+else:
+    with open(output_dir + '/decays.py', 'w') as s:
+        header (s, 'decays')
+        s.write ('from object_library import all_decays, Decay\n'
+                 'import particles as P\n\n')
+        [dump_decay (d, s) for d in decays.all_decays]
+        s.write ('# The End.\n')
+
+########################################################################
+import shutil, re
+
+processed = [ 'particles.py', 'parameters.py',
+              'vertices.py', 'lorentz.py',
+              'couplings.py', 'coupling_orders.py',
+              'propagators.py', 'decays.py',
+              '__pycache__' ]
+
+for f in os.listdir (input_dir):
+    if not re.match ('.*\.pyc$', f) and f not in processed:
+        shutil.copy (input_dir + '/' + f, output_dir + '/' + f)
+
+########################################################################
+exit (0)
+

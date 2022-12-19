@@ -1,0 +1,26 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+printf "abc"
+printf "a = %i" (1)
+printf "b = %3.4f" (3.21)
+
+string $fmt = "c = %5i"
+printf $fmt (2)
+
+$out_file = "structure_6a.out"
+open_out ($out_file)
+
+printf "%i" (12345)
+printf "foo" { ?out_advance = false }
+printf "bar"
+
+string $my_outfile = "structure_6b.out"
+open_out ($my_outfile)
+
+printf "%1.4f" (pi) { $out_file = $my_outfile }
+printf "x"
+
+close_out ("structure_6b.out")
+close_out ($out_file)
+

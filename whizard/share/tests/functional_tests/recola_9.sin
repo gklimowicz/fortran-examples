@@ -1,0 +1,43 @@
+# SINDARIN input for WHIZARD self-test
+# Testing integration LO RECOLA with large flavor sum
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$method = "recola"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+# fermion masses.
+me = 0
+ms = 0
+mc = 0
+mb = 0
+
+scale = mZ
+
+# Aliasses
+alias pr = g:u:U:d:D:s:S:c:C:b:B
+
+# RECOLA needs to know the alpha_s power of the process
+alphas_power = 0
+
+process recola_9_p1 = pr, pr => e1, E1
+
+seed = 1
+
+# Beam setup
+beams = p, p => pdf_builtin
+
+sqrts = 200 GeV
+
+cuts = all M > 50 GeV [e1, E1]
+
+iterations = 1:100
+integrate (recola_9_p1)

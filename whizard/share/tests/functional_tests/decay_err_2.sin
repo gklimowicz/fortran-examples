@@ -1,0 +1,28 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM
+me = 0
+mtop = 175
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+process decay_err_2_d = t => b, Wp
+
+process decay_err_2_p = e1, E1 => t, T
+
+seed = 0
+sqrts = 500
+integrate (decay_err_2_p) { iterations=1:1000 }
+
+# Change mass of top quark before simulation
+mtop = 160
+unstable t (decay_err_2_d)
+
+sample_format = debug
+?debug_process = false
+?debug_verbose = false
+
+simulate (decay_err_2_p) { n_events = 1 }

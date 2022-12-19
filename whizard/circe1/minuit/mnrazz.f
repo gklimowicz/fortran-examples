@@ -1,0 +1,110 @@
+*
+* $Id: mnrazz.F,v 1.1.1.1 1996/03/07 14:31:31 mclareni Exp $
+*
+* $Log: mnrazz.F,v $
+* Revision 1.1.1.1  1996/03/07 14:31:31  mclareni
+* Minuit
+*
+*
+      SUBROUTINE MNRAZZ(YNEW,PNEW,Y,JH,JL)
+*
+* $Id: d506dp.inc,v 1.1.1.1 1996/03/07 14:31:32 mclareni Exp $
+*
+* $Log: d506dp.inc,v $
+* Revision 1.1.1.1  1996/03/07 14:31:32  mclareni
+* Minuit
+*
+*
+*
+*
+* d506dp.inc
+*
+C ************ DOUBLE PRECISION VERSION *************
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+CC        Called only by MNSIMP (and MNIMPR) to add a new point
+CC        and remove an old one from the current simplex, and get the
+CC        estimated distance to minimum.
+CC
+*
+* $Id: d506cm.inc,v 1.1.1.1 1996/03/07 14:31:32 mclareni Exp $
+*
+* $Log: d506cm.inc,v $
+* Revision 1.1.1.1  1996/03/07 14:31:32  mclareni
+* Minuit
+*
+*
+*
+*
+* d506cm.inc
+*
+      PARAMETER (MNE=100 , MNI=50)
+      PARAMETER (MNIHL=MNI*(MNI+1)/2)
+      CHARACTER*10 CPNAM
+      COMMON
+     1/MN7NAM/ CPNAM(MNE)
+     2/MN7EXT/ U(MNE)     ,ALIM(MNE)  ,BLIM(MNE)
+     3/MN7ERR/ ERP(MNI)   ,ERN(MNI)   ,WERR(MNI)  ,GLOBCC(MNI)
+     4/MN7INX/ NVARL(MNE) ,NIOFEX(MNE),NEXOFI(MNI)
+     5/MN7INT/ X(MNI)     ,XT(MNI)    ,DIRIN(MNI)
+     6/MN7FX2/ XS(MNI)    ,XTS(MNI)   ,DIRINS(MNI)
+     7/MN7DER/ GRD(MNI)   ,G2(MNI)    ,GSTEP(MNI) ,GIN(MNE) ,DGRD(MNI)
+     8/MN7FX3/ GRDS(MNI)  ,G2S(MNI)   ,GSTEPS(MNI)
+     9/MN7FX1/ IPFIX(MNI) ,NPFIX
+     A/MN7VAR/ VHMAT(MNIHL)
+     B/MN7VAT/ VTHMAT(MNIHL)
+     C/MN7SIM/ P(MNI,MNI+1),PSTAR(MNI),PSTST(MNI) ,PBAR(MNI),PRHO(MNI)
+C
+      PARAMETER (MAXDBG=10, MAXSTK=10, MAXCWD=20, MAXP=30, MAXCPT=101)
+      PARAMETER (ZERO=0.0,  ONE=1.0,   HALF=0.5)
+      COMMON
+     D/MN7NPR/ MAXINT ,NPAR   ,MAXEXT ,NU
+     E/MN7IOU/ ISYSRD ,ISYSWR ,ISYSSA ,NPAGWD ,NPAGLN ,NEWPAG
+     E/MN7IO2/ ISTKRD(MAXSTK) ,NSTKRD ,ISTKWR(MAXSTK) ,NSTKWR
+     F/MN7TIT/ CFROM  ,CSTATU ,CTITL  ,CWORD  ,CUNDEF ,CVRSN ,COVMES
+     G/MN7FLG/ ISW(7) ,IDBG(0:MAXDBG) ,NBLOCK ,ICOMND
+     H/MN7MIN/ AMIN   ,UP     ,EDM    ,FVAL3  ,EPSI   ,APSI  ,DCOVAR
+     I/MN7CNV/ NFCN   ,NFCNMX ,NFCNLC ,NFCNFR ,ITAUR,ISTRAT,NWRMES(2)
+     J/MN7ARG/ WORD7(MAXP)
+     K/MN7LOG/ LWARN  ,LREPOR ,LIMSET ,LNOLIM ,LNEWMN ,LPHEAD
+     L/MN7CNS/ EPSMAC ,EPSMA2 ,VLIMLO ,VLIMHI ,UNDEFI ,BIGEDM,UPDFLT
+     M/MN7RPT/ XPT(MAXCPT)    ,YPT(MAXCPT)
+     N/MN7CPT/ CHPT(MAXCPT)
+     o/MN7XCR/ XMIDCR ,YMIDCR ,XDIRCR ,YDIRCR ,KE1CR  ,KE2CR
+      CHARACTER CTITL*50, CWORD*(MAXCWD), CUNDEF*10, CFROM*8,
+     +          CVRSN*6,  COVMES(0:3)*22, CSTATU*10, CHPT*1
+      LOGICAL   LWARN, LREPOR, LIMSET, LNOLIM, LNEWMN, LPHEAD
+      DIMENSION PNEW(*), Y(*)
+      DO 10 I=1,NPAR
+   10 P(I,JH) = PNEW(I)
+      Y(JH)=YNEW
+      IF(YNEW .LT. AMIN) THEN
+        DO 15 I=1,NPAR
+   15   X(I) = PNEW(I)
+        CALL MNINEX(X)
+        AMIN = YNEW
+        CSTATU = 'PROGRESS  '
+        JL=JH
+      ENDIF
+      JH = 1
+      NPARP1 = NPAR+1
+   20 DO 25 J=2,NPARP1
+      IF (Y(J) .GT. Y(JH))  JH = J
+   25 CONTINUE
+      EDM = Y(JH) - Y(JL)
+      IF (EDM .LE. ZERO)  GO TO 45
+      DO 35 I= 1, NPAR
+      PBIG = P(I,1)
+      PLIT = PBIG
+      DO 30 J= 2, NPARP1
+      IF (P(I,J) .GT. PBIG)  PBIG = P(I,J)
+      IF (P(I,J) .LT. PLIT)  PLIT = P(I,J)
+   30 CONTINUE
+      DIRIN(I) = PBIG - PLIT
+   35 CONTINUE
+   40 RETURN
+   45 WRITE (ISYSWR, 1000)  NPAR
+      GO TO 40
+ 1000 FORMAT ('   FUNCTION VALUE DOES NOT SEEM TO DEPEND ON ANY OF THE',
+     +    I3,' VARIABLE PARAMETERS.' /10X,'VERIFY THAT STEP SIZES ARE',
+     +    ' BIG ENOUGH AND CHECK FCN LOGIC.'/1X,79(1H*)/1X,79(1H*)/)
+      END

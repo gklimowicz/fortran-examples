@@ -1,0 +1,58 @@
+# $Id: beam_setup_4.sin 4878 2013-11-26 19:52:40Z jr_reuter $
+# SINDARIN input for WHIZARD self test
+
+model = SM
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process beam_setup_4p = "e-", "e+" => "mu-", "mu+"
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+iterations = 1:400
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+sample_format = mokka
+
+beams = "e-", "e+"
+
+! Symmetric beams
+sqrts = 1000
+seed = 0
+integrate (beam_setup_4p)
+simulate (beam_setup_4p) { $sample = "beam_setup_4p_1" }
+
+! Asymmetric beams
+beams_momentum = 100 GeV, 900 GeV
+seed = 0
+integrate (beam_setup_4p)
+simulate (beam_setup_4p) { $sample = "beam_setup_4p_2" }
+
+! Beams with crossing angle
+beams_momentum = 500 GeV, 500 GeV
+beams_theta    = 0, 10 degree
+seed = 0
+integrate (beam_setup_4p)
+simulate (beam_setup_4p) { $sample = "beam_setup_4p_3" }
+
+! Beams with rotated crossing angle
+beams_momentum = 500 GeV, 500 GeV
+beams_theta    = 0, 10 degree
+beams_phi      = 0, 45 degree
+seed = 0
+integrate (beam_setup_4p)
+simulate (beam_setup_4p) { $sample = "beam_setup_4p_4" }
+
+

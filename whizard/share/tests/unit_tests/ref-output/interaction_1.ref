@@ -1,0 +1,65 @@
+* Test output: interaction
+*   Purpose: check routines for interactions
+
+ Interaction: 1
+ Incoming:
+ Particle 1
+ E =   1.000000000000E+03
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ Outgoing:
+ Particle 2
+ E =   5.000000000000E+02
+ P =   5.000000000000E+02  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ internal links: 1 => X
+ Particle 3
+ E =   5.000000000000E+02
+ P =  -5.000000000000E+02  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [p(21) h(-1|1)]
+   [p(1) c(5 )]
+     [p(-1) c(-5 ) h(-1)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+     [p(-1) c(-5 ) h(1)] => ME(2) = ( 0.000000000000E+00, 0.000000000000E+00)
+ [p(21) h(1)]
+   [p(1) c(5 )]
+     [p(-1) c(-5 ) h(-1)] => ME(3) = ( 0.000000000000E+00, 0.000000000000E+00)
+   [p(2) c(5 )]
+     [p(-2) c(-5 ) h(-1)] => ME(4) = ( 0.000000000000E+00, 0.000000000000E+00)
+ [p(21) h(1|-1)]
+   [p(2) c(5 )]
+     [p(-2) c(-5 ) h(1)] => ME(5) = ( 0.000000000000E+00, 0.000000000000E+00)
+
+ Interaction: 2
+ Incoming:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   5.000000000000E+02  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ internal links: X => 2 3
+ source: (1)2
+ Outgoing:
+ Particle 2
+ E =   2.000000000000E+02
+ P =   2.000000000000E+02  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ internal links: 1 => X
+ Particle 3
+ E =   3.000000000000E+02
+ P =   3.000000000000E+02  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [p(1)]
+   [p(1)]
+     [p(21)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+ [p(2)]
+   [p(2)]
+     [p(21)] => ME(2) = ( 0.000000000000E+00, 0.000000000000E+00)
+
+* Cleanup
+
+* Test interaction_1: successful.

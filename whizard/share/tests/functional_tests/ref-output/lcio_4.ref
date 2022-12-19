@@ -1,0 +1,123 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+seed = 0
+| Process library 'lcio_4_lib': recorded process 'lcio_4_p'
+sqrts =  5.000000000000E+02
+$circe2_file = "ilc500.circe"
+$circe2_design = "ILC"
+?circe2_polarized = false
+| Integrate: current process library needs compilation
+| Process library 'lcio_4_lib': compiling ...
+| Process library 'lcio_4_lib': writing makefile
+| Process library 'lcio_4_lib': removing old files
+| Process library 'lcio_4_lib': writing driver
+| Process library 'lcio_4_lib': creating source code
+| Process library 'lcio_4_lib': compiling sources
+| Process library 'lcio_4_lib': linking
+| Process library 'lcio_4_lib': loading
+| Process library 'lcio_4_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process lcio_4_p:
+| Beam structure: e-, e+ => circe2
+| Beam data (collision):
+|   e-  (mass = 5.1100000E-04 GeV)
+|   e+  (mass = 5.1100000E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lcio_4_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lcio_4_p'
+|   Library name  = 'lcio_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lcio_4_p_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: circe2
+| Beam structure: 1 channels, 0 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'lcio_4_p'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  3.6192633E+02  9.69E+00    2.68    0.27*  43.00
+|-----------------------------------------------------------------------------|
+   1        100  3.6192633E+02  9.69E+00    2.68    0.27   43.00
+|=============================================================================|
+n_events = 1
+openmp_num_threads = 1
+| Starting simulation for process 'lcio_4_p'
+| Simulate: using integration grids from file 'lcio_4_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.7630E-03
+| Events: writing to LCIO file 'lcio_4_p.slcio'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing LCIO file 'lcio_4_p.slcio'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Output from running lcio_4_rd:
+
+============================================================================
+        Event  : 1 - run:  1 -  timestamp [...]
+============================================================================
+ date: [...]
+ detector : unknown
+ event parameters: 
+ parameter Event Number [int]: 1, 
+ parameter ProcessID [int]: 1, 
+ parameter Run ID [int]: 1, 
+ parameter beamPDG1 [int]: 11, 
+ parameter beamPDG2 [int]: -11, 
+ parameter Energy [float]: 500, 
+ parameter _weight [float]: 1, 
+ parameter alphaQCD [float]: 0.1178, 
+ parameter beamPol1 [float]: 0, 
+ parameter beamPol2 [float]: 0, 
+ parameter crossSection [float]: 361.926, 
+ parameter crossSectionError [float]: 9.68695, 
+ parameter scale [float]: 457.78, 
+ parameter sqme [float]: 0.00878025, 
+ parameter BeamSpectrum [string]: CIRCE2: ilc500.circe, 
+ parameter processName [string]: lcio_4_p, 
+
+ collection name : MCParticle
+ parameters: 
+
+--------------- print out of MCParticle collection --------------- 
+
+  flag:  0x0
+  simulator status bits: [sbvtcls]  s: created in simulation b: backscatter v: vertex is not endpoint of parent t: decayed in tracker c: decayed in calorimeter l: has left detector s: stopped o: overlay
+
+
+[   id   ]index|      PDG |    px,     py,        pz    | energy  |gen|[simstat ]| vertex x,     y   ,   z     |    mass |  charge |            spin             | colorflow | [parents] - [daughters]
+
+[00000004]    0|        11| 0.00e+00, 0.00e+00, 2.50e+02| 2.50e+02| 4 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 5.11e-04|-1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [] - [2,3] 
+[00000005]    1|       -11| 0.00e+00, 0.00e+00,-2.50e+02| 2.50e+02| 4 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 5.11e-04| 1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [] - [2,3] 
+[00000006]    2|        11| 0.00e+00, 0.00e+00, 2.24e+02| 2.24e+02| 3 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 5.11e-04|-1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [0,1] - [4,5] 
+[00000007]    3|       -11| 0.00e+00, 0.00e+00,-2.34e+02| 2.34e+02| 3 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 5.11e-04| 1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [0,1] - [4,5] 
+[00000008]    4|        13| 1.30e+02, 1.82e+02,-5.25e+01| 2.30e+02| 1 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 1.06e-01|-1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [2,3] - [] 
+[00000009]    5|       -13|-1.30e+02,-1.82e+02, 4.31e+01| 2.28e+02| 1 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 1.06e-01| 1.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [2,3] - [] 
+
+-------------------------------------------------------------------------------- 

@@ -1,0 +1,65 @@
+%% 
+%% This is file `thohacks.sty', generated on <1993/11/23> 
+%% with the docstrip utility (2.0r).
+%% 
+%% The original source files were:
+%% 
+%% thohacks.doc  (with options: `style,a4,thd')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file thohacks.doc .
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \CheckSum{108}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\@ifundefined{th@hacks}{}{\endinput}
+\def\th@hacks{loaded}
+{\def\$#1: #2.doc,v #3${Style option: `#2' v#3}
+\typeout{\$Id: thohacks.doc,v 1.6 1993/01/20 01:56:56 ohl Exp $}}
+\newcount\twodigits
+\def\gobbleone1{}
+\def\printtwodigits{\advance\twodigits100
+  \expandafter\gobbleone\number\twodigits
+  \advance\twodigits-100 }
+\def\timestamp{%
+  \twodigits=\month \printtwodigits
+  \twodigits=\day /\printtwodigits/\number\year,
+  \twodigits=\time \divide\twodigits by 60 \printtwodigits
+  \multiply\twodigits by-60 \advance\twodigits by\time :\printtwodigits}
+\newenvironment{motto}[2]{\begin{flushright}
+  \def\m@tt@author{#1}\def\m@tt@source{#2}\it}{\\
+  \sc\m@tt@author:~\rm\m@tt@source\end{flushright}}
+\font\manfnt=manfnt
+\def\Watchout{\@ifnextchar [{\W@tchout}{\W@tchout[1]}}
+\def\W@tchout[#1]{{\manfnt\@tempcnta#1\relax%
+  \@whilenum\@tempcnta>\z@\do{%
+    \char"7F\hskip 0.3em\advance\@tempcnta\m@ne}}}
+\let\foo\W@tchout
+\def\dubious{\@ifnextchar[{\@dubious}{\@dubious[1]}}
+\let\enddubious\endlist
+\def\@dubious[#1]{%
+  \setbox\@tempboxa\hbox{\@W@tchout#1}
+  \@tempdima\wd\@tempboxa
+  \list{}{\leftmargin\@tempdima}\item[\hbox to 0pt{\hss\@W@tchout#1}]}
+\def\@W@tchout#1{\W@tchout[#1]}
+\endinput
+%% 
+%% End of file `thohacks.sty'.

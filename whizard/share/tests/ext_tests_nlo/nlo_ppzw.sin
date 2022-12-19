@@ -1,0 +1,31 @@
+$openloops_allowed_libs = "ppvv"
+
+include("nlo_settings.sin")
+
+alias pr = u:U:d:D:s:S:c:C:b:B:gl
+$exclude_gauge_splittings = "t"
+
+$negative_sf = "positive"
+
+alias Wpm = Wp:Wm
+beams = p, p => lhapdf
+$lhapdf_file = "MSTW2008nlo68cl"
+sqrts = 13000 GeV
+
+alpha_power = 2
+alphas_power = 0
+?alphas_from_mz = false
+?alphas_from_lhapdf = true
+
+scale = let subevt @clustered_jets = cluster [jet] in
+        sum sqrt(Pt^2 + M^2)/2 [Z:Wpm] + sum Pt/2 [@clustered_jets]
+
+?combined_nlo_integration = false
+
+process nlo_ppzw_p1 = pr, pr => Z, Wpm { nlo_calculation = full }
+
+integrate (nlo_ppzw_p1) { iterations = 1:500:"gw" }
+
+!mult_call_real = 1
+!mult_call_virt = 5
+!integrate (nlo_ppzw_p1) { iterations = 10:100000:"gw",5:60000 }

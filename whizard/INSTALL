@@ -1,0 +1,406 @@
+#-------------------------------------------------------------
+# Installing WHIZARD
+#-------------------------------------------------------------
+
+Although it is possible to build the WHIZARD libraries from this directory,
+we recommend that you create a separate build directory and work from there.
+
+#-------------------------------------------------------------
+#  Installing from a source code tar ball
+#-------------------------------------------------------------
+
+WHIZARD is Free Software and the sources can be obtained from 
+the HepForge repository:
+
+  https://whizard.hepforge.org
+
+The command
+
+  gzip -cd whizard-3.X.X.tgz | tar xf -
+
+will unpack the sources in a subdirectory whizard-3.X.X,
+where X.X is the current version (and sub-version) number.
+
+Prerequisites are:
+
+ - Make
+ - Objective Caml compiler (version 4.05.0 or higher)
+ - Fortran 2008/2018 compiler
+ - C/C++ (for PYTHIA8/FastJet/HepMC/LHAPDF/LCIO interfaces)
+
+The Objective Caml (OCaml) compiler is available from 
+https://ocaml.org
+
+#-------------------------------------------------------------
+#  Specific problems with some FORTRAN compilers
+#-------------------------------------------------------------
+
+Note for NAG users: For several versions of NAG, the standard debugging
+flag -g is referencing for historical reasons to the upsf90 
+debugger which is no longer supported. If you want to use debugging
+information set the -g90 flag referring to the dbx90 or gdb 
+debuggers.
+
+#-------------------------------------------------------------
+#  External libraries and programs
+#-------------------------------------------------------------
+
+The following external libraries and programs can be linked to
+WHIZARD:
+
+-- PYTHIA8 for hadronization and showering. It is available
+   from http://home.thep.lu.se/~torbjorn/Pythia.html
+
+-- LHAPDF for proton, pion and photon structure functions. 
+   You can get it from: https://lhapdf.hepforge.org
+
+-- HOPPET for perturbative evolution and matching of PDFs.
+   You can get it from: https://hoppet.hepforge.org
+
+-- FastJet for jet clustering. 
+   You can get it from: http://fastjet.fr/
+
+-- GoSAM/Ninja/FORM/Qgraf for NLO matrix elements.
+   You can get GoSAM/Ninja from: https://gosam.hepforge.org/
+   You can get Qgraf from: http://cfif.ist.utl.pt/~paulo/qgraf.html
+   You can get FORM from: http://www.nikhef.nl/~form/
+
+-- OpenLoops for NLO matrix elements.
+   Available from: https://openloops.hepforge.org/
+
+-- Recola for NLO matrix elements.
+   Available from: https://recola.hepforge.org/
+
+-- LoopTools for one-loop functions (for the top threshold)
+   You can get it from: http://www.feynarts.de/looptools/
+
+-- HepMC for the corresponding event file standard.	
+   Available from: http://hepmc.web.cern.ch/hepmc
+
+-- LCIO for the corresponding file standard.
+   Available from: https://github.com/iLCSoft/LCIO
+
+-- Other external programs like PYTHIA and HERWIG for parton
+   showering and hadronization can be included in a standard
+   way by passing LHEF or HepMC event files to them.
+
+-- ROOT and DELPHES can be interfaced via event file and 
+   ASCII histogram file output
+
+-- An interface to SARAH exists and is included in the
+   SARAH program: https://sarah.hepforge.org/
+
+-- An interface to FeynRules exists and is included in the 
+   FeynRules program: http://feynrules.irmp.ucl.ac.be
+
+-- Parallelization with MPI requires a at least MPI-3 capable MPI library.
+   You can get OpenMPI from https://www.open-mpi.org/, MPICH from
+   https://www.open-mpi.org and Intel MPI from https://software.intel.com.
+
+#-------------------------------------------------------------
+#  platform specific issues
+#-------------------------------------------------------------
+
+MAC OS X:
+
+There was a big leap from macOS Catalina to macOS Big Sur, with
+the change from Darwin19 to Darwin20 as well as from macOS version
+number 10.15.x to 11.0.x. This enforced a patch for libtool-based
+packages regarding the correct treatment of linking shared libraries.
+We patched this for WHIZARD 3.0.0. This also applies to the 
+gcc/g++/gfortran compiler suite on macOS Big Sur (or later),
+as this issue was fixed only for 11.0 of the compiler suite and
+backported to 8.5, 9.4 and 10.3 of gcc.
+
+WHIZARD has been tested and partially developed under MAC OSX 
+The single pass linker of OSX forces to
+explicitly include static C++ libraries when externally linking
+PYTHIA8, HepMC, FastJet, LHAPDF or LCIO. The necessary flags
+are automatically taken care of by the configure script.
+
+Darwin >= 10.11: The security measures of the new
+Darwin systems do not allow e.g. environment variables passed
+to subprocesses. This does not change anything for the installed
+WHIZARD, but the testsuite (make check) will not work probably even
+after make install has been executed. make distcheck will not work on
+Darwin >= 10.11. There is also the option to disable the System Integrity
+Protection (SIP) of modern OSX by booting in Recovery Mode (use Command R
+while booting), open a terminal and type 'csrutil disable'. However, we 
+do not recommend to do so unless you know exactly what you are doing.
+
+#-------------------------------------------------------------
+#  installing from a source code tar ball
+#-------------------------------------------------------------
+
+Unwind the source code tar ball in some relevant directory.
+Autoconf and automake will already have been run.  
+Determine where the files will be installed.
+We recommend that you create a separate build directory that is NOT in 
+the source code directory tree.
+
+cd <build_directory>
+<source_code_directory>/configure --prefix=<install_dir>
+   (Note that files will be installed under /usr/local if you do not 
+    specify a prefix.)
+make
+   (Build temporary copies of libraries and executables.)
+make check [optional]
+   (Perform sanity checks and standard tests)
+make install
+   (Copy libraries, headers, executables, etc. to relevant 
+    subdirectories under <install_dir>.)
+
+#-------------------------------------------------------------
+#  configure options
+#-------------------------------------------------------------
+
+A variety of options can be given to configure.  Below is a list 
+of the options that you are likely to find most useful.
+Defaults for the options are specified in brackets.
+
+Configuration:
+  -h, --help              display this help and exit
+      --help=short        display options specific to this package
+      --help=recursive    display the short help of all the included packages
+  -V, --version           display version information and exit
+  -q, --quiet, --silent   do not print `checking...' messages
+      --cache-file=FILE   cache test results in FILE [disabled]
+  -C, --config-cache      alias for `--cache-file=config.cache'
+  -n, --no-create         do not create output files
+      --srcdir=DIR        find the sources in DIR [configure dir or `..']
+
+Installation directories:
+  --prefix=PREFIX         install architecture-independent files in PREFIX
+                          [/usr/local]
+  --exec-prefix=EPREFIX   install architecture-dependent files in EPREFIX
+                          [PREFIX]
+
+By default, `make install' will install all the files in
+`/usr/local/bin', `/usr/local/lib' etc.  You can specify
+an installation prefix other than `/usr/local' using `--prefix',
+for instance `--prefix=$HOME'.
+
+For better control, use the options below.
+
+Fine tuning of the installation directories:
+  --bindir=DIR           user executables [EPREFIX/bin]
+  --sbindir=DIR          system admin executables [EPREFIX/sbin]
+  --libexecdir=DIR       program executables [EPREFIX/libexec]
+  --sysconfdir=DIR       read-only single-machine data [PREFIX/etc]
+  --sharedstatedir=DIR   modifiable architecture-independent data [PREFIX/com]
+  --runstatedir=DIR      modifiable per-process data [LOCALSTATEDIR/run]
+  --localstatedir=DIR    modifiable single-machine data [PREFIX/var]
+  --libdir=DIR           object code libraries [EPREFIX/lib]
+  --includedir=DIR       C header files [PREFIX/include]
+  --oldincludedir=DIR    C header files for non-gcc [/usr/include]
+  --datarootdir=DIR      read-only arch.-independent data root [PREFIX/share]
+  --datadir=DIR          read-only architecture-independent data [DATAROOTDIR]
+  --infodir=DIR          info documentation [DATAROOTDIR/info]
+  --localedir=DIR        locale-dependent data [DATAROOTDIR/locale]
+  --mandir=DIR           man documentation [DATAROOTDIR/man]
+  --docdir=DIR           documentation root [DATAROOTDIR/doc/whizard]
+  --htmldir=DIR          html documentation [DOCDIR]
+  --dvidir=DIR           dvi documentation [DOCDIR]
+  --pdfdir=DIR           pdf documentation [DOCDIR]
+  --psdir=DIR            ps documentation [DOCDIR]
+
+Program names:
+  --program-prefix=PREFIX            prepend PREFIX to installed program names
+  --program-suffix=SUFFIX            append SUFFIX to installed program names
+  --program-transform-name=PROGRAM   run sed PROGRAM on installed program names
+
+System types:
+  --build=BUILD     configure for building on BUILD [guessed]
+  --host=HOST       cross-compile to build programs to run on HOST [BUILD]
+
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-silent-rules   less verbose build output (undo: "make V=1")
+  --disable-silent-rules  verbose build output (undo: "make V=0")  
+  --enable-shared[=PKGS]  build shared libraries [default=yes]
+  --enable-static[=PKGS]  build static libraries [default=yes]
+  --enable-fast-install[=PKGS]
+                          optimize for fast installation [default=yes]
+  --enable-dependency-tracking
+	                  do not reject slow dependency extractors
+  --disable-dependency-tracking
+	                  speeds up one-time build
+  --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-distribution   build the distribution incl. all docu (developers
+                          only) [[no]]   
+  --enable-dl             enable libdl for creating/loading process libraries
+                          on-the-fly [[yes]]
+  --disable-noweb         disable the noweb programs, even if available [[no]]
+  --disable-noweb-force   force to disable the noweb programs, even if
+                          available, which is for distribution testing
+                          purposes only. The default never has any effect.
+                          [[no]]
+  --enable-fc-openmp      use OpenMP for the Fortran code [[no]]
+  --enable-fc-debug       enable debugging features for the Fortran code
+                          [[no]]
+  --disable-openmp        do not use OpenMP
+  --enable-fc-profiling   use profiling for the Fortran code [[no]]
+  --enable-fc-impure	  compile Omega libraries impure [[no]]
+  --enable-fc-mpi         use OpenMPI/MPICH/Intel for the Fortran code
+                          (default is OpenMPI) [[no]]
+  --disable-ocaml	  disable the OCaml parts, even if OCaml available
+  			  [[no]]
+  --enable-python         enable PYTHON/Cython API for WHIZARD [[no]]
+  --enable-default-UFO-dir=directory
+                          Read precomputed model tables from this directory,
+                          which will be populated by an administrator at
+                          install time [default=$datadir/UFO, enabled].
+  --enable-recola         (experimental) enable Recola for NLO matrix elements
+                          [[no]]
+  --enable-lhapdf         enable LHAPDF for structure functions [[yes]]
+  --enable-hepmc          enable HepMC for handling event data [[yes]]
+  --enable-lcio		  enable LCIO for binary event files [[yes]]
+  --enable-hdf5           build WHIZARD with HDF5 support [[yes]]
+  --enable-pythia6        enable internal PYTHIA6 for hadronization [[yes]]
+  --enable-pythia6_eh     PYTHIA6 patches for high-energy eh collisions [[no]
+  --enable-pythia8        enable PYTHIA8 for shower and hadronization [[no]]
+  --enable-hoppet         enable HOPPET for b quark pdf matching [[no]]  
+  --enable-fastjet	  enable FastJet for handling event data [[no]]
+  --enable-gosam	  (experimental) enable GoSAM for external NLO matrix elements
+  			  [[no]]
+  --enable-openloops	  enable OpenLoops for NLO matrix elements [[no]]
+  --enable-looptools      enable LoopTools loop integral library [[no]]
+  --enable-optimization-for-parameter-files
+			  enable (useless) optimization for parameter file
+			  [[no]]
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-pic              try to use only PIC/non-PIC objects [default=use
+                          both]
+  --with-aix-soname=aix|svr4|both
+                          shared library versioning (aka "SONAME") variant to
+                          provide on AIX, [default=aix].
+  --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
+  --with-sysroot=DIR Search for dependent libraries within DIR
+                        (or the compiler's sysroot if not specified).
+  --with-precision=single|double|quadruple|extended|real32|real64|real128
+                          request a floating point precision other than
+			  double precision.  Note that only single and
+                          double are guaranteed to be provided by all
+                          Fortran compilers.
+  --with-mpi-lib=mpich|openmpi|intel   request an external MPI library.
+  --with-recola=dir	  assume the given directory for Recola
+  --with-rootsys          top of the ROOT installation directory
+  --with-hepmc=dir        assume the given directory for HepMC
+  --with-hdf5=DIR         root directory of HDF5 installation (default =
+                          HDF5_DIR)
+  --with-pythia8=dir      assume the given directory for PYTHIA8
+  --with-fastjet=dir      assume the given directory for FastJet
+  --with-gosam=dir        assume the given directory for GoSam
+  --with-golem=dir        assume the given directory for Golem
+  --with-form=dir         assume the given directory for Form
+  --with-qgraf=dir        assume the given directory for QGRAF
+  --with-ninja=dir        assume the given directory for Ninja
+  --with-samurai=dir      assume the given directory for Samurai
+  --with-openloops=dir    assume the given directory for OpenLoops  
+
+Some influential environment variables:
+  CC          C compiler command
+  CFLAGS      C compiler flags
+  LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
+              nonstandard directory <lib dir>
+  LIBS        libraries to pass to the linker, e.g. -l<library>
+  CPPFLAGS    C/C++/Objective C preprocessor flags, e.g. -I<include dir> if
+              you have headers in a nonstandard directory <include dir>
+  LT_SYS_LIBRARY_PATH
+              User-defined run-time library search path.
+  CPP         C preprocessor
+  FC          Fortran compiler command
+  FCFLAGS     Fortran compiler flags
+  F77         Fortran 77 compiler command
+  FFLAGS      Fortran 77 compiler flags
+  CXX         C++ compiler command
+  CXXFLAGS    C++ compiler flags
+  CXXCPP      C++ preprocessor
+  PYTHON_VERSION
+              The installed Python version to use, for example '2.3'. This
+              string will be appended to the Python interpreter canonical
+              name.
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
+  TIRPC_CFLAGS
+              C compiler flags for TIRPC, overriding pkg-config
+  TIRPC_LIBS  linker flags for TIRPC, overriding pkg-config
+  HDF5_DIR    root directory of HDF5 installation
+
+#-------------------------------------------------------------
+# building from svn (developer version)
+#-------------------------------------------------------------
+
+You will need current versions of automake and autoconf. On some machines,
+you will need to build them. See building autotools below. Furthermore, 
+you need to have noweb to be installed for the developer version from the
+svn repository. To build the documentations, LaTeX, MetaPost and OcamlWeb 
+are also necessary tools. Although the first two are quite standard, you 
+can get them from http://www.tug.org/texlive/. Follow the instructions there.
+OcamlWeb is available from http://www.lri.fr/~filliatr/ocamlweb/. For building
+the HTML version of the manual, you also need HeVeA, which is available from
+http://hevea.inria.fr. On some Unix systems the RPC headers needed for the
+legacy StdHEP event format support are now provided via the TIRPC library. To
+test for this library, autoreconf from autotools makes use of pkg-config
+which needs to be installed for the developer version. 
+
+The check out can be done in that way:
+
+svn co http://whizard.hepforge.org/svn/trunk <checkout_dir>
+
+cd <checkout_dir>
+./build_master.sh
+autoreconf
+
+Now continue with directions as if you unpacked a source code tarball.
+
+#-------------------------------------------------------------
+# building autotools
+#-------------------------------------------------------------
+
+If you do not have at least autoconf 2.65 and automake 1.12,2 you will 
+need to build autoconf and automake.  On some platforms,  you may also
+need to build m4 and texinfo.
+
+Download the relevant tarballs from gnu.org 
+(http://www.gnu.org/software/autoconf/, http://www.gnu.org/software/automake/).
+Untar them in a common source code tree.
+Decide whether you want to install them in /usr/local or your own
+install directory.  If you use your own install directory, use
+
+        --prefix=<install_dir> 
+
+with configure.
+
+For each autotool package:
+
+     <source_code_dir>/configure [--prefix=<install_dir>]
+     make
+     make install
+
+Make sure that <install_dir>/bin is before /usr/bin in your path.
+
+#-------------------------------------------------------------
+# getting and installing noweb
+#-------------------------------------------------------------
+
+Noweb can be accessed from here:
+
+http://www.cs.tufts.edu/~nr/noweb/
+
+Untar the source code. Go to the src/ subdirectory of the unpacked noweb 
+source code. Follow the instructions from the INSTALL file. You have to
+specify binary, install and TeX paths explicitly, unfortunately. After a
+make install
+you probably have to copy the binaries into a directory which is in your
+executable path.
+
+#-------------------------------------------------------------

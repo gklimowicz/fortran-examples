@@ -1,0 +1,25 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+error_threshold = 5E-6
+
+$method = "unit_test"
+process testproc_3_p1 = s, s => s, s
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$phs_file = "testproc_3.phs"
+$integration_method = "vamp"
+?use_vamp_equivalences = false
+iterations = 3:1000
+sqrts = 1000
+
+integrate (testproc_3_p1)

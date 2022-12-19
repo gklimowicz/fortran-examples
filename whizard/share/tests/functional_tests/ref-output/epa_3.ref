@@ -1,0 +1,137 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Process library 'epa_3_lib': recorded process 'epa_3_a'
+| Process library 'epa_3_lib': recorded process 'epa_3_b'
+sqrts =  1.50000E+03
+epa_x_min =  1.33333E-02
+epa_mass =  5.10997E-04
+seed = 0
+| Integrate: current process library needs compilation
+| Process library 'epa_3_lib': compiling ...
+| Process library 'epa_3_lib': writing makefile
+| Process library 'epa_3_lib': removing old files
+| Process library 'epa_3_lib': writing driver
+| Process library 'epa_3_lib': creating source code
+| Process library 'epa_3_lib': compiling sources
+| Process library 'epa_3_lib': linking
+| Process library 'epa_3_lib': loading
+| Process library 'epa_3_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process epa_3_a:
+| Beam structure: e-, e+ => epa, none
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 1.500000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'epa_3_a.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'epa_3_a'
+|   Library name  = 'epa_3_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'epa_3_a_i1':   A, e+ => W+, nuebar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 3 channels, 2 dimensions
+| Phase space: found 3 channels, collected in 2 groves.
+| Phase space: Using 3 equivalences between channels.
+| Phase space: wood
+| Beam structure: epa, none
+| Beam structure: 1 channels, 1 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'epa_3_a'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 3 channels, 3 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        999     8.012E+03   4.40E+02    5.49    1.73    12.3
+|-----------------------------------------------------------------------------|
+   1        999     8.012E+03   4.40E+02    5.49    1.73    12.3
+|=============================================================================|
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process epa_3_b:
+| Beam structure: e-, e+ => epa, none
+|   polarization (beam 1):
+|     @(-1: -1: ( 1.000000000000E+00, 0.000000000000E+00))
+|   polarization (beam 2):
+|     @(+1: +1: ( 1.000000000000E+00, 0.000000000000E+00))
+|   polarization degree = 0.0000001, 0.0000001
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)  polarized
+|   e+  (mass = 5.1099700E-04 GeV)  polarized
+|   sqrts = 1.500000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'epa_3_b.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'epa_3_b'
+|   Library name  = 'epa_3_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'epa_3_b_i1':   A, e+ => W+, nuebar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 3 channels, 2 dimensions
+| Phase space: found 3 channels, collected in 2 groves.
+| Phase space: Using 3 equivalences between channels.
+| Phase space: wood
+| Beam structure: epa, none
+| Beam structure: 1 channels, 1 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'epa_3_b'
+| Integrate: iterations = 1:1000
+| Integrator: 2 chains, 3 channels, 3 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        999     8.012E+03   4.40E+02    5.49    1.73    12.3
+|-----------------------------------------------------------------------------|
+   1        999     8.012E+03   4.40E+02    5.49    1.73    12.3
+|=============================================================================|
+n_events = 1
+?debug_process = true
+?debug_verbose = true
+| Starting simulation for process 'epa_3_a'
+| Simulate: using integration grids from file 'epa_3_a.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.2481E-04
+| Events: writing to ASCII file 'epa_3_a.debug'
+| Events: writing to raw file 'epa_3_a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   6.25 %
+| Events: closing ASCII file 'epa_3_a.debug'
+| Events: closing raw file 'epa_3_a.evx'
+| Starting simulation for process 'epa_3_b'
+| Simulate: using integration grids from file 'epa_3_b.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.2481E-04
+| Events: writing to ASCII file 'epa_3_b.debug'
+| Events: writing to raw file 'epa_3_b.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   6.25 %
+| Events: closing ASCII file 'epa_3_b.debug'
+| Events: closing raw file 'epa_3_b.evx'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

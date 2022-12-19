@@ -1,0 +1,50 @@
+# Sindarin input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+
+model = "QCD"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process lhef_4_p = "g", "g" => "u", "ubar"
+
+sqrts = 8000
+beams = p, p => pdf_builtin
+
+cuts = all Pt > 50 [u:ubar]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+?unweighted = false
+?read_raw = false
+?write_raw = false
+
+simulate (lhef_4_p) {
+  sample_format = lhef
+  $sample = "lhef_4a"
+  ?keep_beams = true
+  iterations = 1:1000
+}
+
+real alphas0 = alphas
+
+rescan "lhef_4a" (lhef_4_p) {
+  $rescan_input_format = "lhef"
+  sample_format = weight_stream
+  $sample = "lhef_4b"
+  alphas = alphas0
+  ?update_sqme = true
+  ?recover_beams = false
+  alt_setup = 
+    { alphas = 2 * alphas0 },
+    { alphas = 3 * alphas0 }
+}

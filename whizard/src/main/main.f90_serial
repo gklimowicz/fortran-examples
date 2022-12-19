@@ -1,0 +1,560 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+program main
+
+  use iso_varying_string, string_t => varying_string
+  use system_dependencies
+  use diagnostics
+  use ifiles
+  use os_interface
+  use rt_data, only: show_description_of_string, show_tex_descriptions
+  use whizard
+
+  use cmdline_options
+  use features
+
+
+
+  implicit none
+
+  integer, parameter :: CMDLINE_ARG_LEN = 1000
+
+!!! (WK 02/2016) Interface for the separate external routine below
+  interface
+     subroutine print_usage ()
+     end subroutine print_usage
+  end interface
+
+! Main program variable declarations
+  character(CMDLINE_ARG_LEN) :: arg
+  character(2) :: option
+  type(string_t) :: long_option, value
+  integer :: i, j, arg_len, arg_status
+  logical :: look_for_options
+  logical :: interactive
+  logical :: banner
+  type(string_t) :: job_id, files, this, model, default_lib, library, libraries
+  type(string_t) :: logfile, query_string
+  type(paths_t) :: paths
+  type(string_t) :: pack_arg, unpack_arg
+  type(string_t), dimension(:), allocatable :: pack_args, unpack_args
+  type(string_t), dimension(:), allocatable :: tmp_strings
+  logical :: rebuild_library
+  logical :: rebuild_phs, rebuild_grids, rebuild_events
+  logical :: recompile_library
+  type(ifile_t) :: commands
+  type(string_t) :: command, cmdfile
+  integer :: cmdfile_unit
+  logical :: cmdfile_exists
+
+  type(whizard_options_t), allocatable :: options
+  type(whizard_t), allocatable, target :: whizard_instance
+
+  ! Exit status
+  logical :: quit = .false.
+  integer :: quit_code = 0
+
+  ! Initial values
+  look_for_options = .true.
+  interactive = .false.
+  job_id = ""
+  files = ""
+  model = "SM"
+  default_lib = "default_lib"
+  library = ""
+  libraries = ""
+  banner = .true.
+  logging = .true.
+  msg_level = RESULT
+  logfile = "whizard.log"
+  rebuild_library = .false.
+  rebuild_phs = .false.
+  rebuild_grids = .false.
+  rebuild_events = .false.
+  recompile_library = .false.
+  call paths_init (paths)
+
+
+
+  ! Read and process options
+  call init_options (print_usage)
+  i = 0
+  SCAN_CMDLINE: do
+     i = i + 1
+     call get_command_argument (i, arg, arg_len, arg_status)
+     select case (arg_status)
+     case (0)
+     case (-1)
+        call msg_error (" Command argument truncated: '" // arg // "'")
+     case default
+        exit SCAN_CMDLINE
+     end select
+     if (look_for_options) then
+        select case (arg(1:2))
+        case ("--")
+           value = trim (arg)
+           call split (value, long_option, "=")
+           select case (char (long_option))
+           case ("--version")
+              call no_option_value (long_option, value)
+              call print_version (); stop
+           case ("--help")
+              call no_option_value (long_option, value)
+              call print_usage (); stop
+           case ("--prefix")
+              paths%prefix = get_option_value (i, long_option, value)
+              cycle scan_cmdline
+           case ("--exec-prefix")
+              paths%exec_prefix = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--bindir")
+              paths%bindir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--libdir")
+              paths%libdir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--includedir")
+              paths%includedir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--datarootdir")
+              paths%datarootdir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--libtool")
+              paths%libtool = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--lhapdfdir")
+              paths%lhapdfdir = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--check")
+              call print_usage ()
+              call msg_fatal ("Option --check not supported &
+                   &(for unit tests, run whizard_ut instead)")
+           case ("--show-config")
+              call no_option_value (long_option, value)
+              call print_features (); stop
+           case ("--execute")
+              command = get_option_value (i, long_option, value)
+              call ifile_append (commands, command)
+              cycle SCAN_CMDLINE
+           case ("--file")
+              cmdfile = get_option_value (i, long_option, value)
+              inquire (file=char(cmdfile), exist=cmdfile_exists)
+              if (cmdfile_exists) then
+                 open (newunit=cmdfile_unit, file=char(cmdfile), &
+                      action="read", status="old")
+                 call ifile_append (commands, cmdfile_unit)
+                 close (cmdfile_unit)
+              else
+                 call msg_error &
+                      ("Sindarin file '" // char (cmdfile) // "' not found")
+              end if
+              cycle SCAN_CMDLINE
+           case ("--interactive")
+              call no_option_value (long_option, value)
+              interactive = .true.
+              cycle SCAN_CMDLINE
+           case ("--job-id")
+              job_id = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--library")
+              library = get_option_value (i, long_option, value)
+              libraries = libraries // " " // library
+              cycle SCAN_CMDLINE
+           case ("--no-library")
+              call no_option_value (long_option, value)
+              default_lib = ""
+              library = ""
+              libraries = ""
+              cycle SCAN_CMDLINE
+           case ("--localprefix")
+              paths%localprefix = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--logfile")
+              logfile = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--no-logfile")
+              call no_option_value (long_option, value)
+              logfile = ""
+              cycle SCAN_CMDLINE
+           case ("--logging")
+              call no_option_value (long_option, value)
+              logging = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-logging")
+              call no_option_value (long_option, value)
+              logging = .false.
+              cycle SCAN_CMDLINE
+           case ("--query")
+              call no_option_value (long_option, value)
+              query_string = get_option_value (i, long_option, value)
+              call show_description_of_string (query_string)
+              call exit (0)
+           case ("--generate-variables-tex")
+              call no_option_value (long_option, value)
+              call show_tex_descriptions ()
+              call exit (0)
+           case ("--debug")
+              call no_option_value (long_option, value)
+              call set_debug_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case ("--debug2")
+              call no_option_value (long_option, value)
+              call set_debug2_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case ("--single-event")
+              call no_option_value (long_option, value)
+              single_event = .true.
+              cycle SCAN_CMDLINE
+           case ("--banner")
+              call no_option_value (long_option, value)
+              banner = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-banner")
+              call no_option_value (long_option, value)
+              banner = .false.
+              cycle SCAN_CMDLINE
+           case ("--pack")
+              pack_arg = get_option_value (i, long_option, value)
+              if (allocated (pack_args)) then
+                 call move_alloc (from=pack_args, to=tmp_strings)
+                 allocate (pack_args (size (tmp_strings)+1))
+                 pack_args(1:size(tmp_strings)) = tmp_strings
+              else
+                 allocate (pack_args (1))
+              end if
+              pack_args(size(pack_args)) = pack_arg
+              cycle SCAN_CMDLINE
+           case ("--unpack")
+              unpack_arg = get_option_value (i, long_option, value)
+              if (allocated (unpack_args)) then
+                 call move_alloc (from=unpack_args, to=tmp_strings)
+                 allocate (unpack_args (size (tmp_strings)+1))
+                 unpack_args(1:size(tmp_strings)) = tmp_strings
+              else
+                 allocate (unpack_args (1))
+              end if
+              unpack_args(size(unpack_args)) = unpack_arg
+              cycle SCAN_CMDLINE
+           case ("--model")
+              model = get_option_value (i, long_option, value)
+              cycle SCAN_CMDLINE
+           case ("--no-model")
+              call no_option_value (long_option, value)
+              model = ""
+              cycle SCAN_CMDLINE
+           case ("--rebuild")
+              call no_option_value (long_option, value)
+              rebuild_library = .true.
+              rebuild_phs = .true.
+              rebuild_grids = .true.
+              rebuild_events = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-rebuild")
+              call no_option_value (long_option, value)
+              rebuild_library = .false.
+              recompile_library = .false.
+              rebuild_phs = .false.
+              rebuild_grids = .false.
+              rebuild_events = .false.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-library")
+              call no_option_value (long_option, value)
+              rebuild_library = .true.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-phase-space")
+              call no_option_value (long_option, value)
+              rebuild_phs = .true.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-grids")
+              call no_option_value (long_option, value)
+              rebuild_grids = .true.
+              cycle SCAN_CMDLINE
+           case ("--rebuild-events")
+              call no_option_value (long_option, value)
+              rebuild_events = .true.
+              cycle SCAN_CMDLINE
+           case ("--recompile")
+              call no_option_value (long_option, value)
+              recompile_library = .true.
+              rebuild_grids = .true.
+              cycle SCAN_CMDLINE
+           case ("--write-syntax-tables")
+              call no_option_value (long_option, value)
+        call init_syntax_tables ()
+              call write_syntax_tables ()
+              call final_syntax_tables ()
+              stop
+              cycle SCAN_CMDLINE
+           case default
+              call print_usage ()
+              call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+           end select
+        end select
+        select case (arg(1:1))
+        case ("-")
+           j = 1
+           if (len_trim (arg) == 1) then
+              look_for_options = .false.
+           else
+              SCAN_SHORT_OPTIONS: do
+                 j = j + 1
+                 if (j > len_trim (arg)) exit SCAN_SHORT_OPTIONS
+                 option = "-" // arg(j:j)
+                 select case (option)
+                 case ("-V")
+                    call print_version (); stop
+                 case ("-?", "-h")
+                    call print_usage (); stop
+                 case ("-e")
+                    command = get_option_value (i, var_str (option))
+                    call ifile_append (commands, command)
+                    cycle SCAN_CMDLINE
+                 case ("-f")
+                    cmdfile = get_option_value (i, var_str (option))
+                    inquire (file=char(cmdfile), exist=cmdfile_exists)
+                    if (cmdfile_exists) then
+                       open (newunit=cmdfile_unit, file=char(cmdfile), &
+                            action="read", status="old")
+                       call ifile_append (commands, cmdfile_unit)
+                       close (cmdfile_unit)
+                    else
+                       call msg_error ("Sindarin file '" &
+                            // char (cmdfile) // "' not found")
+                    end if
+                    cycle SCAN_CMDLINE
+                 case ("-i")
+                    interactive = .true.
+                    cycle SCAN_SHORT_OPTIONS
+                 case ("-J")
+                    if (j == len_trim (arg)) then
+                       job_id = get_option_value (i, var_str (option))
+                    else
+                       job_id = trim (arg(j+1:))
+                    end if
+                    cycle SCAN_CMDLINE
+                 case ("-l")
+                    if (j == len_trim (arg)) then
+                       library = get_option_value (i, var_str (option))
+                    else
+                       library = trim (arg(j+1:))
+                    end if
+                    libraries = libraries // " " // library
+                    cycle SCAN_CMDLINE
+                 case ("-L")
+                    if (j == len_trim (arg)) then
+                       logfile = get_option_value (i, var_str (option))
+                    else
+                       logfile = trim (arg(j+1:))
+                    end if
+                    cycle SCAN_CMDLINE
+                 case ("-m")
+                    if (j < len_trim (arg))  call msg_fatal &
+                         ("Option '" // option // "' needs a value")
+                    model = get_option_value (i, var_str (option))
+                    cycle SCAN_CMDLINE
+                 case ("-q")
+                    call no_option_value (long_option, value)
+                    query_string = get_option_value (i, long_option, value)
+                    call show_description_of_string (query_string)
+                    call exit (0)
+                 case ("-r")
+                    rebuild_library = .true.
+                    rebuild_phs = .true.
+                    rebuild_grids = .true.
+                    rebuild_events = .true.
+                    cycle SCAN_SHORT_OPTIONS
+                 case default
+                    call print_usage ()
+                    call msg_fatal &
+                         ("Option '" // option // "' not recognized")
+                 end select
+              end do SCAN_SHORT_OPTIONS
+           end if
+        case default
+           files = files // " " // trim (arg)
+        end select
+     else
+        files = files // " " // trim (arg)
+     end if
+  end do SCAN_CMDLINE
+
+  ! Overall initialization
+  if (logfile /= "")  call logfile_init (logfile)
+  if (banner)  call msg_banner ()
+
+   allocate (options)
+   allocate (whizard_instance)
+
+   if (.not. quit) then
+
+      ! Set options and initialize the whizard object
+      options%job_id = job_id
+      if (allocated (pack_args)) then
+         options%pack_args = pack_args
+      else
+         allocate (options%pack_args (0))
+      end if
+      if (allocated (unpack_args)) then
+         options%unpack_args = unpack_args
+      else
+         allocate (options%unpack_args (0))
+      end if
+      options%preload_model = model
+      options%default_lib = default_lib
+      options%preload_libraries = libraries
+      options%rebuild_library = rebuild_library
+      options%recompile_library = recompile_library
+      options%rebuild_phs = rebuild_phs
+      options%rebuild_grids = rebuild_grids
+      options%rebuild_events = rebuild_events
+    
+
+      call whizard_instance%init (options, paths, logfile)
+
+      call mask_term_signals ()
+
+   end if
+
+   ! Run commands given on the command line
+   if (.not. quit .and. ifile_get_length (commands) > 0) then
+      call whizard_instance%process_ifile (commands, quit, quit_code)
+   end if
+
+   if (.not. quit) then
+      ! Process commands from standard input
+      if (.not. interactive .and. files == "") then
+         call whizard_instance%process_stdin (quit, quit_code)
+
+         ! ... or process commands from file
+      else
+         files = trim (adjustl (files))
+         SCAN_FILES: do while (files /= "")
+            call split (files, this, " ")
+            call whizard_instance%process_file (this, quit, quit_code)
+            if (quit)  exit SCAN_FILES
+         end do SCAN_FILES
+
+      end if
+  end if
+
+  ! Enter an interactive shell if requested
+  if (.not. quit .and. interactive) then
+     call whizard_instance%shell (quit_code)
+  end if
+
+  ! Overall finalization
+  call ifile_final (commands)
+
+  deallocate (options)
+
+  call whizard_instance%final ()
+  deallocate (whizard_instance)
+
+
+
+  call terminate_now_if_signal ()
+  call release_term_signals ()
+  call msg_terminate (quit_code = quit_code)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+contains
+
+  subroutine print_version ()
+    print "(A)", "WHIZARD " // WHIZARD_VERSION
+    print "(A)", "Copyright (C) 1999-2022 Wolfgang Kilian, Thorsten Ohl, Juergen Reuter"
+    print "(A)", "              ---------------------------------------                "
+    print "(A)", "This is free software; see the source for copying conditions.  There is NO"
+    print "(A)", "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    print *
+  end subroutine print_version
+
+end program main
+
+!!! (WK 02/2016)
+!!! Separate subroutine, because this becomes a procedure pointer target
+!!! Internal procedures as targets are not supported by some compilers.
+
+  subroutine print_usage ()
+    use system_dependencies, only: WHIZARD_VERSION
+    print "(A)", "WHIZARD " // WHIZARD_VERSION
+    print "(A)", "Usage: whizard [OPTIONS] [FILE]"
+    print "(A)", "Run WHIZARD with the command list taken from FILE(s)"
+    print "(A)", "Options for resetting default directories and tools" &
+            // "(GNU naming conventions):"
+    print "(A)", "    --prefix DIR"
+    print "(A)", "    --exec-prefix DIR"
+    print "(A)", "    --bindir DIR"
+    print "(A)", "    --libdir DIR"
+    print "(A)", "    --includedir DIR"
+    print "(A)", "    --datarootdir DIR"
+    print "(A)", "    --libtool LOCAL_LIBTOOL"
+    print "(A)", "    --lhapdfdir DIR   (PDF sets directory)"
+    print "(A)", "Other options:"
+    print "(A)", "-h, --help            display this help and exit"
+    print "(A)", "    --banner          display banner at startup (default)"
+    print "(A)", "    --debug AREA      switch on debug output for AREA."
+    print "(A)", "                      AREA can be one of Whizard's src dirs or 'all'"
+    print "(A)", "    --debug2 AREA     switch on more verbose debug output for AREA."
+    print "(A)", "    --single-event    only compute one phase-space point (for debugging)"
+    print "(A)", "-e, --execute CMDS    execute SINDARIN CMDS before reading FILE(s)"
+    print "(A)", "-f, --file CMDFILE    execute SINDARIN from CMDFILE before reading FILE(s)"
+    print "(A)", "-i, --interactive     run interactively after reading FILE(s)"
+    print "(A)", "-J, --job-id STRING   set job ID to STRING (default: empty)"
+    print "(A)", "-l, --library LIB     preload process library NAME"
+    print "(A)", "    --localprefix DIR"
+    print "(A)", "                      search in DIR for local models (default: ~/.whizard)"
+    print "(A)", "-L, --logfile FILE    write log to FILE (default: 'whizard.log'"
+    print "(A)", "    --logging         switch on logging at startup (default)"
+    print "(A)", "-m, --model NAME      preload model NAME (default: 'SM')"
+    print "(A)", "    --no-banner       do not display banner at startup"
+    print "(A)", "    --no-library      do not preload process library"
+    print "(A)", "    --no-logfile      do not write a logfile"
+    print "(A)", "    --no-logging      switch off logging at startup"
+    print "(A)", "    --no-model        do not preload a model"
+    print "(A)", "    --no-rebuild      do not force rebuilding"
+    print "(A)", "    --pack DIR        tar/gzip DIR after job"
+    print "(A)", "-q, --query VARIABLE  display documentation of VARIABLE"
+    print "(A)", "-r, --rebuild         rebuild all (see below)"
+    print "(A)", "    --rebuild-library"
+    print "(A)", "                      rebuild process code library"
+    print "(A)", "    --rebuild-phase-space"
+    print "(A)", "                      rebuild phase-space configuration"
+    print "(A)", "    --rebuild-grids   rebuild integration grids"
+    print "(A)", "    --rebuild-events  rebuild event samples"
+    print "(A)", "    --recompile       recompile process code"
+    print "(A)", "    --show-config     show build-time configuration"
+    print "(A)", "    --unpack FILE     untar/gunzip FILE before job"
+    print "(A)", "-V, --version         output version information and exit"
+    print "(A)", "    --write-syntax-tables"
+    print "(A)", "                      write the internal syntax tables to files and exit"
+    print "(A)", "-                     further options are taken as filenames"
+    print *
+    print "(A)", "With no FILE, read standard input."
+  end subroutine print_usage
+

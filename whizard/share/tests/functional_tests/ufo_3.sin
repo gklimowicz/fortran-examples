@@ -1,0 +1,23 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+model = ufo_3_SM (ufo ("./ufo_3_models"))
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+MH = 125 GeV
+
+process ufo_3_nnh = "e-", "e+" => "mu-", "mu+"
+
+sqrts = 500 GeV
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (ufo_3_nnh) { iterations = 1:100 }

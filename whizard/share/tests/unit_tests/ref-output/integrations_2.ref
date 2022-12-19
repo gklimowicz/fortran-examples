@@ -1,0 +1,262 @@
+* Test output: integrations_2
+*   Purpose: integrate test process with cut
+
+* Prepare a cut expression
+
+* Build and initialize a test process
+
+========================================================================
+ Runtime data:
+========================================================================
+ iterations = 1:1000
+========================================================================
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: integration_3
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = a
+
+ Process library entries: 1
+ Entry #1: [a] prc_config_a.1 = int (test_me)
+
+ Process #1:
+ ID = 'prc_config_a'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '2A76717511B79572A545610CB2C020E8'
+ Component #1
+   Component ID        = prc_config_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = 'FB82376D0341CBF30077236C0FD2233D'
+========================================================================
+ Beam structure: [any particles]
+========================================================================
+ Cuts:
+------------------------------------------------------------------------
++  SEQUENCE    <lexpr>  =  <lsinglet>
++  SEQUENCE    <lsinglet>  =  <lterm>
+|  +  SEQUENCE    <lterm>  =  <all_fun>
+|  |  +  SEQUENCE    <all_fun>  =  all <lexpr> <pargs1>
+|  |  |  +  KEYWORD     all  = [keyword] all
+|  |  |  +  SEQUENCE    <lexpr>  =  <lsinglet>
+|  |  |  |  +  SEQUENCE    <lsinglet>  =  <lterm>
+|  |  |  |  |  +  SEQUENCE    <lterm>  =  <compared_expr>
+|  |  |  |  |  |  +  SEQUENCE    <compared_expr>  =  <expr> <comparison>
+|  |  |  |  |  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = Pt
+|  |  |  |  |  |  |  +  SEQUENCE    <comparison>  =  '>' <expr>
+|  |  |  |  |  |  |  |  +  KEYWORD     '>'  = [keyword] >
+|  |  |  |  |  |  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  |  |  |  |  |  |  +  INTEGER     <integer_literal>  = 100
+|  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = s
+------------------------------------------------------------------------
+ Scale: [undefined]
+------------------------------------------------------------------------
+ Factorization scale: [undefined]
+------------------------------------------------------------------------
+ Renormalization scale: [undefined]
+------------------------------------------------------------------------
+ Weight: [undefined]
+========================================================================
+ Event selection: [undefined]
+------------------------------------------------------------------------
+ Event reweighting factor: [undefined]
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+------------------------------------------------------------------------
+ Event callback: [undefined]
+========================================================================
+ Process stack:
+========================================================================
+ Process [scattering]: 'prc_config_a'
+   Run ID        = 'integrations1'
+   Library name  = 'integration_3'
+   Process index = 1
+   Process components:
+     1: 'prc_config_a_i1':   s, s => s, s [unit_test]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 2
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (fixed coupling):
+     alpha =  1.17800E-01
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Expressions (cut, scales, weight): [not shown]
+------------------------------------------------------------------------
+   MD5 sum (config)  = 'BAA66CFEDCF8D0EDED7D3530F20F9277'
+------------------------------------------------------------------------
+ RNG factory: tao (0,1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = prc_config_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = 'FB82376D0341CBF30077236C0FD2233D'
+   MD5 sum (phs)       = '2ABA436A68FCEAA06DE58F9265C11C54'
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration (single-particle):
+   ID        = 'prc_config_a_i1'
+   n_in      = 2
+   n_out     = 2
+   n_tot     = 4
+   n_state   = 1
+   n_par     = 2
+   n_channel = 1
+   sqrts     =  1.000000000000E+03
+   s_fixed   = T
+   lab_is_cm = T
+   azim.dep. = F
+   flat dim. = 2
+ Flavor combinations:
+   1: s s s s
+ Phase-space / structure-function channels:
+   1: 1
+   MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+   MD5 sum (phs config) = '2ABA436A68FCEAA06DE58F9265C11C54'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 1
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Outgoing:
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = T
+   MD5 sum (beams/strf) = '80007D5E30CFD7B9BD09FF0704AAA3A6'
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 2
+   MC parameters (SF)    = 0
+   MC parameters (PHS)   = 2
+   Current pass          = 1
+   Number of iterations  = 1
+   Number of calls       = 1000
+   MD5 sum (components)  = '52496321BCC29A3DCE42E04AF7A4CDBC'
+ Single-channel midpoint rule integrator:
+   Integral             =  7.5760400351E+03
+   Efficiency           =  9.4694442815E-01
+   Number of channels   = 1
+   Number of dimensions = 2
+   Flat dimensions      = 2
+   Number of binned dim = 1
+   Number of bins       = 1000 1
+   Number of calls      = 1000
+     positive value     = 978
+     zero value         = 22
+     negative value     = 0
+   Integral (pos. part) =  7.5760400351E+03
+   Integral (neg. part) =  0.0000000000E+00
+   Maximum of integrand =  8.0005117617E+03
+   Minimum of integrand =  8.0005117617E+03
+ TAO random-number generator:
+   seed  = 0
+   calls = 0
+ Call statistics (current run):
+   total       = 1000
+   failed kin. = 0
+   failed cuts = 22
+   passed cuts = 0
+   evaluated   = 978
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  7.5760400E+03  0.00E+00    0.00    0.00*  94.69
+|-----------------------------------------------------------------------------|
+   1       1000  7.5760400E+03  0.00E+00    0.00    0.00   94.69
+|=============================================================================|
+========================================================================
+ quit     : F
+ quit_code: 0
+========================================================================
+ Logfile  : ''
+========================================================================
+
+* Test output end: integrations_2

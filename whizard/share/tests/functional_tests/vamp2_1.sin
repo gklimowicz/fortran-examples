@@ -1,0 +1,33 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> mu- mu+
+
+model = "QED"
+ee = 0.30286
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 1234
+
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp2"
+
+process vamp2_1_p1 = "e-", "e+" => "mu-", "mu+"
+
+sqrts = 1000
+
+$vamp_grid_format = "ascii"
+integrate (vamp2_1_p1) {
+   iterations = 5:1000:"gw", 3:1500
+}
+
+$vamp_grid_format = "binary"
+?rebuild_grids = false
+integrate (vamp2_1_p1) {
+   iterations = 5:1000:"gw", 5:1000
+}

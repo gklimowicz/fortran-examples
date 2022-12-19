@@ -1,0 +1,97 @@
+# LEP_higgs.sin
+# Simple complete physics example: Higgs search at LEP
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = SM
+
+alias n = n1:n2:n3
+alias N = N1:N2:N3
+alias q = u:d:s:c
+alias Q = U:D:S:C
+
+# The Higgsstrahlung process
+process zh = e1, E1 => Z, h
+# The missing-energy channel
+process nnbb = e1, E1 => n, N, b, B
+# Other channels (for the 4-jet channels
+# we combine EW and QCD contributions)
+process qqbb = e1, E1 => q, Q, b, B
+process bbbb = e1, E1 => b, B, b, B
+process eebb = e1, E1 => e1, E1, b, B
+process qqtt = e1, E1 => q, Q, e3, E3
+process bbtt = e1, E1 => b, B, e3, E3
+
+compile
+
+sqrts = 209 GeV
+
+# Set the input parameters
+# Would-be 115 GeV Higgs at LEP
+mH = 115 GeV
+wH = 3.228 MeV
+# Running b mass
+mb = 2.9 GeV
+me = 0
+ms = 0
+mc = 0
+
+cuts = all M >= 10 GeV [q,Q]
+
+integrate (zh) { iterations = 5:5000}
+
+integrate(nnbb,qqbb,bbbb,eebb,
+          qqtt,bbtt) { iterations = 12:20000, 1:30000 }
+
+# Define title etc. as global variables, that will be used by PLOT
+$description =
+  "A WHIZARD 3.0 Example. Light Higgs search at LEP. A 115 GeV pseudo-Higgs has been added. Luminosity enlarged by two orders of magnitude."
+$y_label = "$N_{\textrm{events}}$"
+
+# Allocate plots
+$title = "Invisible mass distribution in $e^+e^- \to \nu\bar\nu b \bar b$"
+$x_label = "$M_{\nu\nu}$/GeV"
+histogram m_invisible (70 GeV, 130 GeV, 0.5 GeV)
+
+$title = "$bb$ invariant mass distribution in $e^+e^- \to \nu\bar\nu b \bar b$"
+$x_label = "$M_{b\bar b}$/GeV"
+histogram m_bb (70 GeV, 130 GeV, 0.5 GeV)
+
+analysis = record m_invisible (eval M [n,N]);
+	   record m_bb (eval M [b,B])
+
+# This is more than 100 times the LEP luminosity at 209 GeV.
+luminosity = 10
+
+simulate (nnbb) 
+
+$title = "Dijet invariant mass distribution in $e^+e^- \to q \bar q b \bar b$"
+$x_label = "$M_{q\bar q}$/GeV"
+histogram m_jj (70 GeV, 130 GeV, 0.5 GeV)
+
+simulate (qqbb) { analysis = record m_jj (eval M / 1 GeV [combine [q,Q]]) }
+
+compile_analysis { $out_file = "lep_higgs.dat" }
+

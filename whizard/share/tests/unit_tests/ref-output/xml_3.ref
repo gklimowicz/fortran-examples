@@ -1,0 +1,41 @@
+* Test output: xml_3
+*   Purpose: handle tag with content
+
+* Tag without content
+
+File content:
+<tagname />
+
+Result from read:
+<tagname />
+success = T
+content = F
+
+* Tag with content
+
+File content:
+<tagname>Content text</tagname>
+
+Result from read:
+<tagname>Content text</tagname>
+success = T
+content = T
+closing = T
+
+* Tag with multiline content
+
+File content:
+<tagname>
+Line 1
+Line 2
+</tagname>
+
+Result from read:
+<tagname>
+Line 1
+Line 2
+</tagname>
+success = T
+content = T
+
+* Test output end: xml_3

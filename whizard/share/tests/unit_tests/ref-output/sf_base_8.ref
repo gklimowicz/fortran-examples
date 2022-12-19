@@ -1,0 +1,205 @@
+* Test output: sf_base_8
+*   Purpose: set up a structure-function chain
+
+* Initialize configuration data
+
+* Set up chain with beams only
+
+========================================================================
+ Incoming particles / structure-function chain:
+   n_in      = 2
+   n_strfun  = 0
+   n_par     = 0
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+------------------------------------------------------------------------
+ Colliding beams:
+ Interaction: 1
+ Outgoing:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [FFgT]
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [FFgT]
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+========================================================================
+
+* Set up chain with structure function
+
+========================================================================
+ Incoming particles / structure-function chain:
+   n_in      = 2
+   n_strfun  = 1
+   n_par     = 1
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+------------------------------------------------------------------------
+ Colliding beams:
+ Interaction: 2
+ Outgoing:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [FFgT]
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [FFgT]
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ SF test data:
+   model     = Test
+   incoming  = f(25)
+   outgoing  = f(25)
+   radiated  = f(25)
+   mass      =  1.250000000000E+02
+   collinear = T
+ SF instance: [initialized]
+   beam      = 1
+   incoming  = 1
+   radiated  = 2
+   outgoing  = 3
+   parameter = 1
+ Interaction: 3
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ Outgoing:
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+
+* Set up chain with spectrum and structure function
+
+========================================================================
+ Incoming particles / structure-function chain:
+   n_in      = 2
+   n_strfun  = 2
+   n_par     = 3
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+------------------------------------------------------------------------
+ Colliding beams:
+ Interaction: 4
+ Outgoing:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [FFgT]
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [FFgT]
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ SF test spectrum data:
+   model     = Test
+   incoming  = f(25)
+   outgoing  = f(25)
+   radiated  = f(25)
+   mass      =  1.250000000000E+02
+ SF instance: [initialized]
+   beam      = 1 2
+   incoming  = 1 2
+   radiated  = 3 4
+   outgoing  = 5 6
+   parameter = 1 2
+ Interaction: 5
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4 5 6
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4 5 6
+ Outgoing:
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 5
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 6
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)]
+         [f(25) h(0)]
+           [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ SF test data:
+   model     = Test
+   incoming  = f(25)
+   outgoing  = f(25)
+   radiated  = f(25)
+   mass      =  1.250000000000E+02
+   collinear = T
+ SF instance: [initialized]
+   beam      = 2
+   incoming  = 1
+   radiated  = 2
+   outgoing  = 3
+   parameter = 3
+ Interaction: 6
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ Outgoing:
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+
+* Cleanup
+
+* Test output end: sf_base_8

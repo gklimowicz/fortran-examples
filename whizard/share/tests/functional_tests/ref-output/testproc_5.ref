@@ -1,0 +1,98 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "unit_test"
+| Process library 'testproc_5_lib': recorded process 'testproc_5_p1'
+seed = 0
+| Process library 'testproc_5_lib': compiling ...
+| Process library 'testproc_5_lib': ... success.
+$phs_method = "single"
+$integration_method = "midpoint"
+sqrts =  1.000000000000E+03
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process testproc_5_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   s  (mass = 1.2500000E+02 GeV)
+|   s  (mass = 1.2500000E+02 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'testproc_5_p1'
+|   Library name  = 'testproc_5_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'testproc_5_p1_i1':   s, s => s, s [unit_test]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: single-particle
+Warning: No cuts have been defined.
+| Starting integration for process 'testproc_5_p1'
+| Integrate: iterations = 1:1000
+| Integrator: 1 channels, 2 dimensions
+| Integrator: Midpoint rule: 1 binned dimensions
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00*  96.82
+|-----------------------------------------------------------------------------|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00   96.82
+|=============================================================================|
+n_events = 1
+?read_raw = false
+$sample = "testproc_5a"
+| Starting simulation for process 'testproc_5_p1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.2909E-04
+| Events: writing to weight stream file 'testproc_5a.weights.dat'
+| Events: writing to raw file 'testproc_5a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing weight stream file 'testproc_5a.weights.dat'
+| Events: closing raw file 'testproc_5a.evx'
+?write_raw = false
+$sample = "testproc_5b"
+?update_event = true
+?update_sqme = false
+| Starting simulation for process 'testproc_5_p1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.2909E-04
+| Recalculating observables
+| Events: reading from raw file 'testproc_5a.evx'
+| Events: writing to weight stream file 'testproc_5b.weights.dat'
+| Rescanning unweighted events ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'testproc_5b.weights.dat'
+| Events: closing raw file 'testproc_5a.evx'
+$sample = "testproc_5c"
+?update_sqme = true
+| Starting simulation for process 'testproc_5_p1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.2909E-04
+| Recalculating observables
+| Recalculating squared matrix elements
+| Events: reading from raw file 'testproc_5a.evx'
+| Events: writing to weight stream file 'testproc_5c.weights.dat'
+| Rescanning unweighted events (process parameters updated) ...
+| ... event file terminates after 1 events.
+| Events: closing weight stream file 'testproc_5c.weights.dat'
+| Events: closing raw file 'testproc_5a.evx'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of testproc_5a.weights.dat
+0  1.0000000000E+00  1.0000000000E+00  1.0000000000E+00 1
+Contents of testproc_5b.weights.dat
+0  1.0000000000E+00  1.0000000000E+00  1.0000000000E+00 1
+Contents of testproc_5c.weights.dat
+0  1.0000000000E+00  1.0000000000E+00  1.0000000000E+00 1

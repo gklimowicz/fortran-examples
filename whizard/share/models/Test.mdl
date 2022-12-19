@@ -1,0 +1,32 @@
+########################################################################
+# Test model: Yukawa interaction of fermion and scalar [top and Higgs]
+model "Test"
+
+# Independent parameters
+### DO NOT CHANGE THE ORDER OF THESE PARAMETERS
+parameter  gy	= 1  	    # Yukawa coupling
+parameter  ms	= 125 GeV   # Scalar mass
+parameter  ff   = 1.5       # Factor mf / ms (for external module)
+
+external   mf	      	    # Fermion mass computed by external module
+
+########################################################################
+# Particle content
+
+particle SCALAR 25
+  spin 0
+  name s
+  mass ms
+
+particle FERMION 6
+  spin 1/2  charge  2/3  isospin  1/2  color 3
+  name f
+  anti fbar F
+  tex_anti "\bar{f}"
+  mass mf
+
+########################################################################
+# Vertices
+
+vertex F f s
+vertex s s s

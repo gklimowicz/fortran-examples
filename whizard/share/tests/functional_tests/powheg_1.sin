@@ -1,0 +1,63 @@
+# SINDARIN input for WHIZARD self-test
+# Testing POWHEG matching for the process ee -> tt
+# The second part of this test tests powheg matching together with a
+# separation of the real contribution into finite and singular part.
+
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+?pacify = true
+
+seed = 0
+
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+$loop_me_method = "dummy"
+?alphas_is_fixed = false
+?alphas_from_mz = true
+alpha_power = 2
+alphas_power = 0
+?combined_nlo_integration = true
+
+?powheg_matching = true
+powheg_grid_size_xi = 5
+powheg_grid_size_y = 5
+powheg_pt_min = 1
+?powheg_use_singular_jacobian = false
+
+# hardest jet pT
+scale = eval Pt [sort by -Pt [colored]]
+
+process powheg_1_p1 = E1, e1 => t, T { nlo_calculation = full }
+
+sqrts = 500 GeV
+
+integrate (powheg_1_p1) { iterations = 1:100:"gw" }
+
+n_events = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+simulate (powheg_1_p1)
+n_events = 2
+simulate (powheg_1_p1)
+
+$real_partition_mode = "singular"
+real_partition_scale = 5 GeV
+
+process powheg_1_p2 = E1, e1 => t, T { nlo_calculation = full }
+integrate (powheg_1_p2) { iterations = 1:100:"gw" }
+
+expect (integral(powheg_1_p1) == integral(powheg_1_p2))
+  {tolerance = 3 * sqrt(error(powheg_1_p1)**2 + error(powheg_1_p2)**2)}
+
+simulate (powheg_1_p2)

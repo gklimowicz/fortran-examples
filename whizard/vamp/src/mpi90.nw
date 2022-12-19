@@ -1,0 +1,636 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP mpi90 code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Idiomatic Fortran90 Interface for MPI}
+<<[[mpi90.f90]]>>=
+! mpi90.f90 --
+<<Copyleft notice>>
+module mpi90
+  use kinds
+  use mpi
+  implicit none
+  private
+  <<Declaration of [[mpi90]] procedures>>
+  <<Interfaces of [[mpi90]] procedures>>
+  <<Parameters in [[mpi90]]>>
+  <<Variables in [[mpi90]]>>
+  <<Declaration of [[mpi90]] types>>
+contains
+  <<Implementation of [[mpi90]] procedures>>
+end module mpi90
+@ %def mpi90
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Basics}
+<<Declaration of [[mpi90]] procedures>>=
+public :: mpi90_init
+public :: mpi90_finalize
+public :: mpi90_abort
+public :: mpi90_print_error
+public :: mpi90_size
+public :: mpi90_rank
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_init (error)
+  integer, intent(out), optional :: error
+  integer :: local_error
+  character(len=*), parameter :: FN = "mpi90_init"
+  external mpi_init
+  call mpi_init (local_error)
+  <<Handle [[local_error]] (no [[mpi90_abort]])>>
+end subroutine mpi90_init
+@ %def mpi90_init
+@ 
+<<Handle [[local_error]] (no [[mpi90_abort]])>>=
+if (present (error)) then
+   error = local_error
+else
+   if (local_error /= MPI_SUCCESS) then
+      call mpi90_print_error (local_error, FN)
+      stop
+   end if
+end if
+@ 
+<<Handle [[local_error]]>>=
+if (present (error)) then
+   error = local_error
+else
+   if (local_error /= MPI_SUCCESS) then
+      call mpi90_print_error (local_error, FN)
+      call mpi90_abort (local_error)
+      stop
+   end if
+end if
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_finalize (error)
+  integer, intent(out), optional :: error
+  integer :: local_error
+  character(len=*), parameter :: FN = "mpi90_finalize"
+  external mpi_finalize
+  call mpi_finalize (local_error)
+  <<Handle [[local_error]]>>
+end subroutine mpi90_finalize
+@ %def mpi90_finalize
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_abort (code, domain, error)
+  integer, intent(in), optional :: code, domain
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_abort"
+  integer :: local_domain, local_code, local_error
+  external mpi_abort
+  if (present (code)) then
+     local_code = code
+  else
+     local_code = MPI_ERR_UNKNOWN
+  end if
+  <<Set default for [[domain]]>>
+  call mpi_abort (local_domain, local_code, local_error)
+  <<Handle [[local_error]] (no [[mpi90_abort]])>>
+end subroutine mpi90_abort
+@ %def mpi90_abort
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_print_error (error, msg)
+  integer, intent(in) :: error
+  character(len=*), optional :: msg
+  character(len=*), parameter :: FN = "mpi90_print_error"
+  integer :: msg_len, local_error
+  external mpi_error_string
+  call mpi_error_string (error, msg, msg_len, local_error)
+  if (local_error /= MPI_SUCCESS) then
+     print *, "PANIC: even MPI_ERROR_STRING() failed!!!"
+     call mpi90_abort (local_error)
+  else if (present (msg)) then
+     print *, trim (msg), ": ", trim (msg(msg_len+1:))
+  else
+     print *, "mpi90: ", trim (msg(msg_len+1:))
+  end if
+end subroutine mpi90_print_error
+@ %def mpi90_print_error
+@
+<<Set default for [[domain]]>>=
+if (present (domain)) then
+   local_domain = domain
+else
+   local_domain = MPI_COMM_WORLD
+end if
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_size (sz, domain, error)
+  integer, intent(out) :: sz
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_size"
+  integer :: local_domain, local_error
+  external mpi_comm_size
+  <<Set default for [[domain]]>>
+  call mpi_comm_size (local_domain, sz, local_error)
+  <<Handle [[local_error]]>>
+end subroutine mpi90_size
+@ %def mpi90_size
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_rank (rank, domain, error)
+  integer, intent(out) :: rank
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_rank"
+  integer :: local_domain, local_error
+  external mpi_comm_rank
+  <<Set default for [[domain]]>>
+  call mpi_comm_rank (local_domain, rank, local_error)
+  <<Handle [[local_error]]>>
+end subroutine mpi90_rank
+@ %def mpi90_rank
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Point to Point}
+<<Declaration of [[mpi90]] procedures>>=
+public :: mpi90_send
+public :: mpi90_receive
+public :: mpi90_receive_pointer
+@
+<<Interfaces of [[mpi90]] procedures>>=
+interface mpi90_send
+   module procedure &
+        mpi90_send_integer, mpi90_send_double, &
+        mpi90_send_integer_array, mpi90_send_double_array, &
+        mpi90_send_integer_array2, mpi90_send_double_array2
+end interface
+@ %def mpi90_send
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_send_integer (value, target, tag, domain, error)
+  integer, intent(in) :: value
+  integer, intent(in) :: target, tag
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  call mpi90_send_integer_array ((/ value /), target, tag, domain, error)
+end subroutine mpi90_send_integer
+@ %def mpi90_send_integer
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_send_double (value, target, tag, domain, error)
+  real(kind=default), intent(in) :: value
+  integer, intent(in) :: target, tag
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  call mpi90_send_double_array ((/ value /), target, tag, domain, error)
+end subroutine mpi90_send_double
+@ %def mpi90_send_double
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_send_integer_array (buffer, target, tag, domain, error)
+  integer, dimension(:), intent(in) :: buffer
+  integer, intent(in) ::  target, tag
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_send_integer_array"
+  integer, parameter :: datatype = MPI_INTEGER
+  <<Body of [[mpi90_send_*_array]]>>
+end subroutine mpi90_send_integer_array
+@ %def mpi90_send_integer_array
+@ 
+<<Body of [[mpi90_send_*_array]]>>=
+integer :: local_domain, local_error
+external mpi_send
+<<Set default for [[domain]]>>
+call mpi_send (buffer, size (buffer), datatype, target, tag, &
+               local_domain, local_error)
+<<Handle [[local_error]]>>
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_send_double_array (buffer, target, tag, domain, error)
+  real(kind=default), dimension(:), intent(in) :: buffer
+  integer, intent(in) :: target, tag
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_send_double_array"
+  integer, parameter :: datatype = MPI_DOUBLE_PRECISION
+  <<Body of [[mpi90_send_*_array]]>>
+end subroutine mpi90_send_double_array
+@ %def mpi90_send_double_array
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_send_integer_array2 (value, target, tag, domain, error)
+  integer, dimension(:,:), intent(in) :: value
+  integer, intent(in) :: target, tag
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  integer, dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_send_integer_array (buffer, target, tag, domain, error)
+end subroutine mpi90_send_integer_array2
+@ %def mpi90_send_integer_array2
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_send_double_array2 (value, target, tag, domain, error)
+  real(kind=default), dimension(:,:), intent(in) :: value
+  integer, intent(in) :: target, tag
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  real(kind=default), dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_send_double_array (buffer, target, tag, domain, error)
+end subroutine mpi90_send_double_array2
+@ %def mpi90_send_double_array2
+@ 
+<<Declaration of [[mpi90]] types>>=
+type, public :: mpi90_status
+   integer :: count, source, tag, error
+end type mpi90_status
+@ %def mpi90_status
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_integer (value, source, tag, domain, status, error)
+  integer, intent(out) :: value
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  integer, dimension(1)  :: buffer
+  call mpi90_receive_integer_array (buffer, source, tag, domain, status, error)
+  value = buffer(1)
+end subroutine mpi90_receive_integer
+@ %def mpi90_receive_integer
+@
+<<Interfaces of [[mpi90]] procedures>>=
+interface mpi90_receive
+   module procedure &
+        mpi90_receive_integer, mpi90_receive_double, &
+        mpi90_receive_integer_array, mpi90_receive_double_array, &
+        mpi90_receive_integer_array2, mpi90_receive_double_array2
+end interface
+@ %def mpi90_receive
+@
+<<Set defaults for [[source]], [[tag]] and [[domain]]>>=
+if (present (source)) then
+   local_source = source
+else
+   local_source = MPI_ANY_SOURCE
+end if
+if (present (tag)) then
+   local_tag = tag
+else
+   local_tag = MPI_ANY_TAG
+end if
+<<Set default for [[domain]]>>
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_double (value, source, tag, domain, status, error)
+  real(kind=default), intent(out) :: value
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  real(kind=default), dimension(1) :: buffer
+  call mpi90_receive_double_array (buffer, source, tag, domain, status, error)
+  value = buffer(1)
+end subroutine mpi90_receive_double
+@ %def mpi90_receive_double
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_integer_array &
+     (buffer, source, tag, domain, status, error)
+  integer, dimension(:), intent(out) :: buffer
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_receive_integer_array"
+  integer, parameter :: datatype = MPI_INTEGER
+  <<Body of [[mpi90_receive_*_array]]>>
+end subroutine mpi90_receive_integer_array
+@ %def mpi90_receive_integer_array
+@ 
+<<Body of [[mpi90_receive_*_array]]>>=
+integer :: local_source, local_tag, local_domain, local_error
+integer, dimension(MPI_STATUS_SIZE) :: local_status
+external mpi_receive, mpi_get_count
+<<Set defaults for [[source]], [[tag]] and [[domain]]>>
+call mpi_recv (buffer, size (buffer), datatype, local_source, local_tag, &
+               local_domain, local_status, local_error)
+<<Handle [[local_error]]>>
+if (present (status)) then
+   call decode_status (status, local_status, datatype)
+end if
+@
+<<Declaration of [[mpi90]] procedures>>=
+private :: decode_status
+@
+\begin{dubious}
+  Can we ignore [[ierror]]???
+\end{dubious}
+<<Implementation of [[mpi90]] procedures>>=
+subroutine decode_status (status, mpi_status, datatype)
+  type(mpi90_status), intent(out) :: status
+  integer, dimension(:), intent(in) :: mpi_status
+  integer, intent(in), optional :: datatype
+  integer :: ierror
+  if (present (datatype)) then
+     call mpi_get_count (mpi_status, datatype, status%count, ierror)
+  else
+     status%count = 0
+  end if
+  status%source = mpi_status(MPI_SOURCE)
+  status%tag = mpi_status(MPI_TAG)
+  status%error = mpi_status(MPI_ERROR)
+end subroutine decode_status
+@ %def decode_status
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_double_array &
+     (buffer, source, tag, domain, status, error)
+  real(kind=default), dimension(:), intent(out) :: buffer
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_receive_double_array"
+  integer, parameter :: datatype = MPI_DOUBLE_PRECISION
+  <<Body of [[mpi90_receive_*_array]]>>
+end subroutine mpi90_receive_double_array
+@ %def mpi90_receive_double_array
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_integer_array2 &
+     (value, source, tag, domain, status, error)
+  integer, dimension(:,:), intent(out) :: value
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  integer, dimension(size(value)) :: buffer
+  call mpi90_receive_integer_array &
+       (buffer, source, tag, domain, status, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_receive_integer_array2
+@ %def mpi90_receive_integer_array2
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_double_array2 &
+     (value, source, tag, domain, status, error)
+  real(kind=default), dimension(:,:), intent(out) :: value
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  real(kind=default), dimension(size(value)) :: buffer
+  call mpi90_receive_double_array &
+	(buffer, source, tag, domain, status, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_receive_double_array2
+@ %def mpi90_receive_double_array2
+@
+<<Interfaces of [[mpi90]] procedures>>=
+interface mpi90_receive_pointer
+   module procedure &
+        mpi90_receive_integer_pointer, mpi90_receive_double_pointer
+end interface
+@ %def mpi90_receive_pointer
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_integer_pointer &
+     (buffer, source, tag, domain, status, error)
+  integer, dimension(:), pointer :: buffer
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_receive_integer_pointer"
+  integer, parameter :: datatype = MPI_INTEGER
+  <<Body of [[mpi90_receive_*_pointer]]>>
+end subroutine mpi90_receive_integer_pointer
+@ %def mpi90_receive_integer_pointer
+@ 
+<<Body of [[mpi90_receive_*_pointer]]>>=
+integer :: local_source, local_tag, local_domain, local_error, buffer_size
+integer, dimension(MPI_STATUS_SIZE) :: local_status
+integer :: ierror
+external mpi_receive, mpi_get_count
+<<Set defaults for [[source]], [[tag]] and [[domain]]>>
+@ 
+<<Body of [[mpi90_receive_*_pointer]]>>=
+call mpi_probe (local_source, local_tag, local_domain, &
+	        local_status, local_error)
+<<Handle [[local_error]]>>
+@ 
+\begin{dubious}
+  Can we ignore [[ierror]]???
+\end{dubious}
+<<Body of [[mpi90_receive_*_pointer]]>>=
+call mpi_get_count (local_status, datatype, buffer_size, ierror)
+if (associated (buffer)) then
+   if (size (buffer) /= buffer_size) then
+      deallocate (buffer)
+      allocate (buffer(buffer_size))
+   end if
+else
+   allocate (buffer(buffer_size))
+end if
+@ 
+<<Body of [[mpi90_receive_*_pointer]]>>=
+call mpi_recv (buffer, size (buffer), datatype, local_source, local_tag, &
+               local_domain, local_status, local_error)
+@ 
+<<Body of [[mpi90_receive_*_pointer]]>>=
+<<Handle [[local_error]]>>
+if (present (status)) then
+   call decode_status (status, local_status, datatype)
+end if
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_receive_double_pointer &
+     (buffer, source, tag, domain, status, error)
+  real(kind=default), dimension(:), pointer :: buffer
+  integer, intent(in), optional :: source, tag, domain
+  type(mpi90_status), intent(out), optional :: status
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_receive_double_pointer"
+  integer, parameter :: datatype = MPI_DOUBLE_PRECISION
+  <<Body of [[mpi90_receive_*_pointer]]>>
+end subroutine mpi90_receive_double_pointer
+@ %def mpi90_receive_double_pointer
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Collective Communication}
+<<Declaration of [[mpi90]] procedures>>=
+public :: mpi90_broadcast
+@
+<<Interfaces of [[mpi90]] procedures>>=
+interface mpi90_broadcast
+   module procedure &
+        mpi90_broadcast_integer, mpi90_broadcast_integer_array, &
+        mpi90_broadcast_integer_array2, mpi90_broadcast_integer_array3, &
+        mpi90_broadcast_double, mpi90_broadcast_double_array, &
+        mpi90_broadcast_double_array2, mpi90_broadcast_double_array3, &
+        mpi90_broadcast_logical, mpi90_broadcast_logical_array, &
+        mpi90_broadcast_logical_array2, mpi90_broadcast_logical_array3
+end interface
+@ %def mpi90_broadcast
+@
+<<Set default for [[domain]]>>=
+if (present (domain)) then
+   local_domain = domain
+else
+   local_domain = MPI_COMM_WORLD
+end if
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_integer (value, root, domain, error)
+  integer, intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  integer, dimension(1) :: buffer
+  buffer(1) = value
+  call mpi90_broadcast_integer_array (buffer, root, domain, error)
+  value = buffer(1)
+end subroutine mpi90_broadcast_integer
+@ %def mpi90_broadcast_integer
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_double (value, root, domain, error)
+  real(kind=default), intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  real(kind=default), dimension(1) :: buffer
+  buffer(1) = value
+  call mpi90_broadcast_double_array (buffer, root, domain, error)
+  value = buffer(1)
+end subroutine mpi90_broadcast_double
+@ %def mpi90_broadcast_double
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_logical (value, root, domain, error)
+  logical, intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  logical, dimension(1) :: buffer
+  buffer(1) = value
+  call mpi90_broadcast_logical_array (buffer, root, domain, error)
+  value = buffer(1)
+end subroutine mpi90_broadcast_logical
+@ %def mpi90_broadcast_logical
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_integer_array (buffer, root, domain, error)
+  integer, dimension(:), intent(inout) :: buffer
+  integer, intent(in) ::  root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  character(len=*), parameter :: FN = "mpi90_broadcast_integer_array"
+  integer, parameter :: datatype = MPI_INTEGER
+  <<Body of [[mpi90_broadcast_*_array]]>>
+end subroutine mpi90_broadcast_integer_array
+@ %def mpi90_broadcast_integer_array
+@ 
+<<Body of [[mpi90_broadcast_*_array]]>>=
+integer :: local_domain, local_error
+external mpi_bcast
+<<Set default for [[domain]]>>
+call mpi_bcast (buffer, size (buffer), datatype, root, &
+	        local_domain, local_error)
+<<Handle [[local_error]]>>
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_double_array (buffer, root, domain, error)
+  real(kind=default), dimension(:), intent(inout) :: buffer
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  integer, parameter :: datatype = MPI_DOUBLE_PRECISION
+  character(len=*), parameter :: FN = "mpi90_broadcast_double_array"
+  <<Body of [[mpi90_broadcast_*_array]]>>
+end subroutine mpi90_broadcast_double_array
+@ %def mpi90_broadcast_double_array
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_logical_array (buffer, root, domain, error)
+  logical, dimension(:), intent(inout) :: buffer
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  integer, parameter :: datatype = MPI_LOGICAL
+  character(len=*), parameter :: FN = "mpi90_broadcast_logical_array"
+  <<Body of [[mpi90_broadcast_*_array]]>>
+end subroutine mpi90_broadcast_logical_array
+@ %def mpi90_broadcast_logical_array
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_integer_array2 (value, root, domain, error)
+  integer, dimension(:,:), intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  integer, dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_broadcast_integer_array (buffer, root, domain, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_broadcast_integer_array2
+@ %def mpi90_broadcast_integer_array2
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_double_array2 (value, root, domain, error)
+  real(kind=default), dimension(:,:), intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  real(kind=default), dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_broadcast_double_array (buffer, root, domain, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_broadcast_double_array2
+@ %def mpi90_broadcast_double_array2
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_logical_array2 (value, root, domain, error)
+  logical, dimension(:,:), intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  logical, dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_broadcast_logical_array (buffer, root, domain, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_broadcast_logical_array2
+@ %def mpi90_broadcast_logical_array2
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_integer_array3 (value, root, domain, error)
+  integer, dimension(:,:,:), intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  integer, dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_broadcast_integer_array (buffer, root, domain, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_broadcast_integer_array3
+@ %def mpi90_broadcast_integer_array3
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_double_array3 (value, root, domain, error)
+  real(kind=default), dimension(:,:,:), intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  real(kind=default), dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_broadcast_double_array (buffer, root, domain, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_broadcast_double_array3
+@ %def mpi90_broadcast_double_array3
+@
+<<Implementation of [[mpi90]] procedures>>=
+subroutine mpi90_broadcast_logical_array3 (value, root, domain, error)
+  logical, dimension(:,:,:), intent(inout) :: value
+  integer, intent(in) :: root
+  integer, intent(in), optional :: domain
+  integer, intent(out), optional :: error
+  logical, dimension(size(value)) :: buffer
+  buffer = reshape (value, shape(buffer))
+  call mpi90_broadcast_logical_array (buffer, root, domain, error)
+  value = reshape (buffer, shape(value))
+end subroutine mpi90_broadcast_logical_array3
+@ %def mpi90_broadcast_logical_array3
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

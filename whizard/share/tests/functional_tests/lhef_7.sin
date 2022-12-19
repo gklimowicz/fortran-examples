@@ -1,0 +1,51 @@
+# Sindarin input for WHIZARD self-test
+# Process p p => W+ W- => 4f
+
+model = "SM"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process lhef_7_p1 = "u", "ubar" => "W+", "W-"
+
+process lhef_7_d1 = "W+" => u, dbar
+process lhef_7_d2 = "W-" => e1, N1
+
+integrate (lhef_7_d1) { error_threshold = 1E-8 }
+integrate (lhef_7_d2) { error_threshold = 1E-8 }
+
+unstable "W+" (lhef_7_d1)
+unstable "W-" (lhef_7_d2)
+
+sqrts = 8000
+beams = p, p => pdf_builtin
+
+cuts = sqrts_hat > 500 and all Pt > 50 [Wp:Wm:Z]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+?unweighted = false
+?read_raw = false
+?write_raw = false
+
+simulate (lhef_7_p1) {
+  sample_format = lhef, mokka
+  $sample = "lhef_7a"
+  iterations = 5:1000, 1:1000
+}
+
+rescan "lhef_7a" (lhef_7_p1) {
+  $rescan_input_format = "lhef"
+  sample_format = mokka
+  $sample = "lhef_7b"
+  ?update_sqme = true
+}

@@ -1,0 +1,1599 @@
+% prelude.nw --
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\iffalse %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To: hep-ph@xxx.lanl.gov
+Subject: put
+
+\\
+Title: CIRCE1:  Beam Spectra for Linear Collider Physics
+Author: Thorsten Ohl (TH Darmstadt)
+Comments: 26 pages, LaTeX (using amsmath.sty), PostScript figures
+  included, paper saving version formatted for A4 available from
+  ftp://crunch.ikp.physik.th-darmstadt.de/pub/preprints/IKDA-96-13.ps.gz
+Report-no: IKDA 96/13
+\\
+I describe parameterizations of realistic $e^\pm$- and $\gamma$-beam
+spectra at future linear $e^+e^-$-colliders.  Emphasis is put on
+simplicity and reproducibility of the parameterizations, supporting
+reproducible physics simulations. The parameterizations are
+implemented in a library of distribution functions and event
+generators.
+\\
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\Kirke/{\texttt{Circe1}}
+\def\Circe/{\texttt{circe1}}
+\def\Hydra/{\texttt{Hydra}}
+\def\Version/{2.2}
+\def\Date/{March 2014}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{ifpdf}
+\ifpdf
+  \documentclass[a4paper]{article}
+  \usepackage{type1cm}
+  \usepackage[pdftex,colorlinks]{hyperref}
+  \usepackage[pdftex]{graphicx}
+  \DeclareGraphicsRule{*}{mps}{*}{}
+\else
+  \documentclass[a4paper]{article}
+  \usepackage[T1]{fontenc}
+  \usepackage{graphicx}
+\fi
+\usepackage{amsmath}
+\allowdisplaybreaks
+%%% \usepackage{mcite}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{noweb}
+\setlength{\unitlength}{1mm}
+\setlength{\nwmarginglue}{1em}
+%%% Saving paper:
+\def\nwendcode{\endtrivlist\endgroup}
+\nwcodepenalty=0
+\let\nwdocspar\relax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Some decorations depend on local stuff.  Make it optional.
+\usepackage{thohacks}
+\usepackage[english]{babel}%
+\IfFileExists{mflogo.sty}%
+  {\usepackage{mflogo}}%
+  {\def\MF{\textsf{META}\-\textsf{FONT}}}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newenvironment{params}%
+ {\begin{list}{}%
+   {\setlength{\leftmargin}{2em}%
+    \setlength{\rightmargin}{2em}%
+    \setlength{\itemindent}{-1em}%
+    \setlength{\listparindent}{0pt}%
+    \renewcommand{\makelabel}{\hfil}}}%
+ {\end{list}}
+\makeatletter
+\def\preprintno#1{\gdef\thepreprintno{#1}}
+\def\thepreprintno{}
+\let\orig@maketitle\maketitle
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% LOTS of floats:
+\setcounter{topnumber}{3}              % 2
+\setcounter{bottomnumber}{3}           % 2
+\setcounter{totalnumber}{5}            % 3
+\renewcommand{\topfraction}{0.95}      % 0.7
+\renewcommand{\bottomfraction}{0.95}   % 0.3
+\renewcommand{\textfraction}{0.05}     % 0.2
+\renewcommand{\floatpagefraction}{0.5} % 0.5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeindex
+\begin{document}
+\bibliographystyle{prsty}%%%{unsrt}%%%{physics}
+\title{%
+  \Kirke/ (internal Version \Version/):\\
+  Beam Spectra for Simulating Linear Collider Physics%
+    \thanks{%
+       Supported by Bundesministerium f\"ur Bildung,
+       Wissenschaft, Forschung und Technologie, Germany.}}
+\author{%
+  Thorsten Ohl%
+    \thanks{e-mail: \texttt{ohl@physik.uni-wuerzburg.de}}\\
+  \hfil\\
+    University of W\"urzburg \\
+    Emil-Hilb-Weg 22 \\
+    D-97089 W\"urzburg\\
+    Germany}
+\preprintno{\hfil}
+\date{%
+  IKDA 96/13-rev\\
+  hep-ph/9607454-rev\\
+  July 1996 (expanded \Date/)}
+\maketitle
+\begin{abstract}
+  I describe parameterizations of realistic $e^\pm$- and $\gamma$-beam
+  spectra at future linear $e^+e^-$-colliders.  Emphasis is put on
+  simplicity and reproducibility of the parameterizations, supporting
+  reproducible physics simulations. The parameterizations are
+  implemented in a library of distribution functions and event
+  generators.
+\end{abstract}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents                                               %!MANUAL%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!MANUAL%
+\newpage
+\section*{Program Summary:}
+\begin{itemize}
+  \item \textbf{Title of program:}
+    \Kirke/ (\Date/)
+%CPC%  \item \textbf{Catalogue number:}
+%CPC%    ????
+  \item \textbf{Program obtainable}
+%CPC%    from CPC Program Library, Queen's University of Belfast,
+%CPC%    N.~Ireland (see application form in this issue) or
+    by anonymous \verb|ftp| from the host
+    \hfil\allowbreak\verb|crunch.ikp.physik.th-darmstadt.de|
+    in the directory
+    \allowbreak\verb|pub/ohl/circe|.
+  \item \textbf{Licensing provisions:}
+    Free software under the GNU General Public License.
+  \item \textbf{Programming language used:}
+    Fortran77 originally, transferred to Fortran90
+  \item \textbf{Number of program lines in distributed program, including
+      test data, etc.:}
+    $\approx$ 1100 (excluding comments)
+  \item \textbf{Computer/Operating System:}
+    Any with a Fortran90 programming environment.
+  \item \textbf{Memory required to execute with typical data:}
+    Negligible on the scale of typical applications calling the library.
+  \item \textbf{Typical running time:}
+    A small fraction (typically a few percent) of the running time of
+    applications calling the library.
+  \item \textbf{Purpose of program:}
+    Provide simple and reproducible, yet realistic, parameterizations
+    of the $e^\pm$- and $\gamma$-beam spectra for linear colliders.
+  \item \textbf{Nature of physical problem:}
+    The intricate beam dynamics in the interaction region of a
+    high luminosity linear collider at $\sqrt s = 500$GeV result in
+    non-trivial energy spectra of the scattering electrons, positrons and
+    photons.  Physics simulations require simple and reproducible, yet
+    realistic, parameterizations of these spectra.
+  \item \textbf{Method of solution:}
+    Parameterization, curve fitting, Monte Carlo event generation. 
+  \item \textbf{Keywords:}
+    Event generation, beamstrahlung, linear colliders.
+\end{itemize}
+\newpage
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+Despite the enormous quantitative success of the electro-weak standard
+model up to energies of $200\text{GeV}$, neither the nature of
+electro-weak symmetry breaking~(EWSB) nor the origin of mass are
+understood.\par
+{}From theoretical considerations, we know that clues to the answer
+of these open questions are hidden in the energy range
+below~$\Lambda_{\text{EWSB}} = 4\pi v \approx 3.1\text{TeV}$.  Either
+we will discover a Higgs particle in this energy range or signatures
+for a strongly interacting EWSB sector will be found.  Experiments at
+CERN's Large Hadron Collider~(LHC) will shed a first light on this
+regime in the next decade.  In the past is has been very fruitful to
+complement experiments at high energy hadron colliders with
+experiments at $e^+e^-$-colliders. The simpler initial state allows
+more precise measurements with smaller theoretical errors.  Lucid
+expositions of the physics opportunities of high energy $e^+e^-$
+colliders with references to the literature can be found
+in~\cite{Murayama/Peskin:1996:LC_review}.\par
+However, the power emitted by circular storage rings in form of
+synchrotron radiation scales like~$(E/m)^4/R^2$ with the energy and
+mass of the particle and the radius of the ring.  This cost becomes
+prohibitive after LEP2 and a Linear Collider~(LC) has to be built
+instead.\par
+Unfortunately, the ``interesting'' hard cross sections scale
+like~$1/s$ with the square of the center of mass energy and a LC
+will have to operate at extremely high luminosities in excess
+of~$10^{33}\text{cm}^{-2}\text{s}^{-1}$.  To achieve such luminosities,
+the bunches of electrons and positrons have to be very dense. Under
+these conditions, the electrons undergo acceleration from strong
+electromagnetic forces from the positron bunch (and vice versa).  The
+resulting synchrotron radiation is called
+\emph{beamstrahlung}~\cite{Chen/Noble:1986:Beamstrahlung}
+and has a strong effect on
+the energy spectrum~$D(x_1,x_2)$ of the colliding particles.  This
+changes the observable $e^+e^-$~cross sections
+\begin{subequations}
+\begin{align}
+  \frac{d\sigma^{e^+e^-}_0}{d\Omega}(s) \to
+  \frac{d\sigma^{e^+e^-}}{d\Omega}(s) &=
+    \int_0^1 \!dx_1dx_2\, D_{e^+e^-} (x_1,x_2;\sqrt s)
+       J(\Omega',\Omega) \frac{d\sigma^{e^+e^-}_0}{d\Omega'}(x_1x_2s)\\
+\intertext{%
+  and produces luminosity for $e^\pm\gamma$ and
+  $\gamma\gamma$~collisions:}
+  \frac{d\sigma^{e^\pm\gamma}}{d\Omega}(s) &=
+    \int_0^1 \!dx_1dx_2\, D_{e^\pm\gamma} (x_1,x_2;\sqrt s)
+       J(\Omega',\Omega) \frac{d\sigma^{e^\pm\gamma}_0}{d\Omega'}(x_1x_2s)\\
+  \frac{d\sigma^{\gamma\gamma}}{d\Omega}(s) &=
+    \int_0^1 \!dx_1dx_2\, D_{\gamma\gamma} (x_1,x_2;\sqrt s)
+       J(\Omega',\Omega) \frac{d\sigma^{\gamma\gamma}_0}{d\Omega'}(x_1x_2s)
+\end{align}
+\end{subequations}
+Therefore, simulations of the physics expected at a LC
+need to know the spectra of the~$e^\pm$ and~$\gamma$ beams
+precisely.\par
+Microscopic simulations of the beam dynamics are available
+(e.g.~\texttt{ABEL}\cite{Yokoya:1985:ABEL},
+\texttt{CAIN}\cite{Chen/etal:1995:CAIN}
+and~\texttt{Guinea-Pig}\cite{Schulte:1996:Thesis}) and their
+predictions are compatible with each other.
+But they require too much computer time and memory for direct use in 
+physics programs.  \Kirke/ provides a fast and simple parameterization
+of the results from these simulations.  Furthermore, even if the
+computational cost of the simulations would be negligible, the input
+parameters for microscopic simulations are not convenient for particle
+physics applications.  Due to the highly non-linear beam dynamics,
+the optimization of LC designs is a subtle
+art~\cite{Palmer:1990:LC_review}, that is best practiced by the
+experts.  Furthermore, particle physics applications
+need benchmarking and \text{easily reproducible}
+parameterizations are required for this purpose.\par
+The parameterizations in \Kirke/ are not based on approximate
+solutions~(cf.~\cite{Chen:1992:Beamstrahlung}) of the beamstrahlung
+dynamics.  Instead, they provide a ``phenomenological'' description of
+the results from full simulations.  The parameterizations are as simple
+as  possible while remaining consistent with basic physical principles:
+\begin{enumerate}
+  \item \emph{positivity:} the distribution functions~$D(x_1,x_2)$
+    \emph{must not} be negative in the physical
+    region~$[0,1]\times[0,1]$.
+  \item \emph{integrability:} the definite integral of the
+    distribution functions over the physical
+    region~$[0,1]\times[0,1]$ \emph{must} exist, even though the
+    distributions can have singularities.
+\end{enumerate}
+This paper is organized as follows: I start in
+section~\ref{sec:parameters} with a discussion of the input for the
+microscopic simulations.  In section~\ref{sec:usage} I describe the
+usage of the \Kirke/ library and in
+section~\ref{sec:technical} I discuss some technical details of the
+implementation.   After discussing the parameterizations available (in
+internal version \Version/) in section~\ref{sec:parameterizations}, I
+conclude in section~\ref{sec:conclusions}.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Parameters}
+\label{sec:parameters}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|c|c|}\hline
+          & \texttt{SBAND} & \texttt{TESLA} & \texttt{XBAND}
+          & \texttt{SBAND} & \texttt{TESLA} & \texttt{XBAND}
+      \\\hline\hline
+      $E/\text{GeV}$                  & 250    &  250    & 250    
+                                      & 500    &  500    & 500    \\\hline
+      $N_{\text{particles}}/10^{10}$  &   1.1  &    3.63 &   0.65 
+                                      &   2.9  &    1.8  &   0.95 \\\hline
+      $\epsilon_x/10^{-6}\text{mrad}$ &   5    &   14    &   5    
+                                      &  10    &   14    &   5    \\\hline
+      $\epsilon_y/10^{-6}\text{mrad}$ &   0.25 &    0.25 &   0.08 
+                                      &   0.1  &    0.06 &   0.1  \\\hline
+      $\beta^*_x/\text{mm}$           &  10.98 &   24.95 &   8.00 
+                                      &  32    &   25    &  10.00 \\\hline
+      $\beta^*_y/\text{mm}$           &   0.45 &    0.70 &   0.13 
+                                      &   0.8  &    0.7  &   0.12 \\\hline
+      $\sigma_x/\text{nm}$            & 335    &  845    & 286    
+                                      & 571.87 &  598.08 & 226    \\\hline
+      $\sigma_y/\text{nm}$            &  15.1  &   18.9  &   4.52 
+                                      &   9.04 &    6.55 &   3.57 \\\hline
+      $\sigma_z/\mu\text{m}$          & 300    &  700    & 100    
+                                      & 500    &  500    & 125    \\\hline
+      $f_{\text{rep}}$                &  50    &    5    & 180    
+                                      &  50    &    5    & 180    \\\hline
+      $n_{\text{bunch}}$              & 333    & 1135    &  90    
+                                      & 125    & 2270    &  90    \\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:acc_param}%
+    Accelerator parameters for three typical designs
+    at~$\protect\sqrt s = 500\text{GeV}$
+    and~$\protect\sqrt s = 1\text{TeV}$.   The resulting
+    distributions are shown in figure~\ref{fig:dist}.  The
+    design efforts are currently concentrated on a
+    $350\text{GeV}$-$800\text{GeV}$ LC.  Therefore the Tesla
+    parameters for~$1\text{TeV}$ are slightly out of date.}
+\end{table}
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{dist.1}\quad\includegraphics{dist.2} \\
+    \includegraphics{dist.3}\quad\includegraphics{dist.4}
+%%    \includegraphics{dist1}\quad\includegraphics{dist2} \\
+%%    \includegraphics{dist3}\quad\includegraphics{dist4}
+  \end{center}
+  \caption{\label{fig:dist}%
+    Version 1, revision 1996 09 02 of the factorized $e^\pm$- and
+    $\gamma$-distributions at~$\protect\sqrt s = 500\text{GeV}$
+    and~$\protect\sqrt s = 1\text{TeV}$ in a doubly logarithmic plot.
+    The accelerator parameters are taken from
+    table~\ref{tab:acc_param}.}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|}\hline
+          & \texttt{TESLA} & \texttt{TESLA} & \texttt{TESLA}
+      \\\hline\hline
+      $E/\text{GeV}$                  &  175    &  250    &  400    \\\hline
+      $N_{\text{particles}}/10^{10}$  &    3.63 &    3.63 &    3.63 \\\hline
+      $\epsilon_x/10^{-6}\text{mrad}$ &   14    &   14    &   14    \\\hline
+      $\epsilon_y/10^{-6}\text{mrad}$ &    0.25 &    0.25 &    0.1  \\\hline
+      $\beta^*_x/\text{mm}$           &   25.00 &   24.95 &   15.00 \\\hline
+      $\beta^*_y/\text{mm}$           &    0.70 &    0.70 &    0.70 \\\hline
+      $\sigma_x/\text{nm}$            & 1010.94 &  845    &  668.67 \\\hline
+      $\sigma_y/\text{nm}$            &   22.6  &   18.9  &    9.46 \\\hline
+      $\sigma_z/\mu\text{m}$          &  700    &  700    &  700    \\\hline
+      $f_{\text{rep}}$                &    5    &    5    &    5    \\\hline
+      $n_{\text{bunch}}$              & 1135    & 1135    & 1135    \\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:acc_param/Tesla}%
+    Accelerator parameters for the Tesla design at three
+    planned~\protect\cite{Tesla:1996:CDR} energies.  The resulting
+    distributions are shown in figure~\ref{fig:dist/Tesla}.}
+\end{table}
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|}\hline
+      & High-$\mathcal{L}$ & Low-$\mathcal{L}$ & Low-$\epsilon_y$
+      \\\hline\hline
+      $E/\text{GeV}$                  &  400    &  400    &  400     \\\hline
+      $N_{\text{particles}}/10^{10}$  &    3.63 &    3.63 &    1.800 \\\hline
+      $\epsilon_x/10^{-6}\text{mrad}$ &   14    &   14    &   12     \\\hline
+      $\epsilon_y/10^{-6}\text{mrad}$ &    0.1  &    0.25 &    0.025 \\\hline
+      $\beta^*_x/\text{mm}$           &   15.00 &   25.00 &   25.00  \\\hline
+      $\beta^*_y/\text{mm}$           &    0.70 &    0.70 &    0.50  \\\hline
+      $\sigma_x/\text{nm}$            &  668.67 &  700.00 &          \\\hline
+      $\sigma_y/\text{nm}$            &    9.46 &         &          \\\hline
+      $\sigma_z/\mu\text{m}$          &  700    &  700    &  500     \\\hline
+      $f_{\text{rep}}$                &    5    &    5    &    3     \\\hline
+      $n_{\text{bunch}}$              & 1135    & 1135    & 2260     \\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:acc_param/Tesla/x}%
+    Variant accelerator parameters for the Tesla design at 800 Gev.}
+\end{table}
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{dist.5}\quad\includegraphics{dist.6}
+%%    \includegraphics{dist5}\quad\includegraphics{dist6}
+  \end{center}
+  \caption{\label{fig:dist/Tesla}%
+    Version 1, revision 1996 09 02 of the factorized $e^\pm$- and
+    $\gamma$-distributions for Tesla in a doubly logarithmic plot.
+    The accelerator parameters are taken from
+    table~\ref{tab:acc_param/Tesla}.}
+\end{figure}
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|}\hline
+          & \texttt{TESLA} & \texttt{TESLA}
+      \\\hline\hline
+      $E/\text{GeV}$                   &  250    &  400    \\\hline
+      $N_{\text{particles}}/10^{10}$   &    2    &    1.40 \\\hline
+      $\epsilon_x/10^{-6}\text{m rad}$ &   10    &    8    \\\hline
+      $\epsilon_y/10^{-6}\text{m rad}$ &    0.03 &    0.01 \\\hline
+      $\beta^*_x/\text{mm}$            &   15.00 &   15.00 \\\hline
+      $\beta^*_y/\text{mm}$            &    0.40 &    0.30 \\\hline
+      $\sigma_x/\text{nm}$             &  553    &  391    \\\hline
+      $\sigma_y/\text{nm}$             &    5    &    2    \\\hline
+      $\sigma_z/\mu\text{m}$           &  400    &  300    \\\hline
+      $f_{\text{rep}}$                 &    5    &    3    \\\hline
+      $n_{\text{bunch}}$               & 2820    & 4500    \\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:acc_param/Tesla/hi}%
+    Accelerator parameters for a high luminosity Tesla design at two
+    planned~\protect\cite{Tesla:1996:CDR} energies.  The resulting
+    distributions are shown in figure~\ref{fig:dist/Tesla/hi}.}
+\end{table}
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics[width=.9\textwidth]{dist78}
+  \end{center}
+  \caption{\label{fig:dist/Tesla/hi}%
+    Version 5, revision 1998 05 05 of the factorized $e^\pm$- and
+    $\gamma$-distributions for a high luminosity Tesla in a doubly
+    logarithmic plot. The accelerator parameters are taken from
+    table~\ref{tab:acc_param/Tesla/hi}.}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{dist.11}\quad\includegraphics{dist.12} \\
+    \includegraphics{dist.13}\quad\includegraphics{dist.14} \\
+  \end{center}
+  \caption{\label{fig:dist/Tesla/ee}%
+    \emph{Experimental:} Version 1, revision 0 of the factorized
+    $e^-$- and $\gamma$-distributions for Tesla-$e^-e^-$ in a doubly
+    logarithmic plot.  The accelerator parameters are taken from
+    table~\ref{tab:acc_param/Tesla} and have \emph{not} been endorsed
+    for use in an $e^-e^-$-machine yet!.}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The microscopic simulation program
+\texttt{Guinea-Pig}~\cite{Schulte:1996:Thesis}
+used for the current version of
+the parameterizations in \Kirke/ simulates the
+passage of electrons through a bunch of electrons (and vice versa).
+It takes the following accelerator parameters as input:
+\begin{description}
+  \item[$E$]: the energy of the particles before the beam-beam interaction.
+  \item[$N_{\text{particles}}$]: the number of particles per bunch.
+  \item[$\epsilon_{x,y}$]: the normalized horizontal and vertical emittances.
+  \item[$\beta^*_{x,y}$]: the horizontal and vertical beta functions.
+  \item[$\sigma_{x,y,z}$]: the horizontal, vertical and longitudinal beam
+    size.  A Gaussian shape is used for the charge distribution in the
+    bunches. 
+  \item[$f_{\text{rep}}$]: the repetition rate.
+  \item[$n_{\text{bunch}}$]: the number of bunches per train.
+\end{description}
+The transversal beam sizes, beta functions and normalized emittances
+for relativistic particles are related by
+\begin{equation}
+  \beta^*_{x,y} = \frac{\sigma_{x,y}^2}{\epsilon_{x,y}} \frac{E}{m_e}
+\end{equation}
+The parameters used in the most recent revision of the
+parameterizations are collected in tables~\ref{tab:acc_param}
+and~\ref{tab:acc_param/Tesla}.  The resulting
+factorized electron/positron and photon distributions in version 1 of
+the parameterizations are depicted in figures~\ref{fig:dist}
+and~\ref{fig:dist/Tesla}.\par
+The most important purpose of \Kirke/ is to map the manifold of
+possible beam spectra for the NLC to a \emph{finite} number of
+\emph{reproducible} parameterizations.  The distributions
+\begin{equation}
+\label{eq:dist}
+  D^{\alpha\nu\rho}_{p_1p_2} (x_1, x_2; \sqrt s)
+\end{equation}
+provided by
+\Kirke/ are indexed by three integers
+\begin{description}
+  \item[$\alpha$]: the \emph{accelerator design class:} currently
+    there are three options: S-band~\cite{S-Band:1996:CDR},
+    Tesla~\cite{Tesla:1996:CDR},
+    X-band~\cite{JLC:1992:CDR,NLC:1996:ZDR}.  More
+    variety will be added later, in particular the~$e^-e^-$ mode and
+    the $e^-\gamma$ and~$\gamma\gamma$ laser backscattering modes of
+    these designs.
+  \item[$\nu$]: the \emph{version of the parameterization:} over the years,
+    the form of the parameterizations can change, either because better
+    approximations are found or because new simulation programs become
+    available.  All versions will remain available in order to be able
+    to reproduce calculations.
+  \item[$\rho$]: the \emph{revision date for the parameterization:}  a
+    particular parameterization can contain bugs, which will be fixed
+    in subsequent revisions.  While only the most recent revision should
+    be used for new calculations, old revisions will remain available
+    in order to be able to reproduce calculations.
+\end{description}
+The continuous parameter~$\sqrt s$ in~(\ref{eq:dist}) is misleading, because
+accelerator parameters have been optimized for discrete values of the
+energy.  Therefore the distributions are not available for all values
+of~$\sqrt s$.\par
+The usage of the distributions in application programs is discussed in
+section~\ref{sec:dist-usage}.
+\Kirke/ provides for each of the distributions a non-uniform random
+variate generator, that generates energy
+fractions according to the distributions.  The usage of these
+generators is discussed in section~\ref{sec:mc-usage}.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Usage}
+\label{sec:usage}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Distributions}
+\label{sec:dist-usage}
+A generic interface to all distributions~$D_{p_1p_2}(x_1,x_2)$ is
+given by the \texttt{circe} function
+<<API documentation>>=
+    function circe, d, x1, x2
+      real(kind=double) :: circe
+      integer :: p1, p2
+      d = circe (x1, x2, p1, p2)
+@ where the energy fractions are specified by~$x_{1,2}$ and the
+particles~$p_{1,2}$ are identified by their standard Monte Carlo
+codes (we use [[C1]] as a prefix to avoid name clashes when using 
+[[CIRCE1]] inside [[WHIZARD]]):\cite{PDG:1994}  
+<<Particle codes>>=
+  integer, parameter, public :: C1_ELECTRON = 11
+  integer, parameter, public :: C1_POSITRON = -11
+  integer, parameter, public :: C1_PHOTON = 22
+@ %def C1_ELECTRON C1_POSITRON C1_PHOTON 
+@ The distributions can have integrable singularities at the end points,
+therefore the calling functions \emph{must not} evaluate them at the
+endpoints~$0$ and~$1$. This is usually not a problem, since standard
+mapping techniques~(cf.~(\ref{eq:mapping}) below) will have to be used
+to take care of the singularity anyway.  Nevertheless, all
+applications should favor open quadrature formulae (i.e.~formulae not
+involving the endpoints) over closed formulae.
+@ The distributions are guaranteed to vanish unless~$0<x_{1,2}<1$,
+with two exceptions.  Firstly, the value~$-1$ allows to pick up the
+integral of the continuum contribution:
+\begin{subequations}
+\begin{align}
+  D_{p_1p_2}(-1,x_2) &=
+    \lim_{\epsilon\to+0}\int_\epsilon^{1-\epsilon}\!dx_1\,
+    D_{p_1p_2}(x_1,x_2) \\
+  D_{p_1p_2}(x_1,-1) &=
+    \lim_{\epsilon\to+0}\int_\epsilon^{1-\epsilon}\!dx_2\,
+    D_{p_1p_2}(x_1,x_2) \\
+  D_{p_1p_2}(-1,-1)  &=
+    \lim_{\epsilon\to+0}\int_\epsilon^{1-\epsilon}\!dx_1dx_2\,
+    D_{p_1p_2}(x_1,x_2)
+\end{align}
+\end{subequations}
+The other exception is that the strength of $\delta$-function
+contributions at the endpoint can be picked up from the value at this
+endpoint:
+\begin{subequations}
+\begin{align}
+  D_{e^+e^-} (x_1,x_2)
+   &= D_{e^+e^-} (1,1) \delta(1-x_1) \delta(1-x_2)
+       + \text{smooth and single $\delta$} \\
+  D_{e^\pm\gamma} (x_1,x_2)
+   &= D_{e^\pm\gamma} (1,x_2) \delta(1-x_1) + \text{smooth} \\
+  D_{\gamma e^\pm} (x_1,x_2)
+   &= D_{\gamma e^\pm} (x_1,1) \delta(1-x_2) + \text{smooth}
+\end{align}
+\end{subequations}
+The use of these special values is demonstrated in an example in
+section~\ref{sec:sample-int} below.\par
+The distributions are normalized such that
+\begin{equation}
+  \lim_{\epsilon\to+0}
+    \int_{-\epsilon}^{1+\epsilon}\!dx_1dx_2\, D_{e^+e^-}(x_1,x_2) = 1.
+\end{equation}
+and the nominal $e^+e^-$-luminosity of the currently active
+accelerator design
+can be retrieved from the database with the subroutine [[circel]].
+The value is given in units of
+\begin{equation}
+  \text{fb}^{-1}\upsilon^{-1} = 10^{32} \text{cm}^{-2}\text{sec}^{-1}
+\end{equation}
+where $\upsilon=10^7\text{sec}\approx \text{year}/\pi$ is an
+``effective year'' of running with about 30\%\ up-time.
+<<API documentation>>=
+    real(kind=dobule) :: lumi
+    call circel (lumi)
+@ A particular parameterization is selected by the [[circes]] function:
+<<API documentation>>=
+    real(kind=double) :: x1m, x2m, roots
+    integer :: acc, ver, rev, chat
+    call circes (x1m, x2m, roots, acc, ver, rev, chat)
+@ The parameter [[roots]] corresponds to the nominal center of mass
+energy~$\sqrt s/\text{GeV}$ of the collider.  Currently
+$\sqrt s = 350\text{GeV}, 500\text{GeV}, 800\text{GeV}, 1\text{TeV}$
+(i.e.~[[350D0]], [[500D0]], [[800D0]] and~[[1000D0]]) are supported.
+Application programs can \emph{not} assume
+that energy values are interpolated.  For convenience, e.g.~in top
+threshold scans around~$350\text{GeV}$, a small interval around the
+supported values will be accepted as synonymous with the central
+value, but a warning will be printed.
+Section~\ref{sec:parameterizations} should be consulted for the
+discrete values supported by a particular version of the
+parameterizations.  Negative values of [[roots]] will keep the
+currently active value for~$\sqrt s$.\par
+The parameters [[x1m]] and [[x2m]] will set
+thresholds~$x_{1,\text{min}}$ and~$x_{2,\text{min}}$ for the event
+generation in the routines described in
+section~\ref{sec:mc-usage}.\par
+The parameter [[acc]] selects the accelerator design.
+Currently the following accelerator codes are recognized:
+<<Accelerator codes>>=
+  integer, parameter :: SBAND  = 1
+  integer, parameter :: TESLA  = 2
+  integer, parameter :: XBAND  = 3
+  integer, parameter :: JLCNLC = 3
+  integer, parameter :: SBNDEE = 4
+  integer, parameter :: TESLEE = 5
+  integer, parameter :: XBNDEE = 6
+  integer, parameter :: NLCH   = 7
+  integer, parameter :: ILC    = 8
+  integer, parameter :: CLIC   = 9
+@ %def SBAND TESLA XBAND 
+@ %def JLCNLC SBNDEE TESLEE XBNDEE
+@ %def ILC CLIC
+@ The total number of accelerator codes
+<<Accelerator codes>>=
+  integer, parameter :: NACC   = 9
+@ %def NACC
+@ The [[ver]] parameter is used to determine the version as follows:
+\begin{description}
+  \item[$\text{[[ver]]}>0$]: a frozen version which is documented in
+    section~\ref{sec:parameterizations}. For example, version 1 is a
+    family of factorized Beta distributions:
+    $D(x_1,x_2) \propto x_1^{a_1}(1-x_1)^{b_1} x_2^{a_2}(1-x_2)^{b_2}$.
+  \item[$\text{[[ver]]}=0$]: the latest experimental version, which is usually
+    not documented and can change at any time without announcement.
+  \item[$\text{[[ver]]}<0$]: keep the currently active version.
+\end{description}
+@ The [[rev]] parameter is used to determine the revision of a version
+as follows: 
+\begin{description}
+  \item[$\text{[[rev]]}>0$]: a frozen revision which is documented in
+    section~\ref{sec:parameterizations}.  The integer [[rev]] is
+    constructed from the date as follows: $\text{[[rev]]} =
+    10^4\cdot\text{year} + 10^2\cdot\text{month} + \text{day}$, where
+    the year is greater than 1995. Since Fortran77 ignored whitespace,
+    it could be written like \verb+1996 07 11+ for readability.  
+    In Fortran90 the white space have been erased. If
+    there is no exact match, the most recent revision before the
+    specified date is chosen.
+  \item[$\text{[[rev]]}=0$]: the most recent revision.
+  \item[$\text{[[rev]]}<0$]: keep the currently active revision.
+\end{description}
+@ Finally, the parameter [[chat]] controls the ``chattiness'' of
+[[circe]].  If it is~$0$, only error messages are printed. If it is~$1$,
+the parameters in use are printed whenever they change.  Higher
+values of [[chat]] can produce even more diagnostics.\par
+In addition to the generic interface [[circe]], there are specialized
+functions for particular particle distributions.  Obviously
+\begin{equation}
+   D_{e^\pm\gamma}^{\alpha\nu\rho} (x_1, x_2, s)
+     = D_{\gamma e^\pm}^{\alpha\nu\rho} (x_2, x_1, s)
+\end{equation}
+and there are three independent functions~$D_{e^-e^+}$,
+$D_{e^-\gamma}$ and~$D_{\gamma\gamma}$ for the~$e^+e^-$ colliders with
+reasonable mnemonics:
+<<API documentation>>=
+      real(kind=double) :: circee, circeg, circgg
+      d = circee (x1, x2)
+      d = circeg (x1, x2)
+      d = circgg (x1, x2)
+@ Calling the latter three functions is marginally faster in the
+current implementation, but this can change in the future.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Example}
+\label{sec:sample-int}
+For clarification, let me give a simple example.  Imagine we want to
+calculate the integrated production cross section
+\begin{equation}
+  \sigma_X(s) = \int\!dx_1dx_2\,
+     \sigma_{e^+e^-\to X}(x_1x_2s) D_{e^+e^-}(x_1,x_2,s)
+\end{equation}
+Since the distributions are singular in the~$x_{1,2}\to1$ limit, we
+have to map away this singularity with
+\begin{subequations}
+\label{eq:mapping}
+\begin{align}
+  x &\to t = (1-x)^{1/\eta}\\
+\intertext{Therefore}
+  \int_0^1\!dx\,f(x) &= \int_0^1\!dt\, \eta t^{\eta-1} f(1-t^\eta)
+\end{align}
+\end{subequations}
+with~$\eta$ sufficiently large to give the integrand a finite limit
+at~$x\to1$.  If~$f$ diverges like a power~$f(x) \propto 1/(1-x)^\beta$,
+this means~$\eta>1/(1-\beta)$.\par
+As a specific example, let us ``measure'' a one particle $s$-channel
+exchange cross section
+\begin{equation}
+  \sigma(s) \propto \frac{1}{s}
+\end{equation}
+<<[[circe1_sample.f90: public]]>>=
+  public :: sigma
+<<[[circe1_sample.f90: subroutines]]>>=
+  function sigma (s)
+    real(kind=double) :: s, sigma
+    sigma = 1d0 / s
+  end function sigma
+
+@ %def sigma
+@ I will present the example code in a bottom-up fashion, which
+should be intuitive and is described in some more detail in
+appendix~\ref{sec:litprog}. 
+Assuming the existence of a one- and a two-dimensional Gaussian
+integration function [[gauss1]] and [[gauss2]],\footnote{%
+  They are provided in the example program [[circe1_sample.f90]].}
+we can perform the integral as follows:
+<<Gauss integration>>=
+s = sigma (1d0) * circee (1d0, 1d0) &
+   + gauss1 (d1, 0d0, 1d0, EPS) & 
+   + gauss1 (d2, 0d0, 1d0, EPS) &
+   + gauss2 (d12, 0d0, 1d0, 0d0, 1d0, EPS)
+write (*, 1000) 'delta(sigma) (Gauss) =', (s-1d0)*100d0
+1000 format (1X, A22, 1X, F6.2, '%')
+@ Note how the four combinations of continuum and $\delta$-peak are
+integrated separately, where you have to use three auxiliary
+functions~[[d1]], [[d2]] and~[[d12]].
+The continuum contribution, including the Jacobian:
+<<[[circe1_sample.f90: public]]>>=
+  public :: d12
+<<[[circe1_sample.f90: subroutines]]>>=
+  function d12 (t1, t2)
+    real(kind=double) :: d12, t1, t2, x1, x2
+    <<[[EPS]] \&\ [[PWR]]>>
+    x1 = 1d0 - t1**PWR
+    x2 = 1d0 - t2**PWR
+    d12 = PWR*PWR * (t1*t2)**(PWR-1d0) &
+           * sigma (x1*x2) * circee (x1, x2)
+  end function d12
+
+@ %def d12
+@ the first product of continuum and $\delta$-peak:
+<<[[circe1_sample.f90: public]]>>=
+  public :: d1
+<<[[circe1_sample.f90: subroutines]]>>=
+  function d1 (t1)
+    real(kind=double) :: t1, x1, d1
+    <<[[EPS]] \&\ [[PWR]]>>
+    x1 = 1d0 - t1**PWR
+    d1 = PWR * t1**(PWR-1d0) * sigma (x1) * circee (x1, 1d0)
+  end function d1
+
+@ %def d1
+@ and the second one:
+<<[[circe1_sample.f90: public]]>>=
+  public :: d2
+<<[[circe1_sample.f90: subroutines]]>>=
+  function d2 (t2)
+    real(kind=double) :: t2, x2, d2
+    <<[[EPS]] \&\ [[PWR]]>>
+    x2 = 1d0 - t2**PWR
+    d2 = PWR * t2**(PWR-1d0) * sigma (x2) * circee (1d0, x2)
+  end function d2
+
+@ %def d2
+@ Below you will see that the power of the singularity of the
+$e^+e^-$~distributions at~$x\to1$ is~$\approx-2/3$.  To be on the safe
+side, we choose the power~$\eta$ in~(\ref{eq:mapping}) as~$5$.  It is
+kept in the parameter~[[PWR]], while~[[EPS]] is the desired accuracy
+of the Gaussian integration:
+<<[[EPS]] \&\ [[PWR]]>>=
+    real(kind=double), parameter :: EPS = 1d-6, PWR = 5d0
+@ The Gauss integration of the non-singular version converges to the
+cotrrect value only if the final bin is integrated separately:
+<<Second Gauss integration>>=
+s = gauss2 (d12a, 0d0, 1d0-KIREPS, 0d0, 1d0-KIREPS, EPS) &
+  + gauss2 (d12a, 0d0, 1d0-KIREPS, 1d0-KIREPS, 1d0, EPS) &
+  + gauss2 (d12a, 1d0-KIREPS, 1d0, 0d0, 1d0-KIREPS, EPS) &
+  + gauss2 (d12a, 1d0-KIREPS, 1d0, 1d0-KIREPS, 1d0, EPS)
+write (*, 1000) 'delta(sigma) (Gauss) =', (s-1d0)*100d0
+@ 
+<<[[EPS]] \&\ [[PWR]]>>=
+    real(kind=double), parameter :: KIREPS = 1D-6
+@
+<<[[circe1_sample.f90: public]]>>=
+  public :: d12a
+<<[[circe1_sample.f90: subroutines]]>>=
+  function d12a (x1, x2)
+    real(kind=double) :: x1, x2, d12a
+    d12a = sigma (x1*x2) * kirkee (x1, x2)
+  end function d12a
+
+@ %def d12a
+@ These code fragments can now be used in a main program that loops
+over energies and accelerator designs
+<<[[circe1_sample.f90]]>>=
+! circe1_sample.f90 -- canonical beam spectra for linear collider physics
+<<Copyleft notice>>
+module sample_routines
+  use kinds
+  use circe1 !NODEP!  
+
+  implicit none
+  private
+
+<<[[circe1_sample.f90: public]]>>
+
+contains
+
+<<[[circe1_sample.f90: subroutines]]>>
+
+end module sample_routines
+
+  program circe1_sample
+    use kinds
+    use sample_routines
+    use circe1
+
+    implicit none
+
+      <<Accelerator codes>>
+      <<[[EPS]] \&\ [[PWR]]>>
+      <<Other variables in [[sample]]>>
+      integer :: acc, ver, i
+      real(kind=double), dimension(9) :: roots(9) = &
+         (/ 90D0,  170D0,  250D0,  350D0,  500D0, &
+                 800D0, 1000D0, 1200D0, 1500D0 /)
+      do acc = 1, NACC
+      ! do acc = JLCNLC, NLCH, NLCH-JLCNLC
+         do ver = 9, 9
+            do i = 1, 9
+               call circes (0d0, 0d0, roots(i), acc, ver, 20020328, 1)
+               <<Gauss integration>>
+               <<Second Gauss integration>>
+               <<Monte Carlo integration>>
+            end do
+         end do
+      end do   
+  end program circe1_sample
+
+@ with the following result
+<<Sample output>>=
+ circe1:message: starting up ...
+ circe1:message: updating `roots' to   90.0                                  
+ circe1:message: updating `ver' to  7                                        
+ circe1:message: updating `rev' to 20000501                                  
+ delta(sigma) (Gauss) =  0.11%
+ delta(sigma) (MC)    =  0.11%
+                    +/-  0.00%
+ circe1:message: updating `roots' to  170.0                                  
+ circe1:message: updating `ver' to  7                                        
+ delta(sigma) (Gauss) =  0.38%
+ delta(sigma) (MC)    =  0.38%
+                    +/-  0.01%
+ circe1:message: updating `roots' to  350.0                                  
+ circe1:message: updating `ver' to  7                                        
+ delta(sigma) (Gauss) =  1.67%
+ delta(sigma) (MC)    =  1.66%
+                    +/-  0.03%
+ circe1:message: updating `roots' to  500.0                                  
+ circe1:message: updating `ver' to  7                                        
+ delta(sigma) (Gauss) =  3.66%
+ delta(sigma) (MC)    =  3.58%
+                    +/-  0.07%
+ circe1:message: updating `roots' to  800.0                                  
+ circe1:message: updating `ver' to  7                                        
+ delta(sigma) (Gauss) =  5.21%
+ delta(sigma) (MC)    =  5.19%
+                    +/-  0.11%
+ circe1:message: updating `roots' to 1000.0                                  
+ circe1:message: updating `ver' to  7                                        
+ circe1:message: energy 1000.0GeV too high, using spectrum for  800.0GeV     
+ delta(sigma) (Gauss) =  5.21%
+ delta(sigma) (MC)    =  5.19%
+                    +/-  0.11%
+ circe1:message: updating `roots' to   90.0                                  
+ circe1:message: updating `acc' to JLCNLC                                    
+ circe1:message: updating `ver' to  7                                        
+ circe1:message: energy   90.0GeV too low, using spectrum for  500.0GeV      
+ delta(sigma) (Gauss) =  4.74%
+ delta(sigma) (MC)    =  4.75%
+                    +/-  0.11%
+ circe1:message: updating `roots' to  170.0                                  
+ circe1:message: updating `ver' to  7                                        
+ circe1:message: energy  170.0GeV too low, using spectrum for  500.0GeV      
+ delta(sigma) (Gauss) =  4.74%
+ delta(sigma) (MC)    =  4.68%
+                    +/-  0.11%
+ circe1:message: updating `roots' to  350.0                                  
+ circe1:message: updating `ver' to  7                                        
+ circe1:message: energy  350.0GeV too low, using spectrum for  500.0GeV      
+ delta(sigma) (Gauss) =  4.74%
+ delta(sigma) (MC)    =  4.75%
+                    +/-  0.11%
+ circe1:message: updating `roots' to  500.0                                  
+ circe1:message: updating `ver' to  7                                        
+ delta(sigma) (Gauss) =  4.74%
+ delta(sigma) (MC)    =  4.75%
+                    +/-  0.11%
+ circe1:message: updating `roots' to  800.0                                  
+ circe1:message: updating `ver' to  7                                        
+ circe1:message: energy  800.0GeV interpolated between  500.0 and 1000.0GeV  
+ delta(sigma) (Gauss) =  8.37%
+ delta(sigma) (MC)    =  8.39%
+                    +/-  0.21%
+ circe1:message: updating `roots' to 1000.0                                  
+ circe1:message: updating `ver' to  7                                        
+ delta(sigma) (Gauss) = 15.39%
+ delta(sigma) (MC)    = 14.68%
+                    +/-  0.33%
+@ We almost forgot to declare the variables in the main program
+<<Other variables in [[sample]]>>=
+    real(kind=double) :: s       
+@ This concludes the integration example.  It should have made it
+obvious how to proceed in a realistic application.\par
+In section~\ref{sec:sample-MC} below, I will describe a Monte Carlo
+method for calculating such integrals efficiently.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Generators}
+\label{sec:mc-usage}
+The function [[circe]] and its companions are opaque to the
+user. Since they will in general contain singularities, applications
+will \emph{not} be able to generate corresponding samples of random
+numbers efficiently.  To fill this gap, four random number generators
+are provided.  The subroutine [[girce]] will generate particle
+types~$p_{1,2}$ and energy fractions~$x_{1,2}$ in one step, according
+to the selected distribution.\footnote{\index{inefficiencies}% 
+  The implementation of the flavor selection with non-vanishing
+  thresholds~$x_{1,\text{min}}$ and~$x_{2,\text{min}}$ is moderately
+  inefficient at the moment.  It can be improved by a factor of two.}
+Particle~$p_1$ will be either a positron or a photon and~$p_2$ will be
+either an electron or a photon.  The energy fractions are guaranteed
+to be above the currently active thresholds: $x_i \ge
+x_{i,\text{min}}$.  This can be used to cut on soft events---the
+photon distributions are rather soft---which might not be interesting
+in most simulations.
+<<API documentation>>=
+      call girce  (x1, x2, p1, p2, rng)
+@ The output parameters of [[girce]] are identical to the input
+parameters of [[circe]], with the exception of [[rng]].  The latter is
+a subroutine with a single double precision argument, 
+which will be assigned a uniform deviate from the interval $[0,1]$
+after each call:
+<<API documentation>>=
+  subroutine rng (r)
+    real(kind=double) :: r
+    r = <<uniform deviate on $[0,1]$>>
+  end subroutine rng
+@ Typically, it will be just a wrapper around the standard random
+number generator of the application program.
+@ For studies with a definite initial state, three generator functions
+are available.
+<<API documentation>>=
+      call gircee (x1, x2, rng)
+      call girceg (x1, x2, rng)
+      call gircgg (x1, x2, rng)
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Example}
+\label{sec:sample-MC}
+Returning to the example from section~\ref{sec:sample-MC}, I present
+a concise Monte Carlo algorithm for calculating the same integral:
+<<Monte Carlo integration>>=
+s = 0d0
+s2 = 0d0
+do n = 1, NEVENT
+  call gircee (x1, x2, random)
+  w = sigma (x1*x2)
+  s = s + w
+  s2 = s2 + w*w
+end do
+s = s / dble(NEVENT)
+s2 = s2 / dble(NEVENT)
+write (*, 1000) 'delta(sigma) (MC)    =', (s-1d0)*100d0
+write (*, 1000) '                   +/-', sqrt((s2-s*s)/dble(NEVENT))*100d0
+@
+<<Other variables in [[sample]]>>=
+    real(kind=double) :: w, s2, x1, x2
+    integer, parameter :: NEVENT = 10000
+    integer :: n
+@ Here is a simple linear congruential random number generator for the
+sample program.  Real applications will use their more sophisticated
+generators instead.
+<<[[circe1_sample.f90: public]]>>=
+  public :: random
+<<[[circe1_sample.f90: subroutines]]>>=
+  subroutine random (r)
+    real(kind=double), intent(out) :: r
+    integer :: m = 259200, a = 7141, c = 54773
+    integer, save :: n = 0
+    ! data n /0/
+    n = mod(n*a+c,m)
+    r = real (n, kind=double) / real (m, kind=double)
+  end subroutine random
+
+@ %def random
+@ If the cross section is slowly varying on the range where
+the~$x_{1,2}$ distributions are non-zero, this algorithm is very
+efficient.\par
+However, if this condition is not met, the explicit form of the
+parameterizations in section~\ref{sec:parameterizations} should be
+consulted and appropriate mapping techniques should be applied.  The
+typical example for this problem is a narrow resonance just below the
+nominal beam energy.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Event Generators}
+\label{sec:MC}
+For Monte Carlo event generators that use the standard [[/hepevt/]]
+common block~\cite{Altarelli/etal:1989:LEP1}, the addition of the
+\Kirke/ library is trivial.  During the initialization of the event
+generator, the [[circes]] subroutine is called to set up \Kirke/'s
+internal state.  For example:
+<<Initialize event generator>>=
+      call circes (0d0, 0d0, roots, acc, ver, 1996 07 11, 1)
+@ During event generation, before setting up the~$e^+e^-$ initial
+state, the [[gircee]] subroutine is called with the event generator's
+random number generator:
+<<Event generation>>=
+      call gircee (x1, x2, random)
+@ The resulting energy fractions~$x_1$ and~$x_2$ are now available for
+defining the initial state electron
+<<Event generation>>=
+      isthep(1) = 101
+      idhep(1) = C1_ELECTRON
+      phep(1,1) = 0d0
+      phep(2,1) = 0d0
+      phep(3,1) = x1 * ebeam
+      phep(4,1) = x1 * ebeam
+      phep(5,1) = 0d0
+@ and positron.
+<<Event generation>>=
+      isthep(2) = 102
+      idhep(2) = C1_POSITRON
+      phep(1,2) = 0d0
+      phep(2,2) = 0d0
+      phep(3,2) = - x2 * ebeam
+      phep(4,2) = x2 * ebeam
+      phep(5,2) = 0d0
+@ Using \Kirke/ with other event generators should be straightforward
+as well.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Technical Notes}
+\label{sec:technical}
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{figures1}
+  \end{center}
+  \caption{\label{fig:architecture}%
+    Architecture of \Kirke/: \texttt{circes()} selects energy and accelerator
+    and loads the parameterization.  The function \texttt{circe()}
+    calculates the values of the selected distribution function at the
+    given energy fractions.  The subroutine \texttt{girce()} generates
+    energy fractions using a specified random number generator in
+    accordance with the selected distribution.}
+\end{figure}
+The structure of \Kirke/ is extremely
+simple~(cf.~figure~\ref{fig:architecture}) and is mainly a bookkeeping
+excercise.  All that needs to be done is to maintain a database of
+available parameterizations and to evaluate the corresponding
+functions. The only non trivial algorithms are used for the efficient
+generation of random deviates.\par
+I have avoided the use of initialized \texttt{common} blocks
+(i.e.~\texttt{block data} subroutines), because the Fortran77 standard
+does not provide a \emph{portable} way of ensuring that \texttt{block
+data} subroutines are actually executed at loading time
+\footnote{In Fortran90 the common blocks have been replaced by saved module variables.}.
+Instead,
+the \texttt{/circom/} common block is tagged by a ``magic number'' to
+check for initialization and its members are filled by the
+\texttt{circes} subroutine when necessary.\par
+A more flexible method would be to replace the \texttt{data}
+statements by reading external files.  This option causes portability
+problems, however, because I would have to make sure that the names
+of the external files are valid in all files systems of the target
+operating systems.  More significantly, splitting the implementation
+into several parts forces the user to keep all files up to date.
+This can be a problem, because Fortran source files and data input
+files will typically be kept in different parts of the file
+system.\par
+The option of implementing \Kirke/ statelessly, i.e.~with pure
+function calls and without \texttt{common} blocks, has been
+dismissed.  While it would have been more straightforward on the side
+of the library, it would have placed the burdon of maintaining state
+(accelerator, energy, etc.) on the application program, thereby
+complicating them considerably.  Keeping an explicit state in \Kirke/
+has the additional benefit of allowing to precompute certain internal
+variables, resulting in a more efficient implementation.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Parameterizations}
+\label{sec:parameterizations}
+The internal Version \Version/ of \Kirke/1 supports just one version of the
+parameterizations.  Future versions will provide additional
+parameterizations. 
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Version 1}
+\label{sec:factorized-beta}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|}\hline
+      & \texttt{SBAND} & \texttt{TESLA} & \texttt{TESLA'} & \texttt{XBAND}
+      \\\hline\hline
+$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$
+ & $  31.38_{-0.22}^{+0.22}$
+ & $ 106.25_{-0.71}^{+0.71}$
+ & $  95.24_{-0.73}^{+0.73}$
+ & $  36.39_{-0.29}^{+0.29}$
+\\\hline
+$\int d_{e^\pm}$
+ & $ 0.4812_{-0.0041}^{+0.0041}$
+ & $ 0.5723_{-0.0045}^{+0.0046}$
+ & $ 0.3512_{-0.0048}^{+0.0048}$
+ & $ 0.3487_{-0.0040}^{+0.0040}$
+\\\hline
+$x_{e^\pm}^\alpha$
+ & $11.1534_{-0.0761}^{+0.0770}$
+ & $15.2837_{-0.0914}^{+0.0923}$
+ & $27.1032_{-0.3019}^{+0.3071}$
+ & $ 6.9853_{-0.0718}^{+0.0733}$
+\\\hline
+$(1-x_{e^\pm})^\alpha$
+ & $-0.6302_{-0.0012}^{+0.0013}$
+ & $-0.6166_{-0.0011}^{+0.0011}$
+ & $-0.6453_{-0.0017}^{+0.0017}$
+ & $-0.6444_{-0.0017}^{+0.0017}$
+\\\hline
+$\int d_\gamma$
+ & $ 0.6237_{-0.0033}^{+0.0033}$
+ & $ 0.7381_{-0.0036}^{+0.0036}$
+ & $ 0.3502_{-0.0034}^{+0.0034}$
+ & $ 0.4149_{-0.0031}^{+0.0031}$
+\\\hline
+$x_\gamma^\alpha$
+ & $-0.6911_{-0.0006}^{+0.0006}$
+ & $-0.6921_{-0.0006}^{+0.0006}$
+ & $-0.6947_{-0.0011}^{+0.0011}$
+ & $-0.6876_{-0.0010}^{+0.0010}$
+\\\hline
+$(1-x_\gamma)^\alpha$
+ & $14.9355_{-0.0754}^{+0.0761}$
+ & $24.1647_{-0.1116}^{+0.1124}$
+ & $33.6576_{-0.2983}^{+0.3021}$
+ & $ 8.3227_{-0.0649}^{+0.0659}$
+\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param}%
+    Version 1, revision 1997 04 16 of the beam spectra at 500 GeV.
+    The rows correspond to the luminosity per effective year, the
+    integral over the continuum and the powers in the factorized Beta
+    distributions~(\ref{eq:beta}).}
+\end{table}
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|}\hline
+      & \texttt{SBAND} & \texttt{TESLA} & \texttt{TESLA'} & \texttt{XBAND}
+      \\\hline\hline
+$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$
+ & $ 119.00_{-0.83}^{+0.83}$
+ & $ 214.33_{-0***}^{+0***}$
+ & $ 212.22_{-0***}^{+0***}$
+ & $ 118.99_{-0.91}^{+0.91}$
+\\\hline
+$\int d_{e^\pm}$
+ & $ 0.5604_{-0.0039}^{+0.0040}$
+ & $ 0.6686_{-0.0040}^{+0.0040}$
+ & $ 0.4448_{-0.0043}^{+0.0043}$
+ & $ 0.5001_{-0.0038}^{+0.0038}$
+\\\hline
+$x_{e^\pm}^\alpha$
+ & $ 4.2170_{-0.0255}^{+0.0258}$
+ & $ 5.5438_{-0.0239}^{+0.0241}$
+ & $ 9.6341_{-0.0803}^{+0.0814}$
+ & $ 2.6184_{-0.0190}^{+0.0192}$
+\\\hline
+$(1-x_{e^\pm})^\alpha$
+ & $-0.6118_{-0.0013}^{+0.0013}$
+ & $-0.5847_{-0.0011}^{+0.0011}$
+ & $-0.6359_{-0.0014}^{+0.0014}$
+ & $-0.6158_{-0.0015}^{+0.0015}$
+\\\hline
+$\int d_\gamma$
+ & $ 0.7455_{-0.0032}^{+0.0032}$
+ & $ 1.0112_{-0.0033}^{+0.0033}$
+ & $ 0.4771_{-0.0031}^{+0.0031}$
+ & $ 0.6741_{-0.0031}^{+0.0031}$
+\\\hline
+$x_\gamma^\alpha$
+ & $-0.6870_{-0.0006}^{+0.0006}$
+ & $-0.6908_{-0.0004}^{+0.0004}$
+ & $-0.6936_{-0.0008}^{+0.0008}$
+ & $-0.6834_{-0.0007}^{+0.0007}$
+\\\hline
+$(1-x_\gamma)^\alpha$
+ & $ 6.7145_{-0.0308}^{+0.0310}$
+ & $ 9.9992_{-0.0340}^{+0.0342}$
+ & $13.1607_{-0.0886}^{+0.0896}$
+ & $ 3.8589_{-0.0213}^{+0.0215}$
+\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/TeV}%
+    Version 1, revision 1997 04 17 of the beam spectra at 1 TeV.}
+\end{table}
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|}\hline
+      & 350 GeV & 500 GeV & 800 GeV & 1600 GeV
+      \\\hline\hline
+$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$
+ & $  97.45_{-0.67}^{+0.67}$
+ & $ 106.25_{-0.71}^{+0.71}$
+ & $ 170.86_{-0***}^{+0***}$
+ & $ 340.86_{-0***}^{+0***}$
+\\\hline
+$\int d_{e^\pm}$
+ & $ 0.6093_{-0.0049}^{+0.0049}$
+ & $ 0.5723_{-0.0045}^{+0.0046}$
+ & $ 0.6398_{-0.0041}^{+0.0042}$
+ & $ 0.5094_{-0.0040}^{+0.0040}$
+\\\hline
+$x_{e^\pm}^\alpha$
+ & $17.6137_{-0.1055}^{+0.1065}$
+ & $15.2837_{-0.0914}^{+0.0923}$
+ & $ 7.6221_{-0.0361}^{+0.0365}$
+ & $ 5.0550_{-0.0349}^{+0.0353}$
+\\\hline
+$(1-x_{e^\pm})^\alpha$
+ & $-0.6061_{-0.0011}^{+0.0011}$
+ & $-0.6166_{-0.0011}^{+0.0011}$
+ & $-0.5944_{-0.0011}^{+0.0011}$
+ & $-0.6187_{-0.0013}^{+0.0013}$
+\\\hline
+$\int d_\gamma$
+ & $ 0.7729_{-0.0039}^{+0.0039}$
+ & $ 0.7381_{-0.0036}^{+0.0036}$
+ & $ 0.9178_{-0.0034}^{+0.0034}$
+ & $ 0.5875_{-0.0031}^{+0.0031}$
+\\\hline
+$x_\gamma^\alpha$
+ & $-0.6949_{-0.0006}^{+0.0006}$
+ & $-0.6921_{-0.0006}^{+0.0006}$
+ & $-0.6908_{-0.0005}^{+0.0005}$
+ & $-0.6892_{-0.0007}^{+0.0007}$
+\\\hline
+$(1-x_\gamma)^\alpha$
+ & $28.9399_{-0.1361}^{+0.1370}$
+ & $24.1647_{-0.1116}^{+0.1124}$
+ & $13.1167_{-0.0495}^{+0.0497}$
+ & $ 7.5514_{-0.0424}^{+0.0428}$
+\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/Tesla}%
+    Version 1, revision 1997 04 17 of the beam spectra for TESLA.}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|}\hline
+      & 500 GeV & 800 GeV
+      \\\hline\hline
+$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$
+ & $ 339.80_{-0.83}^{+0.83}$
+ & $ 359.36_{-0.93}^{+0.93}$
+\\\hline
+$\int d_{e^\pm}$
+ & $ 0.5019_{-0.0016}^{+0.0016}$
+ & $ 0.4125_{-0.0016}^{+0.0016}$
+\\\hline
+$x_{e^\pm}^\alpha$
+ & $12.2867_{-0.0316}^{+0.0318}$
+ & $13.3242_{-0.0440}^{+0.0442}$
+\\\hline
+$(1-x_{e^\pm})^\alpha$
+ & $-0.6276_{-0.0005}^{+0.0005}$
+ & $-0.6401_{-0.0005}^{+0.0005}$
+\\\hline
+$\int d_\gamma$
+ & $ 0.5114_{-0.0012}^{+0.0012}$
+ & $ 0.3708_{-0.0011}^{+0.0011}$
+\\\hline
+$x_\gamma^\alpha$
+ & $-0.6912_{-0.0003}^{+0.0003}$
+ & $-0.6924_{-0.0004}^{+0.0004}$
+\\\hline
+$(1-x_\gamma)^\alpha$
+ & $17.0673_{-0.0375}^{+0.0375}$
+ & $16.8145_{-0.0480}^{+0.0482}$
+\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/Tesla/hi}%
+    Version 5, revision 1998 05 05 of the beam spectra for high
+    luminosity TESLA.}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{fit11}\quad\includegraphics{fit21}
+  \end{center}
+  \caption{\label{fig:fit/S-Band/500GeV}%
+    Fit of the $e^\pm$- and $\gamma$-distributions for the S-Band
+    design at $\protect\sqrt s = 500\text{GeV}$.  The open circles
+    with error bars are the result of the \texttt{Guinea-Pig}
+    similation. The full line is the fit.}
+\end{figure}
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{fit12}\quad\includegraphics{fit22}
+  \end{center}
+  \caption{\label{fig:fit/Tesla/500GeV}%
+    Fit of the $e^\pm$- and $\gamma$-distributions for the Tesla
+    design at $\protect\sqrt s = 500\text{GeV}$.}
+\end{figure}
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{fit13}\quad\includegraphics{fit23}
+  \end{center}
+  \caption{\label{fig:fit/X-Band/500GeV}%
+    Fit of the $e^\pm$- and $\gamma$-distributions for the X-Band
+    design at $\protect\sqrt s = 500\text{GeV}$.}
+\end{figure}
+\begin{figure}[tp]
+  \begin{center}
+    \includegraphics{fit15}\quad\includegraphics{fit25}
+  \end{center}
+  \caption{\label{fig:fit/Tesla/1TeV}%
+    Fit of the $e^\pm$- and $\gamma$-distributions for the Tesla
+    design at $\protect\sqrt s = 1\text{TeV}$.}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The first version of the parameterization uses a simple factorized
+\textit{ansatz}
+\begin{subequations}
+\label{eq:beta}
+\begin{align}
+  D_{p_1p_2}^{\alpha1\rho} (x_1,x_2,s)
+   &= d_{p_1}^{\alpha1\rho} (x_1)  d_{p_2}^{\alpha1\rho} (x_2)\\
+\intertext{where the distributions are simple Beta distributions:}
+  d_{e^\pm}^{\alpha1\rho} (x)
+   &= a_0^{\alpha\rho} \delta(1-x)
+     + a_1^{\alpha\rho} x^{a_2^{\alpha\rho}} (1-x)^{a_3^{\alpha\rho}} \\
+  d_\gamma^{\alpha1\rho} (x)
+   &= a_4^{\alpha\rho} x^{a_5^{\alpha\rho}} (1-x)^{a_6^{\alpha\rho}}
+\end{align}
+\end{subequations}
+This form of the distributions is motivated by the
+observation~\cite{Chen/Noble:1986:Beamstrahlung}
+that the $e^\pm$~distributions diverge like a power for $x\to1$ and
+vanish at $x\to0$.  The behavior of the $\gamma$~distributions is
+similar with the borders exchanged.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|}\hline
+      & \texttt{SBNDEE} & \texttt{TESLEE} & \texttt{XBNDEE}
+      \\\hline\hline
+$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$
+ & $   9.29_{-0.06}^{+0.06}$
+ & $  21.62_{-0.17}^{+0.17}$
+ & $  13.97_{-0.10}^{+0.10}$
+\\\hline
+$\int d_{e^\pm}$
+ & $  .6513_{-0.0059}^{+0.0059}$
+ & $  .7282_{-0.0082}^{+0.0083}$
+ & $  .5270_{-0.0049}^{+0.0049}$
+\\\hline
+$x_{e^\pm}^\alpha$
+ & $10.3040_{-0.0593}^{+0.0601}$
+ & $14.8578_{-0.1034}^{+0.1047}$
+ & $ 5.8897_{-0.0448}^{+0.0455}$
+\\\hline
+$(1-x_{e^\pm})^\alpha$
+ & $ -.5946_{-0.0015}^{+0.0015}$
+ & $ -.5842_{-0.0018}^{+0.0018}$
+ & $ -.6169_{-0.0015}^{+0.0016}$
+\\\hline
+$\int d_\gamma$
+ & $  .4727_{-0.0035}^{+0.0035}$
+ & $  .5300_{-0.0046}^{+0.0046}$
+ & $  .3746_{-0.0029}^{+0.0029}$
+\\\hline
+$x_\gamma^\alpha$
+ & $ -.6974_{-0.0009}^{+0.0009}$
+ & $ -.7039_{-0.0009}^{+0.0009}$
+ & $ -.6892_{-0.0010}^{+0.0010}$
+\\\hline
+$(1-x_\gamma)^\alpha$
+ & $20.6447_{-0.1497}^{+0.1513}$
+ & $36.1286_{-0.2991}^{+0.3027}$
+ & $10.0872_{-0.0815}^{+0.0822}$
+\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/ee}%
+    \emph{Experimental}
+    Version 1, revision 0 of the beam spectra at 500 GeV.
+    The rows correspond to the luminosity per effective year, the
+    integral over the continuum and the powers in the factorized Beta
+    distributions~(\ref{eq:beta}).}
+\end{table}
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|}\hline
+      & \texttt{SBNDEE} & \texttt{TESLEE} & \texttt{XBNDEE}
+      \\\hline\hline
+$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$
+ & $  45.59_{-0.34}^{+0.34}$
+ & $  25.47_{-0.20}^{+0.20}$
+ & $  41.06_{-0.28}^{+0.28}$
+\\\hline
+$\int d_{e^\pm}$
+ & $  .7892_{-0.0074}^{+0.0075}$
+ & $  .6271_{-0.0065}^{+0.0066}$
+ & $  .7203_{-0.0058}^{+0.0058}$
+\\\hline
+$x_{e^\pm}^\alpha$
+ & $ 5.4407_{-0.0281}^{+0.0285}$
+ & $ 8.7504_{-0.0658}^{+0.0669}$
+ & $ 2.7415_{-0.0119}^{+0.0121}$
+\\\hline
+$(1-x_{e^\pm})^\alpha$
+ & $ -.5285_{-0.0020}^{+0.0020}$
+ & $ -.6058_{-0.0017}^{+0.0017}$
+ & $ -.5049_{-0.0020}^{+0.0020}$
+\\\hline
+$\int d_\gamma$
+ & $  .6403_{-0.0040}^{+0.0040}$
+ & $  .4278_{-0.0038}^{+0.0038}$
+ & $  .6222_{-0.0032}^{+0.0032}$
+\\\hline
+$x_\gamma^\alpha$
+ & $ -.6960_{-0.0008}^{+0.0008}$
+ & $ -.6982_{-0.0010}^{+0.0010}$
+ & $ -.6795_{-0.0008}^{+0.0008}$
+\\\hline
+$(1-x_\gamma)^\alpha$
+ & $12.4803_{-0.0831}^{+0.0839}$
+ & $18.5260_{-0.1655}^{+0.1674}$
+ & $ 4.7506_{-0.0260}^{+0.0262}$
+\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/TeV/ee}%
+    \emph{Experimental}
+    Version 1, revision 0 of the beam spectra at 1 TeV.}
+\end{table}
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|}\hline
+      & 350 GeV & 500 GeV & 800 GeV
+      \\\hline\hline
+$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$
+ & $  15.18_{-0.13}^{+0.13}$
+ & $  21.62_{-0.17}^{+0.17}$
+ & $  43.98_{-0.38}^{+0.38}$
+\\\hline
+$\int d_{e^\pm}$
+ & $  .6691_{-0.0083}^{+0.0083}$
+ & $  .7282_{-0.0082}^{+0.0083}$
+ & $  .7701_{-0.0089}^{+0.0090}$
+\\\hline
+$x_{e^\pm}^\alpha$
+ & $25.2753_{-0.2007}^{+0.2040}$
+ & $14.8578_{-0.1034}^{+0.1047}$
+ & $ 8.1905_{-0.0535}^{+0.0543}$
+\\\hline
+$(1-x_{e^\pm})^\alpha$
+ & $ -.5994_{-0.0017}^{+0.0017}$
+ & $ -.5842_{-0.0018}^{+0.0018}$
+ & $ -.5575_{-0.0021}^{+0.0021}$
+\\\hline
+$\int d_\gamma$
+ & $  .4464_{-0.0047}^{+0.0047}$
+ & $  .5300_{-0.0046}^{+0.0046}$
+ & $  .5839_{-0.0047}^{+0.0047}$
+\\\hline
+$x_\gamma^\alpha$
+ & $ -.7040_{-0.0011}^{+0.0011}$
+ & $ -.7039_{-0.0009}^{+0.0009}$
+ & $ -.7046_{-0.0009}^{+0.0009}$
+\\\hline
+$(1-x_\gamma)^\alpha$
+ & $60.1882_{-0.5797}^{+0.5882}$
+ & $36.1286_{-0.2991}^{+0.3027}$
+ & $19.3944_{-0.1660}^{+0.1681}$
+\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/Tesla/ee}%
+    \emph{Experimental}
+    Version 1, revision 0 of the beam spectra for \texttt{TESLEE}.}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Fitting}
+The parameters~$a_i$ in~(\ref{eq:beta}) have been obtained by a
+least-square fit of~(\ref{eq:beta}) to histograms of simulation
+results from \texttt{Guinea-Pig}.
+Some care has to taken when fitting singular distributions to
+histogrammed data.  Obviously equidistant bins are not a good idea,
+because most bins will be almost empty (cf.~figures~\ref{fig:dist}
+and~\ref{fig:dist/Tesla}) and consequently a lot of information will
+be wasted. One solution to this problem is the use of logarithmic
+bins.  This, however, maps the compact region~$[0,1]\times[0,1]$
+to~$[-\infty,0]\times[-\infty,0]$, which is inconvenient because of
+the missing lower bounds.\par
+The more appropriate solution is to use two maps
+\begin{equation}
+  \begin{aligned}
+    \phi : [0,1] &\to     [0,1] \\
+           x     &\mapsto y = x^{1/\eta}
+  \end{aligned}
+\end{equation}
+where~$x=x_\gamma$ or~$x=1-x_{e^\pm}$, and to bin the result
+equidistantly.  If~$\eta$ is chosen properly (cf.~(\ref{eq:mapping})),
+the bin contents will then fall off at the singularity.  The fits in
+tables~\ref{tab:param}, \ref{tab:param/TeV}, and~\ref{tab:param/Tesla}
+have been performed with~$\eta=5$ and the resulting bin contents can
+be read off from
+figures~\ref{fig:fit/S-Band/500GeV}--\ref{fig:fit/Tesla/1TeV}.\par 
+Using this procedure for binning the results of the simulations, the
+popular fitting package \texttt{MINUIT}~\cite{James/Roos:1989:Minuit}
+converges quickly in all cases considered. The resulting parameters
+are given in tables~\ref{tab:param}, \ref{tab:param/TeV},
+and~\ref{tab:param/Tesla}.  Plots of the corresponding distributions
+have been shown in figures~\ref{fig:dist}
+and~\ref{fig:dist/Tesla}.  It is obvious that an
+\textit{ansatz} like~(\ref{eq:beta}) is able to distinguish among the
+accelerator designs.  Thus it can provide a solid basis for physics
+studies.\par
+In figures~\ref{fig:fit/S-Band/500GeV}--\ref{fig:fit/Tesla/1TeV} I
+give a graphical impression of the quality of the fit, which appears
+to be as good as one could reasonably expect for a simple
+\textit{ansatz} like~(\ref{eq:beta}).  Note that the histograms have
+non-equidistant bins and that the resulting Jacobians have not been
+removed.  Therefore the bin contents falls off at the singularities,
+as discussed above.\par
+The errors used for the least-square fit had to be taken from a Monte
+Carlo~(MC) study.  \texttt{Guinea-Pig} only provides the~$\sqrt n$ from
+Poissonian statistics for each bin, but the error accumulation during
+tracking the particles through phase space is not available.  The
+MC studies shows that the latter error dominates the former, but
+appears to be reasonably Gaussian.  A complete MC study of all
+parameter sets is computationally expensive (more than a week of 
+processor time on a fast SGI).  From an exemplary MC study of a few
+parameter sets, it appears that the errors can be described reasonably
+well by rescaling the Poissonian error in each bin with appropriate
+factors for electrons/positrons and photons and for continuum and
+delta.  This procedure has been adopted.\par
+The~$\chi^2/\text{d.o.f.}$'s of the fits are less
+than~$\mathcal{O}(10)$.
+The simple \emph{ansatz}~(\ref{eq:beta}) is therefore very
+satisfactory.  In fact, trying to improve the ad-hoc factorized Beta
+distributions by the better motivated approximations 
+from~\cite{Chen:1992:Beamstrahlung}
+or~\cite{Anlauf:1996:Beamstrahlung}, it turns 
+out~\cite{Anlauf:1996:Chen_no_good} that~(\ref{eq:beta}) provides a
+significantly better fit of the results of the simulations.
+The price to pay is that the parameters in~(\ref{eq:beta}) have no
+direct physical interpretation.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Generators}
+For this version of the parameterizations we need a fast generator of
+Beta distributions:
+\begin{equation}
+  \beta^{a,b}(x)
+    \propto x^{a-1}(1-x)^{b-1}
+\end{equation}
+This problem has been studied extensively and we can use a published
+algorithm~\cite{Atkinson/Whittaker:1979:beta_distribution} that is 
+guaranteed to be very fast for all~$a$, $b$ such that~$0<a\le1\le b$,
+which turns out to be always the case (cf.~tables~\ref{tab:param},
+\ref{tab:param/TeV}, and~\ref{tab:param/Tesla}).
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Future Versions}
+There are two ways in which the parameterizations can be improved:
+\begin{description}
+  \item[more complicated functions:] the factorized fits can only be
+    improved marginally by adding more positive semi-definite factors
+    to~(\ref{eq:beta}).  More improvement is possible by using sums of
+    functions, but in this case, the best fits violate the positivity
+    requirement and have to be discarded.
+  \item[correlations:] the parameterization in
+    section~\ref{sec:factorized-beta} is factorized.  While this is a
+    good approximation, the simulations nevertheless show correlations
+    among~$x_1$ and~$x_2$.  These correlations can be included in a
+    future version.
+  \item[interpolation:] the parameterization in
+    section~\ref{sec:factorized-beta} is based on fitting the
+    simulation results by simple functions.  Again, this appears to be
+    a good approximation.  But such fits can not uncover any fine
+    structure of the distributions.  Therefore it will be worthwhile
+    to study interpolations of the simulation results in the future.
+    A proper interpolation of results with statistical errors is
+    however far from trivial: straightforward polynomial or spline
+    interpolations will be oscillatory and violate the positivity
+    requirement.  Smoothing algorithms have to be investigated in
+    depth before such a parameterization can be released.
+  \item[other simulations:]
+    besides~\cite{Schulte:1996:Thesis},
+    other simulation codes are invited to contribute their results
+    for inclusion in the \Kirke/ library.
+\end{description}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Local Variables:
+% mode:noweb
+% noweb-doc-mode:latex-mode
+% noweb-code-mode:fortran-mode
+% indent-tabs-mode:nil
+% page-delimiter:"^@ %%%.*\n"
+% End:

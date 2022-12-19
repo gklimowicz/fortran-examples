@@ -1,0 +1,127 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "omega"
+| Process library 'circe2_1_lib': recorded process 'circe2_1_p1'
+| Process library 'circe2_1_lib': recorded process 'circe2_1_p2'
+seed = 0
+| Process library 'circe2_1_lib': compiling ...
+| Process library 'circe2_1_lib': writing makefile
+| Process library 'circe2_1_lib': removing old files
+| Process library 'circe2_1_lib': writing driver
+| Process library 'circe2_1_lib': creating source code
+| Process library 'circe2_1_lib': compiling sources
+| Process library 'circe2_1_lib': linking
+| Process library 'circe2_1_lib': loading
+| Process library 'circe2_1_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  5.000000000000E+02
+openmp_num_threads = 1
+[user variable] n = 1000
+$circe2_file = "teslagg_500_polavg.circe"
+$circe2_design = "TESLA/GG"
+?circe2_polarized = false
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process circe2_1_p1:
+| Beam structure: A, A => circe2
+| Beam data (collision):
+|   A  (mass = 0.0000000E+00 GeV)
+|   A  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'circe2_1_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'circe2_1_p1'
+|   Library name  = 'circe2_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'circe2_1_p1_i1':   A, A => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 8 equivalences between channels.
+| Phase space: wood
+| Beam structure: circe2
+| Beam structure: 1 channels, 0 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'circe2_1_p1'
+| Integrate: iterations = 3:1000:"g", 3:1000
+| Integrator: 1 chains, 4 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  7.3575067E+04  9.37E+03   12.73    3.60*   2.20
+   2        800  7.3786075E+04  6.65E+03    9.01    2.55*   3.18
+   3        800  1.4171781E+05  4.53E+04   31.95    9.04    1.16
+|-----------------------------------------------------------------------------|
+   3       2400  7.4676956E+04  5.38E+03    7.21    3.53    1.16    1.11   3
+|-----------------------------------------------------------------------------|
+   4        800  1.0162001E+05  1.06E+04   10.45    2.96*   0.76
+   5        800  1.0975868E+05  1.54E+04   13.99    3.96    0.74
+   6        800  1.4309414E+05  5.27E+04   36.82   10.41    0.87
+|-----------------------------------------------------------------------------|
+   6       2400  1.0529366E+05  8.62E+03    8.19    4.01    0.87    0.36   3
+|=============================================================================|
+$circe2_file = "teslagg_500.circe"
+?circe2_polarized = true
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Initializing integration for process circe2_1_p2:
+| Beam structure: A, A => circe2
+| Beam data (collision):
+|   A  (mass = 0.0000000E+00 GeV)
+|   A  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| CIRCE2: activating generator mode
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'circe2_1_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'circe2_1_p2'
+|   Library name  = 'circe2_1_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'circe2_1_p2_i1':   A, A => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 8 equivalences between channels.
+| Phase space: wood
+| Beam structure: circe2
+| Beam structure: 1 channels, 0 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'circe2_1_p2'
+| Integrate: iterations = 3:1000:"g", 3:1000
+| Integrator: 1 chains, 4 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  1.0528017E+05  3.19E+04   30.34    8.58*   1.24
+   2        800  1.2358595E+05  2.58E+04   20.90    5.91*   1.42
+   3        800  7.3521471E+04  9.00E+03   12.24    3.46*   3.37
+|-----------------------------------------------------------------------------|
+   3       2400  8.0678008E+04  8.21E+03   10.18    4.99    3.37    1.99   3
+|-----------------------------------------------------------------------------|
+   4        800  1.3165819E+05  1.94E+04   14.74    4.17    2.21
+   5        800  9.4949526E+04  8.87E+03    9.34    2.64*   1.35
+   6        800  1.2573421E+05  2.71E+04   21.57    6.10    1.25
+|-----------------------------------------------------------------------------|
+   6       2400  1.0327650E+05  7.73E+03    7.49    3.67    1.25    1.85   3
+|=============================================================================|
+| WHIZARD run finished.
+|=============================================================================|

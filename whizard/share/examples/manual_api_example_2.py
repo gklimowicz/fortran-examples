@@ -1,0 +1,51 @@
+import whizard
+
+# Generate events
+
+wz = whizard.Whizard()
+wz.option("logfile", "whizard_5_py.log")
+wz.option("library", "whizard_5_py_lib")
+wz.option("model", "QCD")
+wz.option("rebuild", "true")
+wz.init()
+
+wz.command("process whizard_5_py_p1 = u, U => t, T")
+wz.command("process whizard_5_py_p2 = d, D => t, T")
+wz.command("process whizard_5_py_p3 = s, S => t, T")
+wz.command("sqrts = 1000")
+wz.command("beams = p, p => pdf_builtin")
+wz.set_bool("?alphas_is_fixed", 0)
+wz.set_bool("?alphas_from_pdf_builtin", 1)
+wz.command("iterations = 1:100")
+wz.set_int("seed", 0)
+wz.command("integrate (whizard_5_py_p1)")
+wz.command("integrate (whizard_5_py_p2)")
+wz.command("integrate (whizard_5_py_p3)")
+
+wz.set_bool("?unweighted", False)
+wz.set_string("$sample", "whizard_5_py_evt")
+wz.command("sample_format = dump")
+wz.set_int("n_events", 10)
+
+sample = wz.new_sample("whizard_5_py_p1, whizard_5_py_p2, whizard_5_py_p3")
+it_begin, it_end = sample.open()
+for it in range(it_begin, it_end + 1):
+    sample.next_event()
+    idx = sample.get_event_index()
+    i_proc  = sample.get_process_index()
+    proc_id = sample.get_process_id()
+    f_scale = sample.get_fac_scale()
+    alpha_s = sample.get_alpha_s()
+    weight  = sample.get_weight()
+    sqme    = sample.get_sqme()
+    print(f"Event #{idx}")
+    print(f"  process #{i_proc}")
+    print(f"  proc_id = {proc_id}")
+    print(f"  f_scale = {f_scale:10.3e}")
+    print(f"  alpha_s = {f_scale:10.3e}")
+    print(f"  sqme    = {f_scale:10.3e}")
+    print(f"  weight  = {f_scale:10.3e}")
+
+# del(sample)
+sample.close()
+del(wz)

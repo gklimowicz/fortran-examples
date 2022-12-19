@@ -1,0 +1,32 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> A, A
+# with resonance insertion, which actually is not possible here
+# (regression test for segfault)
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+?resonance_history = true
+resonance_on_shell_limit = 4
+
+process resonances_12_p = e1, E1 => A, A
+sqrts = 230 GeV
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+?pacify = true
+
+iterations = 1:1000
+cuts = all 50 GeV < M [A, A]
+integrate (resonances_12_p)
+
+n_events = 1
+sample_format = lhef
+simulate (resonances_12_p)
+
+

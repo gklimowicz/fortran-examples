@@ -1,0 +1,67 @@
+* Test output: models_5
+*   Purpose: access and modify model variables
+
+* Read model from file
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+gy =>  1.000000000000E+00
+ms =>  1.250000000000E+02
+ff =>  1.500000000000E+00
+mf* =>  1.875000000000E+02
+particle* = PDG(0)
+SCALAR* = PDG(25)
+s* = PDG(25)
+FERMION* = PDG(6)
+f* = PDG(6)
+fbar* = PDG(-6)
+F* = PDG(-6)
+charged* = PDG(6, -6)
+neutral* = PDG(25)
+colored* = PDG(6, -6)
+
+* Check parameter status
+
+ xy exists = F
+ ff exists = T
+ mf exists = T
+ ff locked = F
+ mf locked = T
+
+ ff =   1.50
+ mf = 187.50
+
+* Modify parameter
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.000000000000E+00
+   external mf =  1.250000000000E+02
+
+gy =>  1.000000000000E+00
+ms =>  1.250000000000E+02
+ff =>  1.000000000000E+00
+mf* =>  1.250000000000E+02
+particle* = PDG(0)
+SCALAR* = PDG(25)
+s* = PDG(25)
+FERMION* = PDG(6)
+f* = PDG(6)
+fbar* = PDG(-6)
+F* = PDG(-6)
+charged* = PDG(6, -6)
+neutral* = PDG(25)
+colored* = PDG(6, -6)
+
+* Cleanup
+
+* Test output end: models_5

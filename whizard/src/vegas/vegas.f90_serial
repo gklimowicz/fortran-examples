@@ -1,0 +1,408 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+module vegas
+  use kinds, only: default
+  use diagnostics
+  use io_units
+  use format_utils, only: write_indent
+  use format_defs, only: FMT_17
+  use rng_base, only: rng_t
+  use rng_stream, only: rng_stream_t
+
+  implicit none
+  private
+
+  public :: vegas_func_t
+  public :: vegas_config_t
+  public :: vegas_grid_t
+  public :: operator (==)
+  public :: vegas_result_t
+  public :: vegas_t
+
+  integer, parameter, public :: VEGAS_MODE_IMPORTANCE = 0, &
+       & VEGAS_MODE_STRATIFIED = 1, VEGAS_MODE_IMPORTANCE_ONLY = 2
+  character(len=*), parameter, private :: &
+     descr_fmt =         "(1X,A)", &
+     integer_fmt =       "(1X,A18,1X,I15)", &
+     integer_array_fmt = "(1X,I18,1X,I15)", &
+     logical_fmt =       "(1X,A18,1X,L1)", &
+     double_fmt =        "(1X,A18,1X,E24.16E4)", &
+     double_array_fmt =  "(1X,I18,1X,E24.16E4)", &
+     double_array_pac_fmt = "(1X,I18,1X,E16.8E4)", &
+     double_array2_fmt =  "(1X,2(1X,I8),1X,E24.16E4)", &
+     double_array2_pac_fmt = "(1X,2(1X,I8),1X,E16.8E4)"
+
+
+  type, abstract :: vegas_func_t
+     !
+   contains
+     procedure(vegas_func_evaluate), deferred, pass, public :: evaluate
+  end type vegas_func_t
+
+  type :: vegas_config_t
+     integer :: n_dim = 0
+     real(default) :: alpha = 1.5_default
+     integer :: n_bins_max = 50
+     integer :: iterations = 5
+     integer :: mode = VEGAS_MODE_STRATIFIED
+     integer :: calls_per_box = 0
+     integer :: n_calls = 0
+     integer :: n_calls_min = 20
+     integer :: n_boxes = 1
+     integer :: n_bins = 1
+   contains
+     procedure, public :: write => vegas_config_write
+  end type vegas_config_t
+
+  type :: vegas_grid_t
+     integer :: n_dim = 1
+     integer :: n_bins = 1
+     real(default), dimension(:), allocatable :: x_lower
+     real(default), dimension(:), allocatable :: x_upper
+     real(default), dimension(:), allocatable :: delta_x
+     real(default), dimension(:,:), allocatable :: xi
+   contains
+     procedure, public :: write => vegas_grid_write
+     procedure, private :: resize => vegas_grid_resize
+     procedure, public :: get_probability => vegas_grid_get_probability
+  end type vegas_grid_t
+
+  type :: vegas_result_t
+     integer :: it_start = 0
+     integer :: it_num = 0
+     integer :: samples = 0
+     real(default) :: sum_int_wgtd = 0._default
+     real(default) :: sum_wgts
+     real(default) :: sum_chi = 0._default
+     real(default) :: chi2 = 0._default
+     real(default) :: efficiency = 0._default
+     real(default) :: efficiency_pos = 0._default
+     real(default) :: efficiency_neg = 0._default
+     real(default) :: max_abs_f = 0._default
+     real(default) :: max_abs_f_pos = 0._default
+     real(default) :: max_abs_f_neg = 0._default
+     real(default) :: result = 0._default
+     real(default) :: std = 0._default
+     real(default) :: evt_weight = 0._default
+     real(default) :: evt_weight_excess = 0._default
+   contains
+     procedure, public :: write => vegas_result_write
+     procedure, public :: update => vegas_result_update
+     procedure, public :: update_efficiency => vegas_result_update_efficiency
+     procedure, public :: reset => vegas_result_reset
+  end type vegas_result_t
+
+  type :: vegas_t
+     private
+     type(vegas_config_t) :: config
+     real(default) :: hypercube_volume = 0._default
+     real(default) :: jacobian = 0._default
+     real(default), dimension(:, :), allocatable :: d
+     type(vegas_grid_t) :: grid
+     integer, dimension(:), allocatable :: bin
+     integer, dimension(:), allocatable :: box
+     type(vegas_result_t) :: result
+   
+   contains
+     procedure, public :: final => vegas_final
+     procedure, public :: set_limits => vegas_set_limits
+     procedure, public :: set_calls => vegas_set_n_calls
+     procedure, public :: get_grid => vegas_get_grid
+     procedure, public :: get_config => vegas_get_config
+     procedure, public :: set_config => vegas_set_config
+     procedure, public :: get_result => vegas_get_result
+     procedure, public :: get_calls => vegas_get_n_calls
+     procedure, public :: get_integral => vegas_get_integral
+     procedure, public :: get_variance => vegas_get_variance
+     procedure, public :: get_efficiency => vegas_get_efficiency
+     procedure, public :: get_max_abs_f => vegas_get_max_abs_f
+     procedure, public :: get_sum_abs_f_pos => vegas_get_sum_abs_f_pos
+     procedure, public :: get_sum_abs_f_neg => vegas_get_sum_abs_f_neg
+     procedure, public :: get_max_abs_f_pos => vegas_get_max_abs_f_pos
+     procedure, public :: get_max_abs_f_neg => vegas_get_max_abs_f_neg
+     procedure, public :: get_evt_weight => vegas_get_evt_weight
+     procedure, public :: get_evt_weight_excess => vegas_get_evt_weight_excess
+     procedure, public :: get_distribution => vegas_get_distribution
+     procedure, public :: set_distribution => vegas_set_distribution
+     procedure, private :: init_grid => vegas_init_grid
+     procedure, public :: reset_result => vegas_reset_result
+     procedure, public :: reset_grid => vegas_reset_grid
+     procedure, public :: refine => vegas_refine_grid
+     procedure, private :: average_distribution => vegas_average_distribution
+     procedure, public :: integrate => vegas_integrate
+     procedure, private :: random_point => vegas_random_point
+     procedure, private :: simple_random_point => vegas_simple_random_point
+     procedure, private :: accumulate_distribution => vegas_accumulate_distribution
+     procedure :: generate_weighted => vegas_generate_weighted_event
+     procedure, public :: generate_unweighted=> vegas_generate_unweighted_event
+     procedure, public :: write_grid => vegas_write_grid
+     procedure, public :: read_grid => vegas_read_grid
+     procedure :: write_binary_grid => vegas_write_binary_grid
+     procedure :: read_binary_grid => vegas_read_binary_grid
+  end type vegas_t
+
+
+  abstract interface
+     real(default) function vegas_func_evaluate (self, x) result (f)
+       import :: default, vegas_func_t
+       class(vegas_func_t), intent(inout) :: self
+       real(default), dimension(:), intent(in) :: x
+     end function vegas_func_evaluate
+  end interface
+
+  interface vegas_grid_t
+     module procedure vegas_grid_init
+  end interface vegas_grid_t
+
+  interface operator (==)
+     module procedure vegas_grid_equal
+  end interface operator (==)
+  interface vegas_t
+     module procedure vegas_init
+  end interface vegas_t
+
+  interface
+    module subroutine vegas_config_write (self, unit, indent)
+      class(vegas_config_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: indent
+    end subroutine vegas_config_write
+    module function vegas_grid_init (n_dim, n_bins_max) result (self)
+      type(vegas_grid_t) :: self
+      integer, intent(in) :: n_dim
+      integer, intent(in) :: n_bins_max
+    end function vegas_grid_init
+    module subroutine vegas_grid_write (self, unit, pacify)
+      class(vegas_grid_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      logical, intent(in), optional :: pacify
+    end subroutine vegas_grid_write
+    module function vegas_grid_equal (grid_a, grid_b) result (yorn)
+      logical :: yorn
+      type(vegas_grid_t), intent(in) :: grid_a, grid_b
+    end function vegas_grid_equal
+    module subroutine vegas_grid_resize (self, n_bins, w)
+      class(vegas_grid_t), intent(inout) :: self
+      integer, intent(in) :: n_bins
+      real(default), dimension(:, :), intent(in) :: w
+    end subroutine vegas_grid_resize
+    module function vegas_grid_get_probability (self, x) result (g)
+      class(vegas_grid_t), intent(in) :: self
+      real(default), dimension(:), intent(in) :: x
+      real(default) :: g
+    end function vegas_grid_get_probability
+    module subroutine vegas_result_write (self, unit, indent)
+      class(vegas_result_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+      integer, intent(in), optional :: indent
+    end subroutine vegas_result_write
+    module subroutine vegas_result_update (result, integral, variance)
+      class(vegas_result_t), intent(inout) :: result
+      real(default), intent(in) :: integral
+      real(default), intent(in) :: variance
+    end subroutine vegas_result_update
+    module subroutine vegas_result_update_efficiency (result, &
+         n_calls, max_pos, max_neg, sum_pos, sum_neg)
+      class(vegas_result_t), intent(inout) :: result
+      integer, intent(in) :: n_calls
+      real(default), intent(in) :: max_pos
+      real(default), intent(in) :: max_neg
+      real(default), intent(in) :: sum_pos
+      real(default), intent(in) :: sum_neg
+    end subroutine vegas_result_update_efficiency
+    module subroutine vegas_result_reset (result)
+      class(vegas_result_t), intent(inout) :: result
+    end subroutine vegas_result_reset
+    module function vegas_init &
+         (n_dim, alpha, n_bins_max, iterations, mode) result (self)
+      type(vegas_t) :: self
+      integer, intent(in) :: n_dim
+      integer, intent(in), optional :: n_bins_max
+      real(default), intent(in), optional :: alpha
+      integer, intent(in), optional :: iterations
+      integer, intent(in), optional :: mode
+    end function vegas_init
+    module subroutine vegas_final (self)
+      class(vegas_t), intent(inout) :: self
+    end subroutine vegas_final
+    module subroutine vegas_set_limits (self, x_lower, x_upper)
+      class(vegas_t), intent(inout) :: self
+      real(default), dimension(:), intent(in) :: x_lower
+      real(default), dimension(:), intent(in) :: x_upper
+    end subroutine vegas_set_limits
+    module subroutine vegas_set_n_calls (self, n_calls)
+      class(vegas_t), intent(inout) :: self
+      integer, intent(in) :: n_calls
+    end subroutine vegas_set_n_calls
+    module function vegas_get_grid (self) result (grid)
+      class(vegas_t), intent(in) :: self
+      type(vegas_grid_t) :: grid
+    end function vegas_get_grid
+    module subroutine vegas_get_config (self, config)
+      class(vegas_t), intent(in) :: self
+      type(vegas_config_t), intent(out) :: config
+    end subroutine vegas_get_config
+    module subroutine vegas_set_config (self, config)
+      class(vegas_t), intent(inout) :: self
+      class(vegas_config_t), intent(in) :: config
+    end subroutine vegas_set_config
+    module function vegas_get_result (self) result (result)
+      type(vegas_result_t) :: result
+      class(vegas_t), intent(in) :: self
+    end function vegas_get_result
+    elemental module function vegas_get_n_calls (self) result (n_calls)
+      class(vegas_t), intent(in) :: self
+      real(default) :: n_calls
+    end function vegas_get_n_calls
+    elemental module function vegas_get_integral (self) result (integral)
+      class(vegas_t), intent(in) :: self
+      real(default) :: integral
+    end function vegas_get_integral
+    elemental module function vegas_get_variance (self) result (variance)
+      class(vegas_t), intent(in) :: self
+      real(default) :: variance
+    end function vegas_get_variance
+    elemental module function vegas_get_efficiency (self) result (efficiency)
+      class(vegas_t), intent(in) :: self
+      real(default) :: efficiency
+    end function vegas_get_efficiency
+    elemental module function vegas_get_max_abs_f (self) result (max_abs_f)
+      class(vegas_t), intent(in) :: self
+      real(default) :: max_abs_f
+    end function vegas_get_max_abs_f
+    elemental module function vegas_get_sum_abs_f_pos (self) result (sum_abs_f)
+      class(vegas_t), intent(in) :: self
+      real(default) :: sum_abs_f
+    end function vegas_get_sum_abs_f_pos
+    elemental module function vegas_get_sum_abs_f_neg (self) result (sum_abs_f)
+      class(vegas_t), intent(in) :: self
+      real(default) :: sum_abs_f
+    end function vegas_get_sum_abs_f_neg
+    elemental module function vegas_get_max_abs_f_pos (self) result (max_abs_f)
+      class(vegas_t), intent(in) :: self
+      real(default) :: max_abs_f
+    end function vegas_get_max_abs_f_pos
+    elemental module function vegas_get_max_abs_f_neg (self) result (max_abs_f)
+      class(vegas_t), intent(in) :: self
+      real(default) :: max_abs_f
+    end function vegas_get_max_abs_f_neg
+    module function vegas_get_evt_weight (self) result (evt_weight)
+      class(vegas_t), intent(in) :: self
+      real(default) :: evt_weight
+    end function vegas_get_evt_weight
+    module function vegas_get_evt_weight_excess (self) result (evt_weight_excess)
+      class(vegas_t), intent(in) :: self
+      real(default) :: evt_weight_excess
+    end function vegas_get_evt_weight_excess
+    module function vegas_get_distribution (self) result (d)
+      class(vegas_t), intent(in) :: self
+      real(default), dimension(:, :), allocatable :: d
+    end function vegas_get_distribution
+    module subroutine vegas_set_distribution (self, d)
+      class(vegas_t), intent(inout) :: self
+      real(default), dimension(:, :), intent(in) :: d
+    end subroutine vegas_set_distribution
+    module subroutine vegas_init_grid (self)
+      class(vegas_t), intent(inout) :: self
+    end subroutine vegas_init_grid
+    module subroutine vegas_reset_result (self)
+      class(vegas_t), intent(inout) :: self
+    end subroutine vegas_reset_result
+    module subroutine vegas_reset_grid (self)
+      class(vegas_t), intent(inout) :: self
+    end subroutine vegas_reset_grid
+    module subroutine vegas_refine_grid (self, average)
+      class(vegas_t), intent(inout) :: self
+      logical, intent(in), optional :: average
+    end subroutine vegas_refine_grid
+    module subroutine vegas_average_distribution (self)
+      class(vegas_t), intent(inout) :: self
+    end subroutine vegas_average_distribution
+    module subroutine vegas_integrate (self, func, rng, iterations, reset_result, &
+         refine_grid, verbose, result, abserr)
+      class(vegas_t), intent(inout) :: self
+      class(vegas_func_t), intent(inout) :: func
+      class(rng_t), intent(inout) :: rng
+      integer, intent(in), optional :: iterations
+      logical, intent(in), optional :: reset_result
+      logical, intent(in), optional :: refine_grid
+      logical, intent(in), optional :: verbose
+      real(default), optional, intent(out) :: result, abserr
+    end subroutine vegas_integrate
+    module subroutine vegas_random_point (self, rng, x, bin_volume)
+      class(vegas_t), intent(inout) :: self
+      class(rng_t), intent(inout) :: rng
+      real(default), dimension(self%config%n_dim), intent(out) :: x
+      real(default), intent(out) :: bin_volume
+    end subroutine vegas_random_point
+    module subroutine vegas_simple_random_point (self, rng, x, bin_volume)
+      class(vegas_t), intent(inout) :: self
+      class(rng_t), intent(inout) :: rng
+      real(default), dimension(self%config%n_dim), intent(out) :: x
+      real(default), intent(out) :: bin_volume
+    end subroutine vegas_simple_random_point
+    module subroutine vegas_accumulate_distribution (self, y)
+      class(vegas_t), intent(inout) :: self
+      real(default), intent(in) :: y
+    end subroutine vegas_accumulate_distribution
+    module subroutine vegas_generate_weighted_event (self, func, rng, x)
+      class(vegas_t), intent(inout) :: self
+      class(vegas_func_t), intent(inout) :: func
+      class(rng_t), intent(inout) :: rng
+      real(default), dimension(self%config%n_dim), intent(inout) :: x
+    end subroutine vegas_generate_weighted_event
+    module subroutine vegas_generate_unweighted_event (self, func, rng, x)
+      class(vegas_t), intent(inout) :: self
+      class(vegas_func_t), intent(inout) :: func
+      class(rng_t), intent(inout) :: rng
+      real(default), dimension(self%config%n_dim), intent(out) :: x
+    end subroutine vegas_generate_unweighted_event
+    module subroutine vegas_write_grid (self, unit)
+      class(vegas_t), intent(in) :: self
+      integer, intent(in), optional :: unit
+    end subroutine vegas_write_grid
+    module subroutine vegas_read_grid (self, unit)
+      class(vegas_t), intent(out) :: self
+      integer, intent(in) :: unit
+    end subroutine vegas_read_grid
+    module subroutine vegas_write_binary_grid (self, unit)
+      class(vegas_t), intent(in) :: self
+      integer, intent(in) :: unit
+    end subroutine vegas_write_binary_grid
+    module subroutine vegas_read_binary_grid (self, unit)
+      class(vegas_t), intent(out) :: self
+      integer, intent(in) :: unit
+    end subroutine vegas_read_binary_grid
+  end interface
+
+contains
+
+
+
+end module vegas

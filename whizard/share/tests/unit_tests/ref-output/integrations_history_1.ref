@@ -1,0 +1,490 @@
+* Test output: integrations_history_1
+*   Purpose: test integration history files
+
+* Initialize process and parameters
+
+* Integrate
+
+========================================================================
+ Runtime data:
+========================================================================
+ iterations = 2:1000:"gw", 2:1000:"g", 2:1000
+========================================================================
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+========================================================================
+ Process library stack:
+------------------------------------------------------------------------
+ Process library: integrations_history_1_lib
+   external        = F
+   makefile exists = F
+   driver exists   = F
+   code status     = a
+
+ Process library entries: 1
+ Entry #1: [a] integrations_history_1.1 = int (test_me)
+
+ Process #1:
+ ID = 'integrations_history_1'
+ Scattering
+ Model = Test
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '5617843F5951F4C5E7429E1BD0A4CF78'
+ Component #1
+   Component ID        = integrations_history_1_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = '1F53E999E616E58AEB93C4983FC8BF17'
+========================================================================
+ Beam structure: [any particles]
+========================================================================
+ Cuts: [undefined]
+------------------------------------------------------------------------
+ Scale: [undefined]
+------------------------------------------------------------------------
+ Factorization scale: [undefined]
+------------------------------------------------------------------------
+ Renormalization scale: [undefined]
+------------------------------------------------------------------------
+ Weight: [undefined]
+========================================================================
+ Event selection: [undefined]
+------------------------------------------------------------------------
+ Event reweighting factor: [undefined]
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+------------------------------------------------------------------------
+ Event callback: [undefined]
+========================================================================
+ Process stack:
+========================================================================
+ Process [scattering]: 'integrations_history_1'
+   Run ID        = 'r1'
+   Library name  = 'integrations_history_1_lib'
+   Process index = 1
+   Process components:
+     1: 'integrations_history_1_i1':   s, s => s, s [unit_test]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 2
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (fixed coupling):
+     alpha =  1.17800E-01
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Expressions (cut, scales, weight): [not shown]
+------------------------------------------------------------------------
+   MD5 sum (config)  = '18D53766C6D12AEE6CD1A21C79B87CC3'
+------------------------------------------------------------------------
+ RNG factory: tao (0,1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = integrations_history_1_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = unit_test
+   Process variant     = test_me
+   MD5 sum (def)       = '1F53E999E616E58AEB93C4983FC8BF17'
+   MD5 sum (phs)       = '01A9210B20A1A46167B2D390027F12E4'
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration (phase-space forest):
+   ID        = 'integrations_history_1_i1'
+   n_in      = 2
+   n_out     = 2
+   n_tot     = 4
+   n_state   = 1
+   n_par     = 2
+   n_channel = 5
+   sqrts     =  1.000000000000E+03
+   s_fixed   = T
+   lab_is_cm = T
+   azim.dep. = F
+ Flavor combinations:
+   1: s s s s
+ Phase-space / structure-function channels:
+   1: 1
+     = 1 (1x 2+)
+     = 1 (1x 2-)
+   2: 1
+     = 2 (1x 2+)
+     = 3 (1x 2-)
+     = 4 (1x 2+)
+     = 5 (1x 2-)
+   3: 1
+     = 2 (1x 2-)
+     = 3 (1x 2+)
+     = 4 (1x 2-)
+     = 5 (1x 2+)
+   4: 1
+     = 2 (1x 2+)
+     = 3 (1x 2-)
+     = 4 (1x 2+)
+     = 5 (1x 2-)
+   5: 1
+     = 2 (1x 2-)
+     = 3 (1x 2+)
+     = 4 (1x 2-)
+     = 5 (1x 2+)
+   MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+   MD5 sum (phs config) = 'F096BEE7ACB0B162D06D0B574C915F96'
+ Phase-space configuration parameters:
+   sqrts         =  1.000000000000E+03
+   m_threshold_s =  5.000000000000E+01
+   m_threshold_t =  1.000000000000E+02
+   off_shell = 2
+   t_channel = 6
+   keep_nonresonant = T
+   energy scale  =  1.000000000000E+01
+   mass scale    =  1.000000000000E+01
+   q scale       =  1.000000000000E+01
+   step mapping     = T
+   step exp. mode   = T
+   allow s mapping  = F
+   Run ID: 'r1'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 1
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Outgoing:
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = T
+   MD5 sum (beams/strf) = '80007D5E30CFD7B9BD09FF0704AAA3A6'
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 2
+   MC parameters (SF)    = 0
+   MC parameters (PHS)   = 2
+   Current pass          = 3
+   Number of iterations  = 2
+   Number of calls       = 1000
+   MD5 sum (components)  = '90F33BC2F79E6E007EC5B86CE89A3B95'
+ VAMP integrator:
+   Integral             =  7.7464622036E+03
+   Error                =  0.0000000000E+00
+   Efficiency           =  1.0000000000E+00
+   Number of channels   = 5
+   Number of dimensions = 2
+   Number of chains     = 2
+   Chains:
+     1: 1
+     2: 2 3 4 5
+   Flat dimensions    =
+ Grid parameters:
+   threshold_calls       = 10
+   min_calls_per_channel = 10
+   min_calls_per_bin     = 10
+   min_bins              = 3
+   max_bins              = 20
+   stratified            = T
+   use_vamp_equivalences = T
+   channel_weights_power =  0.2500000
+   min_calls             = 0
+   negative weights      = F
+   verbose               = F
+ Inequivalent channels:
+   Channel 1:    Mult. = 1    Symm. = 2    Invar.: TF
+   Channel 2:    Mult. = 4    Symm. = 1    Invar.: TF
+ Equivalence list:
+   Equivalent channels: 1 1
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 1 1
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 2 2
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 2 3
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 2 4
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 2 5
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 3 2
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 3 3
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 3 4
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 3 5
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 4 2
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 4 3
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 4 4
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 4 5
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 5 2
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 5 3
+     Permutation: 1 2
+     Mode:        3 0
+   Equivalent channels: 5 4
+     Permutation: 1 2
+     Mode:        3 1
+   Equivalent channels: 5 5
+     Permutation: 1 2
+     Mode:        3 0
+ Integration pass:
+   n_it          = 2
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = T
+   adapt weights = T
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  7.7464622036E+03  0.0000000000E+00  1.0000000000E+00
+     2 1000 1000  7.7464622036E+03  0.0000000000E+00  1.0000000000E+00
+ Integration pass:
+   n_it          = 2
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = T
+   adapt weights = F
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  7.7464622036E+03  0.0000000000E+00  1.0000000000E+00
+     2 1000 1000  7.7464622036E+03  0.0000000000E+00  1.0000000000E+00
+ Integration pass:
+   n_it          = 2
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = F
+   adapt weights = F
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  7.7464622036E+03  0.0000000000E+00  1.0000000000E+00
+     2 1000 1000  7.7464622036E+03  0.0000000000E+00  1.0000000000E+00
+ MD5 sum (including results) = '514AE07EFCB8075444241D0376DB7C51'
+ Call statistics (current run):
+   total       = 2000
+   failed kin. = 0
+   failed cuts = 0
+   passed cuts = 0
+   evaluated   = 2000
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     7.746E+03   0.00E+00    0.00    0.00   100.0
+   2       1000     7.746E+03   0.00E+00    0.00    0.00   100.0
+|-----------------------------------------------------------------------------|
+   2       2000     7.746E+03   0.00E+00    0.00    0.00   100.0    0.00   2
+|-----------------------------------------------------------------------------|
+   3       1000     7.746E+03   0.00E+00    0.00    0.00   100.0
+   4       1000     7.746E+03   0.00E+00    0.00    0.00   100.0
+|-----------------------------------------------------------------------------|
+   4       2000     7.746E+03   0.00E+00    0.00    0.00   100.0    0.00   2
+|-----------------------------------------------------------------------------|
+   5       1000     7.746E+03   0.00E+00    0.00    0.00   100.0
+   6       1000     7.746E+03   0.00E+00    0.00    0.00   100.0
+|-----------------------------------------------------------------------------|
+   6       2000     7.746E+03   0.00E+00    0.00    0.00   100.0    0.00   2
+|=============================================================================|
+| Phase-space chain (grove) weight history: (numbers in %)
+| chain |   1   2
+|=============================================================================|
+      1 |  20  80
+      2 |  20  80
+|-----------------------------------------------------------------------------|
+      3 |  20  80
+      4 |  20  80
+|-----------------------------------------------------------------------------|
+      5 |  20  80
+      6 |  20  80
+|=============================================================================|
+========================================================================
+ quit     : F
+ quit_code: 0
+========================================================================
+ Logfile  : ''
+========================================================================
+
+* Generated history files
+
+\documentclass{article}
+\usepackage{a4wide}
+\usepackage{gamelan}
+\usepackage{amsmath}
+
+\begin{document}
+\begin{gmlfile}
+\section*{Integration Results Display}
+
+Process: \verb|integrations_history_1.r1.history|
+
+\vspace*{2\baselineskip}
+\unitlength 1mm
+\begin{gmlcode}
+  picture sym;  sym = fshape (circle scaled 1mm)();
+  color col.band;  col.band = 0.9white;
+  color col.eband;  col.eband = 0.98white;
+\end{gmlcode}
+\begin{gmlgraph*}(130,180)[history]
+  setup (linear, linear);
+  history.n_pass = 3;
+  history.n_it   = 6;
+  history.y0 = #"7668.9977";
+  history.y1 = #"7823.9268";
+  graphrange (#0.5, history.y0), (#(n+0.5), history.y1);
+  history.pass[1] = 0;
+  history.avg[1] = #"7746.4622";
+  history.err[1] = #"0.0000000";
+  history.chi[1] = #"0.0000000";
+  history.pass[2] = 2;
+  history.avg[2] = #"7746.4622";
+  history.err[2] = #"0.0000000";
+  history.chi[2] = #"0.0000000";
+  history.pass[3] = 4;
+  history.avg[3] = #"7746.4622";
+  history.err[3] = #"0.0000000";
+  history.chi[3] = #"0.0000000";
+  history.pass[4] = 6;
+  for i = 1 upto history.n_pass:
+    if history.chi[i] greater one:
+    fill plot (
+      (#(history.pass[i]  +.5), history.avg[i] minus history.err[i] times history.chi[i]),
+      (#(history.pass[i+1]+.5), history.avg[i] minus history.err[i] times history.chi[i]),
+      (#(history.pass[i+1]+.5), history.avg[i] plus history.err[i] times history.chi[i]),
+      (#(history.pass[i]  +.5), history.avg[i] plus history.err[i] times history.chi[i])
+    ) withcolor col.eband fi;
+    fill plot (
+      (#(history.pass[i]  +.5), history.avg[i] minus history.err[i]),
+      (#(history.pass[i+1]+.5), history.avg[i] minus history.err[i]),
+      (#(history.pass[i+1]+.5), history.avg[i] plus history.err[i]),
+      (#(history.pass[i]  +.5), history.avg[i] plus history.err[i])
+    ) withcolor col.band;
+    draw plot (
+      (#(history.pass[i]  +.5), history.avg[i]),
+      (#(history.pass[i+1]+.5), history.avg[i])
+      ) dashed evenly;
+  endfor
+  for i = 1 upto history.n_pass + 1:
+    draw plot (
+      (#(history.pass[i]+.5), history.y0),
+      (#(history.pass[i]+.5), history.y1)
+      ) dashed withdots;
+  endfor
+  plot (history) (#1, #"7746.4622") vbar #"0.0000000";
+  plot (history) (#2, #"7746.4622") vbar #"0.0000000";
+  plot (history) (#3, #"7746.4622") vbar #"0.0000000";
+  plot (history) (#4, #"7746.4622") vbar #"0.0000000";
+  plot (history) (#5, #"7746.4622") vbar #"0.0000000";
+  plot (history) (#6, #"7746.4622") vbar #"0.0000000";
+  draw piecewise from (history) withsymbol sym;
+  fullgrid.lr (5,20);
+  standardgrid.bt (n);
+  begingmleps "Whizard-Logo.eps";
+    base := (120*unitlength,170*unitlength);
+    height := 9.6*unitlength;
+    width := 11.2*unitlength;
+  endgmleps;
+\end{gmlgraph*}
+\end{gmlfile}
+\clearpage
+\begin{verbatim}
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00* 100.00
+   2       1000  7.7464622E+03  0.00E+00    0.00    0.00  100.00
+|-----------------------------------------------------------------------------|
+   2       2000  7.7464622E+03  0.00E+00    0.00    0.00  100.00    0.00   2
+|-----------------------------------------------------------------------------|
+   3       1000  7.7464622E+03  0.00E+00    0.00    0.00  100.00
+   4       1000  7.7464622E+03  0.00E+00    0.00    0.00  100.00
+|-----------------------------------------------------------------------------|
+   4       2000  7.7464622E+03  0.00E+00    0.00    0.00  100.00    0.00   2
+|-----------------------------------------------------------------------------|
+   5       1000  7.7464622E+03  0.00E+00    0.00    0.00  100.00
+   6       1000  7.7464622E+03  0.00E+00    0.00    0.00  100.00
+|-----------------------------------------------------------------------------|
+   6       2000  7.7464622E+03  0.00E+00    0.00    0.00  100.00    0.00   2
+|=============================================================================|
+\end{verbatim}
+\end{document}
+[History Postscript file exists and is nonempty]
+[History PDF file exists and is nonempty]
+
+* Cleanup
+
+* Test output end: integrations_history_1

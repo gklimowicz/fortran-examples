@@ -1,0 +1,49 @@
+# SINDARIN input for WHIZARD self-test
+# Check WHIZARD for specific count cuts on clustered tagged b jets
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+?omega_write_phs_output = true
+
+model = SM
+
+alphas = 0.118
+
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alphas_nf = 5
+
+ms = 0
+mc = 0
+
+alias lightjet = u:U:d:D:s:S:c:C:gl
+alias jet = lightjet:b:B
+
+
+$phs_method = "fast_wood"
+
+process bjet_cluster_p1 = e1, E1 => b, B, lightjet, lightjet { $restrictions = "!H" }
+
+seed = 1234
+sqrts = 1 TeV
+scale = 1 TeV
+
+jet_algorithm = antikt_algorithm
+jet_r = 0.5
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @selected = select if (Pt > 30 GeV and abs(Eta) < 4) [@clustered_jets] in
+       let subevt @bjets = select_b_jet if Pt > 100 GeV [@selected] in
+       count [@selected] == 4 and count [@bjets] == 2 
+
+integrate (bjet_cluster_p1) { iterations = 1:760:"gw" }
+
+cuts = let subevt @clustered_jets = cluster [jet] in
+       let subevt @selected = select if (Pt > 30 GeV and abs(Eta) < 4) [@clustered_jets] in
+       count [@selected] == 4
+
+integrate (bjet_cluster_p1) { iterations = 1:760:"gw" }

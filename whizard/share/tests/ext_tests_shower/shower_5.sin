@@ -1,0 +1,50 @@
+!!! Process: Electron-induced muon production at CLIC
+!!! Reported by: Mo Xin on 2015-09-21
+!!! Purpose: This had triggered a runtime error/segfault related to
+!!!          wrongly set parents that wasn't covered by the other tests
+
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+seed = 0
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.16637E-005
+wZ = 2.4952
+wW = 2.124
+
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+wtop = 0
+mtop = 175 GeV
+
+process shower_5_uu = e1,E1 => u,U
+process shower_5_dd = e1,E1 => d,D
+process shower_5_cc = e1,E1 => c,C
+process shower_5_ss = e1,E1 => s,S
+process shower_5_bb = e1,E1 => b,B
+
+?ps_fsr_active = true
+$shower_method = "PYTHIA6"
+?hadronization_active = true
+sqrts = 250
+iterations = 5:50000:"gw"
+integrate (shower_5_uu,shower_5_dd,shower_5_cc,shower_5_ss,shower_5_bb)
+n_events = 25000
+
+simulate (shower_5_uu)
+simulate (shower_5_dd)
+simulate (shower_5_cc)
+simulate (shower_5_ss)
+simulate (shower_5_bb)

@@ -1,0 +1,87 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+| Process library 'job_id_4_lib': recorded process 'job_id_4_x'
+openmp_num_threads = 1
+?pacify = true
+?sample_pacify = true
+sqrts =  1.00000E+02
+$integrate_workspace = "job_id_4_x.8001"
+$run_id = "8001.1"
+| Integrate: current process library needs compilation
+| Process library 'job_id_4_lib': compiling ...
+| Process library 'job_id_4_lib': writing makefile
+| Process library 'job_id_4_lib': removing old files
+| Process library 'job_id_4_lib': writing driver
+| Process library 'job_id_4_lib': creating source code
+| Process library 'job_id_4_lib': compiling sources
+| Process library 'job_id_4_lib': linking
+| Process library 'job_id_4_lib': loading
+| Process library 'job_id_4_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process job_id_4_x:
+| Run ID = "8001.1"
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Integrator: preparing VAMP grid directory 'job_id_4_x.8001'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'job_id_4_x.8001/job_id_4_x.8001.1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'job_id_4_x'
+|   Run ID        = '8001.1'
+|   Library name  = 'job_id_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'job_id_4_x_i1':   e-, e+ => m-, m+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Integrator: preparing VAMP grid directory 'job_id_4_x.8001'
+Warning: No cuts have been defined.
+| Starting integration for process 'job_id_4_x'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     8.680E+03   7.69E+00    0.09    0.03    66.6
+|-----------------------------------------------------------------------------|
+   1        800     8.680E+03   7.69E+00    0.09    0.03    66.6
+|=============================================================================|
+n_events = 1
+| Starting simulation for process 'job_id_4_x'
+| Simulate: using integration grids from file 'job_id_4_x.8001/job_id_4_x.8001.1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.1520E-04
+| Events: writing to raw file 'job_id_4_x.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing raw file 'job_id_4_x.evx'
+$out_file = "job_id_4_x.8001.3.dat"
+| Opening file 'job_id_4_x.8001.3.dat' for output
+| Writing analysis data to file 'job_id_4_x.8001.3.dat'
+| Closing file 'job_id_4_x.8001.3.dat' for output
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+* Files created by integrate:
+job_id_4_x.8001.1.log
+* Files created in integrate workspace:
+job_id_4_x.8001/job_id_4_x.8001.1.i1.phs
+job_id_4_x.8001/job_id_4_x.8001.1.m1.vg

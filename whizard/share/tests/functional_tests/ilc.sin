@@ -1,0 +1,48 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process ilc_zh = e1, E1 => Z, H
+process ilc_ww = A, A => "W+", "W-"
+iterations = 1:100
+
+compile
+
+seed = 1
+
+sqrts = 500 GeV
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+beams = e1, E1
+integrate (ilc_zh)
+
+beams = e1, E1 => isr
+integrate (ilc_zh)
+
+beams = e1, E1 => circe1
+integrate (ilc_zh)
+
+beams = e1, E1 => circe1 => isr
+integrate (ilc_zh)
+
+beams = e1, E1 => epa
+epa_x_min = 0.1
+epa_mass = me
+integrate (ilc_ww)
+
+beams = A, A => circe2
+$circe2_file = "teslagg_500.circe"
+integrate (ilc_ww)
+
+beams = e1, E1 => energy_scan
+integrate (ilc_zh)
+
+beams = e1, E1 => beam_events
+$beam_events_file = "uniform_spread_2.5%.dat"
+integrate (ilc_zh)

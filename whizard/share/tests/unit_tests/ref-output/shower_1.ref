@@ -1,0 +1,85 @@
+* Test output: shower_1
+*   Purpose: Two-jet event with disabled shower
+
+* Initialize environment
+
+* Set up trivial transform
+
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'shower_1p'
+   TAO random-number generator:
+     seed  = 1
+     calls = 3
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(11)
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  5.000000000000E+02
+ T =   0.000000000000E+00
+ Children: 3 4
+ Particle 2 [i] f(-11)
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -5.000000000000E+02
+ T =   0.000000000000E+00
+ Children: 3 4
+ Particle 3 [o] f(1)c(1 )
+ E =   5.000000000000E+02
+ P =   2.580135256785E+01  2.258244818219E+02  4.453510902822E+02
+ T =   0.000000000000E+00
+ Parents:  1 2
+ Particle 4 [o] f(-1)c(-1 )
+ E =   5.000000000000E+02
+ P =  -2.580135256785E+01 -2.258244818219E+02 -4.453510902822E+02
+ T =   0.000000000000E+00
+ Parents:  1 2
+========================================================================
+
+* Set up shower event transform
+
+========================================================================
+ Event transform: shower
+------------------------------------------------------------------------
+   Associated process: 'shower_1p'
+   TAO random-number generator:
+     seed  = 2
+     calls = 1
+   Number of tries = 1
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [i]      e-    0    0               [none]                  3-4      500.000        0.000        0.000      500.000        0.000
+   2    [i]      e+    0    0               [none]                  3-4      500.000        0.000        0.000     -500.000        0.000
+   3    [o]       d    1    0                  1-2               [none]      500.000       25.801      225.824      445.351        0.000
+   4    [o]    dbar    0    1                  1-2               [none]      500.000      -25.801     -225.824     -445.351        0.000
+------------------------------------------------------------------------
+Sum of incoming momenta: p(0:3) =         1000.000        0.000        0.000        0.000
+Sum of beam remnant momenta: p(0:3) =        0.000        0.000        0.000        0.000
+Sum of outgoing momenta: p(0:3) =         1000.000        0.000        0.000        0.000
+------------------------------------------------------------------------
+ Shower settings:
+------------------------------------------------------------------------
+ Master switches:
+   ps_isr_active                =  F
+   ps_fsr_active                =  F
+   ps_tau_dec                   =  F
+   muli_active                  =  F
+   hadronization_active         =  F
+ General settings:
+    [ISR and FSR off]
+ Matching Settings:
+   mlm_matching                 =  F
+   ckkw_matching                =  F
+ PYTHIA6 specific settings:
+   ps_PYTHIA_PYGIVE             = ''
+ PYTHIA8 specific settings:
+   ps_PYTHIA8_config            = ''
+   ps_PYTHIA8_config_file       = ''
+========================================================================
+
+* Cleanup
+
+* Test output end: shower_1

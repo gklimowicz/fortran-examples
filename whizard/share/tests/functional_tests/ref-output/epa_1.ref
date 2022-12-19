@@ -1,0 +1,140 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Process library 'epa_1_lib': recorded process 'epa_1a'
+| Process library 'epa_1_lib': recorded process 'epa_1b'
+| Process library 'epa_1_lib': compiling ...
+| Process library 'epa_1_lib': writing makefile
+| Process library 'epa_1_lib': removing old files
+| Process library 'epa_1_lib': writing driver
+| Process library 'epa_1_lib': creating source code
+| Process library 'epa_1_lib': compiling sources
+| Process library 'epa_1_lib': linking
+| Process library 'epa_1_lib': loading
+| Process library 'epa_1_lib': ... success.
+sqrts =  1.00000E+02
+openmp_num_threads = 1
+SM.me =>  0.00000E+00
+epa_mass =  5.11000E-04
+epa_x_min =  1.00000E-02
+?epa_recoil = false
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process epa_1a:
+| Beam structure: e-, e+ => epa
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'epa_1a.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'epa_1a'
+|   Library name  = 'epa_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'epa_1a_i1':   A, A => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 8 equivalences between channels.
+| Phase space: wood
+| Beam structure: epa, none => none, epa
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'epa_1a'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 4 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.446E+05   3.54E+04   24.48    7.74     1.3
+|-----------------------------------------------------------------------------|
+   1       1000     1.446E+05   3.54E+04   24.48    7.74     1.3
+|=============================================================================|
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process epa_1b:
+| Beam structure: e-, e+ => epa
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'epa_1b.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'epa_1b'
+|   Library name  = 'epa_1_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'epa_1b_i1':   A, A => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 2 dimensions
+| Phase space: found 4 channels, collected in 1 grove.
+| Phase space: Using 8 equivalences between channels.
+| Phase space: wood
+| Beam structure: epa, none => none, epa
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'epa_1b'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 4 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     1.446E+05   3.54E+04   24.48    7.74     1.3
+|-----------------------------------------------------------------------------|
+   1       1000     1.446E+05   3.54E+04   24.48    7.74     1.3
+|=============================================================================|
+?keep_beams = true
+?keep_remnants = true
+?epa_handler = false
+$sample = "epa_1a"
+n_events = 1
+| Starting simulation for process 'epa_1a'
+| Simulate: using integration grids from file 'epa_1a.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   6.9158E-06
+| Events: writing to LHEF file 'epa_1a.lhe'
+| Events: writing to raw file 'epa_1a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   1.59 %
+| Events: closing LHEF file 'epa_1a.lhe'
+| Events: closing raw file 'epa_1a.evx'
+?epa_handler = true
+$epa_handler_mode = "recoil"
+$sample = "epa_1b"
+n_events = 1
+| Starting simulation for process 'epa_1b'
+| Simulate: using integration grids from file 'epa_1b.m1.vg'
+| Simulate: activating EPA handler
+| Simulate: ISR/EPA handler mode: pair recoil
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   6.9158E-06
+| Events: writing to LHEF file 'epa_1b.lhe'
+| Events: writing to raw file 'epa_1b.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   1.59 %
+| Events: closing LHEF file 'epa_1b.lhe'
+| Events: closing raw file 'epa_1b.evx'
+| WHIZARD run finished.
+|=============================================================================|

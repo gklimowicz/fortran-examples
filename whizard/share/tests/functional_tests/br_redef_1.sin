@@ -1,0 +1,50 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+?pacify = true
+
+# Choose a seed such that both events below
+# display the h -> bbar decay
+seed = 1
+
+process br_redef_1_hbb = h => b, B
+process br_redef_1_htt = h => e3, E3
+
+process br_redef_1_zh = e1, E1 => Z, h
+
+compile
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+sqrts = 250
+integrate (br_redef_1_zh) { iterations = 1:1000 }
+
+integrate (br_redef_1_hbb, br_redef_1_htt)
+
+show (integral (br_redef_1_hbb))
+show (integral (br_redef_1_htt))
+
+unstable h (br_redef_1_hbb, br_redef_1_htt)
+
+# Simulation with computed BRs
+
+sample_format = debug
+$sample = "br_redef_1_zh_a"
+simulate (br_redef_1_zh) { n_events = 1 }
+
+# Redefine the partial width, simulate with modified BRs
+integral (br_redef_1_hbb) = 2.e-3
+
+unstable h (br_redef_1_hbb, br_redef_1_htt)
+
+sample_format = debug
+$sample = "br_redef_1_zh_b"
+simulate (br_redef_1_zh) { n_events = 1 }
+

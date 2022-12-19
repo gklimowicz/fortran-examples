@@ -1,0 +1,54 @@
+# Sindarin input for WHIZARD self-test
+
+model = "QCD"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process lhef_9_p = "g", "g" => "u", "ubar"
+
+sqrts = 8000
+beams = p, p => pdf_builtin
+
+cuts = all Pt > 50 [u:ubar]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+?unweighted = false
+?read_raw = false
+?write_raw = false
+
+simulate (lhef_9_p) {
+  sample_format = lhef, weight_stream
+  $sample = "lhef_9a"
+  ?keep_beams = true
+  iterations = 1:1000
+}
+
+alphas = 2 * alphas
+
+! Recalculate with twice the coupling
+rescan "lhef_9a" (lhef_9_p) {
+  $rescan_input_format = "lhef"
+  sample_format = weight_stream
+  $sample = "lhef_9b"
+  ?update_sqme = true
+}
+
+! Recalculate with coupling from file, i.e., original coupling
+rescan "lhef_9a" (lhef_9_p) {
+  $rescan_input_format = "lhef"
+  sample_format = weight_stream
+  $sample = "lhef_9c"
+  ?update_sqme = true
+  ?use_alphas_from_file = true
+}

@@ -1,0 +1,560 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP kinematics code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Kinematics}
+<<[[kinematics.f90]]>>=
+! kinematics.f90 --
+<<Copyleft notice>>
+module kinematics
+  use kinds
+  use constants
+  use products, only: dot
+  use specfun, only: gamma
+  implicit none
+  private
+  <<Declaration of [[kinematics]] procedures>>
+  <<Interfaces of [[kinematics]] procedures>>
+  <<Declaration of [[kinematics]] types>>
+contains
+  <<Implementation of [[kinematics]] procedures>>
+end module kinematics
+@ %def kinematics
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Lorentz Transformations}
+<<Declaration of [[kinematics]] procedures>>=
+public :: boost_velocity
+private :: boost_one_velocity, boost_many_velocity
+public :: boost_momentum
+private :: boost_one_momentum, boost_many_momentum
+@ 
+<<Interfaces of [[kinematics]] procedures>>=
+interface boost_velocity
+   module procedure boost_one_velocity, boost_many_velocity
+end interface
+interface boost_momentum
+   module procedure boost_one_momentum, boost_many_momentum
+end interface
+@ %def boost_velocity boost_momentum
+@ Boost a four vector~$p$ to the inertial frame moving with the
+velocity~$\beta$:
+\begin{subequations}
+\begin{align}
+  p'_0    &= \gamma \left( p_0 - \vec\beta\vec p \right) \\
+  \vec p' &= \gamma \left( \vec p_{\parallel} - \vec\beta p_0 \right)
+             + \vec p_{\perp}
+\end{align}
+\end{subequations}
+with~$\gamma=1/\sqrt{1-{\vec\beta}^2}$, $\vec p_{\parallel} =
+\vec\beta (\vec\beta\vec p) / {\vec\beta}^2$ and~$\vec p_{\perp} =
+\vec p - \vec p_{\parallel}$.  Using~$1/{\vec\beta}^2 =
+\gamma^2/(\gamma+1) \cdot 1/(\gamma-1)$ and~$\vec b=\gamma\vec\beta$
+this can be rewritten as
+\begin{subequations}
+\begin{align}
+  p'_0    &= \gamma p_0 - \vec b\vec p  \\
+  \vec p' &= \vec p
+     + \left( \frac{\vec b\vec p}{\gamma+1} - p_0 \right) \vec b
+\end{align}
+\end{subequations}
+<<Implementation of [[kinematics]] procedures>>=
+pure function boost_one_velocity (p, beta) result (p_prime)
+  real(kind=default), dimension(0:), intent(in) :: p
+  real(kind=default), dimension(1:), intent(in) :: beta
+  real(kind=default), dimension(0:3) :: p_prime
+  real(kind=default), dimension(1:3) :: b
+  real(kind=default) :: gamma, b_dot_p
+  gamma = 1.0 / sqrt (1.0 - dot_product (beta, beta))
+  b = gamma * beta
+  b_dot_p = dot_product (b, p(1:3))
+  p_prime(0) = gamma * p(0) - b_dot_p
+  p_prime(1:3) = p(1:3) + (b_dot_p / (1.0 + gamma) - p(0)) * b
+end function boost_one_velocity
+@ %def boost_one_velocity
+@ 
+<<Implementation of [[kinematics]] procedures>>=
+pure function boost_many_velocity (p, beta) result (p_prime)
+  real(kind=default), dimension(:,0:), intent(in) :: p
+  real(kind=default), dimension(1:), intent(in) :: beta
+  real(kind=default), dimension(size(p,dim=1),0:3) :: p_prime
+  integer :: i
+  do i = 1, size (p, dim=1)
+     p_prime(i,:) = boost_one_velocity (p(i,:), beta)
+  end do
+end function boost_many_velocity
+@ %def boost_many_velocity
+@ Boost a four vector~$p$ to the rest frame of the four vector~$q$.
+The velocity is~$\vec\beta=\vec q/|q_0|$:
+<<Implementation of [[kinematics]] procedures>>=
+pure function boost_one_momentum (p, q) result (p_prime)
+  real(kind=default), dimension(0:), intent(in) :: p, q
+  real(kind=default), dimension(0:3) :: p_prime
+  p_prime = boost_velocity (p, q(1:3) / abs (q(0)))
+end function boost_one_momentum
+@ %def boost_one_momentum
+@
+<<Implementation of [[kinematics]] procedures>>=
+pure function boost_many_momentum (p, q) result (p_prime)
+  real(kind=default), dimension(:,0:), intent(in) :: p
+  real(kind=default), dimension(0:), intent(in) :: q
+  real(kind=default), dimension(size(p,dim=1),0:3) :: p_prime
+  p_prime = boost_many_velocity (p, q(1:3) / abs (q(0)))
+end function boost_many_momentum
+@ %def boost_many_momentum
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Massive Phase Space}
+\begin{equation}
+  \lambda(a,b,c)
+     = a^2 + b^2 + c^2 - 2ab - 2bc - 2ca
+     = (a-b-c)^2 - 4bc
+\end{equation}
+and permutations
+<<Implementation of [[kinematics]] procedures>>=
+pure function lambda (a, b, c) result (lam)
+  real(kind=default), intent(in) :: a, b, c
+  real(kind=default) :: lam
+  lam = a**2 + b**2 + c**2 - 2*(a*b + b*c + c*a)
+end function lambda
+@ %def lambda
+@ 
+<<Declaration of [[kinematics]] procedures>>=
+public :: lambda
+@ 
+<<Declaration of [[kinematics]] procedures>>=
+public :: two_to_three
+private :: two_to_three_massive, two_to_three_massless
+@ 
+<<Interfaces of [[kinematics]] procedures>>=
+interface two_to_three
+   module procedure two_to_three_massive, two_to_three_massless
+end interface
+@ 
+<<Declaration of [[kinematics]] types>>=
+type, public :: LIPS3
+   real(kind=default), dimension(3,0:3) :: p
+   real(kind=default) :: jacobian
+end type LIPS3
+@ %def LIPS3
+@
+\begin{equation}
+  \mathrm{d}\text{LIPS}_3 =
+     \int\!\frac{\textrm{d}^3\vec p_1}{(2\pi)^3 2E_1}
+           \frac{\textrm{d}^3\vec p_2}{(2\pi)^3 2E_2}
+           \frac{\textrm{d}^3\vec p_3}{(2\pi)^3 2E_3}\,
+     (2\pi)^4 \delta^4(p_1 + p_2 + p_3 - p_a - p_b)
+\end{equation}
+The jacobian is given by
+\begin{equation}
+  \mathrm{d}\text{LIPS}_3 =
+    \frac{1}{(2\pi)^5}
+    \int\!\mathrm{d}\phi\mathrm{d}t_1
+          \mathrm{d}s_2\mathrm{d}\Omega_3^{[23]}
+             \frac{1}{32\sqrt{ss_2}}
+             \frac{|\vec p_3^{[23]}|}{|\vec p_a^{[ab]}|}
+\end{equation}
+where~$\vec p_i^{[jk]}$ denotes the momentum of particle~$i$ in the
+center of mass system of particles~$j$ and~$k$.
+<<Implementation of [[kinematics]] procedures>>=
+pure function two_to_three_massive &
+     (s, t1, s2, phi, cos_theta3, phi3, ma, mb, m1, m2, m3) result (p)
+  real(kind=default), intent(in) :: &
+       s, t1, s2, phi, cos_theta3, phi3, ma, mb, m1, m2, m3
+  type(LIPS3) :: p
+  real(kind=default), dimension(0:3) :: p23
+  real(kind=default) :: Ea, pa_abs, E1, p1_abs, p3_abs, cos_theta
+  pa_abs = sqrt (lambda (s, ma**2, mb**2) / (4 * s))
+  Ea = sqrt (ma**2 + pa_abs**2)
+  p1_abs = sqrt (lambda (s, m1**2, s2) / (4 * s))
+  E1 = sqrt (m1**2 + p1_abs**2)
+  p3_abs = sqrt (lambda (s2, m2**2, m3**2) / (4 * s2))
+  p%jacobian = &
+       1.0 / (2*PI)**5 * (p3_abs / pa_abs) / (32 * sqrt (s * s2))
+  cos_theta = (t1 - ma**2 - m1**2 + 2*Ea*E1) / (2*pa_abs*p1_abs)
+  p%p(1,1:3) = polar_to_cartesian (p1_abs, cos_theta, phi)
+  p%p(1,0) = on_shell (p%p(1,:), m1)
+  p23(1:3) = - p%p(1,1:3)
+  p23(0) = on_shell (p23, sqrt (s2))
+  p%p(3:2:-1,:) = one_to_two (p23, cos_theta3, phi3, m3, m2)
+end function two_to_three_massive
+@ A specialized version for massless particles can be faster, because
+the kinematics is simpler:
+<<Implementation of [[kinematics]] procedures>>=
+pure function two_to_three_massless (s, t1, s2, phi, cos_theta3, phi3) &
+     result (p)
+  real(kind=default), intent(in) :: s, t1, s2, phi, cos_theta3, phi3
+  type(LIPS3) :: p
+  real(kind=default), dimension(0:3) :: p23
+  real(kind=default) :: pa_abs, p1_abs, p3_abs, cos_theta
+  pa_abs = sqrt (s) / 2
+  p1_abs = (s - s2) / (2 * sqrt (s))
+  p3_abs = sqrt (s2) / 2
+  p%jacobian = 1.0 / ((2*PI)**5 * 32 * s)
+  cos_theta = 1 + t1 / (2*pa_abs*p1_abs)
+  p%p(1,0) = p1_abs
+  p%p(1,1:3) = polar_to_cartesian (p1_abs, cos_theta, phi)
+  p23(1:3) = - p%p(1,1:3)
+  p23(0) = on_shell (p23, sqrt (s2))
+  p%p(3:2:-1,:) = one_to_two (p23, cos_theta3, phi3)
+end function two_to_three_massless
+@ %def two_to_three_massless
+@ 
+<<Declaration of [[kinematics]] procedures>>=
+public :: one_to_two
+private :: one_to_two_massive, one_to_two_massless
+@ 
+<<Interfaces of [[kinematics]] procedures>>=
+interface one_to_two
+   module procedure one_to_two_massive, one_to_two_massless
+end interface
+@
+<<Implementation of [[kinematics]] procedures>>=
+pure function one_to_two_massive (p12, cos_theta, phi, m1, m2) result (p)
+  real(kind=default), dimension(0:), intent(in) :: p12
+  real(kind=default), intent(in) :: cos_theta, phi, m1, m2
+  real(kind=default), dimension(2,0:3) :: p
+  real(kind=default) :: s, p1_abs
+  s = dot (p12, p12)
+  p1_abs = sqrt (lambda (s, m1**2, m2**2) / (4 * s))
+  p(1,1:3) = polar_to_cartesian (p1_abs, cos_theta, phi)
+  p(2,1:3) = - p(1,1:3)
+  p(1,0) = on_shell (p(1,:), m1)
+  p(2,0) = on_shell (p(2,:), m2)
+  p = boost_momentum (p, - p12)
+end function one_to_two_massive
+@ %def one_to_two_massive
+@
+<<Implementation of [[kinematics]] procedures>>=
+pure function one_to_two_massless (p12, cos_theta, phi) result (p)
+  real(kind=default), dimension(0:), intent(in) :: p12
+  real(kind=default), intent(in) :: cos_theta, phi
+  real(kind=default), dimension(2,0:3) :: p
+  real(kind=default) :: p1_abs
+  p1_abs = sqrt (dot (p12, p12)) / 2
+  p(1,0) = p1_abs
+  p(1,1:3) = polar_to_cartesian (p1_abs, cos_theta, phi)
+  p(2,0) = p1_abs
+  p(2,1:3) = - p(1,1:3)
+  p = boost_momentum (p, - p12)
+end function one_to_two_massless
+@ %def one_to_two_massless
+@ 
+<<Declaration of [[kinematics]] procedures>>=
+public :: polar_to_cartesian, on_shell
+@
+<<Implementation of [[kinematics]] procedures>>=
+pure function polar_to_cartesian (v_abs, cos_theta, phi) result (v)
+  real(kind=default), intent(in) :: v_abs, cos_theta, phi
+  real(kind=default), dimension(3) :: v
+  real(kind=default) :: sin_phi, cos_phi, sin_theta
+  sin_theta = sqrt (1.0 - cos_theta**2)
+  cos_phi = cos (phi)
+  sin_phi = sin (phi)
+  v = (/ sin_theta * cos_phi, sin_theta * sin_phi, cos_theta /) * v_abs
+end function polar_to_cartesian
+@
+<<Implementation of [[kinematics]] procedures>>=
+pure function on_shell (p, m) result (E)
+  real(kind=default), dimension(0:), intent(in) :: p
+  real(kind=default), intent(in) :: m
+  real(kind=default) :: E
+  E = sqrt (m**2 + dot_product (p(1:3), p(1:3)))
+end function on_shell
+@ %def on_shell
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Massive 3-Particle Phase Space Revisited}
+\begin{equation}
+  \begin{CD}
+    U_1          @>{\xi_1}>>  P_1          @>{\phi_1}>>  M   \\
+    @V{\pi_U}VV               @VV{\pi_P}V                @|  \\
+    U_2          @>{\xi_2}>>  P_2          @>{\phi_2}>>  M
+  \end{CD}
+\end{equation}
+\begin{equation}
+  \begin{CD}
+    U_1          @>{\xi}>>  P_1          @>{\phi}>>  M          \\
+    @V{\pi_U}VV             @VV{\pi_P}V              @VV{\pi}V  \\
+    U_2          @>{\xi}>>  P_2          @>{\phi}>>  M
+  \end{CD}
+\end{equation}
+<<[[kinematics.f90]]>>=
+module phase_space
+  use kinds
+  use constants
+  use kinematics !NODEP!
+  use tao_random_numbers
+  implicit none
+  private
+  <<Declaration of [[phase_space]] procedures>>
+  <<Interfaces of [[phase_space]] procedures>>
+  <<Declaration of [[phase_space]] types>>
+contains
+  <<Implementation of [[phase_space]] procedures>>
+end module phase_space
+@ %def phase_space
+@
+\begin{equation}
+   \text{\texttt{LIPS3\_unit}}: [0,1]^5
+\end{equation}
+<<Declaration of [[phase_space]] types>>=
+type, public :: LIPS3_unit
+   real(kind=default), dimension(5) :: x
+   real(kind=default) :: s
+   real(kind=default), dimension(2) :: mass_in
+   real(kind=default), dimension(3) :: mass_out
+   real(kind=default) :: jacobian
+end type LIPS3_unit
+@ %def LIPS3_unit
+@ 
+<<Declaration of [[phase_space]] types>>=
+type, public :: LIPS3_unit_massless
+   real(kind=default), dimension(5) :: x
+   real(kind=default) :: s
+   real(kind=default) :: jacobian
+end type LIPS3_unit_massless
+@ %def LIPS3_unit_massless
+@
+\begin{equation}
+   \text{\texttt{LIPS3\_s2\_t1\_angles}}:
+     (s_2, t_1, \phi, \cos\theta_3, \phi_3)
+\end{equation}
+<<Declaration of [[phase_space]] types>>=
+type, public :: LIPS3_s2_t1_angles
+   real(kind=default) :: s2, t1, phi, cos_theta3, phi3
+   real(kind=default) :: s
+   real(kind=default), dimension(2) :: mass_in
+   real(kind=default), dimension(3) :: mass_out
+   real(kind=default) :: jacobian
+end type LIPS3_s2_t1_angles
+@ %def LIPS3_s2_t1_angles
+@ 
+<<Declaration of [[phase_space]] types>>=
+type, public :: LIPS3_s2_t1_angles_massless
+   real(kind=default) :: s2, t1, phi, cos_theta3, phi3
+   real(kind=default) :: s
+   real(kind=default) :: jacobian
+end type LIPS3_s2_t1_angles_massless
+@ %def LIPS3_s2_t1_angles_massless
+@
+\begin{equation}
+   \text{\texttt{LIPS3\_momenta}}: (p_1, p_2, p_3)
+\end{equation}
+<<Declaration of [[phase_space]] types>>=
+type, public :: LIPS3_momenta
+   real(kind=default), dimension(0:3,3) :: p
+   real(kind=default) :: s
+   real(kind=default), dimension(2) :: mass_in
+   real(kind=default), dimension(3) :: mass_out
+   real(kind=default) :: jacobian
+end type LIPS3_momenta
+@ %def LIPS3_momenta
+@ 
+<<Declaration of [[phase_space]] types>>=
+type, public :: LIPS3_momenta_massless
+   real(kind=default), dimension(0:3,3) :: p
+   real(kind=default) :: s
+   real(kind=default) :: jacobian
+end type LIPS3_momenta_massless
+@ %def LIPS3_momenta_massless
+@ 
+<<Declaration of [[phase_space]] procedures>>=
+public :: random_LIPS3
+private :: random_LIPS3_unit, random_LIPS3_unit_massless
+@
+<<Interfaces of [[phase_space]] procedures>>=
+interface random_LIPS3
+   module procedure random_LIPS3_unit, random_LIPS3_unit_massless
+end interface
+@ %def random_LIPS3
+@
+<<Implementation of [[phase_space]] procedures>>=
+pure subroutine random_LIPS3_unit (rng, lips)
+  type(tao_random_state), intent(inout) :: rng
+  type(LIPS3_unit), intent(inout) :: lips
+  call tao_random_number (rng, lips%x)
+  lips%jacobian = 1
+end subroutine random_LIPS3_unit
+@ %def subroutine random_LIPS3_unit
+@
+<<Implementation of [[phase_space]] procedures>>=
+pure subroutine random_LIPS3_unit_massless (rng, lips)
+  type(tao_random_state), intent(inout) :: rng
+  type(LIPS3_unit_massless), intent(inout) :: lips
+  call tao_random_number (rng, lips%x)
+  lips%jacobian = 1
+end subroutine random_LIPS3_unit_massless
+@ %def subroutine random_LIPS3_unit_massless
+@ 
+<<Declaration of [[phase_space]] procedures>>=
+private :: LIPS3_unit_to_s2_t1_angles, LIPS3_unit_to_s2_t1_angles_m0
+@
+<<(Unused) Interfaces of [[phase_space]] procedures>>=
+interface assignment(=)
+   module procedure &
+        LIPS3_unit_to_s2_t1_angles, LIPS3_unit_to_s2_t1_angles_m0
+end interface
+@
+<<Implementation of [[phase_space]] procedures>>=
+pure subroutine LIPS3_unit_to_s2_t1_angles (s2_t1_angles, unit)
+  type(LIPS3_s2_t1_angles), intent(out) :: s2_t1_angles
+  type(LIPS3_unit), intent(in) :: unit
+end subroutine  LIPS3_unit_to_s2_t1_angles
+@ %def subroutine LIPS3_unit_to_s2_t1_angles
+@
+<<Implementation of [[phase_space]] procedures>>=
+pure subroutine LIPS3_unit_to_s2_t1_angles_m0 (s2_t1_angles, unit)
+  type(LIPS3_s2_t1_angles_massless), intent(out) :: s2_t1_angles
+  type(LIPS3_unit_massless), intent(in) :: unit
+end subroutine  LIPS3_unit_to_s2_t1_angles_m0
+@ %def subroutine LIPS3_unit_to_s2_t1_angles_m0
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Massless $n$-Particle Phase Space: \texttt{RAMBO}}
+<<Declaration of [[kinematics]] procedures>>=
+public :: massless_isotropic_decay
+@ The massless \texttt{RAMBO}
+algorithm~\cite{Kleiss/Stirling/Ellis:1986:RAMBO}:
+<<Implementation of [[kinematics]] procedures>>=
+pure function massless_isotropic_decay (roots, ran) result (p)
+  real (kind=default), intent(in) :: roots
+  real (kind=default), dimension(:,:), intent(in) :: ran
+  real (kind=default), dimension(size(ran,dim=1),0:3) :: p
+  real (kind=default), dimension(size(ran,dim=1),0:3) :: q
+  real (kind=default), dimension(0:3) :: qsum
+  real (kind=default) :: cos_theta, sin_theta, phi, qabs, x, r, z
+  integer :: k
+  <<Generate isotropic null vectors>>
+  <<Boost and rescale the vectors>>
+end function massless_isotropic_decay
+@ %def massless_isotropic_decay
+@ Generate a $xe^{-x}$ distribution for [[q(k,0)]]
+<<Generate isotropic null vectors>>=
+do k = 1, size (p, dim = 1)
+   q(k,0) = - log (ran(k,1) * ran(k,2))
+   cos_theta = 2 * ran(k,3) - 1
+   sin_theta = sqrt (1 - cos_theta**2)
+   phi = 2 * PI * ran(k,4)
+   q(k,1) = q(k,0) * sin_theta * cos (phi)
+   q(k,2) = q(k,0) * sin_theta * sin (phi)  
+   q(k,3) = q(k,0) * cos_theta
+enddo
+@ The proof that the Jacobian of the transformation vanishes can be
+found in~\cite{Kleiss/Stirling/Ellis:1986:RAMBO}.  The transformation
+is really a Lorentz boost (as can be seen easily).
+<<Boost and rescale the vectors>>=
+qsum = sum (q, dim = 1)
+qabs = sqrt (dot (qsum, qsum))
+x = roots / qabs
+do k = 1, size (p, dim = 1)
+   r = dot (q(k,:), qsum) / qabs
+   z = (q(k,0) + r) / (qsum(0) + qabs)
+   p(k,1:3) = x * (q(k,1:3) - qsum(1:3) * z)
+   p(k,0) = x * r
+enddo
+@
+<<Declaration of [[kinematics]] procedures>>=
+public :: phase_space_volume
+@
+\begin{equation}
+  V_n(s) = \frac{1}{8\pi} \frac{n-1}{\left(\Gamma(n)\right)^2}
+           \left(\frac{s}{16\pi^2}\right)^{n-2}
+\end{equation}
+<<Implementation of [[kinematics]] procedures>>=
+pure function phase_space_volume (n, roots) result (volume)
+  integer, intent(in) :: n
+  real (kind=default), intent(in) :: roots
+  real (kind=default) :: volume
+  real (kind=default) :: nd
+  nd = n
+  volume = (nd - 1) / (8*PI * (gamma (nd))**2) * (roots / (4*PI))**(2*n-4)
+end function phase_space_volume
+@ %def phase_space_volume
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Tests}
+<<[[ktest.f90]]>>=
+program ktest
+  use kinds
+  use constants
+  use products
+  use kinematics
+  use tao_random_numbers
+  implicit none
+  real(kind=default) :: &
+       ma, mb, m1, m2, m3, s, t1, s2, phi, cos_theta3, phi3
+  real(kind=default) :: t1_min, t1_max
+  real(kind=default), dimension(5) :: r
+  type(LIPS3) :: p
+  integer :: i
+  character(len=*), parameter :: fmt = "(A,4(1X,E12.5))"
+  ma = 1.0
+  mb = 1.0
+  m1 = 10.0
+  m2 = 20.0
+  m3 = 30.0
+  s = 100.0 ** 2
+  do i = 1, 10
+     call tao_random_number (r)
+     s2 = (r(1) * (sqrt (s) - m1) + (1 - r(1)) * (m2 + m3)) ** 2
+     t1_max = ma**2 + m1**2 - ((s + ma**2 - mb**2) * (s - s2 + m1**2) &
+          + sqrt (lambda (s, ma**2, mb**2) * lambda (s, s2, m1**2))) / (2*s)
+     t1_min = ma**2 + m1**2 - ((s + ma**2 - mb**2) * (s - s2 + m1**2) &
+          - sqrt (lambda (s, ma**2, mb**2) * lambda (s, s2, m1**2))) / (2*s)
+     t1 = r(2) * t1_max + (1 - r(2)) * t1_min
+     phi = 2*PI * r(3)
+     cos_theta3 = 2 * r(4) - 1
+     phi3 = 2*PI * r(5)
+     p = two_to_three (s, t1, s2, phi, cos_theta3, phi3, ma, mb, m1, m2, m3)
+     print fmt, "p1       = ", p%p(1,:)
+     print fmt, "p2       = ", p%p(2,:)
+     print fmt, "p3       = ", p%p(3,:)
+     print fmt, "p1,2,3^2 = ", dot (p%p(1,:), p%p(1,:)), &
+          dot (p%p(2,:), p%p(2,:)), dot (p%p(3,:), p%p(3,:))
+     print fmt, "sum(p)   = ", p%p(1,:) + p%p(2,:) + p%p(3,:)
+     print fmt, "|J|      = ", p%jacobian
+  end do
+end program ktest
+@
+\begin{dubious}
+\index{remove from finalized program}
+   Trivial check for typos, should be removed from the finalized
+   program!
+\end{dubious}
+<<Trivial [[ktest.f90]]>>=
+program ktest
+  use kinds
+  use constants
+  use products
+  use kinematics
+  use tao_random_numbers
+  implicit none
+  real(kind=default), dimension(0:3) :: p, q, p_prime, p0
+  real(kind=default) :: m
+  character(len=*), parameter :: fmt = "(A,4(1X,E12.5))"
+  integer :: i
+  do i = 1, 5
+     if (i == 1) then
+        p = (/ 1.0_double, 0.0_double, 0.0_double, 0.0_double /)
+        m = 1.0
+     else
+        call tao_random_number (p)
+        m = sqrt (PI)
+     end if
+     call tao_random_number (q(1:3))
+     q(0) = sqrt (m**2 + dot_product (q(1:3), q(1:3)))
+     p_prime = boost_momentum (p, q)
+     print fmt, "p    = ", p
+     print fmt, "q    = ", q
+     print fmt, "p'   = ", p_prime
+     print fmt, "p^2  = ", dot (p, p)
+     print fmt, "p'^2 = ", dot (p_prime, p_prime)
+     if (dot (p, p) > 0.0) then
+        p0 = boost_momentum (p, p)
+        print fmt, "p0   = ", p0
+        print fmt, "p0^2 = ", dot (p0, p0)
+     end if
+  end do
+end program ktest
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

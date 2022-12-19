@@ -1,0 +1,546 @@
+* Test output: processes_15
+*   Purpose: initialize a decay process object
+
+* Build and load a test library with one process
+
+* Initialize a process object
+
+* Prepare a trivial beam setup
+
+* Complete process initialization
+
+========================================================================
+ Process [decay]: 'processes15'
+   Run ID        = ''
+   Library name  = 'processes15'
+   Process index = 1
+   Process components:
+     1: 'processes15_i1':   s => f, fbar [test_decay]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 1
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (coupling undefined)
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Expressions (cut, scales, weight): [not shown]
+------------------------------------------------------------------------
+ RNG factory: test (1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = processes15_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = s => f, fbar
+   Method              = test_decay
+   Process variant     = test_me
+   MD5 sum (def)       = '                                '
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration (single-particle):
+   ID        = 'processes15_i1'
+   n_in      = 1
+   n_out     = 2
+   n_tot     = 3
+   n_state   = 1
+   n_par     = 2
+   n_channel = 1
+   sqrts     =  1.250000000000E+02
+   s_fixed   = T
+   lab_is_cm = T
+   azim.dep. = F
+   flat dim. = 2
+ Flavor combinations:
+   1: s f fbar
+ Phase-space / structure-function channels:
+   1: 1
+   MD5 sum (model par)  = 'D97BD28DED990FF93E2D56F3C62D67B8'
+   MD5 sum (phs config) = '2A80C82809ACD66D78DA8F9EB311A3B2'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 2
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ Outgoing:
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(6) c(1 ) h(1)]
+     [f(-6) c(-1 ) h(-1)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+   [f(6) c(1 ) h(-1)]
+     [f(-6) c(-1 ) h(1)] => ME(2) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (decay):
+   s  (mass = 1.2500000E+02 GeV)
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = T
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 2
+   MC parameters (SF)    = 0
+   MC parameters (PHS)   = 2
+ Call statistics (current run): [no calls]
+========================================================================
+
+* Create a process instance
+
+========================================================================
+ Process instance [decay]: 'processes15'
+   Run ID = ''
+   Process components:
+     1: 'processes15_i1':   s => f, fbar [test_decay]
+   status = initialized
+========================================================================
+
+* Inject a set of random numbers
+
+========================================================================
+ Process instance [decay]: 'processes15'
+   Run ID = ''
+   Process components:
+   * 1: 'processes15_i1':   s => f, fbar [test_decay]
+   status = activated
+------------------------------------------------------------------------
+ Active MCI instance #1 =
+   0.00000 0.00000
+========================================================================
+
+* Set up hard kinematics
+
+* Evaluate matrix element and square
+
+========================================================================
+ Process instance [decay]: 'processes15'
+   Run ID = ''
+   Process components:
+   * 1: 'processes15_i1':   s => f, fbar [test_decay]
+   status = evaluated trace
+------------------------------------------------------------------------
+   sqme   =  6.000000000000E+00
+------------------------------------------------------------------------
+ Active MCI instance #1 =
+   0.00000 0.00000
+========================================================================
+ Incoming particles / structure-function chain:
+   n_in      = 1
+   n_strfun  = 0
+   n_par     = 0
+ Beam data (decay):
+   s  (mass = 1.2500000E+02 GeV)
+------------------------------------------------------------------------
+ Decaying particle:
+ Interaction: 3
+ Outgoing:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+========================================================================
+========================================================================
+ Active terms:
+------------------------------------------------------------------------
+ Term #1 (component #1)
+   passed cuts           = T
+   overall scale         =  1.250000000000E+02
+   factorization scale   =  1.250000000000E+02
+   renormalization scale =  1.250000000000E+02
+   reweighting factor    =  1.000000000000E+00
+ Flux * PHS volume:
+   1.591549430919E-04
+ Jacobian factors per channel:
+   1:  6.0000000E-01 [selected]
+------------------------------------------------------------------------
+ Structure-function chain instance: [evaluated]
+   outgoing (interactions) = 0:1
+------------------------------------------------------------------------
+ Decaying particle:
+ Interaction: 4
+ Outgoing:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ source: (3)1
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Partonic phase space: parameters
+   m_in    =  1.250000000000E+02
+   m_out   =  5.000000000000E+01  5.000000000000E+01
+   Flux   =  6.234181826176E+00
+   Volume =  2.552940346135E-05
+ Channel #1: [selected]
+   r = 0.0000000 0.0000000
+   f = 6.0000000E-01
+ Partonic phase space: momenta
+   sqrts  =  1.250000000000E+02
+ Incoming:
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ Outgoing:
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+------------------------------------------------------------------------
+ Amplitude (transition matrix of the hard interaction):
+------------------------------------------------------------------------
+ Interaction: 5
+ Incoming:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ source: (4)1
+ Outgoing:
+ Particle 2
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(6) c(1 ) h(1)]
+     [f(-6) c(-1 ) h(-1)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+   [f(6) c(1 ) h(-1)]
+     [f(-6) c(-1 ) h(1)] => ME(2) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Evaluators for the hard interaction:
+------------------------------------------------------------------------
+ Evaluator (trace of the squared transition matrix):
+------------------------------------------------------------------------
+ Interaction: 6
+ Incoming:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FTT]
+ internal links: X => 2 3
+ source: (5)1
+ Outgoing:
+ Particle 2
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (5)2
+ Particle 3
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (5)3
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   []
+     [] => ME(1) = ( 6.000000000000E+00, 0.000000000000E+00)
+ Matrix-element multiplication
+  Input interaction 1: 5
+  Input interaction 2: [undefined]
+  ME(1) =
+    + ME1(1)* x ME2(1) x ( 3.000000000000E+00, 0.000000000000E+00)
+    + ME1(2)* x ME2(2) x ( 3.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Evaluators for the connected process:
+------------------------------------------------------------------------
+ Evaluator (trace of the squared transition matrix):
+------------------------------------------------------------------------
+ Interaction: 7
+ Virtual:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [TTT]
+ internal links: X => 2 3
+ source: (4)1
+ Outgoing:
+ Particle 2
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (6)2
+ Particle 3
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (6)3
+ State matrix:  norm =  1.000000000000E+00
+ []
+   []
+     [] => ME(1) = ( 6.000000000000E+00, 0.000000000000E+00)
+ Matrix-element multiplication
+  Input interaction 1: 4
+  Input interaction 2: 6
+  ME(1) =
+    + ME1(1) x ME2(1)
+------------------------------------------------------------------------
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.250000000000E+02
+sqrts_hat* =>  1.250000000000E+02
+n_in* => 1
+n_out* => 2
+n_tot* => 3
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:25|-1.2500000E+02; 0.0000000E+00, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 1)
+ 2 prt(i:25|-1.2500000E+02; 0.0000000E+00, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 2)
+ 3 prt(o:6| 6.2500000E+01; 0.0000000E+00, 0.0000000E+00, 3.7500000E+01| 2.500000000000E+03| 3)
+ 4 prt(o:-6| 6.2500000E+01; 0.0000000E+00, 0.0000000E+00,-3.7500000E+01| 2.500000000000E+03| 4)
+========================================================================
+
+* Particle content:
+
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [v] p(0)
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ T =   1.562500000000E+04
+ Children: 2 3
+ Particle 2 [o] p(0)
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ T =   2.500000000000E+03
+ Parents:  1
+ Particle 3 [o] p(0)
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+ T =   2.500000000000E+03
+ Parents:  1
+------------------------------------------------------------------------
+
+* Recover process instance
+
+========================================================================
+ Process instance [decay]: 'processes15'
+   Run ID = ''
+   Process components:
+   * 1: 'processes15_i1':   s => f, fbar [test_decay]
+   status = evaluated trace
+------------------------------------------------------------------------
+   sqme   =  6.000000000000E+00
+------------------------------------------------------------------------
+ Active MCI instance #1 =
+   0.00000 0.00000
+========================================================================
+ Incoming particles / structure-function chain:
+   n_in      = 1
+   n_strfun  = 0
+   n_par     = 0
+ Beam data (decay):
+   s  (mass = 1.2500000E+02 GeV)
+------------------------------------------------------------------------
+ Decaying particle:
+ Interaction: 3
+ Outgoing:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+========================================================================
+========================================================================
+ Active terms:
+------------------------------------------------------------------------
+ Term #1 (component #1)
+   passed cuts           = T
+   overall scale         =  1.250000000000E+02
+   factorization scale   =  1.250000000000E+02
+   renormalization scale =  1.250000000000E+02
+   reweighting factor    =  1.000000000000E+00
+ Flux * PHS volume:
+   1.591549430919E-04
+ Jacobian factors per channel:
+   1:  6.0000000E-01 [selected]
+------------------------------------------------------------------------
+ Structure-function chain instance: [evaluated]
+   outgoing (interactions) = 0:1
+------------------------------------------------------------------------
+ Decaying particle:
+ Interaction: 4
+ Outgoing:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgT]
+ source: (3)1
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Partonic phase space: parameters
+   m_in    =  1.250000000000E+02
+   m_out   =  5.000000000000E+01  5.000000000000E+01
+   Flux   =  6.234181826176E+00
+   Volume =  2.552940346135E-05
+ Channel #1: [selected]
+   r = 0.0000000 0.0000000
+   f = 6.0000000E-01
+ Partonic phase space: momenta
+   sqrts  =  1.250000000000E+02
+ Incoming:
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ Outgoing:
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+------------------------------------------------------------------------
+ Amplitude (transition matrix of the hard interaction):
+------------------------------------------------------------------------
+ Interaction: 5
+ Incoming:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: X => 2 3
+ source: (4)1
+ Outgoing:
+ Particle 2
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ Particle 3
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+ mask [fch] = [FFgF]
+ internal links: 1 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(6) c(1 ) h(1)]
+     [f(-6) c(-1 ) h(-1)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+   [f(6) c(1 ) h(-1)]
+     [f(-6) c(-1 ) h(1)] => ME(2) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Evaluators for the hard interaction:
+------------------------------------------------------------------------
+ Evaluator (trace of the squared transition matrix):
+------------------------------------------------------------------------
+ Interaction: 6
+ Incoming:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [FTT]
+ internal links: X => 2 3
+ source: (5)1
+ Outgoing:
+ Particle 2
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (5)2
+ Particle 3
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (5)3
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   []
+     [] => ME(1) = ( 6.000000000000E+00, 0.000000000000E+00)
+ Matrix-element multiplication
+  Input interaction 1: 5
+  Input interaction 2: [undefined]
+  ME(1) =
+    + ME1(1)* x ME2(1) x ( 3.000000000000E+00, 0.000000000000E+00)
+    + ME1(2)* x ME2(2) x ( 3.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Evaluators for the connected process:
+------------------------------------------------------------------------
+ Evaluator (trace of the squared transition matrix):
+------------------------------------------------------------------------
+ Interaction: 7
+ Virtual:
+ Particle 1
+ E =   1.250000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00
+ mask [fch] = [TTT]
+ internal links: X => 2 3
+ source: (4)1
+ Outgoing:
+ Particle 2
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00  3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (6)2
+ Particle 3
+ E =   6.250000000000E+01
+ P =   0.000000000000E+00  0.000000000000E+00 -3.750000000000E+01
+ mask [fch] = [TTT]
+ internal links: 1 => X
+ source: (6)3
+ State matrix:  norm =  1.000000000000E+00
+ []
+   []
+     [] => ME(1) = ( 6.000000000000E+00, 0.000000000000E+00)
+ Matrix-element multiplication
+  Input interaction 1: 4
+  Input interaction 2: 6
+  ME(1) =
+    + ME1(1) x ME2(1)
+------------------------------------------------------------------------
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.250000000000E+02
+sqrts_hat* =>  1.250000000000E+02
+n_in* => 1
+n_out* => 2
+n_tot* => 3
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:25|-1.2500000E+02; 0.0000000E+00, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 1)
+ 2 prt(i:25|-1.2500000E+02; 0.0000000E+00, 0.0000000E+00, 0.0000000E+00| 1.562500000000E+04| 2)
+ 3 prt(o:6| 6.2500000E+01; 0.0000000E+00, 0.0000000E+00, 3.7500000E+01| 2.500000000000E+03| 3)
+ 4 prt(o:-6| 6.2500000E+01; 0.0000000E+00, 0.0000000E+00,-3.7500000E+01| 2.500000000000E+03| 4)
+========================================================================
+
+* Cleanup
+
+* Test output end: processes_15

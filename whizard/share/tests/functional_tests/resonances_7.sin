@@ -1,0 +1,26 @@
+# SINDARIN input for WHIZARD self-test
+# Two processes with resonance insertion, compile only
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+?resonance_history = true
+
+process resonances_7_a = e1, E1 => n1, N1, h
+process resonances_7_b = e1, E1 => n1, N1, Z
+
+me = 0
+mH = 125 GeV
+
+sqrts = 250 GeV
+
+show (library)
+
+!!! this should trigger compiling the resonance processes
+compile
+
+show (library)

@@ -1,0 +1,42 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "unit_test"
+process testproc_5_p1 = s, s => s, s
+
+seed = 0
+
+compile ()
+
+$phs_method = "single"
+$integration_method = "midpoint"
+iterations = 1:1000
+sqrts = 1000
+
+integrate (testproc_5_p1)
+
+n_events = 1
+?read_raw = false
+
+$sample = "testproc_5a"
+sample_format = weight_stream
+simulate (testproc_5_p1)
+
+?write_raw = false
+
+$sample = "testproc_5b"
+sample_format = weight_stream
+?update_event = true
+?update_sqme = false
+rescan "testproc_5a" (testproc_5_p1)
+
+$sample = "testproc_5c"
+sample_format = weight_stream
+?update_sqme = true
+rescan "testproc_5a" (testproc_5_p1)

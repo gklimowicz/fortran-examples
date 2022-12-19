@@ -1,0 +1,24 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+
+seed = 0
+
+process stdhep_5_p = e1, E1 => Wp, Wm
+
+sqrts = 500
+iterations = 1:100
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (stdhep_5_p)
+
+n_events = 3
+sample_format = stdhep_up
+
+simulate (stdhep_5_p)

@@ -1,0 +1,28 @@
+
+digraph G {
+concentrate=true
+splines=true
+node[shape=record,style=filled,fillcolor=white]
+edge[color=gray50]
+dispatch_transforms -> evt_nlo
+events_sub -> evt_nlo
+isr_epa_handler_sub -> recoil_kinematics
+isr_epa_handler -> event_transforms
+evt_nlo -> event_transforms
+hadrons -> event_transforms
+dispatch_transforms -> decays
+dispatch_transforms -> isr_epa_handler
+eio_raw -> events
+dispatch_transforms -> event_transforms
+decays -> event_transforms
+dispatch_transforms -> shower
+events -> event_transforms
+dispatch_transforms -> resonance_insertion
+dispatch_transforms -> hadrons
+dispatch_transforms -> eio_raw
+resonance_insertion -> event_transforms
+events_sub -> decays
+tau_decays -> event_transforms
+shower -> event_transforms
+ }
+

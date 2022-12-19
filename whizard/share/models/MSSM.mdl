@@ -1,0 +1,1132 @@
+########################################################################
+# MSSM with unit CKM matrix
+model "MSSM"
+
+# Independent parameters
+### DO NOT CHANGE THE ORDER OF THESE PARAMETERS
+parameter GF     = 1.16639E-5   # Fermi constant   
+parameter mZ     = 91.1882      # Z-boson mass      
+parameter wZ     = 2.443        # Z-boson width
+parameter mW     = 80.419       # W-boson mass      
+parameter wW     = 2.049        # W-boson width
+
+parameter me     = 0.000511     # electron mass
+parameter mmu    = 0.1057       # muon mass
+parameter mtau   = 1.777        # tau-lepton mass
+parameter ms     = 0.12         # s-quark mass
+parameter mc     = 1.25         # c-quark mass
+parameter mb     = 4.2          # b-quark mass
+parameter mtop   = 174          # t-quark mass
+parameter wtop   = 1.523        # t-quark width
+
+parameter alphas = 0.1178       # Strong coupling constant (Z point)
+
+# SUSY: These parameters are not used directly by WHIZARD.
+# They come into play if an external spectrum generator is invoked.
+parameter mtype  = 1            # MSSM embedding model
+parameter m_zero = 100          # unified scalar mass (SUGRA/AMSB)
+parameter m_half = 250          # unified gaugino mass (SUGRA)
+parameter A0     = -100         # unified trilinear coupling (SUGRA)
+parameter tanb   = 10           # tan(beta) = v2/v1 (MSSM input)
+parameter sgn_mu = 1            # signum(mu)
+parameter Lambda = 40000        # SUSY breaking scale (GMSB)
+parameter M_mes  = 80000        # messenger scale (GMSB)
+parameter N_5    = 3            # messenger index (GMSB)
+parameter c_grav = 1            # gravitino mass multiplier (GMSB)
+parameter m_grav = 60000        # gravitino mass (AMSB)
+
+# The following parameters are used directly by WHIZARD.
+# They can be derived from the above, but this is not done by WHIZARD
+parameter Ae_33  = 0            # Ae soft breaking parameter (3rd gen.)
+parameter Au_33  = 0            # Au soft breaking parameter (3rd gen.)
+parameter Ad_33  = 0            # Ad soft breaking parameter (3rd gen.)
+
+parameter mh     = 125          # light Higgs mass   
+parameter wh     = 4.143E-3     # light Higgs width     
+parameter mHH    = 1000         # heavy Higgs mass   
+parameter mHA    = 1000         # axial Higgs mass
+parameter mHpm   = 1000         # charged Higgs mass            
+parameter wHH    = 0            # heavy Higgs width   
+parameter wHpm   = 0            # charged Higgs width 
+parameter wHA    = 0            # axial Higgs width 
+parameter al_h   = 0            # Higgs mixing angle alpha
+parameter mu_h   = 1000         # Higgs mu parameter
+parameter tanb_h = 10           # Higgs mixing angle tan(beta)
+
+parameter msu1   = 1000       # u-squark mass
+parameter msd1   = 1000	      # d-squark mass
+parameter msc1   = 1000	      # c-squark mass
+parameter mss1   = 1000	      # s-squark mass
+parameter mstop1 = 1000	      # t-squark mass
+parameter msb1   = 1000	      # b-squark mass
+parameter msu2   = 1000	      # u-squark mass
+parameter msd2   = 1000	      # d-squark mass
+parameter msc2   = 1000	      # c-squark mass
+parameter mss2   = 1000	      # s-squark mass
+parameter mstop2 = 1000	      # t-squark mass
+parameter msb2   = 1000	      # b-squark mass
+parameter mse1   = 1000	      # selectron1 mass
+parameter msne   = 1000	      # electron-sneutrino mass
+parameter msmu1  = 1000	      # smuon1 mass
+parameter msnmu  = 1000	      # muon-sneutrino mass
+parameter mstau1 = 1000	      # stau1 mass    
+parameter msntau = 1000	      # tau-sneutrino mass
+parameter mse2   = 1000	      # selectron2 mass
+parameter msmu2  = 1000	      # smuon2 mass
+parameter mstau2 = 1000	      # stau2 mass   
+
+parameter mgg    = 1000	      # gluino mass
+
+parameter mch1   = 1000	      # chargino1 mass (signed)
+parameter mch2   = 1000	      # chargino2 mass (signed)
+parameter mneu1  = 1000	      # neutralino1 mass (signed)
+parameter mneu2  = 1000	      # neutralino2 mass (signed)
+parameter mneu3  = 1000	      # neutralino3 mass (signed)
+parameter mneu4  = 1000	      # neutralino4 mass (signed)
+
+parameter wsu1   = 0	      # u-squark width         
+parameter wsd1   = 0	      # d-squark width         
+parameter wsc1   = 0	      # c-squark width         
+parameter wss1   = 0	      # s-squark width         
+parameter wstop1 = 0	      # t-squark width         
+parameter wsb1   = 0	      # b-squark width         
+parameter wsu2   = 0	      # u-squark width         
+parameter wsd2   = 0	      # d-squark width         
+parameter wsc2   = 0	      # c-squark width         
+parameter wss2   = 0	      # s-squark width         
+parameter wstop2 = 0	      # t-squark width         
+parameter wsb2   = 0	      # b-squark width         
+parameter wse1   = 0	      # selectron1 width
+parameter wsne   = 0	      # electron-sneutrino width
+parameter wsmu1  = 0	      # smuon1 width
+parameter wsnmu  = 0	      # muon-sneutrino width
+parameter wstau1 = 0	      # stau1 width    
+parameter wsntau = 0	      # tau-sneutrino width
+parameter wse2   = 0	      # selectron2 width
+parameter wsmu2  = 0	      # smuon2 width
+parameter wstau2 = 0	      # stau2 width   
+parameter wgg    = 0	      # gluino width
+parameter wch1   = 0	      # chargino1 width
+parameter wch2   = 0	      # chargino2 width
+parameter wneu1  = 0	      # neutralino1 width
+parameter wneu2  = 0	      # neutralino2 width
+parameter wneu3  = 0	      # neutralino3 width
+parameter wneu4  = 0	      # neutralino4 width
+
+parameter mt_11	 = 1	      # stop mixing matrix	
+parameter mt_12	 = 0	      # stop mixing matrix	
+parameter mt_21	 = 0	      # stop mixing matrix	
+parameter mt_22	 = 1	      # stop mixing matrix	
+parameter mb_11	 = 1	      # sbottom mixing matrix	
+parameter mb_12	 = 0	      # sbottom mixing matrix	
+parameter mb_21	 = 0	      # sbottom mixing matrix	
+parameter mb_22	 = 1	      # sbottom mixing matrix	
+parameter ml_11	 = 1	      # stau mixing matrix	
+parameter ml_12	 = 0	      # stau mixing matrix	
+parameter ml_21	 = 0	      # stau mixing matrix	
+parameter ml_22	 = 1	      # stau mixing matrix	
+
+parameter mn_11  = 1            # neutralino mixing matrix
+parameter mn_12  = 0            # neutralino mixing matrix
+parameter mn_13  = 0            # neutralino mixing matrix
+parameter mn_14  = 0            # neutralino mixing matrix
+parameter mn_21  = 0            # neutralino mixing matrix
+parameter mn_22  = 1            # neutralino mixing matrix
+parameter mn_23  = 0            # neutralino mixing matrix
+parameter mn_24  = 0            # neutralino mixing matrix
+parameter mn_31  = 0            # neutralino mixing matrix
+parameter mn_32  = 0            # neutralino mixing matrix
+parameter mn_33  = 1            # neutralino mixing matrix
+parameter mn_34  = 0            # neutralino mixing matrix
+parameter mn_41  = 0            # neutralino mixing matrix
+parameter mn_42  = 0            # neutralino mixing matrix
+parameter mn_43  = 0            # neutralino mixing matrix
+parameter mn_44  = 1            # neutralino mixing matrix
+parameter mu_11  = 1            # chargino mixing matrix
+parameter mu_12  = 0            # chargino mixing matrix
+parameter mu_21  = 0            # chargino mixing matrix
+parameter mu_22  = 1            # chargino mixing matrix
+parameter mv_11  = 1            # chargino mixing matrix
+parameter mv_12  = 0            # chargino mixing matrix
+parameter mv_21  = 0            # chargino mixing matrix
+parameter mv_22  = 1            # chargino mixing matrix
+
+# Dependent parameters
+derived v     = 1 / sqrt (sqrt (2.) * GF)     # v (Higgs vev)
+derived cw    = mW / mZ                       # cos(theta-W)
+derived sw    = sqrt (1-cw*cw)                # sin(theta-W)
+derived ee    = 2 * sw * mW / v               # em-coupling (GF scheme)
+derived alpha_em_i = 4 * pi / ee**2           # inverse fine structure const
+	
+########################################################################
+# Particle content
+
+# The quarks
+particle D_QUARK 1  parton
+  spin 1/2  charge -1/3	  isospin -1/2  color 3
+  name d down
+  anti dbar D "d~" 
+  tex_anti "\bar{d}"
+particle U_QUARK 2  parton
+  spin 1/2  charge  2/3  isospin  1/2  color 3
+  name u up
+  anti ubar U "u~" 
+  tex_anti "\bar{u}"
+particle S_QUARK 3  like D_QUARK
+  name s strange
+  anti sbar S "s~" 
+  tex_anti "\bar{s}"
+  mass ms
+particle C_QUARK 4  like U_QUARK
+  name c charm
+  anti cbar C "c~" 
+  tex_anti "\bar{c}"
+  mass mc
+particle B_QUARK 5  like D_QUARK
+  name b bottom
+  anti bbar B "b~" 
+  tex_anti "\bar{b}"
+  mass mb
+particle T_QUARK 6  like U_QUARK
+  name t top
+  anti tbar T "t~" 
+  tex_anti "\bar{t}"
+  mass mtop  width wtop
+
+# The leptons
+particle E_LEPTON 11
+  spin 1/2  charge  -1   isospin -1/2  
+  name "e-" e1 electron e
+  anti "e+" E1 positron 
+  tex_name "e^-"
+  tex_anti "e^+"
+  mass me
+particle E_NEUTRINO 12 left
+  spin 1/2  isospin  1/2
+  name nue n1 "nu_e" ve "e-neutrino" 
+  anti nuebar N1 "ve~"             
+  tex_name "\nu_e"
+  tex_anti "\bar\nu_e"
+particle MU_LEPTON 13  like E_LEPTON
+  name "mu-" e2 mu muon 
+  anti "mu+" E2       
+  tex_name "\mu^-"
+  tex_anti "\mu^+"
+  mass mmu
+particle MU_NEUTRINO 14  like E_NEUTRINO
+  name numu "nu_mu" n2 vm "mu-neutrino" 
+  anti numubar N2 "vm~"
+  tex_name "\nu_\mu"
+  tex_anti "\bar\nu_\mu"
+particle TAU_LEPTON 15  like E_LEPTON
+  name "tau-" e3 tau "ta-" tauon 
+  anti "tau+" E3 "ta+"        
+  tex_name "\tau^-"
+  tex_anti "\tau^+"
+  mass mtau
+particle TAU_NEUTRINO 16  like E_NEUTRINO
+  name nutau "nu_tau" n3 vt "tau_neutrino" 
+  anti nutaubar N3 "vt~"               
+  tex_name "\nu_\tau"
+  tex_anti "\bar\nu_\tau"
+
+# The vector bosons
+particle GLUON 21  parton gauge
+  spin 1  color 8
+  name gl g G gluon
+particle PHOTON 22  gauge
+  spin 1
+  name A gamma photon 
+  tex_name "\gamma"
+particle Z_BOSON 23  gauge
+  spin 1
+  name Z
+  mass mZ  width wZ
+particle W_BOSON 24  gauge
+  spin 1  charge 1
+  name "W+" Wp
+  anti "W-" Wm
+  tex_name "W^+"
+  tex_anti "W^-"
+  mass mW  width wW
+
+# The Higgses
+particle LIGHT_HIGGS 25
+  spin 0
+  name h h0 Higgs
+  tex_name "h^0"
+  mass mh  width wh
+particle HEAVY_HIGGS 35
+  spin 0
+  name H HH HH0 H0 
+  tex_name "H^0"
+  mass mHH  width wHH
+particle AXIAL_HIGGS 36
+  spin 0
+  name A0 HA HA0 
+  tex_name "A^0"
+  mass mHA  width wHA
+particle CHARGED_HIGGS 37
+  spin 0  charge +1
+  name "H+" Hp 
+  anti "H-" Hm 
+  tex_name "H^+"
+  tex_anti "H^-"
+  mass mHpm  width wHpm
+
+
+# The squarks
+# Left-handed
+particle D_SQUARK1 1000001 
+  spin 0   charge -1/3  color 3
+  name sd1      
+  anti sd1c SD1 "sd1~"   
+  tex_name "\tilde{d}_L"
+  tex_anti "\tilde{\bar d}_L"
+  mass msd1  width wsd1
+particle U_SQUARK1 1000002 
+  spin 0  charge 2/3   color 3
+  name su1      
+  anti su1c SU1 "su1~" 
+  tex_name "\tilde{u}_L"
+  tex_anti "\tilde{\bar u}_L"
+  mass msu1  width wsu1
+particle S_SQUARK1 1000003  like D_SQUARK1
+  name ss1      
+  anti ss1c SS1 "ss1~"	     
+  tex_name "\tilde{s}_L"
+  tex_anti "\tilde{\bar s}_L"
+  mass mss1  width wss1
+particle C_SQUARK1 1000004  like U_SQUARK1
+  name sc1         
+  anti sc1c SC1 "sc1~"    
+  tex_name "\tilde{c}_L"
+  tex_anti "\tilde{\bar c}_L"
+  mass msc1  width wsc1
+particle B_SQUARK1 1000005  like D_SQUARK1
+  name sb1      
+  anti sb1c SB1 "sb1~"     
+  tex_name "\tilde{b}_1"
+  tex_anti "\tilde{\bar b}_1"
+  mass msb1  width wsb1
+particle T_SQUARK1 1000006  like U_SQUARK1
+  name st1      
+  anti st1c ST1 "st1~"	 
+  tex_name "\tilde{t}_1"
+  tex_anti "\tilde{\bar t}_1"
+  mass mstop1  width wstop1
+
+# Right-handed
+particle D_SQUARK2 2000001  
+  spin 0  charge -1/3   color 3
+  name sd2      
+  anti sd2c SD2 "sd2~"   
+  tex_name "\tilde{d}_R"
+  tex_anti "\tilde{\bar d}_R"
+  mass msd2  width wsd2
+particle U_SQUARK2 2000002 
+  spin 0  charge 2/3   color 3
+  name su2      
+  anti su2c SU2 "su2~" 
+  tex_name "\tilde{u}_R"
+  tex_anti "\tilde{\bar u}_R"
+  mass msu2  width wsu2
+particle S_SQUARK2 2000003  like D_SQUARK2
+  name ss2      
+  anti ss2c SS2 "ss2~"      
+  tex_name "\tilde{s}_R"
+  tex_anti "\tilde{\bar s}_R"
+  mass mss2  width wss2
+particle C_SQUARK2 2000004  like U_SQUARK2
+  name sc2      
+  anti sc2c SC2 "sc2~"    
+  tex_name "\tilde{c}_R"
+  tex_anti "\tilde{\bar c}_R"
+  mass msc2  width wsc2
+particle B_SQUARK2 2000005  like D_SQUARK2
+  name sb2      
+  anti sb2c SB2 "sb2~"     
+  tex_name "\tilde{b}_2"
+  tex_anti "\tilde{\bar b}_2"
+  mass msb2  width wsb2
+particle T_SQUARK2 2000006  like U_SQUARK2
+  name st2      
+  anti st2c ST2 "st2~"	
+  tex_name "\tilde{t}_2"
+  tex_anti "\tilde{\bar t}_2"
+  mass mstop2  width wstop2
+
+# The sleptons
+# Left-handed
+particle E_SLEPTON1 1000011
+  spin 0  charge  -1
+  name "se1-" se1 se11 
+  anti "se1+" SE1 SE11 
+  tex_name "\tilde{e}_1^-"
+  tex_anti "\tilde{e}_1^+"
+  mass mse1  width wse1
+particle E_SNEUTRINO1 1000012
+  spin 0
+  name snue "snu_e1" sn11 sve  
+  anti "snue*" SN11 "sve~" 
+  tex_name "\tilde\nu_e"
+  tex_anti "\tilde\bar\nu_e"
+  mass msne  width wsne
+particle MU_SLEPTON1 1000013  like E_SLEPTON1
+  name "smu1-" smu1 se21 
+  anti "smu1+" SMU1 SE21 
+  tex_name "\tilde\mu_1^-"
+  tex_anti "\tilde\mu_1^+"
+  mass msmu1  width wsmu1
+particle MU_SNEUTRINO1 1000014  like E_SNEUTRINO1
+  name snumu "snu_mu1" sn21 svm  
+  anti "snumu*" SN21 "svm~" 
+  tex_name "\tilde\nu_\mu"
+  tex_anti "\tilde\bar\nu_\mu"
+  mass msnmu  width wsnmu
+particle TAU_SLEPTON1 1000015  like E_SLEPTON1
+  name "stau1-" stau1 se31 
+  anti "stau1+" STAU1 SE31 
+  tex_name "\tilde\tau_1^-"
+  tex_anti "\tilde\tau_1^+"
+  mass mstau1  width wstau1
+particle TAU_SNEUTRINO1 1000016  like E_SNEUTRINO1
+  name snutau "snu_tau" sn31 svt  
+  anti "snutau*" SN31 "svt~" 
+  tex_name "\tilde\nu_\tau"
+  tex_anti "\tilde\bar\nu_\tau"
+  mass msntau  width wsntau
+
+# Right-handed
+particle E_SLEPTON2 2000011
+  spin 0  charge  -1
+  name "se2-" se2 se12 
+  anti "se2+" SE2 SE12 
+  tex_name "\tilde{e}_2^-"
+  tex_anti "\tilde{e}_2^+"
+  mass mse2  width wse2
+particle MU_SLEPTON2 2000013  like E_SLEPTON2
+  name "smu2-" smu2 se22 
+  anti "smu2+" SMU2 SE22 
+  tex_name "\tilde\mu_2^-"
+  tex_anti "\tilde\mu_2^+"
+  mass msmu2  width wsmu2
+particle TAU_SLEPTON2 2000015  like E_SLEPTON2
+  name "stau2-" stau2 se32 
+  anti "stau2+" STAU2 SE32 
+  tex_name "\tilde\tau_2^-"
+  tex_anti "\tilde\tau_2^+"
+  mass mstau2  width wstau2
+
+
+# The gauginos
+particle GLUINO 1000021
+  spin 1/2   color 8
+  name sgl gg GG gluino 
+  tex_name "\tilde{g}"
+  mass mgg  width wgg
+
+particle CHARGINO1 1000024
+  spin 1/2  charge 1
+  name "ch1+" "CH1+" 
+  anti "ch1-" "CH1-" 
+  tex_name "\tilde\chi_1^+"
+  tex_anti "\tilde\chi_1^-"
+  mass mch1  width wch1
+particle CHARGINO2 1000037  like CHARGINO1
+  name "ch2+" "CH2+" 
+  anti "ch2-" "CH2-" 
+  tex_name "\tilde\chi_2^+"
+  tex_anti "\tilde\chi_2^-"
+  mass mch2  width wch2
+
+particle NEUTRALINO1 1000022
+  spin 1/2
+  name neu1 NEU1 
+  tex_name "\tilde\chi_1^0"
+  mass mneu1  width wneu1
+particle NEUTRALINO2 1000023  like NEUTRALINO1
+  name neu2 NEU2 
+  tex_name "\tilde\chi_2^0"
+  mass mneu2  width wneu2
+particle NEUTRALINO3 1000025  like NEUTRALINO1
+  name neu3 NEU3 
+  tex_name "\tilde\chi_3^0"
+  mass mneu3  width wneu3
+particle NEUTRALINO4 1000035  like NEUTRALINO1
+  name neu4 NEU4 
+  tex_name "\tilde\chi_4^0"
+  mass mneu4  width wneu4
+
+# Hadrons
+particle PROTON 2212
+  spin 1/2  charge 1
+  name p "p+"
+  anti pbar "p-"
+
+# Beam remnants for proton colliders
+particle HADRON_REMNANT 90
+  name hr
+  tex_name "had_r"
+particle HADRON_REMNANT_SINGLET 91
+  name hr1
+  tex_name "had_r^{(1)}"
+particle HADRON_REMNANT_TRIPLET 92
+  color 3
+  name hr3
+  tex_name "had_r^{(3)}"
+  anti hr3bar
+  tex_anti "had_r^{(\bar 3)}"
+particle HADRON_REMNANT_OCTET 93
+  color 8
+  name hr8
+  tex_name "had_r^{(8)}"
+
+########################################################################
+# Vertices of the MSSM
+# In graphs with identical structure, the first vertex is kept for phase space,
+# therefore, lighter particles come before heavier ones.
+
+! QED
+vertex D d A 
+vertex U u A 
+vertex S s A 
+vertex C c A 
+vertex B b A 
+vertex T t A 
+
+vertex E1 e1 A 
+vertex E2 e2 A 
+vertex E3 e3 A 
+
+! QED/SUSY
+vertex sd1 SD1 A
+vertex su1 SU1 A
+vertex ss1 SS1 A
+vertex sc1 SC1 A
+vertex sb1 SB1 A
+vertex st1 ST1 A
+vertex se11 SE11 A
+vertex se21 SE21 A
+vertex se31 SE31 A
+vertex sd2 SD2 A
+vertex su2 SU2 A
+vertex ss2 SS2 A
+vertex sc2 SC2 A
+vertex sb2 SB2 A
+vertex st2 ST2 A
+vertex se12 SE12 A
+vertex se22 SE22 A
+vertex se32 SE32 A
+
+# QCD
+vertex G G G 
+vertex G G G G
+
+! SUSY QCD
+vertex g gg gg
+
+! QCD fermion-gluon
+vertex D d G 
+vertex U u G 
+vertex S s G 
+vertex C c G 
+vertex B b G 
+vertex T t G 
+
+
+! SUSY sfermion-gluon
+vertex sd1 SD1 g
+vertex sd2 SD2 g
+vertex su1 SU1 g
+vertex su2 SU2 g
+vertex ss1 SS1 g
+vertex ss2 SS2 g
+vertex sc1 SC1 g
+vertex sc2 SC2 g
+vertex sb1 SB1 g
+vertex sb2 SB2 g
+vertex st1 ST1 g
+vertex st2 ST2 g
+! SUSY gluino
+vertex d SD1 gg
+vertex d SD2 gg
+vertex u SU1 gg
+vertex u SU2 gg
+vertex s SS1 gg
+vertex s SS2 gg
+vertex c SC1 gg
+vertex c SC2 gg
+vertex b SB1 gg
+vertex b SB2 gg
+vertex t ST1 gg
+vertex t ST2 gg
+vertex sd1 D gg
+vertex sd2 D gg
+vertex su1 U gg
+vertex su2 U gg
+vertex ss1 S gg
+vertex ss2 S gg
+vertex sc1 C gg
+vertex sc2 C gg
+vertex sb1 B gg
+vertex sb2 B gg
+vertex st1 T gg
+vertex st2 T gg
+
+
+# Neutral currents
+vertex D d Z 
+vertex U u Z 
+vertex S s Z 
+vertex C c Z 
+vertex B b Z 
+vertex T t Z 
+
+vertex E1 e1 Z 
+vertex E2 e2 Z 
+vertex E3 e3 Z 
+vertex N1 n1 Z 
+vertex N2 n2 Z 
+vertex N3 n3 Z 
+
+! Neutral currents/SUSY
+vertex sd1 SD1 Z
+vertex su1 SU1 Z
+vertex ss1 SS1 Z
+vertex sc1 SC1 Z
+vertex sb1 SB1 Z
+vertex st1 ST1 Z
+vertex se11 SE11 Z
+vertex se21 SE21 Z
+vertex se31 SE31 Z
+vertex sn11 SN11 Z
+vertex sn21 SN21 Z
+vertex sn31 SN31 Z
+vertex sd2 SD2 Z
+vertex su2 SU2 Z
+vertex ss2 SS2 Z
+vertex sc2 SC2 Z
+vertex sb2 SB2 Z
+vertex st2 ST2 Z
+vertex se12 SE12 Z
+vertex se22 SE22 Z
+vertex se32 SE32 Z
+! 3rd gen mixing
+vertex sb1 SB2 Z
+vertex sb2 SB1 Z
+vertex st1 ST2 Z
+vertex st2 ST1 Z
+vertex se31 SE32 Z
+vertex se32 SE31 Z
+
+
+# Charged currents
+vertex U d Wp 
+vertex C s Wp 
+vertex T b Wp 
+vertex D u Wm 
+vertex S c Wm 
+vertex B t Wm 
+
+vertex N1 e1 Wp 
+vertex N2 e2 Wp 
+vertex N3 e3 Wp 
+vertex E1 n1 Wm 
+vertex E2 n2 Wm 
+vertex E3 n3 Wm 
+
+
+! SUSY
+vertex su1 SD1 Wm
+vertex sc1 SS1 Wm
+vertex st1 SB1 Wm
+vertex sn11 SE11 Wm
+vertex sn21 SE21 Wm
+vertex sn31 SE31 Wm
+vertex sd1 SU1 Wp
+vertex ss1 SC1 Wp
+vertex sb1 ST1 Wp
+vertex se11 SN11 Wp
+vertex se21 SN21 Wp
+vertex se31 SN31 Wp
+
+! 3rd gen mixing
+vertex st1 SB2 Wm
+vertex st2 SB1 Wm
+vertex st2 SB2 Wm
+vertex sn31 SE32 Wm
+vertex sb1 ST2 Wp
+vertex sb2 ST1 Wp
+vertex sb2 ST2 Wp
+vertex se32 SN31 Wp 
+
+# Yukawa (neutral)
+### keeping only 3rd generation for the moment
+# vertex S s h 
+# vertex C c h 
+vertex B b h 
+vertex T t h 
+# vertex E2 e2 h
+vertex E3 e3 h 
+vertex e3 E3 HH
+vertex b B HH
+vertex t T HH
+vertex e3 E3 HA
+vertex b B HA
+vertex t T HA
+
+# Yukawa (charged)
+vertex e3 N3 "H+"
+vertex E3 n3 "H-"
+vertex b T "H+"
+vertex B t "H-"
+
+# trilinear couplings
+vertex se31 SE31 h
+vertex se31 SE32 h
+vertex se32 SE31 h
+vertex se32 SE32 h
+vertex sb1 SB1 h
+vertex sb1 SB2 h
+vertex sb2 SB1 h
+vertex sb2 SB2 h
+vertex st1 ST1 h
+vertex st1 ST2 h
+vertex st2 ST1 h
+vertex st2 ST2 h
+vertex se31 SE31 HH
+vertex se31 SE32 HH
+vertex se32 SE31 HH
+vertex se32 SE32 HH
+vertex sb1 SB1 HH
+vertex sb1 SB2 HH
+vertex sb2 SB1 HH
+vertex sb2 SB2 HH
+vertex st1 ST1 HH
+vertex st1 ST2 HH
+vertex st2 ST1 HH
+vertex st2 ST2 HH
+vertex se31 SE31 HA
+vertex se31 SE32 HA
+vertex se32 SE31 HA
+vertex se32 SE32 HA
+vertex sb1 SB1 HA
+vertex sb1 SB2 HA
+vertex sb2 SB1 HA
+vertex sb2 SB2 HA
+vertex st1 ST1 HA
+vertex st1 ST2 HA
+vertex st2 ST1 HA
+vertex st2 ST2 HA
+vertex se31 SN31 "H+"
+vertex se32 SN31 "H+"
+vertex sb1 ST1 "H+"
+vertex sb1 ST2 "H+"
+vertex sb2 ST1 "H+"
+vertex sb2 ST2 "H+"
+vertex SE31 sn31 "H-"
+vertex SE32 sn31 "H-"
+vertex SB1 st1 "H-"
+vertex SB1 st2 "H-"
+vertex SB2 st1 "H-"
+vertex SB2 st2 "H-"
+
+# Vector-boson self-interactions
+vertex Wp Wm A
+vertex Wp Wm Z
+
+vertex Wp Wm Z Z
+vertex Wp Wp Wm Wm
+vertex Wp Wm A Z
+vertex Wp Wm A A
+
+# Higgs - vector boson
+vertex h Wp Wm
+vertex h Z Z
+vertex Wp Wm HH
+vertex Z Z HH
+vertex A "H+" "H-"
+vertex Z "H+" "H-"
+vertex Z Z HH
+vertex Z h HA
+vertex Z HH HA
+vertex Wp "H-" h
+vertex Wm "H+" h
+vertex Wp "H-" HH
+vertex Wm "H+" HH
+vertex Wp "H-" HA
+vertex Wm "H+" HA
+
+# Higgs self-interactions
+vertex h h h 
+vertex h h HH
+vertex h HH HH
+vertex HH HH HH
+vertex h HA HA
+vertex HH HA HA
+vertex h "H+" "H-"
+vertex HH "H+" "H-"
+vertex h h h h
+
+! Charginos
+vertex "ch1+" "ch1-" A
+vertex "ch2+" "ch2-" A
+vertex "ch1+" "ch1-" Z
+vertex "ch1+" "ch2-" Z
+vertex "ch2+" "ch1-" Z
+vertex "ch2+" "ch2-" Z
+
+! Neutralinos
+vertex neu1 neu1 Z
+vertex neu1 neu2 Z
+vertex neu1 neu3 Z
+vertex neu1 neu4 Z
+vertex neu2 neu2 Z
+vertex neu2 neu3 Z
+vertex neu2 neu4 Z
+vertex neu3 neu3 Z
+vertex neu3 neu4 Z
+vertex neu4 neu4 Z
+
+! Charginos + neutralinos
+vertex "ch1+" neu1 Wm
+vertex "ch2+" neu1 Wm
+vertex "ch1+" neu2 Wm
+vertex "ch2+" neu2 Wm
+vertex "ch1+" neu3 Wm
+vertex "ch2+" neu3 Wm
+vertex "ch1+" neu4 Wm
+vertex "ch2+" neu4 Wm
+vertex "ch1-" neu1 Wp
+vertex "ch2-" neu1 Wp
+vertex "ch1-" neu2 Wp
+vertex "ch2-" neu2 Wp
+vertex "ch1-" neu3 Wp
+vertex "ch2-" neu3 Wp
+vertex "ch1-" neu4 Wp
+vertex "ch2-" neu4 Wp
+
+! Charginos + Higgs
+vertex "ch1+" "ch1-" h
+vertex "ch1+" "ch2-" h
+vertex "ch2+" "ch1-" h
+vertex "ch2+" "ch2-" h
+vertex "ch1+" "ch1-" HH
+vertex "ch1+" "ch2-" HH
+vertex "ch2+" "ch1-" HH
+vertex "ch2+" "ch2-" HH
+vertex "ch1+" "ch1-" HA
+vertex "ch1+" "ch2-" HA
+vertex "ch2+" "ch1-" HA
+vertex "ch2+" "ch2-" HA
+
+! Neutralinos + Higgs
+vertex neu1 neu1 h
+vertex neu1 neu2 h
+vertex neu1 neu3 h
+vertex neu1 neu4 h
+vertex neu2 neu2 h
+vertex neu2 neu3 h
+vertex neu2 neu4 h
+vertex neu3 neu3 h
+vertex neu3 neu4 h
+vertex neu4 neu4 h
+vertex neu1 neu1 HH
+vertex neu1 neu2 HH
+vertex neu1 neu3 HH
+vertex neu1 neu4 HH
+vertex neu2 neu2 HH
+vertex neu2 neu3 HH
+vertex neu2 neu4 HH
+vertex neu3 neu3 HH
+vertex neu3 neu4 HH
+vertex neu4 neu4 HH
+vertex neu1 neu1 HA
+vertex neu1 neu2 HA
+vertex neu1 neu3 HA
+vertex neu1 neu4 HA
+vertex neu2 neu2 HA
+vertex neu2 neu3 HA
+vertex neu2 neu4 HA
+vertex neu3 neu3 HA
+vertex neu3 neu4 HA
+vertex neu4 neu4 HA
+
+! Charginos + neutralinos + Higgs
+vertex "ch1+" neu1 "H-"
+vertex "ch2+" neu1 "H-"
+vertex "ch1+" neu2 "H-"
+vertex "ch2+" neu2 "H-"
+vertex "ch1+" neu3 "H-"
+vertex "ch2+" neu3 "H-"
+vertex "ch1+" neu4 "H-"
+vertex "ch2+" neu4 "H-"
+vertex "ch1-" neu1 "H+"
+vertex "ch2-" neu1 "H+"
+vertex "ch1-" neu1 "H+"
+vertex "ch2-" neu2 "H+"
+vertex "ch1-" neu3 "H+"
+vertex "ch2-" neu3 "H+"
+vertex "ch1-" neu4 "H+"
+vertex "ch2-" neu4 "H+"
+
+! Lepton-slepton-neutralino
+vertex e1 SE11 neu1
+vertex e1 SE11 neu2
+vertex e1 SE11 neu3
+vertex e1 SE11 neu4
+vertex e1 SE12 neu1
+vertex e1 SE12 neu2
+vertex e1 SE12 neu3
+vertex e1 SE12 neu4
+vertex E1 se11 neu1
+vertex E1 se11 neu2
+vertex E1 se11 neu3
+vertex E1 se11 neu4
+vertex E1 se12 neu1
+vertex E1 se12 neu2
+vertex E1 se12 neu3
+vertex E1 se12 neu4
+vertex e2 SE21 neu1
+vertex e2 SE21 neu2
+vertex e2 SE21 neu3
+vertex e2 SE21 neu4
+vertex E2 se21 neu1
+vertex E2 se21 neu2
+vertex E2 se21 neu3
+vertex E2 se21 neu4
+vertex e2 SE22 neu1
+vertex e2 SE22 neu2
+vertex e2 SE22 neu3
+vertex e2 SE22 neu4
+vertex E2 se22 neu1
+vertex E2 se22 neu2
+vertex E2 se22 neu3
+vertex E2 se22 neu4
+vertex e3 SE31 neu1
+vertex e3 SE31 neu2
+vertex e3 SE31 neu3
+vertex e3 SE31 neu4
+vertex E3 se31 neu1
+vertex E3 se31 neu2
+vertex E3 se31 neu3
+vertex E3 se31 neu4
+vertex e3 SE32 neu1
+vertex e3 SE32 neu2
+vertex e3 SE32 neu3
+vertex e3 SE32 neu4
+vertex E3 se32 neu1
+vertex E3 se32 neu2
+vertex E3 se32 neu3
+vertex E3 se32 neu4
+! Neutrino-sneutrino-neutralino
+vertex n1 SN11 neu1
+vertex n1 SN11 neu2
+vertex n1 SN11 neu3
+vertex n1 SN11 neu4
+vertex N1 sn11 neu1
+vertex N1 sn11 neu2
+vertex N1 sn11 neu3
+vertex N1 sn11 neu4
+vertex n2 SN21 neu1
+vertex n2 SN21 neu2
+vertex n2 SN21 neu3
+vertex n2 SN21 neu4
+vertex N2 sn21 neu1
+vertex N2 sn21 neu2
+vertex N2 sn21 neu3
+vertex N2 sn21 neu4
+vertex n3 SN31 neu1
+vertex n3 SN31 neu2
+vertex n3 SN31 neu3
+vertex n3 SN31 neu4
+vertex N3 sn31 neu1
+vertex N3 sn31 neu2
+vertex N3 sn31 neu3
+vertex N3 sn31 neu4
+! Quark-squark-neutralino
+vertex d SD1 neu1
+vertex d SD1 neu2
+vertex d SD1 neu3
+vertex d SD1 neu4
+vertex d SD2 neu1
+vertex d SD2 neu2
+vertex d SD2 neu3
+vertex d SD2 neu4
+vertex D sd1 neu1
+vertex D sd1 neu2
+vertex D sd1 neu3
+vertex D sd1 neu4
+vertex D sd2 neu1
+vertex D sd2 neu2
+vertex D sd2 neu3
+vertex D sd2 neu4
+vertex u SU1 neu1
+vertex u SU1 neu2
+vertex u SU1 neu3
+vertex u SU1 neu4
+vertex u SU2 neu1
+vertex u SU2 neu2
+vertex u SU2 neu3
+vertex u SU2 neu4
+vertex U su1 neu1
+vertex U su1 neu2
+vertex U su1 neu3
+vertex U su1 neu4
+vertex U su2 neu1
+vertex U su2 neu2
+vertex U su2 neu3
+vertex U su2 neu4
+vertex s SS1 neu1
+vertex s SS1 neu2
+vertex s SS1 neu3
+vertex s SS1 neu4
+vertex s SS2 neu1
+vertex s SS2 neu2
+vertex s SS2 neu3
+vertex s SS2 neu4
+vertex S ss1 neu1
+vertex S ss1 neu2
+vertex S ss1 neu3
+vertex S ss1 neu4
+vertex S ss2 neu1
+vertex S ss2 neu2
+vertex S ss2 neu3
+vertex S ss2 neu4
+vertex c SC1 neu1
+vertex c SC1 neu2
+vertex c SC1 neu3
+vertex c SC1 neu4
+vertex c SC2 neu1
+vertex c SC2 neu2
+vertex c SC2 neu3
+vertex c SC2 neu4
+vertex C sc1 neu1
+vertex C sc1 neu2
+vertex C sc1 neu3
+vertex C sc1 neu4
+vertex C sc2 neu1
+vertex C sc2 neu2
+vertex C sc2 neu3
+vertex C sc2 neu4
+vertex b SB1 neu1
+vertex b SB1 neu2
+vertex b SB1 neu3
+vertex b SB1 neu4
+vertex b SB2 neu1
+vertex b SB2 neu2
+vertex b SB2 neu3
+vertex b SB2 neu4
+vertex B sb1 neu1
+vertex B sb1 neu2
+vertex B sb1 neu3
+vertex B sb1 neu4
+vertex B sb2 neu1
+vertex B sb2 neu2
+vertex B sb2 neu3
+vertex B sb2 neu4
+vertex t ST1 neu1
+vertex t ST1 neu2
+vertex t ST1 neu3
+vertex t ST1 neu4
+vertex t ST2 neu1
+vertex t ST2 neu2
+vertex t ST2 neu3
+vertex t ST2 neu4
+vertex T st1 neu1
+vertex T st1 neu2
+vertex T st1 neu3
+vertex T st1 neu4
+vertex T st2 neu1
+vertex T st2 neu2
+vertex T st2 neu3
+vertex T st2 neu4
+
+! Lepton-sneutrino-chargino
+vertex e1 SN11 "ch1+"
+vertex e1 SN11 "ch2+"
+vertex E1 sn11 "ch1-"
+vertex E1 sn11 "ch2-"
+vertex e2 SN21 "ch1+"
+vertex e2 SN21 "ch2+"
+vertex E2 sn21 "ch1-"
+vertex E2 sn21 "ch2-"
+vertex e3 SN31 "ch1+"
+vertex e3 SN31 "ch2+"
+vertex E3 sn31 "ch1-"
+vertex E3 sn31 "ch2-"
+! Slepton-neutrino-chargino
+vertex se11 N1 "ch1+"
+vertex se11 N1 "ch2+"
+vertex se12 N1 "ch1+"
+vertex se12 N1 "ch2+"
+vertex SE11 n1 "ch1-"
+vertex SE11 n1 "ch2-"
+vertex SE12 n1 "ch1-"
+vertex SE12 n1 "ch2-"
+vertex se21 N2 "ch1+"
+vertex se21 N2 "ch2+"
+vertex se22 N2 "ch1+"
+vertex se22 N2 "ch2+"
+vertex SE21 n2 "ch1-"
+vertex SE21 n2 "ch2-"
+vertex SE22 n2 "ch1-"
+vertex SE22 n2 "ch2-"
+vertex se31 N3 "ch1+"
+vertex se31 N3 "ch2+"
+vertex se32 N3 "ch1+"
+vertex se32 N3 "ch2+"
+vertex SE31 n3 "ch1-"
+vertex SE31 n3 "ch2-"
+vertex SE32 n3 "ch1-"
+vertex SE32 n3 "ch2-"
+! Quark-squark-chargino [unit CKM matrix!]
+vertex d SU1 "ch1+"
+vertex d SU1 "ch2+"
+vertex d SU2 "ch1+"
+vertex d SU2 "ch2+"
+vertex D su1 "ch1-"
+vertex D su1 "ch2-"
+vertex D su2 "ch1-"
+vertex D su2 "ch2-"
+vertex sd1 U "ch1+"
+vertex sd1 U "ch2+"
+vertex sd2 U "ch1+"
+vertex sd2 U "ch2+"
+vertex SD1 u "ch1-"
+vertex SD1 u "ch2-"
+vertex SD2 u "ch1-"
+vertex SD2 u "ch2-"
+vertex s SC1 "ch1+"
+vertex s SC1 "ch2+"
+vertex s SC2 "ch1+"
+vertex s SC2 "ch2+"
+vertex S sc1 "ch1-"
+vertex S sc1 "ch2-"
+vertex S sc2 "ch1-"
+vertex S sc2 "ch2-"
+vertex ss1 C "ch1+"
+vertex ss1 C "ch2+"
+vertex ss2 C "ch1+"
+vertex ss2 C "ch2+"
+vertex SS1 c "ch1-"
+vertex SS1 c "ch2-"
+vertex SS2 c "ch1-"
+vertex SS2 c "ch2-"
+vertex b ST1 "ch1+"
+vertex b ST1 "ch2+"
+vertex b ST2 "ch1+"
+vertex b ST2 "ch2+"
+vertex B st1 "ch1-"
+vertex B st1 "ch2-"
+vertex B st2 "ch1-"
+vertex B st2 "ch2-"
+vertex sb1 T "ch1+"
+vertex sb1 T "ch2+"
+vertex sb2 T "ch1+"
+vertex sb2 T "ch2+"
+vertex SB1 t "ch1-"
+vertex SB1 t "ch2-"
+vertex SB2 t "ch1-"
+vertex SB2 t "ch2-"

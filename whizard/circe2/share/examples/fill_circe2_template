@@ -1,0 +1,105 @@
+#! /bin/sh
+########################################################################
+
+########################################################################
+# If necessary, point to a good implementation of sed and awk
+########################################################################
+awk=awk
+sed=sed
+
+########################################################################
+# Process the commandline
+########################################################################
+cmdline="$0 $*"
+
+########################################################################
+# Mandatory arguments
+
+gp_output=$1
+shift
+template=$1
+shift
+if test "X$template" = "X"; then
+  echo "usage: $0 GP++-output template [parameter=value ...]" 1>&2
+  exit 1
+fi
+
+########################################################################
+# Evaluate the rest as assignments of
+#
+#  - prefix
+#  - design
+#  - roots
+#  - scale
+#  - f_rep
+#  - n_b
+
+for i in "$@"; do
+  eval "$i"
+done
+
+########################################################################
+# Provide default values
+########################################################################
+
+if test "X$design" = "X"; then
+  design=ILC
+fi
+
+if test "X$roots" = "X"; then
+  roots=500
+fi
+
+if test "X$scale" = "X"; then
+  scale=`awk "END { printf (\"%f\", $roots / 2) }" </dev/null`
+fi
+
+########################################################################
+# Get luminosities from thr Guinea-Pig++ output file
+# NB: Guinea-Pig++ reports the luminosities PER BUNCH CROSSING and
+#     we must multiply by the repetition rate f_rep (in Hertz) and
+#     the number of bunches n_b.  Both can be given on the commandline.
+########################################################################
+
+lumi_ee_pbc=`awk '$1 == "lumi_ee" { print $3 }' $gp_output`
+lumi_eg_pbc=`awk '$1 == "lumi_eg" { print $3 }' $gp_output`
+lumi_ge_pbc=`awk '$1 == "lumi_ge" { print $3 }' $gp_output`
+lumi_gg_pbc=`awk '$1 == "lumi_gg" { print $3 }' $gp_output`
+
+########################################################################
+
+if test "X$f_rep" = "X"; then
+  f_rep=`awk '$1 == "f_rep" { print $3 }' $gp_output`
+fi
+
+if test "X$n_b" = "X"; then
+  n_b=`awk '$4== "n_b" { print $6 }' $gp_output`
+fi
+
+scale_lumi () {
+  awk "END { printf (\"%f\", $f_rep * $n_b * $1 / 10e34) }" </dev/null
+}
+
+lumi_ee=`scale_lumi $lumi_ee_pbc`
+lumi_eg=`scale_lumi $lumi_eg_pbc`
+lumi_ge=`scale_lumi $lumi_ge_pbc`
+lumi_gg=`scale_lumi $lumi_gg_pbc`
+
+########################################################################
+# Write the filled-in template to standard output
+########################################################################
+
+echo "# Circe2 inputfile generated"
+echo "# by $cmdline"
+echo "# at `date`"
+
+sed "
+  s|@prefix@|$prefix|
+  s|@design@|$design|
+  s|@roots@|$roots|
+  s|@scale@|$scale|
+  s|@lumi_ee@|$lumi_ee|
+  s|@lumi_eg@|$lumi_eg|
+  s|@lumi_ge@|$lumi_ge|
+  s|@lumi_gg@|$lumi_gg|
+" $template

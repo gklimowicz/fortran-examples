@@ -1,0 +1,387 @@
+% taorng.nw --
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+\documentclass[a4paper]{article}
+\usepackage[euler]{thopp}
+\usepackage{amsmath,amsfonts}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{noweb}
+\setlength{\unitlength}{1mm}
+\setlength{\nwmarginglue}{1em}
+%%% Saving paper:
+\def\nwendcode{\endtrivlist \endgroup}
+\nwcodepenalty=0
+\let\nwdocspar\relax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Some decorations depend on local stuff.  Make it optional.
+\IfFileExists{thohacks.sty}%
+  {\usepackage{thohacks}}%
+  {\let\timestamp\today}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeindex
+\begin{document}
+\title{%
+  [[taorng]]:\\
+  The Random Number Generator from\\
+  \textit{The Art of Computer Programming}}
+\author{%
+  Thorsten Ohl%
+    \thanks{e-mail: \texttt{ohl@physik.uni-wuerzburg.de}}\\
+  \hfil\\
+    Universit\"at W\"urzburg \\
+    Emil-Hilb-Weg 22\\
+    D-97089 W\"urzburg\\
+    Germany}
+\preprintno{\hfil}
+\date{%
+  \textbf{unpublished draft, printed \timestamp}}
+\maketitle
+\begin{abstract}
+  This is the random number generated suggested by Don E.~Knuth in his
+  errata list to \textit{The Art of Computer Programming}.
+\end{abstract}
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+<<Copyleft notice>>=
+!   Copyright (C) 1996 by Thorsten.Ohl@Physik.TH-Darmstadt.de
+!
+!   Circe is free software; you can redistribute it and/or modify it
+!   under the terms of the GNU General Public License as published by
+!   the Free Software Foundation; either version 2, or (at your option)
+!   any later version.
+!
+!   Circe is distributed in the hope that it will be useful, but
+!   WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!   GNU General Public License for more details.
+!
+!   You should have received a copy of the GNU General Public License
+!   along with this program; if not, write to the Free Software
+!   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implementation}
+<<[[taorng.f90]]>>=
+c taorng.f90 -- 
+<<Copyleft notice>>
+<<Subroutines>>
+<<Testing>>
+@
+<<*>>=
+! taorng.f -- 
+<<Copyleft notice>>
+<<Subroutines>>
+<<Testing>>
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{User routines}
+A random real $r \in [0,1)$:
+<<Subroutines>>=
+  function taorng (seed)
+    integer :: seed
+    real(kind=double) :: taorng
+    <<Modulus [[MM]]>>
+    real(kind=double), parameter :: INVMM = 1D0/MM)
+    <<Prepare array [[a]] and index [[i]]>>
+    taorng = INVMM * a(i) 
+  end function taorng
+
+@ %def taorng
+@ DEK call for at least $N \ge 100$, but recommends $N \ge 1000$:
+<<Array size [[N]]>>=
+    integer, parameter :: N = 1000
+@
+<<Prepare array [[a]] and index [[i]]>>=
+    <<Array size [[N]]>>
+    integer :: i
+    integer, dimension(N) :: a(N)
+    data i / N /
+    save a, i
+    i = i + 1
+    if (i .gt. N) then
+       call taorna (a, N, seed)
+       i = 1
+    end if
+@ A random integer $i$ with $0 \le i < 2^{30} = 1073741824$
+<<Subroutines>>=
+  function taorni (seed)
+    implicit none
+    integer seed
+    <<Prepare array [[a]] and index [[i]]>>
+    taorni = a(i) 
+  end function taorng
+@
+<<Modulus [[MM]]>>=
+    integer, parameter :: MM = 2**30
+@ Fill the array $a_1,\ldots,a_n$ with random integers $0 \le a_i < 2^{30}$
+<<Subroutines>>=
+  subroutine taorna (a, n, seed)    
+    integer, dimension(:), intent(in) :: a
+    integer :: n, seed        
+    <<Parameters>>
+    <<Local variables>>
+    <<State>>
+    if ((seed .gt. 0) .or. (.not. init)) then
+       <<Check [[seed]]>>
+       <<Initialize [[ranx]]>>
+       init = .true.
+    end if
+    <<Refresh [[a]]>>
+  end subroutine taorna
+
+@ %def taorna
+@
+<<Parameters>>=
+    integer, parameter ::  KK = 100, LL = 37, &
+             TT = 20, KKK = KK+KK-1
+    integer, parameter :: SEEDMX = 2**30 - 1
+    <<Modulus [[MM]]>>
+@
+<<Local variables>>=
+    integer, dimension(KKK) :: x(KKK)
+    integer :: j, ss, t
+@
+<<State>>=
+    integer, dimension(KK), save :: ranx
+    logical, save :: init = .false.
+@
+<<Refresh [[a]]>>=
+    do j = 1, KK
+       a(j) = ranx(j)
+    end do
+    do j = KK+1, N
+       a(j) = a(j-KK) - a(j-LL)
+       if (a(j) .lt. 0) a(j) = a(j) + MM
+    end do
+    do j = 1, LL
+       ranx(j) = a(N+j-KK) - a(N+j-LL)
+       if (ranx(j) .lt. 0) ranx(j) = ranx(j) + MM
+    end do
+    do j = LL+1, KK
+       ranx(j) = a(N+j-KK) - ranx(j-LL)
+       if (ranx(j) .lt. 0) ranx(j) = ranx(j) + MM
+    end do
+@
+<<Check [[seed]]>>=
+    if ((seed .lt. 0) .or. (seed .gt. SEEDMX)) then
+       print *, 'rnstrt: seed (', seed, ') not in (0,', SEEDMX, ')!'
+       print *, 'rnstrt: seed set to 0.'
+       seed = 0
+    end if
+@
+<<Initialize [[ranx]]>>=
+    ss = seed - mod (seed, 2) + 2
+    do j = 1, KK
+       x(j) = ss
+       ss = ss + ss
+       if (ss .ge. MM) ss = ss - MM + 2
+    end do
+    do j = KK+1, KKK
+       x(j) = 0
+    end do
+    x(2) = x(2) + 1
+    ss = seed
+    t = TT - 1
+    do
+       do j = KK, 2, -1
+          x(j+j-1) = x(j)
+       end do
+       do j = KKK, KK-LL+1, -2
+          x(KKK-j+2) = x(j) - mod (x(j), 2)
+       end do
+       do j = KKK, KK+1, -1
+          if (mod (x(j), 2) .eq. 1) then
+             x(j-(KK-LL)) = x(j-(KK-LL)) - x(j)
+             if (x(j-(KK-LL)) .lt. 0) & 
+                  x(j-(KK-LL)) = x(j-(KK-LL)) + MM
+             x(j-KK) = x(j-KK) - x(j)
+             if (x(j-KK) .lt. 0) x(j-KK) = x(j-KK) + MM
+          end if
+       end do   
+       if (mod (ss, 2) .eq. 1) then
+          do j = KK, 1, -1
+             x(j+1) = x(j)
+          end do
+          x(1) = x(KK+1)
+          if (mod (x(KK+1), 2) .eq. 1) then
+             x(LL+1) = x(LL+1) - x(KK+1)
+             if (x(LL+1) .lt. 0) x(LL+1) = x(LL+1) + MM
+          end if
+       end if
+       if (ss .ne. 0) then
+          ss = ss / 2
+       else
+          t = t - 1
+       end if
+       if (t .le. 0) exit
+    end do
+    do j = 1, LL
+       ranx(j+KK-LL) = x(j)
+    end do
+    do j = LL+1, KK
+       ranx(J-LL) = x(j)
+    end do
+@
+<<Testing>>=
+  program rtest
+    use kinds
+
+    implicit none
+    
+    real(kind=double) :: r1, r2, dekran, taorng
+    integer :: i
+    print *, dekran (0), taorng (0)
+    do i = 1, 100 000 000
+       r1 = dekran (0)
+       r2 = taorng (0)
+       if (r1 .ne. r2) print *, r1, ' != ', r2
+    end do 
+    print *, dekran (0), taorng (0)
+  end program rtest
+
+  function dekran (seed)
+    integer :: seed
+    real(kind=double) :: dekran
+    real(kind=double), parameter :: MM = 2D0**30, INVMM = 1D0/MM
+!!! N >= 100, but n >= 1000 recommended      
+    integer, parameter :: N = 1000
+    integer, save :: i       
+    integer, dimension(N), save :: a
+    logical, save :: init = .false.
+    if ((seed .gt. 0) .or. (.not. init)) then
+         call rnstrt (seed)
+         init = .true.
+         i = N + 1
+    end if
+    if (i .gt. N) then
+       call rnarry (a, N)
+       i = 1
+    end if
+    dekran = INVMM * a(i) 
+    i = i + 1
+  end function dekran
+@
+<<Testing>>=
+  subroutine rnarry (aa, n)
+    integer :: n
+    integer, dimension(n) :: aa
+    integer, parameter :: KK = 100, LL = 37, MM = 2**30
+    integer, dimension(KK), save :: ranx
+    !!! common /rstate/ ranx
+    !!! save /rstate/
+    integer :: j
+    do j = 1, KK
+       aa(j) = ranx(j)
+    end do
+    do j = KK+1, n
+       aa(j) = aa(j-KK) - aa(j-LL)
+       if (aa(j) .lt. 0) aa(j) = aa(j) + MM
+    end do
+    do j = 1, LL
+       ranx(j) = aa(n+j-KK) - aa(n+j-LL)
+       if (ranx(j) .lt. 0) ranx(j) = ranx(j) + MM
+    end do 
+    do j = LL+1, KK
+       ranx(j) = aa(n+j-KK) - ranx(j-LL)
+       if (ranx(j) .lt. 0) ranx(j) = ranx(j) + MM
+    end do
+  end subroutine rnarry
+
+@ %def rnarry
+@
+<<Testing>>=
+  subroutine rnstrt (seed)
+    integer :: seed
+    integer, parameter :: KK = 100, LL = 37, MM = 2**30, TT = 20, &
+             KKK = KK+KK-1
+    integer, parameter :: SEEDMX = 2**30 - 1
+    integer, dimension(KK), save :: ranx(KK)
+    !!! common /rstate/ ranx
+    !!! save /rstate/
+    integer, dimension(KKK) :: x(KKK)
+    integer :: j, ss, t
+    if ((seed .lt. 0) .or. (seed .gt. SEEDMX)) then
+       print *, 'rnstrt: seed (', seed, ') not in (0,', SEEDMX, ')!'
+       print *, 'rnstrt: seed set to 0.'
+       seed = 0
+    end if
+    ss = seed - mod (seed, 2) + 2
+    do j = 1, KK
+       x(j) = ss
+       ss = ss + ss
+       if (ss .ge. MM) ss = ss - MM + 2
+    end do
+    do j = KK+1, KKK
+       x(j) = 0
+    end do
+    x(2) = x(2) + 1
+    ss = seed
+    t = TT - 1
+    do
+       do j = KK, 2, -1
+          x(j+j-1) = x(j)
+       end do
+       do j = KKK, KK-LL+1, -2
+          x(KKK-j+2) = x(j) - mod (x(j), 2)
+       end do
+       do j = KKK, KK+1, -1
+          if (mod (x(j), 2) .eq. 1) then
+             x(j-(KK-LL)) = x(j-(KK-LL)) - x(j)
+             if (x(j-(KK-LL)) .lt. 0) x(j-(KK-LL)) = x(j-(KK-LL)) + MM
+             x(j-KK) = x(j-KK) - x(j)
+             if (x(j-KK) .lt. 0) x(j-KK) = x(j-KK) + MM
+          end if
+       end do
+       if (mod (ss, 2) .eq. 1) then
+          do j = KK, 1, -1
+             x(j+1) = x(j)
+          end do
+          x(1) = x(KK+1)
+          if (mod (x(KK+1), 2) .eq. 1) then
+             x(LL+1) = x(LL+1) - x(KK+1)
+             if (x(LL+1) .lt. 0) x(LL+1) = x(LL+1) + MM
+          end if
+       end if
+       if (ss .ne. 0) then
+          ss = ss / 2
+       else
+          t = t - 1
+       end if
+       if (t .le. 0) exit
+    end do
+    do j = 1, LL
+       ranx(j+KK-LL) = x(j)
+    end do
+    do j = LL+1, KK
+       ranx(J-LL) = x(j)
+    end do
+  end subroutine rnstrt
+
+@ %def rnstrt
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Acknowledgements}
+Thanks to Don Knuth for making it available.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Identifiers}
+\nowebindex
+\subsection*{Refinements}
+\nowebchunks
+\InputIfFileExists{\jobname.ind}{}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{thebibliography}
+  \bibitem{Knu96b}
+    D.E.~Knuth, 1996, (unpublished).
+  \bibitem{Knu96b}
+    D.E.~Knuth, 1996, (unpublished).
+\end{thebibliography}
+{circe}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+\endinput
+Local Variables:
+mode:noweb
+noweb-doc-mode:latex-mode
+noweb-code-mode:fortran-mode
+indent-tabs-mode:nil
+page-delimiter:"^@ %%%.*\n"
+End:

@@ -1,0 +1,124 @@
+#/bin/sh
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     Christian Speckner <cnspeckn@googlemail.com>
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+usage() {
+cat <<EOI
+usage: whizard-gml [options] file
+
+Run GAMELAN on file, after preprocessing 
+
+Available options:
+--help         : this help
+--sed SED      : sed utility program
+--mpost MPOST  : Metapost program
+--latex LATEX  : LaTeX program
+--gmldir DIR   : directory where the gamelan files reside
+
+Other options will be transferred to the mpost call.
+EOI
+exit
+}
+
+unset SED
+unset MP
+unset LATEX
+unset GMLDIR
+
+while test -n "$1"; do
+    case $1 in
+        --help)
+            usage
+	    ;;
+        --sed)
+	    shift
+	    SED=$1
+	    ;;
+	--mp,--mpost)
+            shift
+	    MP=$1
+	    ;;
+        --latex)
+            shift
+	    LATEX=$1
+	    ;;
+        --gmldir)
+	    shift
+	    GMLDIR=$1
+	    ;;
+	-*)
+	    OPTIONS="$OPTIONS $1"
+	    ;;
+	*)
+	    FILE=$1
+	    ;;
+    esac
+    shift
+done
+
+if test -z "$FILE"; then
+  echo "whizard-gml: No file specified"
+  usage
+fi
+
+test -z "$SED"   && SED=sed
+test -z "$MP"    && MP=mpost
+test -z "$LATEX" && LATEX=latex
+
+BUILDDIR=@BUILDDIR@
+PKGLIBDIR=@PKGLIBDIR@
+
+if test -z "$GMLDIR"; then
+  if test -f ./gamelan.mp; then
+     GMLDIR=.
+  elif test -f TESTFLAG; then
+     GMLDIR=$BUILDDIR/src/gamelan
+  else 
+     GMLDIR=$PKGLIBDIR/gamelan
+  fi
+fi
+
+MPFILE=`expr $FILE : '\(.*\)\.mp$' \| $FILE`
+
+TEX=$LATEX
+export TEX
+
+MPINPUTS="$GMLDIR:$MPINPUTS"
+export MPINPUTS
+
+$SED \
+-e's/<<!/ verbatimtex /g' \
+-e's/<</ btex /g' \
+-e's/>>/ etex /g' \
+-e's/#\([+-]\{0,1\}[0-9][0-9]*\.[0-9]*[A-Za-z][+-]*[0-9][0-9]*\)/#"\1"/g' \
+-e's/#\([+-]\{0,1\}[0-9][0-9]*[A-Za-z][+-]*[0-9][0-9]*\)/#"\1"/g' \
+-e's/#\([+-]\{0,1\}\.[0-9][0-9]*[A-Za-z][+-]*[0-9][0-9]*\)/#"\1"/g' \
+-e's/#\([+-]\{0,1\}[0-9][0-9]*\.[0-9]*\)/#"\1"/g' \
+-e's/#\([+-]\{0,1\}\.[0-9][0-9]*\)/#"\1"/g' \
+-e's/#\([+-]\{0,1\}[0-9][0-9]*\)/#"\1"/g' \
+$MPFILE.mp > $MPFILE.$$.tmp && \
+mv $MPFILE.$$.tmp $MPFILE.mp && \
+$MP --jobname=$MPFILE $OPTIONS "\\input $GMLDIR/gamelan" "\\input $MPFILE.mp"
+exit 0

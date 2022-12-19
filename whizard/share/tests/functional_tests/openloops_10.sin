@@ -1,0 +1,51 @@
+# SINDARIN input for WHIZARD self-test
+# Testing the integration of NLO QCD corrections
+# to Drell-Yan constrained to the dglap remnant component.
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.16637E-005
+wZ = 2.4952
+wW = 2.124
+
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+wtop = 0
+mtop = 175 GeV
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+
+alias pr = u:d:U:D
+
+cuts = all M > 20 GeV [e1, E1]
+
+$dglap_me_method = "openloops"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+scale = mZ
+
+process openloops_10_p1 = pr, pr => e1, E1 { nlo_calculation = dglap }
+beams = p, p => pdf_builtin
+seed = 42
+
+sqrts = 13000 GeV
+
+integrate (openloops_10_p1) { iterations = 1:100:"gw" }

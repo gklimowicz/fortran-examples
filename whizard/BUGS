@@ -1,0 +1,75 @@
+General:
+
+* WHIZARD 3.0+ currently runs only with the NAGFOR 7.0 (or newer) and
+  gfortran 7.5.0 (or newer) Fortran compilers as well as Intel ifort
+  19.0.2 (or newer).
+
+* WHIZARD 2.7+ incorporates all features from WHIZARD 1, making the
+  legacy branch obsolete now.
+  
+* Please report bugs and problems or performance issues
+  at our Launchpad site:
+  https://launchpad.net/whizard
+  or send an email to our support email address:
+  <whizard@desy.de>
+
+Known (recent) bugs:
+
+* WHIZARD 3.0.0 and earlier might not compile together with HepMC3/ROOT
+  when using a genuine C++17 standard compiler like gcc/g++ 11 and newer.
+  This came from backwards compatibility with gcc/g++ 5 as a default
+  C++98 compiler. Fixed in v3.0.1.
+
+* WHIZARD 2.8.5/3.0.0beta and earlier do not support reading LCIO events
+  with LCIO versions 2.15 and newer due to a bug in the LCIO interface.
+
+* WHIZARD 2.8.4 and earlier do not support Pythia 8.301+. If you want to use
+  these versions of Pythia 8 please use WHIZARD 2.8.5 or 3. Note that
+  Pythia 8.301-2 and contain a bug in their LHA interface, so you have to use
+  Pythia 8.303+.
+
+* WHIZARD 2.8.3 exhibits a bug for UFO models containing Majorana fermions:
+  no matrix element is generated. WHIZARD 2.8.4 solves this problem. There
+  are still some wrong sign in interference terms for very complicated
+  processes. They are fixed with version 3.0.0.
+
+* WHIZARD 2.8.1 and earlier does not compile with OCaml versions 4.08.0
+  and newer due to a deletion of a deprecated feature in the OCaml language.
+  This is fixed in 2.8.2+ of WHIZARD. For older WHIZARD versions, please
+  downgrade your OCaml version to anything between versions 4.02.x and 4.07.x.
+
+* MPI version of WHIZARD: version 2.6.3 could produce the MPI-parallelized
+  version only from the svn repository, and not from the release tarball.
+  This was corrected for version 2.6.4.
+
+* In version 2.6.0 the top threshold calculations do not work due to a
+  regression. This is fixed in 2.6.1. In version 2.6.1 all processes
+  with BSM resonances having PDG codes with 7 digits are broken. This is
+  fixed in version 2.6.2.
+
+Compilers and OS specialties:
+
+* macOS Darwin >= 20.1:
+  The libtool support for macOS Big Sur (darwin 20.1+) needed to be updated
+  in order to treat shared libraries correctly. This affected also the
+  gcc/gfortran/g++ compiler suite, so on macOS Big Sur, WHIZARD versions older
+  than 3.0.0 do not work, and WHIZARD will only work with gcc/g++/gfortran
+  compiler versions 8.5, 9.4, 10.3, and 11.1 or newer (in the corresponding
+  sub-series).
+
+* MAC OS X Darwin >= 10.11:
+  The security measures of the new Darwin systems do not allow e.g.
+  environment variables passed to subprocesses. This does not change
+  anything for the installed WHIZARD, but the testsuite (make check)
+  will not work before make install has been executed. make distcheck 
+  will not work on El Capitan. There is also the option to disable
+  the System Integrity Protocol (SIP) of modern OSX by booting in
+  Recovery Mode, open a terminal and type 'csrutil disable'. However, we
+  do not recommend to do so.
+
+Manual:
+
+* For WHIZARD 3.0, the manual is still quite sparse. We are working on
+  that. Regular updates independent from the subreleases can be found
+  on the Hepforge webpage:
+  https://whizard.hepforge.org/manual.pdf

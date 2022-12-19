@@ -1,0 +1,16 @@
+# SINDARIN input for WHIZARD self-test
+
+model = Test
+$method = "unit_test"
+
+?vis_history = false
+
+process rebuild_1p = s, s => s, s
+compile
+
+histogram rap (-5, 5, 0.1)
+
+sqrts = 1 TeV
+iterations = 1:100
+n_events = 1
+simulate (rebuild_1p)

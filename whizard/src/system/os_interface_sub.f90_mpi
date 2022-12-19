@@ -1,0 +1,741 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+submodule (os_interface) os_interface_s
+
+  use system_defs, only: DLERROR_LEN, ENVVAR_LEN
+  use io_units
+  use diagnostics
+  use system_dependencies
+
+  use mpi_f08 !NODEP!
+
+  implicit none
+
+contains
+
+  module subroutine paths_init (paths)
+    type(paths_t), intent(out) :: paths
+    paths%prefix = ""
+    paths%exec_prefix = ""
+    paths%bindir = ""
+    paths%libdir = ""
+    paths%includedir = ""
+    paths%datarootdir = ""
+    paths%localprefix = ""
+    paths%libtool = ""
+    paths%lhapdfdir = ""
+  end subroutine paths_init
+
+  module subroutine os_data_init (os_data, paths)
+    class(os_data_t), intent(out) :: os_data
+    type(paths_t), intent(in), optional :: paths
+    character(len=ENVVAR_LEN) :: home
+    type(string_t) :: localprefix, local_includes
+    os_data%use_libtool = .true.
+    inquire (file = "TESTFLAG", exist = os_data%use_testfiles)
+    call get_environment_variable ("HOME", home)
+    if (present(paths)) then
+       if (paths%localprefix == "") then
+          localprefix = trim (home) // "/.whizard"
+       else
+          localprefix = paths%localprefix
+       end if
+    else
+       localprefix = trim (home) // "/.whizard"
+    end if
+    local_includes = localprefix // "/lib/whizard/mod/models"
+    os_data%whizard_modelpath_local = localprefix // "/share/whizard/models"
+    os_data%whizard_models_libpath_local = localprefix // "/lib/whizard/models"
+    os_data%whizard_omega_binpath_local = localprefix // "/bin"
+    os_data%fc             = DEFAULT_FC
+    os_data%fcflags        = DEFAULT_FCFLAGS
+    os_data%fcflags_pic    = DEFAULT_FCFLAGS_PIC
+    os_data%fclibs         = FCLIBS
+    os_data%fc_src_ext     = DEFAULT_FC_SRC_EXT
+    os_data%cc             = DEFAULT_CC
+    os_data%cflags         = DEFAULT_CFLAGS
+    os_data%cflags_pic     = DEFAULT_CFLAGS_PIC
+    os_data%cxx            = DEFAULT_CXX
+    os_data%cxxflags       = DEFAULT_CXXFLAGS
+    os_data%cxxlibs        = DEFAULT_CXXLIBS
+    os_data%obj_ext        = DEFAULT_OBJ_EXT
+    os_data%ld             = DEFAULT_LD
+    os_data%ldflags        = DEFAULT_LDFLAGS
+    os_data%ldflags_so     = DEFAULT_LDFLAGS_SO
+    os_data%ldflags_static = DEFAULT_LDFLAGS_STATIC
+    os_data%ldflags_hepmc  = DEFAULT_LDFLAGS_HEPMC
+    os_data%ldflags_lcio   = DEFAULT_LDFLAGS_LCIO
+    os_data%ldflags_hoppet = DEFAULT_LDFLAGS_HOPPET
+    os_data%ldflags_looptools = DEFAULT_LDFLAGS_LOOPTOOLS
+    os_data%shrlib_ext     = DEFAULT_SHRLIB_EXT
+    os_data%fc_shrlib_ext  = DEFAULT_FC_SHRLIB_EXT
+    os_data%pack_cmd       = DEFAULT_PACK_CMD
+    os_data%unpack_cmd     = DEFAULT_UNPACK_CMD
+    os_data%pack_ext       = DEFAULT_PACK_EXT
+    os_data%makeflags      = DEFAULT_MAKEFLAGS
+    os_data%prefix      = PREFIX
+    os_data%exec_prefix = EXEC_PREFIX
+    os_data%bindir      = BINDIR
+    os_data%libdir      = LIBDIR
+    os_data%includedir  = INCLUDEDIR
+    os_data%datarootdir = DATAROOTDIR
+    if (present (paths)) then
+       if (paths%prefix      /= "")  os_data%prefix      = paths%prefix
+       if (paths%exec_prefix /= "")  os_data%exec_prefix = paths%exec_prefix
+       if (paths%bindir      /= "")  os_data%bindir      = paths%bindir
+       if (paths%libdir      /= "")  os_data%libdir      = paths%libdir
+       if (paths%includedir  /= "")  os_data%includedir  = paths%includedir
+       if (paths%datarootdir /= "")  os_data%datarootdir = paths%datarootdir
+    end if
+    if (os_data%use_testfiles) then
+       os_data%whizard_omega_binpath  = WHIZARD_TEST_OMEGA_BINPATH
+       os_data%whizard_includes       = WHIZARD_TEST_INCLUDES
+       os_data%whizard_ldflags        = WHIZARD_TEST_LDFLAGS
+       os_data%whizard_libtool        = WHIZARD_LIBTOOL_TEST
+       os_data%whizard_modelpath      = WHIZARD_TEST_MODELPATH
+       os_data%whizard_modelpath_ufo  = WHIZARD_TEST_MODELPATH_UFO
+       os_data%whizard_models_libpath = WHIZARD_TEST_MODELS_LIBPATH
+       os_data%whizard_susypath       = WHIZARD_TEST_SUSYPATH
+       os_data%whizard_gmlpath        = WHIZARD_TEST_GMLPATH
+       os_data%whizard_cutspath       = WHIZARD_TEST_CUTSPATH
+       os_data%whizard_texpath        = WHIZARD_TEST_TEXPATH
+       os_data%whizard_sharepath      = WHIZARD_TEST_SHAREPATH
+       os_data%whizard_testdatapath   = WHIZARD_TEST_TESTDATAPATH
+       os_data%whizard_circe2path     = WHIZARD_TEST_CIRCE2PATH
+       os_data%whizard_beamsimpath    = WHIZARD_TEST_BEAMSIMPATH
+       os_data%whizard_mulipath       = WHIZARD_TEST_MULIPATH
+       os_data%pdf_builtin_datapath   = PDF_BUILTIN_TEST_DATAPATH
+    else
+       if (os_dir_exist (local_includes)) then
+          os_data%whizard_includes = "-I" // local_includes // " "// &
+             WHIZARD_INCLUDES
+       else
+          os_data%whizard_includes = WHIZARD_INCLUDES
+       end if
+       os_data%whizard_omega_binpath  = WHIZARD_OMEGA_BINPATH
+       os_data%whizard_ldflags        = WHIZARD_LDFLAGS
+       os_data%whizard_libtool        = WHIZARD_LIBTOOL
+       if(present(paths)) then
+          if (paths%libtool /= "")  os_data%whizard_libtool = paths%libtool
+       end if
+       os_data%whizard_modelpath      = WHIZARD_MODELPATH
+       os_data%whizard_modelpath_ufo  = WHIZARD_MODELPATH_UFO
+       os_data%whizard_models_libpath = WHIZARD_MODELS_LIBPATH
+       os_data%whizard_susypath       = WHIZARD_SUSYPATH
+       os_data%whizard_gmlpath        = WHIZARD_GMLPATH
+       os_data%whizard_cutspath       = WHIZARD_CUTSPATH
+       os_data%whizard_texpath        = WHIZARD_TEXPATH
+       os_data%whizard_sharepath      = WHIZARD_SHAREPATH
+       os_data%whizard_testdatapath   = WHIZARD_TESTDATAPATH
+       os_data%whizard_circe2path     = WHIZARD_CIRCE2PATH
+       os_data%whizard_beamsimpath    = WHIZARD_BEAMSIMPATH
+       os_data%whizard_mulipath       = WHIZARD_MULIPATH
+       os_data%pdf_builtin_datapath   = PDF_BUILTIN_DATAPATH
+    end if
+    os_data%event_analysis     = EVENT_ANALYSIS     == "yes"
+    os_data%event_analysis_ps  = EVENT_ANALYSIS_PS  == "yes"
+    os_data%event_analysis_pdf = EVENT_ANALYSIS_PDF == "yes"
+    os_data%latex  = PRG_LATEX // " " // OPT_LATEX
+    os_data%mpost  = PRG_MPOST // " " // OPT_MPOST
+    if (os_data%use_testfiles) then
+       os_data%gml    = os_data%whizard_gmlpath // "/whizard-gml" // " " // &
+            OPT_MPOST // " " // "--gmldir " // os_data%whizard_gmlpath
+    else
+       os_data%gml    = os_data%bindir // "/whizard-gml" // " " // OPT_MPOST &
+         // " " // "--gmldir " // os_data%whizard_gmlpath
+    end if
+    os_data%dvips  = PRG_DVIPS
+    os_data%ps2pdf = PRG_PS2PDF
+    call os_data_expand_paths (os_data)
+    os_data%gosampath = GOSAM_DIR
+    os_data%golempath = GOLEM_DIR
+    os_data%formpath = FORM_DIR
+    os_data%qgrafpath = QGRAF_DIR
+    os_data%ninjapath = NINJA_DIR
+    os_data%samuraipath = SAMURAI_DIR
+  end subroutine os_data_init
+
+  subroutine os_data_expand_paths (os_data)
+    type(os_data_t), intent(inout) :: os_data
+    integer, parameter :: N_VARIABLES = 6
+    type(string_t), dimension(N_VARIABLES) :: variable, value
+    variable(1) = "${prefix}";       value(1) = os_data%prefix
+    variable(2) = "${exec_prefix}";  value(2) = os_data%exec_prefix
+    variable(3) = "${bindir}";       value(3) = os_data%bindir
+    variable(4) = "${libdir}";       value(4) = os_data%libdir
+    variable(5) = "${includedir}";   value(5) = os_data%includedir
+    variable(6) = "${datarootdir}";  value(6) = os_data%datarootdir
+    call expand_paths (os_data%whizard_omega_binpath)
+    call expand_paths (os_data%whizard_includes)
+    call expand_paths (os_data%whizard_ldflags)
+    call expand_paths (os_data%whizard_libtool)
+    call expand_paths (os_data%whizard_modelpath)
+    call expand_paths (os_data%whizard_modelpath_ufo)
+    call expand_paths (os_data%whizard_models_libpath)
+    call expand_paths (os_data%whizard_susypath)
+    call expand_paths (os_data%whizard_gmlpath)
+    call expand_paths (os_data%whizard_cutspath)
+    call expand_paths (os_data%whizard_texpath)
+    call expand_paths (os_data%whizard_sharepath)
+    call expand_paths (os_data%whizard_testdatapath)
+    call expand_paths (os_data%whizard_circe2path)
+    call expand_paths (os_data%whizard_beamsimpath)
+    call expand_paths (os_data%whizard_mulipath)
+    call expand_paths (os_data%whizard_models_libpath_local)
+    call expand_paths (os_data%whizard_modelpath_local)
+    call expand_paths (os_data%whizard_omega_binpath_local)
+    call expand_paths (os_data%pdf_builtin_datapath)
+    call expand_paths (os_data%latex)
+    call expand_paths (os_data%mpost)
+    call expand_paths (os_data%gml)
+    call expand_paths (os_data%dvips)
+    call expand_paths (os_data%ps2pdf)
+  contains
+    subroutine expand_paths (string)
+      type(string_t), intent(inout) :: string
+      integer :: i
+      do i = N_VARIABLES, 1, -1
+         string = replace (string, variable(i), value(i), every=.true.)
+      end do
+    end subroutine expand_paths
+  end subroutine os_data_expand_paths
+
+  module subroutine os_data_write (os_data, unit)
+    class(os_data_t), intent(in) :: os_data
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit);  if (u < 0)  return
+    write (u, "(A)")  "OS data:"
+    write (u, *) "use_libtool    = ", os_data%use_libtool
+    write (u, *) "use_testfiles  = ", os_data%use_testfiles
+    write (u, *) "fc             = ", char (os_data%fc)
+    write (u, *) "fcflags        = ", char (os_data%fcflags)
+    write (u, *) "fcflags_pic    = ", char (os_data%fcflags_pic)
+    write (u, *) "fclibs         = ", char (os_data%fclibs)
+    write (u, *) "fc_src_ext     = ", char (os_data%fc_src_ext)
+    write (u, *) "cc             = ", char (os_data%cc)
+    write (u, *) "cflags         = ", char (os_data%cflags)
+    write (u, *) "cflags_pic     = ", char (os_data%cflags_pic)
+    write (u, *) "cxx            = ", char (os_data%cxx)
+    write (u, *) "cxxflags       = ", char (os_data%cxxflags)
+    write (u, *) "cxxlibs        = ", char (os_data%cxxlibs)
+    write (u, *) "obj_ext        = ", char (os_data%obj_ext)
+    write (u, *) "ld             = ", char (os_data%ld)
+    write (u, *) "ldflags        = ", char (os_data%ldflags)
+    write (u, *) "ldflags_so     = ", char (os_data%ldflags_so)
+    write (u, *) "ldflags_static = ", char (os_data%ldflags_static)
+    write (u, *) "ldflags_hepmc  = ", char (os_data%ldflags_hepmc)
+    write (u, *) "ldflags_lcio   = ", char (os_data%ldflags_lcio)
+    write (u, *) "ldflags_hoppet = ", char (os_data%ldflags_hoppet)
+    write (u, *) "ldflags_looptools = ", char (os_data%ldflags_looptools)
+    write (u, *) "shrlib_ext     = ", char (os_data%shrlib_ext)
+    write (u, *) "fc_shrlib_ext  = ", char (os_data%fc_shrlib_ext)
+    write (u, *) "makeflags      = ", char (os_data%makeflags)
+    write (u, *) "prefix         = ", char (os_data%prefix)
+    write (u, *) "exec_prefix    = ", char (os_data%exec_prefix)
+    write (u, *) "bindir         = ", char (os_data%bindir)
+    write (u, *) "libdir         = ", char (os_data%libdir)
+    write (u, *) "includedir     = ", char (os_data%includedir)
+    write (u, *) "datarootdir    = ", char (os_data%datarootdir)
+    write (u, *) "whizard_omega_binpath  = ", &
+         char (os_data%whizard_omega_binpath)
+    write (u, *) "whizard_includes       = ", char (os_data%whizard_includes)
+    write (u, *) "whizard_ldflags        = ", char (os_data%whizard_ldflags)
+    write (u, *) "whizard_libtool        = ", char (os_data%whizard_libtool)
+    write (u, *) "whizard_modelpath      = ", &
+         char (os_data%whizard_modelpath)
+    write (u, *) "whizard_modelpath_ufo  = ", &
+         char (os_data%whizard_modelpath_ufo)
+    write (u, *) "whizard_models_libpath = ", &
+         char (os_data%whizard_models_libpath)
+    write (u, *) "whizard_susypath       = ", char (os_data%whizard_susypath)
+    write (u, *) "whizard_gmlpath        = ", char (os_data%whizard_gmlpath)
+    write (u, *) "whizard_cutspath       = ", char (os_data%whizard_cutspath)
+    write (u, *) "whizard_texpath        = ", char (os_data%whizard_texpath)
+    write (u, *) "whizard_circe2path     = ", char (os_data%whizard_circe2path)
+    write (u, *) "whizard_beamsimpath    = ", char (os_data%whizard_beamsimpath)
+    write (u, *) "whizard_mulipath    = ", char (os_data%whizard_mulipath)
+    write (u, *) "whizard_sharepath  = ", &
+         char (os_data%whizard_sharepath)
+    write (u, *) "whizard_testdatapath  = ", &
+         char (os_data%whizard_testdatapath)
+    write (u, *) "whizard_modelpath_local      = ", &
+         char (os_data%whizard_modelpath_local)
+    write (u, *) "whizard_models_libpath_local = ", &
+         char (os_data%whizard_models_libpath_local)
+    write (u, *) "whizard_omega_binpath_local  = ", &
+         char (os_data%whizard_omega_binpath_local)
+    write (u, *) "event_analysis     = ", os_data%event_analysis
+    write (u, *) "event_analysis_ps  = ", os_data%event_analysis_ps
+    write (u, *) "event_analysis_pdf = ", os_data%event_analysis_pdf
+    write (u, *) "latex  = ", char (os_data%latex)
+    write (u, *) "mpost  = ", char (os_data%mpost)
+    write (u, *) "gml    = ", char (os_data%gml)
+    write (u, *) "dvips  = ", char (os_data%dvips)
+    write (u, *) "ps2pdf = ", char (os_data%ps2pdf)
+    if (os_data%gosampath /= "") then
+       write (u, *) "gosam   = ", char (os_data%gosampath)
+       write (u, *) "golem   = ", char (os_data%golempath)
+       write (u, *) "form    = ", char (os_data%formpath)
+       write (u, *) "qgraf   = ", char (os_data%qgrafpath)
+       write (u, *) "ninja   = ", char (os_data%ninjapath)
+       write (u, *) "samurai = ", char (os_data%samuraipath)
+    end if
+  end subroutine os_data_write
+
+  module subroutine os_data_build_latex_file (os_data, filename, stat_out)
+    class(os_data_t), intent(in) :: os_data
+    type(string_t), intent(in) :: filename
+    integer, intent(out), optional :: stat_out
+    type(string_t) :: setenv_tex, pipe, pipe_dvi
+    integer :: unit_dev, status
+    status = -1
+    if (os_data%event_analysis_ps) then
+       !!! Check if our OS has a /dev/null
+       unit_dev = free_unit ()
+       open (file = "/dev/null", unit = unit_dev, &
+            action = "write", iostat = status)
+       close (unit_dev)
+       if (status /= 0) then
+          pipe = ""
+          pipe_dvi = ""
+       else
+          pipe = " > /dev/null"
+          pipe_dvi = " 2>/dev/null 1>/dev/null"
+       end if
+       if (os_data%whizard_texpath /= "") then
+          setenv_tex = "TEXINPUTS=" // &
+               os_data%whizard_texpath // ":$TEXINPUTS "
+       else
+          setenv_tex = ""
+       end if
+       call os_system_call (setenv_tex // &
+            os_data%latex // " " // filename // ".tex " // pipe, &
+            verbose = .true., status = status)
+       call os_system_call (os_data%dvips // " -o " // filename // &
+            ".ps " // filename // ".dvi" // pipe_dvi, verbose = .true., &
+            status = status)
+       call os_system_call (os_data%ps2pdf // " " // filename // ".ps", &
+            verbose = .true., status = status)
+    end if
+    if (present (stat_out)) stat_out = status
+  end subroutine os_data_build_latex_file
+
+  module subroutine dlaccess_write (object, unit)
+    class(dlaccess_t), intent(in) :: object
+    integer, intent(in) :: unit
+    write (unit, "(1x,A)")  "DL access info:"
+    write (unit, "(3x,A,L1)")   "is open   = ", object%is_open
+    if (object%has_error) then
+       write (unit, "(3x,A,A,A)")  "error     = '", char (object%error), "'"
+    else
+       write (unit, "(3x,A)")      "error     = [none]"
+    end if
+  end subroutine dlaccess_write
+
+  subroutine read_dlerror (has_error, error)
+    logical, intent(out) :: has_error
+    type(string_t), intent(out) :: error
+    type(c_ptr) :: err_cptr
+    character(len=DLERROR_LEN, kind=c_char), pointer :: err_fptr
+    integer :: str_end
+    err_cptr = dlerror ()
+    if (c_associated (err_cptr)) then
+       call c_f_pointer (err_cptr, err_fptr)
+       has_error = .true.
+       str_end = scan (err_fptr, c_null_char)
+       if (str_end > 0) then
+          error = err_fptr(1:str_end-1)
+       else
+          error = err_fptr
+       end if
+    else
+       has_error = .false.
+       error = ""
+    end if
+  end subroutine read_dlerror
+
+  module subroutine dlaccess_init (dlaccess, prefix, libname, os_data)
+    class(dlaccess_t), intent(out) :: dlaccess
+    type(string_t), intent(in) :: prefix, libname
+    type(os_data_t), intent(in), optional :: os_data
+    type(string_t) :: filename
+    logical :: exist
+    dlaccess%filename = libname
+    filename = prefix // "/" // libname
+    inquire (file=char(filename), exist=exist)
+    if (.not. exist) then
+       filename = prefix // "/.libs/" // libname
+       inquire (file=char(filename), exist=exist)
+       if (.not. exist) then
+          dlaccess%has_error = .true.
+          dlaccess%error = "Library '" // filename // "' not found"
+          return
+       end if
+    end if
+    dlaccess%handle = dlopen (char (filename) // c_null_char, ior ( &
+       RTLD_LAZY, RTLD_LOCAL))
+    dlaccess%is_open = c_associated (dlaccess%handle)
+    call read_dlerror (dlaccess%has_error, dlaccess%error)
+  end subroutine dlaccess_init
+
+  module subroutine dlaccess_final (dlaccess)
+    class(dlaccess_t), intent(inout) :: dlaccess
+    integer(c_int) :: status
+    if (dlaccess%is_open) then
+       status = dlclose (dlaccess%handle)
+       dlaccess%is_open = .false.
+       call read_dlerror (dlaccess%has_error, dlaccess%error)
+    end if
+  end subroutine dlaccess_final
+
+  module function dlaccess_has_error (dlaccess) result (flag)
+    logical :: flag
+    type(dlaccess_t), intent(in) :: dlaccess
+    flag = dlaccess%has_error
+  end function dlaccess_has_error
+
+  module function dlaccess_get_error (dlaccess) result (error)
+    type(string_t) :: error
+    type(dlaccess_t), intent(in) :: dlaccess
+    error = dlaccess%error
+  end function dlaccess_get_error
+
+  module function dlaccess_get_c_funptr (dlaccess, fname) result (fptr)
+    type(c_funptr) :: fptr
+    type(dlaccess_t), intent(inout) :: dlaccess
+    type(string_t), intent(in) :: fname
+    fptr = dlsym (dlaccess%handle, char (fname) // c_null_char)
+    call read_dlerror (dlaccess%has_error, dlaccess%error)
+  end function dlaccess_get_c_funptr
+
+  module function dlaccess_is_open (dlaccess) result (flag)
+    logical :: flag
+    type(dlaccess_t), intent(in) :: dlaccess
+    flag = dlaccess%is_open
+  end function dlaccess_is_open
+
+  module subroutine os_system_call (command_string, status, verbose)
+    type(string_t), intent(in) :: command_string
+    integer, intent(out), optional :: status
+    logical, intent(in), optional :: verbose
+    logical :: verb
+    integer :: stat
+    verb = .false.;  if (present (verbose))  verb = verbose
+    if (verb) &
+         call msg_message ("command: " // char (command_string))
+    stat = system (char (command_string) // c_null_char)
+    if (present (status)) then
+       status = stat
+    else if (stat /= 0) then
+       if (.not. verb) &
+            call msg_message ("command: " // char (command_string))
+       write (msg_buffer, "(A,I0)")  "Return code = ", stat
+       call msg_message ()
+       call msg_fatal ("System command returned with nonzero status code")
+    end if
+  end subroutine os_system_call
+
+  module function os_dir_exist (name) result (res)
+    type(string_t), intent(in) :: name
+    logical :: res
+    integer :: status
+    call os_system_call ('test -d "' // name // '"', status=status)
+    res = status == 0
+  end function os_dir_exist
+
+  module function os_file_exist (name) result (exist)
+    type(string_t), intent(in) :: name
+    logical :: exist
+    inquire (file = char (name), exist=exist)
+  end function os_file_exist
+
+  module subroutine os_pack_file (file, os_data, status)
+    type(string_t), intent(in) :: file
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    command_string = os_data%pack_cmd // " " &
+         // file // os_data%pack_ext // " " // file
+    call os_system_call (command_string, status)
+  end subroutine os_pack_file
+
+  module subroutine os_unpack_file (file, os_data, status)
+    type(string_t), intent(in) :: file
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    command_string = os_data%unpack_cmd // " " // file
+    call os_system_call (command_string, status)
+  end subroutine os_unpack_file
+
+  module subroutine os_compile_shared (src, os_data, status)
+    type(string_t), intent(in) :: src
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    if (os_data%use_libtool) then
+       command_string = &
+            os_data%whizard_libtool // " --mode=compile " // &
+            os_data%fc // " " // &
+            "-c " // &
+            os_data%whizard_includes // " " // &
+            os_data%fcflags // " " // &
+            "'" // src // os_data%fc_src_ext // "'"
+    else
+       command_string = &
+            os_data%fc // " " // &
+            "-c  " // &
+            os_data%fcflags_pic // " " // &
+            os_data%whizard_includes // " " // &
+            os_data%fcflags // " " // &
+            "'" // src // os_data%fc_src_ext // "'"
+    end if
+    call os_system_call (command_string, status)
+  end subroutine os_compile_shared
+
+  module subroutine os_link_shared (objlist, lib, os_data, status)
+    type(string_t), intent(in) :: objlist, lib
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    if (os_data%use_libtool) then
+       command_string = &
+            os_data%whizard_libtool // " --mode=link " // &
+            os_data%fc // " " // &
+            "-module " // &
+            "-rpath /usr/local/lib" // " " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            "-o '" // lib // ".la' " // &
+            objlist
+    else
+       command_string = &
+            os_data%ld // " " // &
+            os_data%ldflags_so // " " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            "-o '" // lib // "." // os_data%fc_shrlib_ext // "' " // &
+            objlist
+    end if
+    call os_system_call (command_string, status)
+  end subroutine os_link_shared
+
+  module subroutine os_link_static (objlist, exec_name, os_data, status)
+    type(string_t), intent(in) :: objlist, exec_name
+    type(os_data_t), intent(in) :: os_data
+    integer, intent(out), optional :: status
+    type(string_t) :: command_string
+    if (os_data%use_libtool) then
+       command_string = &
+            os_data%whizard_libtool // " --mode=link " // &
+            os_data%fc // " " // &
+            "-static " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            os_data%ldflags_static // " " // &
+            "-o '" // exec_name // "' " // &
+            objlist // " " // &
+            os_data%ldflags_hepmc // " " // &
+            os_data%ldflags_lcio // " " // &
+            os_data%ldflags_hoppet // " " // &
+            os_data%ldflags_looptools
+    else
+       command_string = &
+            os_data%ld // " " // &
+            os_data%ldflags_so // " " // &
+            os_data%fcflags // " " // &
+            os_data%whizard_ldflags // " " // &
+            os_data%ldflags // " " // &
+            os_data%ldflags_static // " " // &
+            "-o '" // exec_name // "' " // &
+            objlist // " " // &
+            os_data%ldflags_hepmc // " " // &
+            os_data%ldflags_lcio // " " // &
+            os_data%ldflags_hoppet // " " // &
+            os_data%ldflags_looptools
+    end if
+    call os_system_call (command_string, status)
+  end subroutine os_link_static
+
+  module function os_get_dlname (lib, os_data, ignore, silent) result (dlname)
+    type(string_t) :: dlname
+    type(string_t), intent(in) :: lib
+    type(os_data_t), intent(in) :: os_data
+    logical, intent(in), optional :: ignore, silent
+    type(string_t) :: filename
+    type(string_t) :: buffer
+    logical :: exist, required, quiet
+    integer :: u
+    u = free_unit ()
+    if (present (ignore)) then
+       required = .not. ignore
+    else
+       required = .true.
+    end if
+   if (present (silent)) then
+       quiet = silent
+    else
+       quiet = .false.
+    end if
+    if (os_data%use_libtool) then
+       filename = lib // ".la"
+       inquire (file=char(filename), exist=exist)
+       if (exist) then
+          open (unit=u, file=char(filename), action="read", status="old")
+          SCAN_LTFILE: do
+             call get (u, buffer)
+             if (extract (buffer, 1, 7) == "dlname=") then
+                dlname = extract (buffer, 9)
+                dlname = remove (dlname, len (dlname))
+                exit SCAN_LTFILE
+             end if
+          end do SCAN_LTFILE
+          close (u)
+       else if (required) then
+          if (.not. quiet) call msg_fatal (" Library '" // char (lib) &
+               // "': libtool archive not found")
+          dlname = ""
+       else
+          if (.not. quiet) call msg_message ("[No compiled library '" &
+               // char (lib) // "']")
+          dlname = ""
+       end if
+    else
+       dlname = lib // "." // os_data%fc_shrlib_ext
+       inquire (file=char(dlname), exist=exist)
+       if (.not. exist) then
+          if (required) then
+             if (.not. quiet) call msg_fatal (" Library '" // char (lib) &
+                  // "' not found")
+          else
+             if (.not. quiet) call msg_message &
+                ("[No compiled process library '" // char (lib) // "']")
+             dlname = ""
+          end if
+       end if
+    end if
+  end function os_get_dlname
+
+  module subroutine openmp_set_num_threads_verbose (num_threads, openmp_logging)
+    integer, intent(in) :: num_threads
+    integer :: n_threads
+    logical, intent(in), optional :: openmp_logging
+    logical :: logging
+    if (present (openmp_logging)) then
+       logging = openmp_logging
+    else
+       logging = .true.
+    end if
+    n_threads = num_threads
+    if (openmp_is_active ()) then
+       if (num_threads == 1) then
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: Using ", num_threads, &
+                  " thread"
+             call msg_message
+          end if
+          n_threads = num_threads
+       else if (num_threads > 1) then
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: Using ", num_threads, &
+                  " threads"
+             call msg_message
+          end if
+          n_threads = num_threads
+       else
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: " &
+                  // "Illegal value of openmp_num_threads (", num_threads, &
+               ") ignored"
+             call msg_error
+          end if
+          n_threads = openmp_get_default_max_threads ()
+          if (logging) then
+             write (msg_buffer, "(A,I0,A)")  "OpenMP: Using ", &
+                  n_threads, " threads"
+             call msg_message
+          end if
+       end if
+       if (n_threads > openmp_get_default_max_threads ()) then
+          if (logging) then
+             write (msg_buffer, "(A,I0)")  "OpenMP: " &
+                  // "Number of threads is greater than library default of ", &
+                  openmp_get_default_max_threads ()
+             call msg_warning
+          end if
+       end if
+       call openmp_set_num_threads (n_threads)
+    else if (num_threads /= 1) then
+       if (logging) then
+          write (msg_buffer, "(A,I0,A)")  "openmp_num_threads set to ", &
+               num_threads, ", but OpenMP is not active: ignored"
+          call msg_warning
+       end if
+    end if
+  end subroutine openmp_set_num_threads_verbose
+
+  module subroutine mpi_set_logging (mpi_logging)
+    logical, intent(in) :: mpi_logging
+    integer :: n_size, rank
+    call mpi_get_comm_id (n_size, rank)
+    if (mpi_logging .and. n_size > 1) then
+       write (msg_buffer, "(A,I0,A)") "MPI: Using ", n_size, " processes."
+       call msg_message ()
+       if (rank == 0) then
+          call msg_message ("MPI: master worker")
+       else
+          write (msg_buffer, "(A,I0)") "MPI: slave worker #", rank
+          call msg_message ()
+       end if
+    end if
+  end subroutine mpi_set_logging
+
+  module subroutine mpi_get_comm_id (n_size, rank)
+    integer, intent(out) :: n_size
+    integer, intent(out) :: rank
+    n_size = 1
+    rank = 0
+    call MPI_Comm_size (MPI_COMM_WORLD, n_size)
+    call MPI_Comm_rank (MPI_COMM_WORLD, rank)
+  end subroutine mpi_get_comm_id
+
+  module function mpi_is_comm_master () result (flag)
+    integer :: n_size, rank
+    logical :: flag
+    call mpi_get_comm_id (n_size, rank)
+    flag = (rank == 0)
+  end function mpi_is_comm_master
+
+
+end submodule os_interface_s
+

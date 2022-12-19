@@ -1,0 +1,60 @@
+include("ilc_settings.sin")
+
+!! Table 1. The cross sections for possible signal and backgrounds of top quark pair production in e+ e- annihilation.
+!! Expected runtime: ~1 d
+
+process top_prod_hadronic_360_1_noqcd   = e1, E1 => b, B, u, D, d, U { $restrictions   = "^gs && ^ghgg:ghgaga:ghgaz" }
+process top_prod_hadronic_360_1_qcd     = e1, E1 => b, B, u, D, d, U
+process top_prod_hadronic_360_2         = e1, E1 => b, B, u, U, g, g
+process top_prod_hadronic_360_3         = e1, E1 => b, B, g, g, g, g
+process top_prod_semileptonic_360_noqcd = e1, E1 => b, B, u, D, e1, N1 { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process top_prod_semileptonic_360_qcd   = e1, E1 => b, B, u, D, e1, N1
+process top_prod_leptonic_360_1         = e1, E1 => b, B, E1, n1, e1, N1
+process top_prod_leptonic_360_2         = e1, E1 => b, B, E1, n1, e2, N2
+process top_prod_leptonic_360_3         = e1, E1 => b, B, E2, n2, e2, N2
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 360 GeV
+alphas = 0.0925
+
+sqrts = 360 GeV
+beams = e1, E1
+
+$run_id = "360"
+
+integrate (top_prod_hadronic_360_1_noqcd,
+           top_prod_hadronic_360_1_qcd,
+           top_prod_hadronic_360_2,
+           top_prod_hadronic_360_3,
+           top_prod_semileptonic_360_noqcd,
+           top_prod_semileptonic_360_qcd,
+           top_prod_leptonic_360_1,
+           top_prod_leptonic_360_2,
+           top_prod_leptonic_360_3)
+
+!! Compare against previous WHIZARD production run by Simon Braß.
+tolerance = 2 * sqrt(error(top_prod_hadronic_360_1_noqcd)**2 + 0.05**2)
+expect(integral(top_prod_hadronic_360_1_noqcd) == 32.04)
+tolerance = 2 * sqrt( error(top_prod_hadronic_360_1_noqcd)**2 + 0.05**2 )
+expect(integral(top_prod_hadronic_360_1_noqcd) == 32.04)
+tolerance = 2 * sqrt( error(top_prod_hadronic_360_1_qcd)**2 + 0.06**2 )
+expect(integral(top_prod_hadronic_360_1_qcd) == 32.88)
+tolerance = 2 * sqrt( error(top_prod_hadronic_360_2)**2 + 0.022**2 )
+expect(integral(top_prod_hadronic_360_2) == 11.245)
+tolerance = 2 * sqrt( error(top_prod_hadronic_360_3)**2 + 0.05**2 )
+expect(integral(top_prod_hadronic_360_3) == 18.82)
+tolerance = 2 * sqrt( error(top_prod_semileptonic_360_noqcd)**2 + 0.019**2 )
+expect(integral(top_prod_semileptonic_360_noqcd) == 11.317)
+tolerance = 2 * sqrt( error(top_prod_semileptonic_360_qcd)**2 + 0.021**2 )
+expect(integral(top_prod_semileptonic_360_qcd) == 11.482)
+tolerance = 2 * sqrt( error(top_prod_leptonic_360_1)**2 + 0.008**2 )
+expect(integral(top_prod_leptonic_360_1) == 3.862)
+tolerance = 2 * sqrt( error(top_prod_leptonic_360_2)**2 + 0.006**2 )
+expect(integral(top_prod_leptonic_360_2) == 3.829)
+tolerance = 2 * sqrt( error(top_prod_leptonic_360_3)**2 + 0.006**2 )
+expect(integral(top_prod_leptonic_360_3) == 3.838)
+
+show(results)

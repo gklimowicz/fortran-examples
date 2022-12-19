@@ -1,0 +1,211 @@
+* Test output: commands_17
+*   Purpose: declare histograms
+
+* Initialization
+
+* Input file
+
+$obs_label = "foo"
+$obs_unit = "cm"
+$title = "Histogram foo"
+$description = "This is histogram foo"
+histogram foo (0,5,1)
+$title = "Histogram bar"
+$description = "This is histogram bar"
+n_bins = 2
+histogram bar (0,5)
+$title = "Histogram gee"
+$description = "This is histogram gee"
+?normalize_bins = true
+histogram gee (0,5)
+
+* Parse file
+
+* Compile command list
+
+ var: $obs_label (string, intrinsic)
+ var: $obs_unit (string, intrinsic)
+ var: $title (string, intrinsic)
+ var: $description (string, intrinsic)
+ histogram: foo
+ var: $title (string, intrinsic)
+ var: $description (string, intrinsic)
+ var: n_bins (int, intrinsic)
+ histogram: bar
+ var: $title (string, intrinsic)
+ var: $description (string, intrinsic)
+ var: ?normalize_bins (logical, intrinsic)
+ histogram: gee
+
+* Execute command list
+
+* Record two data items
+
+* Display analysis store
+
+###############################################################################
+# Histogram:  foo
+title       = "Histogram foo"
+description = "This is histogram foo"
+x_label     = ""
+y_label     = ""
+x_log       = F
+y_log       = F
+x_min       = [undefined]
+x_max       = [undefined]
+y_min       = [undefined]
+y_max       = [undefined]
+width_mm    = 130
+height_mm   = 90
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+with_hbars  = T
+with_base   = T
+piecewise   = T
+fill        = T
+draw        = T
+err         = F
+symbols     = F
+fill_options= "withcolor col.default"
+draw_options= ""
+err_options = ""
+symbol      = "fshape(circle scaled 1mm)()"
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+#     bin midpoint           value               error             excess          n
+   5.000000000000E-01  2.500000000000E-01  2.500000000000E-01  0.000000000000E+00  1
+   1.500000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+   2.500000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+   3.500000000000E+00  1.000000000000E+00  1.000000000000E+00  0.000000000000E+00  1
+   4.500000000000E+00  1.000000000000E+00  1.000000000000E+00  5.000000000000E-01  1
+
+# Underflow:
+   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+
+# Overflow:
+   5.000000000000E+00  1.000000000000E+00  1.000000000000E+00  0.000000000000E+00  1
+
+# Summary: data within bounds
+average     =  3.211111111111E+00 cm
+error[abs]  =  8.461970117627E-01 cm
+error[rel]  =  2.635215607565E-01
+n_entries   = 3
+
+# Summary: all data
+average     =  4.407692307692E+00 cm
+error[abs]  =  1.185048205979E+00 cm
+error[rel]  =  2.688591043232E-01
+n_entries   = 4
+
+###############################################################################
+# Histogram:  bar
+title       = "Histogram bar"
+description = "This is histogram bar"
+x_label     = ""
+y_label     = ""
+x_log       = F
+y_log       = F
+x_min       = [undefined]
+x_max       = [undefined]
+y_min       = [undefined]
+y_max       = [undefined]
+width_mm    = 130
+height_mm   = 90
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+with_hbars  = T
+with_base   = T
+piecewise   = T
+fill        = T
+draw        = T
+err         = F
+symbols     = F
+fill_options= "withcolor col.default"
+draw_options= ""
+err_options = ""
+symbol      = "fshape(circle scaled 1mm)()"
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+#     bin midpoint           value               error             excess          n
+   1.250000000000E+00  2.500000000000E-01  2.500000000000E-01  0.000000000000E+00  1
+   3.750000000000E+00  2.000000000000E+00  1.414213562373E+00  5.000000000000E-01  2
+
+# Underflow:
+   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+
+# Overflow:
+   5.000000000000E+00  1.000000000000E+00  1.000000000000E+00  0.000000000000E+00  1
+
+# Summary: data within bounds
+average     =  3.211111111111E+00 cm
+error[abs]  =  8.461970117627E-01 cm
+error[rel]  =  2.635215607565E-01
+n_entries   = 3
+
+# Summary: all data
+average     =  4.407692307692E+00 cm
+error[abs]  =  1.185048205979E+00 cm
+error[rel]  =  2.688591043232E-01
+n_entries   = 4
+
+###############################################################################
+# Histogram:  gee
+title       = "Histogram gee"
+description = "This is histogram gee"
+x_label     = ""
+y_label     = ""
+x_log       = F
+y_log       = F
+x_min       = [undefined]
+x_max       = [undefined]
+y_min       = [undefined]
+y_max       = [undefined]
+width_mm    = 130
+height_mm   = 90
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+with_hbars  = T
+with_base   = T
+piecewise   = T
+fill        = T
+draw        = T
+err         = F
+symbols     = F
+fill_options= "withcolor col.default"
+draw_options= ""
+err_options = ""
+symbol      = "fshape(circle scaled 1mm)()"
+gmlcode_bg  = ""
+gmlcode_fg  = ""
+
+#     bin midpoint           value               error             excess          n
+   1.250000000000E+00  1.000000000000E-01  1.000000000000E-01  0.000000000000E+00  1
+   3.750000000000E+00  8.000000000000E-01  5.656854249492E-01  2.000000000000E-01  2
+
+# Underflow:
+   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+
+# Overflow:
+   5.000000000000E+00  1.000000000000E+00  1.000000000000E+00  0.000000000000E+00  1
+
+# Summary: data within bounds
+average     =  3.211111111111E+00 cm
+error[abs]  =  8.461970117627E-01 cm
+error[rel]  =  2.635215607565E-01
+n_entries   = 3
+
+# Summary: all data
+average     =  4.407692307692E+00 cm
+error[abs]  =  1.185048205979E+00 cm
+error[rel]  =  2.688591043232E-01
+n_entries   = 4
+
+
+* Cleanup
+
+* Test output end: commands_17

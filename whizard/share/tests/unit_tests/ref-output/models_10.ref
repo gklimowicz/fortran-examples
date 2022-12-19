@@ -1,0 +1,46 @@
+* Test output: models_10
+*   Purpose: read a model from file with slha_entry options
+
+model "Test10"
+  parameter a = 1   slha_entry FOO 1
+  parameter b = 4   slha_entry BAR 2 1
+
+* Model output, default scheme (= foo)
+
+model "Test10"
+
+   parameter a =  1.000000000000E+00 slha_entry FOO 1
+   parameter b =  4.000000000000E+00 slha_entry BAR 2 1
+
+
+
+* Check that model contains slha_entry options
+
+supports_custom_slha = T
+
+custom_slha_blocks =
+ FOO BAR
+
+* Parameter lookup
+
+FOO 1  =>  a =  1.000000000000E+00
+FOO 2  => -
+BAR 2 1  =>  b =  4.000000000000E+00
+GEE 3  => -
+
+* Modify parameter via SLHA block interface
+
+FOO 1  =>  a =  7.000000000000E+00
+
+* Show var list with modified parameter
+
+a =>  7.000000000000E+00
+b =>  4.000000000000E+00
+particle* = PDG(0)
+charged* = PDG()
+neutral* = PDG()
+colored* = PDG()
+
+* Cleanup
+
+* Test output end: models_10

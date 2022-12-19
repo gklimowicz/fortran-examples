@@ -1,0 +1,65 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?fatal_beam_decay = false
+?pacify = true
+seed = 0
+| Process library 'fatal_beam_decay_lib': compiling ...
+| Process library 'fatal_beam_decay_lib': writing makefile
+| Process library 'fatal_beam_decay_lib': removing old files
+| Process library 'fatal_beam_decay_lib': writing driver
+| Process library 'fatal_beam_decay_lib': creating source code
+| Process library 'fatal_beam_decay_lib': compiling sources
+| Process library 'fatal_beam_decay_lib': linking
+| Process library 'fatal_beam_decay_lib': loading
+| Process library 'fatal_beam_decay_lib': ... success.
+sqrts =  5.00000E+02
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process fatal_beam_decay_1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   b     (mass = 4.2000000E+00 GeV)
+|   tbar  (mass = 1.7310000E+02 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+|  t -> b W-
+|  mass(t) =  0.1731000000E+03
+|  mass(b) =  0.4200000000E+01
+|  mass(W-) =  0.8041900000E+02
+Warning:  Phase space: Initial beam particle can decay
+|  t -> b W-
+|  mass(t) =  0.1731000000E+03
+|  mass(b) =  0.4200000000E+01
+|  mass(W-) =  0.8041900000E+02
+Warning:  Phase space: Initial beam particle can decay
+| Phase space: ... success.
+| Phase space: writing configuration file 'fatal_beam_decay_1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'fatal_beam_decay_1'
+|   Library name  = 'fatal_beam_decay_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'fatal_beam_decay_1_i1':   b, tbar => W-, A [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 4 groves.
+| Phase space: Using 7 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'fatal_beam_decay_1'
+| Integrate: iterations = 1:1000
+| Integrator: 4 chains, 5 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000     7.849E+02   1.28E+01    1.63    0.52    11.9
+|-----------------------------------------------------------------------------|
+   1       1000     7.849E+02   1.28E+01    1.63    0.52    11.9
+|=============================================================================|
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

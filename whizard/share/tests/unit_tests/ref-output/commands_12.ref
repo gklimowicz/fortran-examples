@@ -1,0 +1,131 @@
+* Test output: commands_12
+*   Purpose: generate events and rescan
+
+*  Initialization
+
+*  Input file
+
+model = "Test"
+process commands_12_p = s, s => s, s
+compile
+iterations = 1:1000
+integrate (commands_12_p)
+?unweighted = false
+n_events = 3
+?read_raw = false
+simulate (commands_12_p)
+?write_raw = false
+rescan "commands_12_p" (commands_12_p)
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_model> <cmd_process> <cmd_compile> <cmd_iterations> <cmd_integrate> <cmd_log> <cmd_num> <cmd_log> <cmd_simulate> <cmd_log> <cmd_rescan>
+|  +  <cmd_model>  =  model '=' <string_literal>
+|  |  +  model  = [keyword] model
+|  |  +  '='  = [keyword] =
+|  |  +  <string_literal>  = "Test"
+|  +  <cmd_process>  =  process <process_id> '=' <process_prt> '=>' <prt_state_list>
+|  |  +  process  = [keyword] process
+|  |  +  <process_id>  = commands_12_p
+|  |  +  '='  = [keyword] =
+|  |  +  <process_prt>  =  <cexpr> <cexpr>
+|  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  +  <variable>  = s
+|  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  +  <variable>  = s
+|  |  +  '=>'  = [keyword] =>
+|  |  +  <prt_state_list>  =  <prt_state_sum> <prt_state_sum>
+|  |  |  +  <prt_state_sum>  =  <cexpr>
+|  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  +  <variable>  = s
+|  |  |  +  <prt_state_sum>  =  <cexpr>
+|  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  +  <variable>  = s
+|  +  <cmd_compile>  =  <compile_cmd>
+|  |  +  <compile_cmd>  =  <compile_clause>
+|  |  |  +  <compile_clause>  =  compile
+|  |  |  |  +  compile  = [keyword] compile
+|  +  <cmd_iterations>  =  iterations '=' <iterations_list>
+|  |  +  iterations  = [keyword] iterations
+|  |  +  '='  = [keyword] =
+|  |  +  <iterations_list>  =  <it_spec>
+|  |  |  +  <it_spec>  =  <expr> <calls_spec>
+|  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  |  |  +  <integer_literal>  = 1
+|  |  |  |  +  <calls_spec>  =  ':' <expr>
+|  |  |  |  |  +  ':'  = [keyword] :
+|  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  |  |  |  +  <integer_literal>  = 1000
+|  +  <cmd_integrate>  =  integrate <proc_arg>
+|  |  +  integrate  = [keyword] integrate
+|  |  +  <proc_arg>  =  <proc_id>
+|  |  |  +  <proc_id>  = commands_12_p
+|  +  <cmd_log>  =  '?' <var_name> '=' <lexpr>
+|  |  +  '?'  = [keyword] ?
+|  |  +  <var_name>  = unweighted
+|  |  +  '='  = [keyword] =
+|  |  +  <lexpr>  =  <lsinglet>
+|  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  +  <lterm>  =  false
+|  |  |  |  |  +  false  = [keyword] false
+|  +  <cmd_num>  =  <var_name> '=' <expr>
+|  |  +  <var_name>  = n_events
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  +  <integer_literal>  = 3
+|  +  <cmd_log>  =  '?' <var_name> '=' <lexpr>
+|  |  +  '?'  = [keyword] ?
+|  |  +  <var_name>  = read_raw
+|  |  +  '='  = [keyword] =
+|  |  +  <lexpr>  =  <lsinglet>
+|  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  +  <lterm>  =  false
+|  |  |  |  |  +  false  = [keyword] false
+|  +  <cmd_simulate>  =  simulate <proc_arg>
+|  |  +  simulate  = [keyword] simulate
+|  |  +  <proc_arg>  =  <proc_id>
+|  |  |  +  <proc_id>  = commands_12_p
+|  +  <cmd_log>  =  '?' <var_name> '=' <lexpr>
+|  |  +  '?'  = [keyword] ?
+|  |  +  <var_name>  = write_raw
+|  |  +  '='  = [keyword] =
+|  |  +  <lexpr>  =  <lsinglet>
+|  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  +  <lterm>  =  false
+|  |  |  |  |  +  false  = [keyword] false
+|  +  <cmd_rescan>  =  rescan <sexpr> <proc_arg>
+|  |  +  rescan  = [keyword] rescan
+|  |  +  <sexpr>  =  <string_literal>
+|  |  |  +  <string_literal>  = "commands_12_p"
+|  |  +  <proc_arg>  =  <proc_id>
+|  |  |  +  <proc_id>  = commands_12_p
+
+* Compile command list
+
+ model = "Test"
+ process: commands_12_p (2 -> X)
+ compile ()
+ iterations: 1 pass
+ integrate (commands_12_p)
+ var: ?unweighted (logical, intrinsic)
+ var: n_events (int, intrinsic)
+ var: ?read_raw (logical, intrinsic)
+ simulate (commands_12_p)
+ var: ?write_raw (logical, intrinsic)
+ rescan (commands_12_p)
+
+* Execute command list
+
+* Cleanup
+
+* Test output end: commands_12

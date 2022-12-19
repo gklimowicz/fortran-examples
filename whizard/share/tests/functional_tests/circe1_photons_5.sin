@@ -1,0 +1,78 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process circe1_photons_5_p1 = A, "e-" => A, "e-"
+process circe1_photons_5_p2 = A, "e-" => A, "e-"
+process circe1_photons_5_p3 = A, "e-" => A, "e-"
+process circe1_photons_5_p4 = A, "e-" => A, "e-"
+
+process circe1_photons_5_q1 = "e+", A => "e+", A
+process circe1_photons_5_q2 = "e+", A => "e+", A
+process circe1_photons_5_q3 = "e+", A => "e+", A
+process circe1_photons_5_q4 = "e+", A => "e+", A
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+int n = 1000
+
+$circe1_acc = "TESLA"
+circe1_chat = 2
+?circe1_generate = true
+
+beams = "e+", "e-" => circe1
+?circe1_photon1 = true
+?circe1_photon2 = false
+cuts = sqrts_hat > 50 and all Pt > 10 ["e-"]
+integrate (circe1_photons_5_p1) { iterations = 3:n:"g", 3:n }
+?circe1_photon1 = false
+?circe1_photon2 = true
+cuts = sqrts_hat > 50 and all Pt > 10 ["e+"]
+integrate (circe1_photons_5_q1) { iterations = 3:n:"g", 3:n }
+
+beams = "e+", "e-" => circe1 => none, isr
+?circe1_photon1 = true
+?circe1_photon2 = false
+cuts = sqrts_hat > 50 and all Pt > 10 ["e-"]
+integrate (circe1_photons_5_p2) { iterations = 5:n:"g", 3:n }
+beams = "e+", "e-" => circe1 => isr, none
+?circe1_photon1 = false
+?circe1_photon2 = true
+cuts = sqrts_hat > 50 and all Pt > 10 ["e+"]
+integrate (circe1_photons_5_q2) { iterations = 5:n:"g", 3:n }
+
+epa_x_min = 0.1
+epa_mass = me
+
+?circe1_photon1 = false
+?circe1_photon2 = false
+
+beams = "e+", "e-" => circe1 => epa, none
+cuts = sqrts_hat > 50 and all Pt > 10 ["e-"]
+integrate (circe1_photons_5_p3) { iterations = 3:n:"g", 3:n }
+beams = "e+", "e-" => circe1 => none, epa
+cuts = sqrts_hat > 50 and all Pt > 10 ["e+"]
+integrate (circe1_photons_5_q3) { iterations = 5:n:"g", 3:n }
+
+beams = "e+", "e-" => circe1 => epa, isr
+cuts = sqrts_hat > 50 and all Pt > 10 ["e-"]
+integrate (circe1_photons_5_p4) { iterations = 5:n:"g", 3:n }
+beams = "e+", "e-" => circe1 => isr, epa
+cuts = sqrts_hat > 50 and all Pt > 10 ["e+"]
+integrate (circe1_photons_5_q4) { iterations = 5:n:"g", 3:n }

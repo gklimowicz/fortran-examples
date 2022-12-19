@@ -1,0 +1,61 @@
+* Test output: eio_lcio_1
+*   Purpose: write a LCIO file
+
+* Initialize test process
+
+* Generate and write an event
+
+ LCIO event stream:
+   Writing to file   = eio_lcio_1.slcio
+   Recover beams     = F
+   Alpha_s from file = F
+   Scale from file   = F
+   Process as run ID = T
+   LCIO run ID       = 0
+   File extension    = 'slcio'
+   Numerical process IDs:
+     1: 42
+
+* Reset data
+
+ LCIO event stream:
+   [closed]
+   Recover beams     = F
+   Alpha_s from file = F
+   Scale from file   = F
+   Process as run ID = T
+   LCIO run ID       = 0
+   File extension    = 'slcio'
+
+* Write LCIO file contents to ASCII file
+
+
+* Read in ASCII contents of LCIO file
+
+=========================================
+ - Event  : 77
+ - run:  0
+ - weight 1
+=========================================
+ detector : unknown
+ event parameters:
+ parameter Event Number [int]: 77,
+ parameter ProcessID [int]: 42,
+ parameter Run ID [int]: 0,
+ parameter beamPDG1 [int]: 25,
+ parameter beamPDG2 [int]: 25,
+ collection name : MCParticle
+ parameters:
+--------------- print out of MCParticle collection ---------------
+  flag:  0x0
+  simulator status bits: [sbvtcls]  s: created in simulation b: backscatter v: vertex is not endpoint of parent t: decayed in tracker c: decayed in calorimeter l: has left detector s: stopped o: overlay
+[   id   ]index|      PDG |    px,     py,        pz    | energy  |gen|[simstat ]| vertex x,     y   ,   z     | endpoint x,    y  ,   z     |    mass |  charge |            spin             | colorflow | [parents]
+[00000014]    0|        25| 0.00e+00, 0.00e+00, 4.84e+02| 5.00e+02| 3 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00| 1.25e+02| 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [] - [2,3]
+[00000015]    1|        25| 0.00e+00, 0.00e+00,-4.84e+02| 5.00e+02| 3 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00| 1.25e+02| 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [] - [2,3]
+[00000016]    2|        25|-4.44e+02, 0.00e+00, 1.94e+02| 5.00e+02| 1 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00| 1.25e+02| 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [0,1] - []
+[00000017]    3|        25| 4.44e+02, 0.00e+00,-1.94e+02| 5.00e+02| 1 |[    0   ]| 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00| 1.25e+02| 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [0,1] - []
+--------------------------------------------------------------------------------
+
+* Cleanup
+
+* Test output end: eio_lcio_1

@@ -1,0 +1,30 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+ee = 0.30286
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+me = 0
+mmu = 0
+mtau = 0
+
+process event_dump_2_p1 = e1, E1 => e2, E2
+process event_dump_2_p2 = e1, E1 => e3, E3
+
+sqrts = 100
+
+?pacify = true
+seed = 0
+integrate (event_dump_2_p1, event_dump_2_p2) { iterations = 1:1000 }
+
+$sample = "event_dump_2"
+sample_format = dump
+?dump_compressed = true
+?dump_screen = true
+event_index_offset = 100
+simulate (event_dump_2_p1, event_dump_2_p2) { n_events = 3 }
+

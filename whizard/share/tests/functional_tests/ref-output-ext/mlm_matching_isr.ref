@@ -1,0 +1,319 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+[user variable] quark = PDG(2, 1)
+[user variable] antiq = PDG(-2, -1)
+| Process library 'mlm_matching_isr_lib': recorded process 'mlm_matching_isr_qqee'
+| Process library 'mlm_matching_isr_lib': recorded process 'mlm_matching_isr_qqeeg'
+| Process library 'mlm_matching_isr_lib': recorded process 'mlm_matching_isr_qgeeq'
+| Process library 'mlm_matching_isr_lib': recorded process 'mlm_matching_isr_gqeeq'
+| Process library 'mlm_matching_isr_lib': compiling ...
+| Process library 'mlm_matching_isr_lib': writing makefile
+| Process library 'mlm_matching_isr_lib': removing old files
+| Process library 'mlm_matching_isr_lib': writing driver
+| Process library 'mlm_matching_isr_lib': creating source code
+| Process library 'mlm_matching_isr_lib': compiling sources
+| Process library 'mlm_matching_isr_lib': linking
+| Process library 'mlm_matching_isr_lib': loading
+| Process library 'mlm_matching_isr_lib': ... success.
+seed = 0
+sqrts =  1.96000E+03
+ps_isr_primordial_kt_width =  0.00000E+00
+ps_isr_tscalefactor =  1.00000E+00
+?allow_shower = true
+?ps_fsr_active = true
+?ps_isr_active = true
+?hadronization_active = true
+$shower_method = "WHIZARD"
+?ps_isr_pt_ordered = false
+?ps_isr_only_onshell_emitted_partons = true
+ps_max_n_flavors = 5
+ps_mass_cutoff =  5.00000E-01
+?mlm_matching = true
+mlm_ptmin =  5.00000E+00
+mlm_etamax =  2.50000E+00
+mlm_Rmin =  1.00000E+00
+mlm_nmaxMEjets = 1
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process mlm_matching_isr_qqee:
+| Beam structure: p, pbar => pdf_builtin
+| Beam data (collision):
+|   p     (mass = 0.0000000E+00 GeV)
+|   pbar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.960000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'mlm_matching_isr_qqee.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'mlm_matching_isr_qqee'
+|   Library name  = 'mlm_matching_isr_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'mlm_matching_isr_qqee_i1':   u:d:ubar:dbar, u:d:ubar:dbar => e-, e+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 2 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'mlm_matching_isr_qqee'
+| Integrate: iterations = 2:2000
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 2000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       2000     1.614E+05   3.68E+03    2.28    1.02    18.4
+   2       2000     1.646E+05   3.69E+03    2.24    1.00    18.2
+|-----------------------------------------------------------------------------|
+   2       4000     1.630E+05   2.60E+03    1.60    1.01    18.2    0.40   2
+|=============================================================================|
+n_events = 1
+?rebuild_events = true
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+$sample = "mlm_matching_isr_a"
+?mlm_matching = false
+| Starting simulation for process 'mlm_matching_isr_qqee'
+| Simulate: using integration grids from file 'mlm_matching_isr_qqee.m1.vg'
+| Simulate: activating parton shower
+| Shower: interfacing PDF builtin set #3
+| Shower: Using WHIZARD internal shower
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA6 interface for hadronization and decays
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   6.1351E-06
+| Events: writing to ASCII file 'mlm_matching_isr_a.debug'
+| Events: writing to raw file 'mlm_matching_isr_a.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  10.00 %
+| Events: closing ASCII file 'mlm_matching_isr_a.debug'
+| Events: closing raw file 'mlm_matching_isr_a.evx'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Initializing integration for process mlm_matching_isr_qqee:
+| Beam structure: p, pbar => pdf_builtin
+| Beam data (collision):
+|   p     (mass = 0.0000000E+00 GeV)
+|   pbar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.960000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'mlm_matching_isr_qqee.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'mlm_matching_isr_qqee'
+|   Library name  = 'mlm_matching_isr_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'mlm_matching_isr_qqee_i1':   u:d:ubar:dbar, u:d:ubar:dbar => e-, e+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 2 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'mlm_matching_isr_qqee'
+| Integrate: iterations = 2:2000
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 2000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       2000     1.634E+05   3.83E+03    2.35    1.05    20.2
+   2       2000     1.579E+05   3.76E+03    2.38    1.07    19.0
+|-----------------------------------------------------------------------------|
+   2       4000     1.606E+05   2.69E+03    1.67    1.06    19.0    1.03   2
+|=============================================================================|
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Initializing integration for process mlm_matching_isr_qqeeg:
+| Beam structure: p, pbar => pdf_builtin
+| Beam data (collision):
+|   p     (mass = 0.0000000E+00 GeV)
+|   pbar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.960000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'mlm_matching_isr_qqeeg.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'mlm_matching_isr_qqeeg'
+|   Library name  = 'mlm_matching_isr_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'mlm_matching_isr_qqeeg_i1':   u:d:ubar:dbar, u:d:ubar:dbar => e-, e+, gl [omega]
+| ------------------------------------------------------------------------
+| Phase space: 12 channels, 5 dimensions
+| Phase space: found 12 channels, collected in 3 groves.
+| Phase space: Using 24 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'mlm_matching_isr_qqeeg'
+| Integrate: iterations = 2:2000
+| Integrator: 3 chains, 12 channels, 7 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 2000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1992     6.718E+04   2.30E+04   34.21   15.27     1.0
+   2       1992     2.952E+04   1.21E+04   41.10   18.35     0.4
+|-----------------------------------------------------------------------------|
+   2       3984     3.772E+04   1.07E+04   28.44   17.95     0.4    2.10   2
+|=============================================================================|
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+| Initializing integration for process mlm_matching_isr_qgeeq:
+| Beam structure: p, pbar => pdf_builtin
+| Beam data (collision):
+|   p     (mass = 0.0000000E+00 GeV)
+|   pbar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.960000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'mlm_matching_isr_qgeeq.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'mlm_matching_isr_qgeeq'
+|   Library name  = 'mlm_matching_isr_lib'
+|   Process index = 3
+|   Process components:
+|     1: 'mlm_matching_isr_qgeeq_i1':   u:d:ubar:dbar, gl => e-, e+, u:d:ubar:dbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 9 channels, 5 dimensions
+| Phase space: found 9 channels, collected in 6 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'mlm_matching_isr_qgeeq'
+| Integrate: iterations = 2:2000
+| Integrator: 6 chains, 9 channels, 7 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 2000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1998     6.006E+03   3.17E+03   52.84   23.62     0.6
+   2       1998     1.247E+04   4.72E+03   37.85   16.92     0.6
+|-----------------------------------------------------------------------------|
+   2       3996     8.018E+03   2.63E+03   32.84   20.76     0.6    1.29   2
+|=============================================================================|
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Initializing integration for process mlm_matching_isr_gqeeq:
+| Beam structure: p, pbar => pdf_builtin
+| Beam data (collision):
+|   p     (mass = 0.0000000E+00 GeV)
+|   pbar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.960000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'mlm_matching_isr_gqeeq.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'mlm_matching_isr_gqeeq'
+|   Library name  = 'mlm_matching_isr_lib'
+|   Process index = 4
+|   Process components:
+|     1: 'mlm_matching_isr_gqeeq_i1':   gl, u:d:ubar:dbar => e-, e+, u:d:ubar:dbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 9 channels, 5 dimensions
+| Phase space: found 9 channels, collected in 6 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'mlm_matching_isr_gqeeq'
+| Integrate: iterations = 2:2000
+| Integrator: 6 chains, 9 channels, 7 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 2000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1998     7.558E+03   3.58E+03   47.43   21.20     0.7
+   2       1998     9.629E+03   3.19E+03   33.09   14.79     0.5
+|-----------------------------------------------------------------------------|
+   2       3996     8.715E+03   2.38E+03   27.32   17.27     0.5    0.19   2
+|=============================================================================|
+$sample = "mlm_matching_isr_b"
+| Starting simulation for processes 'mlm_matching_isr_qqee' etc.
+| Simulate: using integration grids from file 'mlm_matching_isr_qqee.m1.vg'
+| Simulate: activating parton shower
+| Shower: interfacing PDF builtin set #3
+| Shower: Using WHIZARD internal shower
+| Simulate: applying MLM matching
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA6 interface for hadronization and decays
+| Simulate: using integration grids from file 'mlm_matching_isr_qqeeg.m1.vg'
+| Simulate: activating parton shower
+| Shower: interfacing PDF builtin set #3
+| Shower: Using WHIZARD internal shower
+| Simulate: applying MLM matching
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA6 interface for hadronization and decays
+| Simulate: using integration grids from file 'mlm_matching_isr_qgeeq.m1.vg'
+| Simulate: activating parton shower
+| Shower: interfacing PDF builtin set #3
+| Shower: Using WHIZARD internal shower
+| Simulate: applying MLM matching
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA6 interface for hadronization and decays
+| Simulate: using integration grids from file 'mlm_matching_isr_gqeeq.m1.vg'
+| Simulate: activating parton shower
+| Shower: interfacing PDF builtin set #3
+| Shower: Using WHIZARD internal shower
+| Simulate: applying MLM matching
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA6 interface for hadronization and decays
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 6
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   4.6500E-06
+| Events: writing to ASCII file 'mlm_matching_isr_b.debug'
+| Events: writing to raw file 'mlm_matching_isr_b.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.89 %
+| Events: closing ASCII file 'mlm_matching_isr_b.debug'
+| Events: closing raw file 'mlm_matching_isr_b.evx'
+| WHIZARD run finished.
+|=============================================================================|
+Contents of mlm_matching_isr_a.debug:
+Sum of incoming momenta: p(0:3) =          727.344        0.000        0.000     -722.192 
+Sum of beam remnant momenta: p(0:3) =      905.339        0.000        0.000     -295.747 
+Sum of outgoing momenta: p(0:3) =         1054.661        0.000        0.000      295.747 
+Sum of incoming momenta: p(0:3) =          727.344        0.000        0.000     -722.192 
+Sum of beam remnant momenta: p(0:3) =        0.000        0.000        0.000        0.000 
+Sum of outgoing momenta: p(0:3) =         1960.000        0.000        0.000        0.000 
+Contents of mlm_matching_isr_b.debug:
+Sum of incoming momenta: p(0:3) =          110.052        0.000        0.000        9.568 
+Sum of beam remnant momenta: p(0:3) =      443.986        0.000        0.000      -18.939 
+Sum of outgoing momenta: p(0:3) =         1516.014        0.000        0.000       18.939 
+Sum of incoming momenta: p(0:3) =          110.052        0.000        0.000        9.568 
+Sum of beam remnant momenta: p(0:3) =        0.000        0.000        0.000        0.000 
+Sum of outgoing momenta: p(0:3) =         1960.000        0.000        0.000        0.000 

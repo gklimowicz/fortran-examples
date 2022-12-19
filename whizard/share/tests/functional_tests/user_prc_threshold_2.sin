@@ -1,0 +1,61 @@
+# SINDARIN file for WHIZARD self test
+# Testing factorized NLO calculation at top threshold
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+?use_vamp_equivalences = false
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+model = SM_tt_threshold
+sqrtsmin = 350 GeV
+sqrtsmax = 350 GeV
+sqrtsstepsize = 0.0 GeV
+
+me = 0
+mZ = 91.188
+mW = 80.419
+mb = 4.2
+alphas = 0.118 ! (Z pole, NLL running to mu_h)
+alpha_em_i = 125.924 ! (not running)
+m1S = 172.0
+scale = m1S
+mpole_fixed = 1
+
+
+nrqcd_order  = 1 # NLL
+sh     = 1.
+sf     = 1.
+Vtb    = 1.
+FF     = 9
+
+$method = "threshold"
+$born_me_method = "threshold"
+$loop_me_method = "threshold"
+$correlation_me_method = "threshold"
+$real_tree_me_method = "threshold"
+alpha_power = 4
+alphas_power = 0
+
+alphas = 0.118
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+
+process user_prc_threshold_2_p1 = E1, e1 => Wp, Wm, b, B { nlo_calculation = real }
+
+top_helicity_selection = 3
+seed = 0
+!!! offshell_strategy: Factorized, NLO, on-shell proj., helicity approx., Boosted Decay
+offshell_strategy = 1 + 2 + 8 + 32 + 512
+!!! Below threshold
+sqrts = 343 GeV
+iterations = 1:700
+integrate (user_prc_threshold_2_p1)
+!!! Above threshold
+sqrts = 345 GeV
+integrate (user_prc_threshold_2_p1)

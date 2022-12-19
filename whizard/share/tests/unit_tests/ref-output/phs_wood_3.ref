@@ -1,0 +1,44 @@
+* Test output: phs_wood_3
+*   Purpose: generate a phase-space configuration
+
+* Initialize a process and phase-space parameters
+
+
+* Generate a scratch phase-space file
+
+ process phs_wood_3
+
+! List of subprocesses with particle bincodes:
+! 8 4    1 2
+! s s => s s
+! 8 4    1 2
+
+   md5sum_process    = "                                "
+   md5sum_model_par  = "34AE44487D84198697E1368F11F2C8D8"
+   md5sum_phs_config = "AF25B59E228F23742910A50FA45F8A43"
+   sqrts         =  1.000000000000E+03
+   m_threshold_s =  5.000000000000E+01
+   m_threshold_t =  1.000000000000E+02
+   off_shell = 1
+   t_channel = 2
+   keep_nonresonant = T
+
+ ! Multiplicity = 2, no resonances,  0 logs,  1 off-shell,  s-channel graph
+ grove #1
+ ! Channel #1
+   tree  3
+
+ ! Multiplicity = 2, no resonances,  0 logs,  1 off-shell,  1 t-channel line
+ grove #2
+ ! Channel #2
+   tree  5
+ ! Channel #3
+   tree  6
+ ! Channel #4
+   tree  9
+ ! Channel #5
+   tree  10
+
+* Cleanup
+
+* Test output end: phs_wood_3

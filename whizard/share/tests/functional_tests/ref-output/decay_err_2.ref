@@ -1,0 +1,110 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+| Process library 'decay_err_2_lib': recorded process 'decay_err_2_d'
+| Process library 'decay_err_2_lib': recorded process 'decay_err_2_p'
+seed = 0
+sqrts =  5.000000000000E+02
+| Integrate: current process library needs compilation
+| Process library 'decay_err_2_lib': compiling ...
+| Process library 'decay_err_2_lib': writing makefile
+| Process library 'decay_err_2_lib': removing old files
+| Process library 'decay_err_2_lib': writing driver
+| Process library 'decay_err_2_lib': creating source code
+| Process library 'decay_err_2_lib': compiling sources
+| Process library 'decay_err_2_lib': linking
+| Process library 'decay_err_2_lib': loading
+| Process library 'decay_err_2_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process decay_err_2_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'decay_err_2_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'decay_err_2_p'
+|   Library name  = 'decay_err_2_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'decay_err_2_p_i1':   e-, e+ => t, tbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'decay_err_2_p'
+| Integrate: iterations = 1:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800  5.4352701E+02  5.13E-01    0.09    0.03*  48.62
+|-----------------------------------------------------------------------------|
+   1        800  5.4352701E+02  5.13E-01    0.09    0.03   48.62
+|=============================================================================|
+SM.mtop =>  1.600000000000E+02
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process decay_err_2_d:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   t  (mass = 1.6000000E+02 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'decay_err_2_d.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'decay_err_2_d'
+|   Library name  = 'decay_err_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'decay_err_2_d_i1':   t => b, W+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'decay_err_2_d'
+| Integrate: iterations not specified, using default
+| Integrate: iterations = 1:100:""
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  1.1271908E+00  0.00E+00    0.00    0.00* 100.00
+|-----------------------------------------------------------------------------|
+   1        100  1.1271908E+00  0.00E+00    0.00    0.00  100.00
+|=============================================================================|
+| Unstable particle t: computed branching ratios:
+|   decay_err_2_d: 1.0000000E+00   b, W+
+|   Total width = 1.1271908E+00 GeV (computed)
+|               = 1.5230000E+00 GeV (preset)
+|   Decay options: helicity treated exactly
+?debug_process = false
+?debug_verbose = false
+n_events = 1
+| Starting simulation for process 'decay_err_2_p'
+| Simulate: using integration grids from file 'decay_err_2_p.m1.vg'
+| Simulate: activating decays
+| particle 't':
+|   m_prod =  1.75000000E+02   m_dec =  1.60000000E+02
+******************************************************************************
+******************************************************************************
+*** FATAL ERROR: Particle mass mismatch between production and decay
+******************************************************************************
+******************************************************************************
+| There were no errors and    2 warning(s).
+WHIZARD run aborted.

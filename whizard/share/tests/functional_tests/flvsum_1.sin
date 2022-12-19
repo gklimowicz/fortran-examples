@@ -1,0 +1,30 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM
+me = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+process flvsum_1_p0 = e1, E1 => u + d, U + D
+
+alias q = d:u
+alias Q = D:U
+
+process flvsum_1_p1 = e1, E1 => q, Q
+process flvsum_1_p2 = e1, E1 => q, Q
+
+sqrts = 500 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+seed = 0
+integrate (flvsum_1_p0) { iterations = 1:1000 }
+
+integrate (flvsum_1_p1) { iterations = 1:1000 }
+
+beams = e1, E1
+integrate (flvsum_1_p2) { iterations = 1:1000 }

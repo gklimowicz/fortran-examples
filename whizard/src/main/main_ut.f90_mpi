@@ -1,0 +1,919 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+program main_ut
+
+  use iso_varying_string, string_t => varying_string
+  use unit_tests
+  use io_units
+  use system_dependencies
+  use diagnostics
+  use os_interface
+
+  use cmdline_options
+
+  use model_testbed !NODEP!
+  use mpi_f08 !NODEP!
+
+  use eio_base_ut, only: eio_prepare_test
+  use eio_base_ut, only: eio_cleanup_test
+  use eio_base_ut, only: eio_prepare_fallback_model
+  use eio_base_ut, only: eio_cleanup_fallback_model
+  use dispatch_rng, only: dispatch_rng_factory_fallback
+  use dispatch_rng_ut, only: dispatch_rng_factory_test
+  use dispatch_beams, only: dispatch_sf_data_extra
+  use dispatch_ut, only: dispatch_sf_data_test
+  use formats_ut, only: format_test
+  use numeric_utils_ut, only: numeric_utils_test
+  use binary_tree_ut, only: binary_tree_test
+  use array_list_ut, only: array_list_test
+  use iterator_ut, only: iterator_test
+  use md5_ut, only: md5_test
+  use os_interface_ut, only: os_interface_test
+  use sorting_ut, only: sorting_test
+  use grids_ut, only: grids_test
+  use solver_ut, only: solver_test
+  use cputime_ut, only: cputime_test
+  use lorentz_ut, only: lorentz_test
+  use phs_points_ut, only: phs_points_test
+  use sm_qcd_ut, only: sm_qcd_test
+  use sm_qed_ut, only: sm_qed_test
+  use sm_physics_ut, only: sm_physics_test
+  use electron_pdfs_ut, only: electron_pdfs_test
+  use lexers_ut, only: lexer_test
+  use parser_ut, only: parse_test
+  use xml_ut, only: xml_test
+  use colors_ut, only: color_test
+  use state_matrices_ut, only: state_matrix_test
+  use analysis_ut, only: analysis_test
+  use particles_ut, only: particles_test
+  use models_ut, only: models_test
+  use auto_components_ut, only: auto_components_test
+  use radiation_generator_ut, only: radiation_generator_test
+  use blha_ut, only: blha_test
+  use evaluators_ut, only: evaluator_test
+  use eval_trees_ut, only: expressions_test
+  use resonances_ut, only: resonances_test
+  use phs_trees_ut, only: phs_trees_test
+  use phs_forests_ut, only: phs_forests_test
+  use beams_ut, only: beams_test
+  use su_algebra_ut, only: su_algebra_test
+  use bloch_vectors_ut, only: bloch_vectors_test
+  use polarizations_ut, only: polarizations_test
+  use sf_aux_ut, only: sf_aux_test
+  use sf_mappings_ut, only: sf_mappings_test
+  use sf_base_ut, only: sf_base_test
+  use sf_pdf_builtin_ut, only: sf_pdf_builtin_test
+  use sf_lhapdf_ut, only: sf_lhapdf_test
+  use sf_isr_ut, only: sf_isr_test
+  use sf_epa_ut, only: sf_epa_test
+  use sf_ewa_ut, only: sf_ewa_test
+  use sf_circe1_ut, only: sf_circe1_test
+  use sf_circe2_ut, only: sf_circe2_test
+  use sf_gaussian_ut, only: sf_gaussian_test
+  use sf_beam_events_ut, only: sf_beam_events_test
+  use sf_escan_ut, only: sf_escan_test
+  use phs_base_ut, only: phs_base_test
+  use phs_none_ut, only: phs_none_test
+  use phs_single_ut, only: phs_single_test
+  use phs_rambo_ut, only: phs_rambo_test
+  use phs_wood_ut, only: phs_wood_test
+  use phs_wood_ut, only: phs_wood_vis_test
+  use phs_fks_ut, only: phs_fks_generator_test
+  use fks_regions_ut, only: fks_regions_test
+  use real_subtraction_ut, only: real_subtraction_test
+  use prc_recola_ut, only: prc_recola_test
+  use rng_base_ut, only: rng_base_test
+  use rng_tao_ut, only: rng_tao_test
+  use rng_stream_ut, only: rng_stream_test
+  use selectors_ut, only: selectors_test
+  use vegas_ut, only: vegas_test
+  use vamp2_ut, only: vamp2_test
+  use mci_base_ut, only: mci_base_test
+  use mci_none_ut, only: mci_none_test
+  use mci_midpoint_ut, only: mci_midpoint_test
+  use mci_vamp_ut, only: mci_vamp_test
+  use mci_vamp2_ut, only: mci_vamp2_test
+  use integration_results_ut, only: integration_results_test
+  use prclib_interfaces_ut, only: prclib_interfaces_test
+  use particle_specifiers_ut, only: particle_specifiers_test
+  use process_libraries_ut, only: process_libraries_test
+  use prclib_stacks_ut, only: prclib_stacks_test
+  use hepmc_interface_ut, only: hepmc_interface_test
+  use lcio_interface_ut, only: lcio_interface_test
+  use jets_ut, only: jets_test
+  use whizard_lha_ut, only: whizard_lha_test
+  use pythia8_ut, only: pythia8_test
+  use pdg_arrays_ut, only: pdg_arrays_test
+  use interactions_ut, only: interaction_test
+  use slha_interface_ut, only: slha_test
+  use cascades_ut, only: cascades_test
+  use cascades2_lexer_ut, only: cascades2_lexer_test
+  use cascades2_ut, only: cascades2_test
+  use prc_test_ut, only: prc_test_test
+  use prc_template_me_ut, only: prc_template_me_test
+  use prc_omega_ut, only: prc_omega_test
+  use prc_omega_ut, only: prc_omega_diags_test
+  use parton_states_ut, only: parton_states_test
+  use expr_tests_ut, only: subevt_expr_test
+  use processes_ut, only: processes_test
+  use process_stacks_ut, only: process_stacks_test
+  use event_transforms_ut, only: event_transforms_test
+  use resonance_insertion_ut, only: resonance_insertion_test
+  use recoil_kinematics_ut, only: recoil_kinematics_test
+  use isr_epa_handler_ut, only: isr_handler_test
+  use isr_epa_handler_ut, only: epa_handler_test
+  use decays_ut, only: decays_test
+  use shower_ut, only: shower_test
+  use events_ut, only: events_test
+  use hep_events_ut, only: hep_events_test
+  use eio_data_ut, only: eio_data_test
+  use eio_base_ut, only: eio_base_test
+  use eio_direct_ut, only: eio_direct_test
+  use eio_raw_ut, only: eio_raw_test
+  use eio_checkpoints_ut, only: eio_checkpoints_test
+  use eio_lhef_ut, only: eio_lhef_test
+  use eio_hepmc_ut, only: eio_hepmc_test
+  use eio_lcio_ut, only: eio_lcio_test
+  use eio_stdhep_ut, only: eio_stdhep_test
+  use eio_ascii_ut, only: eio_ascii_test
+  use eio_weights_ut, only: eio_weights_test
+  use eio_dump_ut, only: eio_dump_test
+  use iterations_ut, only: iterations_test
+  use beam_structures_ut, only: beam_structures_test
+  use rt_data_ut, only: rt_data_test
+  use dispatch_ut, only: dispatch_test
+  use dispatch_rng_ut, only: dispatch_rng_test
+  use dispatch_mci_ut, only: dispatch_mci_test
+  use dispatch_phs_ut, only: dispatch_phs_test
+  use dispatch_transforms_ut, only: dispatch_transforms_test
+  use shower_base_ut, only: shower_base_test
+  use process_configurations_ut, only: process_configurations_test
+  use compilations_ut, only: compilations_test
+  use compilations_ut, only: compilations_static_test
+  use integrations_ut, only: integrations_test
+  use integrations_ut, only: integrations_history_test
+  use event_streams_ut, only: event_streams_test
+  use restricted_subprocesses_ut, only: restricted_subprocesses_test
+  use simulations_ut, only: simulations_test
+  use commands_ut, only: commands_test
+  use ttv_formfactors_ut, only: ttv_formfactors_test
+  use api_ut, only: api_test
+  use api_hepmc_ut, only: api_hepmc_test
+  use api_lcio_ut, only: api_lcio_test
+
+  implicit none
+
+  integer, parameter :: CMDLINE_ARG_LEN = 1000
+
+!!! (WK 02/2016) Interface for the separate external routine below
+  interface
+     subroutine print_usage ()
+     end subroutine print_usage
+  end interface
+
+  ! Main program variable declarations
+  character(CMDLINE_ARG_LEN) :: arg
+  character(2) :: option
+  type(string_t) :: long_option, value
+  integer :: i, j, arg_len, arg_status
+  logical :: look_for_options
+  logical :: banner
+  type(string_t) :: check, checks
+  type(test_results_t) :: test_results
+  logical :: success
+
+  ! Exit status
+  integer :: quit_code = 0
+
+  ! Initial values
+  look_for_options = .true.
+  banner = .true.
+  logging = .false.
+  msg_level = RESULT
+  check = ""
+  checks = ""
+
+  call MPI_init ()
+
+  ! Read and process options
+  call init_options (print_usage)
+  i = 0
+  SCAN_CMDLINE: do
+     i = i + 1
+     call get_command_argument (i, arg, arg_len, arg_status)
+     select case (arg_status)
+     case (0)
+     case (-1)
+        call msg_error (" Command argument truncated: '" // arg // "'")
+     case default
+        exit SCAN_CMDLINE
+     end select
+     if (look_for_options) then
+        select case (arg(1:2))
+        case ("--")
+           value = trim (arg)
+           call split (value, long_option, "=")
+           select case (char (long_option))
+           case ("--version")
+              call no_option_value (long_option, value)
+              call print_version (); stop
+           case ("--help")
+              call no_option_value (long_option, value)
+              call print_usage (); stop
+           case ("--banner")
+              call no_option_value (long_option, value)
+              banner = .true.
+              cycle SCAN_CMDLINE
+           case ("--no-banner")
+              call no_option_value (long_option, value)
+              banner = .false.
+              cycle SCAN_CMDLINE
+           case ("--check")
+              check = get_option_value (i, long_option, value)
+              checks = checks // " " // check
+              cycle SCAN_CMDLINE
+           case ("--debug")
+              call no_option_value (long_option, value)
+              call set_debug_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case ("--debug2")
+              call no_option_value (long_option, value)
+              call set_debug2_levels (get_option_value (i, long_option, value))
+              cycle SCAN_CMDLINE
+           case default
+              call print_usage ()
+              call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+           end select
+        end select
+        select case (arg(1:1))
+        case ("-")
+           j = 1
+           if (len_trim (arg) == 1) then
+              look_for_options = .false.
+           else
+              SCAN_SHORT_OPTIONS: do
+                 j = j + 1
+                 if (j > len_trim (arg)) exit SCAN_SHORT_OPTIONS
+                 option = "-" // arg(j:j)
+                 select case (option)
+                 case ("-V")
+                    call print_version (); stop
+                 case ("-?", "-h")
+                    call print_usage (); stop
+                 case default
+                    call print_usage ()
+                    call msg_fatal &
+                         ("Option '" // option // "' not recognized")
+                 end select
+              end do SCAN_SHORT_OPTIONS
+           end if
+        case default
+           call print_usage ()
+           call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+        end select
+     else
+        call print_usage ()
+        call msg_fatal ("Option '" // trim (arg) // "' not recognized")
+     end if
+  end do SCAN_CMDLINE
+
+  ! Overall initialization
+  if (banner)  call msg_banner ()
+
+   ! Run any self-checks (and no commands)
+   if (checks /= "") then
+      checks = trim (adjustl (checks))
+      RUN_CHECKS: do while (checks /= "")
+         call split (checks, check, " ")
+         call whizard_check (check, test_results)
+      end do RUN_CHECKS
+      call test_results%wrapup (6, success)
+      if (.not. success)  quit_code = 7
+   end if
+
+   call MPI_finalize ()
+
+   call msg_terminate (quit_code = quit_code)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+contains
+
+  subroutine print_version ()
+    print "(A)", "WHIZARD " // WHIZARD_VERSION // " (unit test driver)"
+    print "(A)", "Copyright (C) 1999-2022 Wolfgang Kilian, Thorsten Ohl, Juergen Reuter"
+    print "(A)", "              ---------------------------------------                "
+    print "(A)", "This is free software; see the source for copying conditions.  There is NO"
+    print "(A)", "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    print *
+  end subroutine print_version
+
+  subroutine prepare_eio_test (event, unweighted, n_alt, sample_norm)
+    use variables, only: var_list_t
+    use model_data
+    use process, only: process_t
+    use instances, only: process_instance_t
+    use processes_ut, only: prepare_test_process
+    use event_base
+    use events
+
+    class(generic_event_t), intent(inout), pointer :: event
+    logical, intent(in), optional :: unweighted
+    integer, intent(in), optional :: n_alt
+    type(string_t), intent(in), optional :: sample_norm
+    type(model_data_t), pointer :: model
+    type(var_list_t) :: var_list
+    type(string_t) :: sample_normalization
+    type(process_t), pointer :: proc
+    type(process_instance_t), pointer :: process_instance
+
+    allocate (model)
+    call model%init_test ()
+
+    allocate (proc)
+    allocate (process_instance)
+
+    call prepare_test_process (proc, process_instance, model, &
+         run_id = var_str ("run_test"))
+    call process_instance%setup_event_data ()
+
+    call model%final ()
+    deallocate (model)
+
+    allocate (event_t :: event)
+    select type (event)
+    type is (event_t)
+       if (present (unweighted)) then
+          call var_list%append_log (&
+               var_str ("?unweighted"), unweighted, &
+               intrinsic = .true.)
+       else
+          call var_list%append_log (&
+               var_str ("?unweighted"), .true., &
+               intrinsic = .true.)
+       end if
+       if (present (sample_norm)) then
+          sample_normalization = sample_norm
+       else
+          sample_normalization = var_str ("auto")
+       end if
+       call var_list%append_string (&
+            var_str ("$sample_normalization"), &
+            sample_normalization, intrinsic = .true.)
+       call event%basic_init (var_list, n_alt)
+       call event%connect (process_instance, proc%get_model_ptr ())
+       call var_list%final ()
+    end select
+
+  end subroutine prepare_eio_test
+
+  subroutine cleanup_eio_test (event)
+    use model_data
+    use process, only: process_t
+    use instances, only: process_instance_t
+    use processes_ut, only: cleanup_test_process
+    use event_base
+    use events
+
+    class(generic_event_t), intent(inout), pointer :: event
+    type(process_t), pointer :: proc
+    type(process_instance_t), pointer :: process_instance
+
+    select type (event)
+    type is (event_t)
+       proc => event%get_process_ptr ()
+       process_instance => event%get_process_instance_ptr ()
+       call cleanup_test_process (proc, process_instance)
+       deallocate (process_instance)
+       deallocate (proc)
+       call event%final ()
+    end select
+    deallocate (event)
+
+  end subroutine cleanup_eio_test
+
+  subroutine prepare_whizard_model (model, name, vars)
+    use iso_varying_string, string_t => varying_string
+    use os_interface
+    use model_data
+    use var_base
+    use models
+    class(model_data_t), intent(inout), pointer :: model
+    type(string_t), intent(in) :: name
+    class(vars_t), pointer, intent(out), optional :: vars
+    type(os_data_t) :: os_data
+    call syntax_model_file_init ()
+    call os_data%init ()
+    if (.not. associated (model))  allocate (model_t :: model)
+    select type (model)
+    type is (model_t)
+       call model%read (name // ".mdl", os_data)
+       if (present (vars)) then
+          vars => model%get_var_list_ptr ()
+       end if
+    end select
+  end subroutine prepare_whizard_model
+
+  subroutine cleanup_whizard_model (model)
+    use model_data
+    use models
+    class(model_data_t), intent(inout), target :: model
+    call model%final ()
+    call syntax_model_file_final ()
+  end subroutine cleanup_whizard_model
+
+  subroutine prepare_fallback_model (model)
+    use model_data
+    class(model_data_t), intent(inout), pointer :: model
+    call prepare_whizard_model (model, var_str ("SM_hadrons"))
+  end subroutine prepare_fallback_model
+
+  subroutine whizard_check (check, results)
+    type(string_t), intent(in) :: check
+    type(test_results_t), intent(inout) :: results
+    type(os_data_t) :: os_data
+    integer :: u
+    call os_data%init ()
+    u = free_unit ()
+    open (u, file="whizard_check." // char (check) // ".log", &
+         action="write", status="replace")
+    call msg_message (repeat ('=', 76), 0)
+    call msg_message ("Running self-test: " // char (check), 0)
+    call msg_message (repeat ('-', 76), 0)
+    eio_prepare_test => prepare_eio_test
+    eio_cleanup_test => cleanup_eio_test
+    prepare_model => prepare_whizard_model
+    cleanup_model => cleanup_whizard_model
+    eio_prepare_fallback_model => prepare_fallback_model
+    eio_cleanup_fallback_model => cleanup_model
+    dispatch_rng_factory_fallback => dispatch_rng_factory_test
+    dispatch_sf_data_extra => dispatch_sf_data_test
+    select case (char (check))
+    case ("formats")
+       call format_test (u, results)
+    case ("numeric_utils")
+       call numeric_utils_test (u, results)
+    case ("binary_tree")
+       call binary_tree_test (u, results)
+    case ("array_list")
+       call array_list_test (u, results)
+    case ("iterator")
+       call iterator_test (u, results)
+    case ("md5")
+       call md5_test (u, results)
+    case ("os_interface")
+       call os_interface_test (u, results)
+    case ("sorting")
+       call sorting_test (u, results)
+    case ("grids")
+       call grids_test (u, results)
+    case ("solver")
+       call solver_test (u, results)
+    case ("cputime")
+       call cputime_test (u, results)
+    case ("lorentz")
+       call lorentz_test (u, results)
+    case ("phs_points")
+       call phs_points_test (u, results)
+    case ("sm_qcd")
+       call sm_qcd_test (u, results)
+    case ("sm_qed")
+       call sm_qed_test (u, results)
+    case ("sm_physics")
+       call sm_physics_test (u, results)
+    case ("electron_pdfs")
+       call electron_pdfs_test (u, results)
+    case ("lexers")
+       call lexer_test (u, results)
+    case ("parser")
+       call parse_test (u, results)
+    case ("xml")
+       call xml_test (u, results)
+    case ("colors")
+       call color_test (u, results)
+    case ("state_matrices")
+       call state_matrix_test (u, results)
+    case ("analysis")
+       call analysis_test (u, results)
+    case ("particles")
+       call particles_test (u, results)
+    case ("models")
+       call models_test (u, results)
+    case ("auto_components")
+       call auto_components_test (u, results)
+    case ("radiation_generator")
+       call radiation_generator_test (u, results)
+    case ("blha")
+       call blha_test (u, results)
+    case ("evaluators")
+       call evaluator_test (u, results)
+    case ("expressions")
+       call expressions_test (u, results)
+    case ("resonances")
+       call resonances_test (u, results)
+    case ("phs_trees")
+       call phs_trees_test (u, results)
+    case ("phs_forests")
+       call phs_forests_test (u, results)
+    case ("beams")
+       call beams_test (u, results)
+    case ("su_algebra")
+       call su_algebra_test (u, results)
+    case ("bloch_vectors")
+       call bloch_vectors_test (u, results)
+    case ("polarizations")
+       call polarizations_test (u, results)
+    case ("sf_aux")
+       call sf_aux_test (u, results)
+    case ("sf_mappings")
+       call sf_mappings_test (u, results)
+    case ("sf_base")
+       call sf_base_test (u, results)
+    case ("sf_pdf_builtin")
+       call sf_pdf_builtin_test (u, results)
+    case ("sf_lhapdf")
+       call sf_lhapdf_test (u, results)
+    case ("sf_isr")
+       call sf_isr_test (u, results)
+    case ("sf_epa")
+       call sf_epa_test (u, results)
+    case ("sf_ewa")
+       call sf_ewa_test (u, results)
+    case ("sf_circe1")
+       call sf_circe1_test (u, results)
+    case ("sf_circe2")
+       call sf_circe2_test (u, results)
+    case ("sf_gaussian")
+       call sf_gaussian_test (u, results)
+    case ("sf_beam_events")
+       call sf_beam_events_test (u, results)
+    case ("sf_escan")
+       call sf_escan_test (u, results)
+    case ("phs_base")
+       call phs_base_test (u, results)
+    case ("phs_none")
+       call phs_none_test (u, results)
+    case ("phs_single")
+       call phs_single_test (u, results)
+    case ("phs_rambo")
+       call phs_rambo_test (u, results)
+    case ("phs_wood")
+       call phs_wood_test (u, results)
+    case ("phs_wood_vis")
+       call phs_wood_vis_test (u, results)
+    case ("phs_fks_generator")
+       call phs_fks_generator_test (u, results)
+    case ("fks_regions")
+       call fks_regions_test (u, results)
+    case ("real_subtraction")
+       call real_subtraction_test (u, results)
+    case ("prc_recola")
+       call prc_recola_test (u, results)
+    case ("rng_base")
+       call rng_base_test (u, results)
+    case ("rng_tao")
+       call rng_tao_test (u, results)
+    case ("rng_stream")
+       call rng_stream_test (u, results)
+    case ("selectors")
+       call selectors_test (u, results)
+    case ("vegas")
+       call vegas_test (u, results)
+    case ("vamp2")
+       call vamp2_test (u, results)
+    case ("mci_base")
+       call mci_base_test (u, results)
+    case ("mci_none")
+       call mci_none_test (u, results)
+    case ("mci_midpoint")
+       call mci_midpoint_test (u, results)
+    case ("mci_vamp")
+       call mci_vamp_test (u, results)
+    case ("mci_vamp2")
+       call mci_vamp2_test (u, results)
+    case ("integration_results")
+       call integration_results_test (u, results)
+    case ("prclib_interfaces")
+       call prclib_interfaces_test (u, results)
+    case ("particle_specifiers")
+       call particle_specifiers_test (u, results)
+    case ("process_libraries")
+       call process_libraries_test (u, results)
+    case ("prclib_stacks")
+       call prclib_stacks_test (u, results)
+    case ("hepmc")
+       call hepmc_interface_test (u, results)
+    case ("lcio")
+       call lcio_interface_test (u, results)
+    case ("jets")
+       call jets_test (u, results)
+    case ("whizard_lha")
+       call whizard_lha_test (u, results)
+    case ("pythia8")
+       call pythia8_test (u, results)
+    case ("pdg_arrays")
+       call pdg_arrays_test (u, results)
+    case ("interactions")
+       call interaction_test (u, results)
+    case ("slha_interface")
+       call slha_test (u, results)
+    case ("cascades")
+       call cascades_test (u, results)
+    case ("cascades2_lexer")
+       call cascades2_lexer_test (u, results)
+    case ("cascades2")
+       call cascades2_test (u, results)
+    case ("prc_test")
+       call prc_test_test (u, results)
+    case ("prc_template_me")
+       call prc_template_me_test (u, results)
+    case ("prc_omega")
+       call prc_omega_test (u, results)
+    case ("prc_omega_diags")
+       call prc_omega_diags_test (u, results)
+    case ("parton_states")
+       call parton_states_test (u, results)
+    case ("subevt_expr")
+       call subevt_expr_test (u, results)
+    case ("processes")
+       call processes_test (u, results)
+    case ("process_stacks")
+       call process_stacks_test (u, results)
+    case ("event_transforms")
+       call event_transforms_test (u, results)
+    case ("resonance_insertion")
+       call resonance_insertion_test (u, results)
+    case ("recoil_kinematics")
+       call recoil_kinematics_test (u, results)
+    case ("isr_handler")
+       call isr_handler_test (u, results)
+    case ("epa_handler")
+       call epa_handler_test (u, results)
+    case ("decays")
+       call decays_test (u, results)
+    case ("shower")
+       call shower_test (u, results)
+    case ("events")
+       call events_test (u, results)
+    case ("hep_events")
+       call hep_events_test (u, results)
+    case ("eio_data")
+       call eio_data_test (u, results)
+    case ("eio_base")
+       call eio_base_test (u, results)
+    case ("eio_direct")
+       call eio_direct_test (u, results)
+    case ("eio_raw")
+       call eio_raw_test (u, results)
+    case ("eio_checkpoints")
+       call eio_checkpoints_test (u, results)
+    case ("eio_lhef")
+       call eio_lhef_test (u, results)
+    case ("eio_hepmc")
+       call eio_hepmc_test (u, results)
+    case ("eio_lcio")
+       call eio_lcio_test (u, results)
+    case ("eio_stdhep")
+       call eio_stdhep_test (u, results)
+    case ("eio_ascii")
+       call eio_ascii_test (u, results)
+    case ("eio_weights")
+       call eio_weights_test (u, results)
+    case ("eio_dump")
+       call eio_dump_test (u, results)
+    case ("iterations")
+       call iterations_test (u, results)
+    case ("beam_structures")
+       call beam_structures_test (u, results)
+    case ("rt_data")
+       call rt_data_test (u, results)
+    case ("dispatch")
+       call dispatch_test (u, results)
+    case ("dispatch_rng")
+       call dispatch_rng_test (u, results)
+    case ("dispatch_mci")
+       call dispatch_mci_test (u, results)
+    case ("dispatch_phs")
+       call dispatch_phs_test (u, results)
+    case ("dispatch_transforms")
+       call dispatch_transforms_test (u, results)
+    case ("shower_base")
+       call shower_base_test (u, results)
+    case ("process_configurations")
+       call process_configurations_test (u, results)
+    case ("compilations")
+       call compilations_test (u, results)
+    case ("compilations_static")
+       call compilations_static_test (u, results)
+    case ("integrations")
+       call integrations_test (u, results)
+    case ("integrations_history")
+       call integrations_history_test (u, results)
+    case ("event_streams")
+       call event_streams_test (u, results)
+    case ("restricted_subprocesses")
+       call restricted_subprocesses_test (u, results)
+    case ("simulations")
+       call simulations_test (u, results)
+    case ("commands")
+       call commands_test (u, results)
+    case ("ttv_formfactors")
+       call ttv_formfactors_test (u, results)
+    case ("api")
+       call api_test (u, results)
+    case ("api_hepmc")
+       call api_hepmc_test (u, results)
+    case ("api_lcio")
+       call api_lcio_test (u, results)
+    case ("all")
+       call format_test (u, results)
+       call numeric_utils_test (u, results)
+       call binary_tree_test (u, results)
+       call array_list_test (u, results)
+       call iterator_test (u, results)
+       call md5_test (u, results)
+       call os_interface_test (u, results)
+       call sorting_test (u, results)
+       call grids_test (u, results)
+       call solver_test (u, results)
+       call cputime_test (u, results)
+       call lorentz_test (u, results)
+       call phs_points_test (u, results)
+       call sm_qcd_test (u, results)
+       call sm_qed_test (u, results)
+       call sm_physics_test (u, results)
+       call electron_pdfs_test (u, results)
+       call lexer_test (u, results)
+       call parse_test (u, results)
+       call xml_test (u, results)
+       call color_test (u, results)
+       call state_matrix_test (u, results)
+       call analysis_test (u, results)
+       call particles_test (u, results)
+       call models_test (u, results)
+       call auto_components_test (u, results)
+       call radiation_generator_test (u, results)
+       call blha_test (u, results)
+       call evaluator_test (u, results)
+       call expressions_test (u, results)
+       call resonances_test (u, results)
+       call phs_trees_test (u, results)
+       call phs_forests_test (u, results)
+       call beams_test (u, results)
+       call su_algebra_test (u, results)
+       call bloch_vectors_test (u, results)
+       call polarizations_test (u, results)
+       call sf_aux_test (u, results)
+       call sf_mappings_test (u, results)
+       call sf_base_test (u, results)
+       call sf_pdf_builtin_test (u, results)
+       call sf_lhapdf_test (u, results)
+       call sf_isr_test (u, results)
+       call sf_epa_test (u, results)
+       call sf_ewa_test (u, results)
+       call sf_circe1_test (u, results)
+       call sf_circe2_test (u, results)
+       call sf_gaussian_test (u, results)
+       call sf_beam_events_test (u, results)
+       call sf_escan_test (u, results)
+       call phs_base_test (u, results)
+       call phs_none_test (u, results)
+       call phs_single_test (u, results)
+       call phs_rambo_test (u, results)
+       call phs_wood_test (u, results)
+       call phs_wood_vis_test (u, results)
+       call phs_fks_generator_test (u, results)
+       call fks_regions_test (u, results)
+       call real_subtraction_test (u, results)
+       call prc_recola_test (u, results)
+       call rng_base_test (u, results)
+       call rng_tao_test (u, results)
+       call rng_stream_test (u, results)
+       call selectors_test (u, results)
+       call vegas_test (u, results)
+       call vamp2_test (u, results)
+       call mci_base_test (u, results)
+       call mci_none_test (u, results)
+       call mci_midpoint_test (u, results)
+       call mci_vamp_test (u, results)
+       call mci_vamp2_test (u, results)
+       call integration_results_test (u, results)
+       call prclib_interfaces_test (u, results)
+       call particle_specifiers_test (u, results)
+       call process_libraries_test (u, results)
+       call prclib_stacks_test (u, results)
+       call hepmc_interface_test (u, results)
+       call lcio_interface_test (u, results)
+       call jets_test (u, results)
+       call whizard_lha_test (u, results)
+       call pythia8_test (u, results)
+       call pdg_arrays_test (u, results)
+       call interaction_test (u, results)
+       call slha_test (u, results)
+       call cascades_test (u, results)
+       call cascades2_lexer_test (u, results)
+       call cascades2_test (u, results)
+       call prc_test_test (u, results)
+       call prc_template_me_test (u, results)
+       call prc_omega_test (u, results)
+       call prc_omega_diags_test (u, results)
+       call parton_states_test (u, results)
+       call subevt_expr_test (u, results)
+       call processes_test (u, results)
+       call process_stacks_test (u, results)
+       call event_transforms_test (u, results)
+       call resonance_insertion_test (u, results)
+       call recoil_kinematics_test (u, results)
+       call isr_handler_test (u, results)
+       call epa_handler_test (u, results)
+       call decays_test (u, results)
+       call shower_test (u, results)
+       call events_test (u, results)
+       call hep_events_test (u, results)
+       call eio_data_test (u, results)
+       call eio_base_test (u, results)
+       call eio_direct_test (u, results)
+       call eio_raw_test (u, results)
+       call eio_checkpoints_test (u, results)
+       call eio_lhef_test (u, results)
+       call eio_hepmc_test (u, results)
+       call eio_lcio_test (u, results)
+       call eio_stdhep_test (u, results)
+       call eio_ascii_test (u, results)
+       call eio_weights_test (u, results)
+       call eio_dump_test (u, results)
+       call iterations_test (u, results)
+       call beam_structures_test (u, results)
+       call rt_data_test (u, results)
+       call dispatch_test (u, results)
+       call dispatch_rng_test (u, results)
+       call dispatch_mci_test (u, results)
+       call dispatch_phs_test (u, results)
+       call dispatch_transforms_test (u, results)
+       call shower_base_test (u, results)
+       call process_configurations_test (u, results)
+       call compilations_test (u, results)
+       call compilations_static_test (u, results)
+       call integrations_test (u, results)
+       call integrations_history_test (u, results)
+       call event_streams_test (u, results)
+       call restricted_subprocesses_test (u, results)
+       call simulations_test (u, results)
+       call commands_test (u, results)
+       call ttv_formfactors_test (u, results)
+       call api_test (u, results)
+       call api_hepmc_test (u, results)
+       call api_lcio_test (u, results)
+    case default
+       call msg_fatal ("Self-test '" // char (check) // "' not implemented.")
+    end select
+    close (u)
+  end subroutine whizard_check
+
+
+end program main_ut
+
+!!! (WK 02/2016)
+!!! Separate subroutine, because this becomes a procedure pointer target
+!!! Internal procedures as targets are not supported by some compilers.
+
+  subroutine print_usage ()
+    use system_dependencies, only: WHIZARD_VERSION
+    print "(A)", "WHIZARD " // WHIZARD_VERSION // " (unit test driver)"
+    print "(A)", "Usage: whizard_ut [OPTIONS] [FILE]"
+    print "(A)", "Run WHIZARD unit tests as given on the command line"
+    print "(A)", "Options:"
+    print "(A)", "-h, --help            display this help and exit"
+    print "(A)", "    --banner          display banner at startup (default)"
+    print "(A)", "    --no-banner       do not display banner at startup"
+    print "(A)", "    --debug AREA      switch on debug output for AREA."
+    print "(A)", "                      AREA can be one of Whizard's src dirs or 'all'"
+    print "(A)", "    --debug2 AREA     switch on more verbose debug output for AREA."
+    print "(A)", "-V, --version         output version information and exit"
+    print "(A)", "    --check TEST      run unit test TEST"
+  end subroutine print_usage

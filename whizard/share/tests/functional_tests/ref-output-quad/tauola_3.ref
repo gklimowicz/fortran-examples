@@ -1,0 +1,171 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Process library 'tauola_3_lib': recorded process 'tauola_3'
+| Process library 'tauola_3_lib': compiling ...
+| Process library 'tauola_3_lib': writing makefile
+| Process library 'tauola_3_lib': removing old files
+| Process library 'tauola_3_lib': writing driver
+| Process library 'tauola_3_lib': creating source code
+| Process library 'tauola_3_lib': compiling sources
+| Process library 'tauola_3_lib': linking
+| Process library 'tauola_3_lib': loading
+| Process library 'tauola_3_lib': ... success.
+openmp_num_threads = 1
+seed = 0
+?ps_fsr_active = true
+?hadronization_active = true
+$shower_method = "PYTHIA6"
+?ps_taudec_active = true
+| Particle tau- declared as polarized
+| Particle tau+ declared as polarized
+| Particle W+ declared as polarized
+| Particle W- declared as polarized
+| Particle Z declared as polarized
+?polarized_events = true
+sqrts =  2.50000E+02
+$beam_events_file = "uniform_spread_2.5%.dat"
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process tauola_3:
+| Beam structure: e-, e+ => beam_events => isr
+|   polarization (beam 1):
+|     @(-1: -1: ( 1.000000000000E+00, 0.000000000000E+00))
+|   polarization (beam 2):
+|     @(+1: +1: ( 1.000000000000E+00, 0.000000000000E+00))
+|   polarization degree = 1.0000000, 1.0000000
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)  polarized
+|   e+  (mass = 5.1099700E-04 GeV)  polarized
+|   sqrts = 2.500000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'tauola_3.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'tauola_3'
+|   Library name  = 'tauola_3_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'tauola_3_i1':   e-, e+ => tau-, tau+, tau-, tau+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 120 channels, 8 dimensions
+| Phase space: found 120 channels, collected in 12 groves.
+| Phase space: Using 768 equivalences between channels.
+| Phase space: wood
+| Beam structure: beam_events => isr, none => none, isr
+| Beam structure: 2 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Starting integration for process 'tauola_3'
+| Integrate: iterations = 1:1200:"gw"
+| Integrator: 12 chains, 120 channels, 10 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1200 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1200     1.214E+01   8.61E-01    7.09    2.46    23.0
+|-----------------------------------------------------------------------------|
+   1       1200     1.214E+01   8.61E-01    7.09    2.46    23.0
+|=============================================================================|
+| Name clash for global logfile and process log:
+| Renaming log file from tauola_3.log
+|   to tauola_3.var.log .
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+?write_raw = false
+n_events = 1
+$sample = "tauola_3_p1"
+| Starting simulation for process 'tauola_3'
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Simulate: using integration grids from file 'tauola_3.m1.vg'
+| Simulate: activating parton shower
+| Shower: Using PYTHIA6 shower
+| Simulate: activating hadronization
+| Hadronization: Using PYTHIA6 interface for hadronization and decays
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   8.2372E-02
+| Events: writing to STDHEP file 'tauola_3_p1.ev4.hep'
+| Events: generating 1 unweighted, polarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing STDHEP file 'tauola_3_p1.ev4.hep'
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+STDHEP EV4 version:
+==================================================== 
+ WHIZARD StdHep Reader : 
+ opened file : tauola_3_p1.ev4.hep
+====== File Header ===========
+    total blocks: [...]
+         version: 2.01
+           title: WHIZARD [version]
+         comment: No comment
+            date: [...]
+    closing date: [...]
+ expected events: 1
+          events: 3
+      firstTable: -1
+        dimTable: 100
+        nNTuples: 0
+         nBlocks: 8
+     block names:
+                :  Standard HEP COMMON block, see STDHEP Product
+                :  Standard HEP COMMON block with multiple interaction, see STDHEP Product
+                :  Stdhep begin run record, see STDHEP Product
+                :  Stdhep end run record, see STDHEP Product
+                :  Standard HEP COMMON block with Les Houches, see STDHEP Product
+                :  Standard HEP COMMON block with Les Houches and multiple interaction
+                :  Les Houches HEPEUP common block
+                :  Les Houches HEPRUP common block
+=============================
+Process ID = 1   Weight = 1     Scale = 253.512     aQED = -1     aQCD = 0.1178
+ Event #0
+[   id   ]index|      PDG |q(el)|    px,      py,        pz    | energy  |   mass  |sta| vertex x,     y   ,   z     |              spin           | colorflow | [daughters]
+[00000000]    0|        11|-1.00| 0.00e+00, 0.00e+00,  1.28e+02| 1.28e+02| 5.11e-04| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 2, 2 ]
+[00000001]    1|       -11| 1.00| 0.00e+00, 0.00e+00, -1.25e+02| 1.25e+02| 5.11e-04| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 3, 3 ]
+[00000002]    2|        11|-1.00| 0.00e+00, 0.00e+00,  1.28e+02| 1.28e+02| 5.11e-04| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 4, 7 ]
+[00000003]    3|       -11| 1.00| 0.00e+00, 0.00e+00, -1.25e+02| 1.25e+02| 5.11e-04| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 4, 7 ]
+[00000004]    4|        15|-1.00| 6.34e+01, 3.25e+01,  7.59e+01| 1.04e+02| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00,-1.00e+00|  (0, 0)   | [ 10, 11 ]
+[00000005]    5|       -15| 1.00|-2.31e+01,-2.07e+01,  2.58e+01| 4.04e+01| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 1.00e+00|  (0, 0)   | [ 8, 8 ]
+[00000006]    6|        15|-1.00|-2.24e+00, 1.34e+00, -2.19e+01| 2.21e+01| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00,-1.00e+00|  (0, 0)   | [ 12, 13 ]
+[00000007]    7|       -15| 1.00|-3.80e+01,-1.32e+01, -7.71e+01| 8.70e+01| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 1.00e+00|  (0, 0)   | [ 9, 9 ]
+[00000008]    8|       -15| 1.00|-2.30e+01,-2.05e+01,  2.56e+01| 4.01e+01| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 1.00e+00|  (0, 0)   | [ 14, 15 ]
+[00000009]    9|       -15| 1.00|-3.78e+01,-1.31e+01, -7.65e+01| 8.64e+01| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 1.00e+00|  (0, 0)   | [ 19, 21 ]
+[00000010]   10|        15|-1.00| 6.40e+01, 3.07e+01,  7.44e+01| 1.03e+02| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00,-1.00e+00|  (0, 0)   | [ 22, 23 ]
+[00000011]   11|        22| 0.00|-1.01e+00, 1.58e+00,  9.20e-01| 2.08e+00| 0.00e+00| 1 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000012]   12|        15|-1.00|-1.61e+00, 1.05e+00, -2.11e+01| 2.12e+01| 1.78e+00| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00,-1.00e+00|  (0, 0)   | [ 26, 27 ]
+[00000013]   13|        22| 0.00|-6.16e-01, 2.81e-01, -6.41e-01| 9.33e-01| 0.00e+00| 1 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000014]   14|       -16| 0.00|-6.61e+00,-5.29e+00,  7.06e+00| 1.10e+01| 1.00e-02| 1 |-9.21e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000015]   15|     20213| 1.00|-1.64e+01,-1.52e+01,  1.85e+01| 2.91e+01| 1.24e+00| 2 |-9.21e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 16, 18 ]
+[00000016]   16|       111| 0.00|-2.18e+00,-2.05e+00,  2.19e+00| 3.71e+00| 1.35e-01| 2 |-9.21e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 30, 31 ]
+[00000017]   17|       111| 0.00|-2.38e+00,-2.64e+00,  2.92e+00| 4.61e+00| 1.35e-01| 2 |-9.21e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 32, 33 ]
+[00000018]   18|       211| 1.00|-1.18e+01,-1.05e+01,  1.34e+01| 2.07e+01| 1.40e-01| 1 |-9.21e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000019]   19|       -16| 0.00|-2.93e-01,-1.68e-01, -4.27e-01| 5.45e-01| 1.00e-02| 1 |-5.45e-01,-1.89e-01,-1.10e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000020]   20|       -11| 1.00|-3.69e+01,-1.26e+01, -7.46e+01| 8.41e+01| 5.11e-04| 1 |-5.45e-01,-1.89e-01,-1.10e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000021]   21|        12| 0.00|-6.20e-01,-3.04e-01, -1.55e+00| 1.70e+00| 0.00e+00| 1 |-5.45e-01,-1.89e-01,-1.10e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000022]   22|        16| 0.00| 4.39e+01, 2.06e+01,  5.03e+01| 6.99e+01| 1.00e-02| 1 | 6.43e-01, 3.08e-01, 7.48e-01| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000023]   23|      -213|-1.00| 2.00e+01, 1.01e+01,  2.41e+01| 3.29e+01| 6.99e-01| 2 | 6.43e-01, 3.08e-01, 7.48e-01| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 24, 25 ]
+[00000024]   24|      -211|-1.00| 9.71e+00, 4.62e+00,  1.12e+01| 1.56e+01| 1.40e-01| 1 | 6.43e-01, 3.08e-01, 7.48e-01| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000025]   25|       111| 0.00| 1.03e+01, 5.51e+00,  1.28e+01| 1.74e+01| 1.35e-01| 2 | 6.43e-01, 3.08e-01, 7.48e-01| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 34, 35 ]
+[00000026]   26|        16| 0.00|-1.60e-01,-3.89e-01, -2.96e+00| 2.99e+00| 1.00e-02| 1 |-1.09e-03, 7.13e-04,-1.43e-02| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000027]   27|      -213|-1.00|-1.45e+00, 1.44e+00, -1.81e+01| 1.82e+01| 7.93e-01| 2 |-1.09e-03, 7.13e-04,-1.43e-02| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 28, 29 ]
+[00000028]   28|      -211|-1.00|-5.95e-01, 7.93e-01, -5.89e+00| 5.98e+00| 1.40e-01| 1 |-1.09e-03, 7.13e-04,-1.43e-02| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000029]   29|       111| 0.00|-8.50e-01, 6.48e-01, -1.22e+01| 1.23e+01| 1.35e-01| 2 |-1.09e-03, 7.13e-04,-1.43e-02| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 36, 37 ]
+[00000030]   30|        22| 0.00|-2.06e+00,-1.97e+00,  2.05e+00| 3.51e+00| 0.00e+00| 1 |-9.22e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000031]   31|        22| 0.00|-1.20e-01,-8.84e-02,  1.39e-01| 2.04e-01| 0.00e+00| 1 |-9.22e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000032]   32|        22| 0.00|-1.85e+00,-2.01e+00,  2.18e+00| 3.49e+00| 0.00e+00| 1 |-9.21e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000033]   33|        22| 0.00|-5.33e-01,-6.31e-01,  7.44e-01| 1.11e+00| 0.00e+00| 1 |-9.21e-01,-8.22e-01, 1.03e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000034]   34|        22| 0.00| 1.04e+00, 5.21e-01,  1.31e+00| 1.75e+00| 0.00e+00| 1 | 6.45e-01, 3.10e-01, 7.51e-01| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000035]   35|        22| 0.00| 9.29e+00, 4.99e+00,  1.15e+01| 1.56e+01| 0.00e+00| 1 | 6.45e-01, 3.10e-01, 7.51e-01| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000036]   36|        22| 0.00|-6.26e-02, 8.01e-02, -8.59e-01| 8.65e-01| 0.00e+00| 1 |-1.14e-03, 7.51e-04,-1.50e-02| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000037]   37|        22| 0.00|-7.87e-01, 5.67e-01, -1.13e+01| 1.14e+01| 0.00e+00| 1 |-1.14e-03, 7.51e-04,-1.50e-02| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 0, 0 ]
+  converted 1 events - written to stdout
+==================================================== 
+

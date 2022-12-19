@@ -1,0 +1,117 @@
+* Test output: commands_6
+*   Purpose: define and set variables
+
+*  Initialization
+
+$run_id = ""
+?unweighted = true
+sqrts = [undefined]
+
+*  Input file
+
+$run_id = "run1"
+?unweighted = false
+sqrts = 1000
+int j = 10
+real x = 1000.
+complex z = 5
+string $text = "abcd"
+logical ?flag = true
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_string> <cmd_log> <cmd_num> <cmd_int> <cmd_real> <cmd_complex> <cmd_string_decl> <cmd_log_decl>
+|  +  <cmd_string>  =  '$' <var_name> '=' <sexpr>
+|  |  +  '$'  = [keyword] $
+|  |  +  <var_name>  = run_id
+|  |  +  '='  = [keyword] =
+|  |  +  <sexpr>  =  <string_literal>
+|  |  |  +  <string_literal>  = "run1"
+|  +  <cmd_log>  =  '?' <var_name> '=' <lexpr>
+|  |  +  '?'  = [keyword] ?
+|  |  +  <var_name>  = unweighted
+|  |  +  '='  = [keyword] =
+|  |  +  <lexpr>  =  <lsinglet>
+|  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  +  <lterm>  =  false
+|  |  |  |  |  +  false  = [keyword] false
+|  +  <cmd_num>  =  <var_name> '=' <expr>
+|  |  +  <var_name>  = sqrts
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  +  <integer_literal>  = 1000
+|  +  <cmd_int>  =  int <var_name> '=' <expr>
+|  |  +  int  = [keyword] int
+|  |  +  <var_name>  = j
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  +  <integer_literal>  = 10
+|  +  <cmd_real>  =  real <var_name> '=' <expr>
+|  |  +  real  = [keyword] real
+|  |  +  <var_name>  = x
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <real_value>
+|  |  |  |  |  +  <real_value>  =  <real_literal>
+|  |  |  |  |  |  +  <real_literal>  =  1.000000000000E+03
+|  +  <cmd_complex>  =  complex <var_name> '=' <expr>
+|  |  +  complex  = [keyword] complex
+|  |  +  <var_name>  = z
+|  |  +  '='  = [keyword] =
+|  |  +  <expr>  =  <term>
+|  |  |  +  <term>  =  <factor>
+|  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  +  <integer_literal>  = 5
+|  +  <cmd_string_decl>  =  string <cmd_string>
+|  |  +  string  = [keyword] string
+|  |  +  <cmd_string>  =  '$' <var_name> '=' <sexpr>
+|  |  |  +  '$'  = [keyword] $
+|  |  |  +  <var_name>  = text
+|  |  |  +  '='  = [keyword] =
+|  |  |  +  <sexpr>  =  <string_literal>
+|  |  |  |  +  <string_literal>  = "abcd"
+|  +  <cmd_log_decl>  =  logical <cmd_log>
+|  |  +  logical  = [keyword] logical
+|  |  +  <cmd_log>  =  '?' <var_name> '=' <lexpr>
+|  |  |  +  '?'  = [keyword] ?
+|  |  |  +  <var_name>  = flag
+|  |  |  +  '='  = [keyword] =
+|  |  |  +  <lexpr>  =  <lsinglet>
+|  |  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  |  +  <lterm>  =  true
+|  |  |  |  |  |  +  true  = [keyword] true
+
+* Compile command list
+
+ var: $run_id (string, intrinsic)
+ var: ?unweighted (logical, intrinsic)
+ var: sqrts (real, intrinsic)
+ var: j (int)
+ var: x (real)
+ var: z (complex)
+ var: $text (string)
+ var: ?flag (logical)
+
+* Execute command list
+
+$run_id = "run1"
+?unweighted = false
+sqrts =  1.000000000000E+03
+[user variable] j = 10
+[user variable] x =  1.000000000000E+03
+[user variable] z = ( 5.000000000000E+00, 0.000000000000E+00)
+[user variable] $text = "abcd"
+[user variable] ?flag = true
+
+* Cleanup
+
+* Test output end: commands_6

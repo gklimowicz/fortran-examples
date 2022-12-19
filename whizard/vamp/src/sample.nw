@@ -1,0 +1,281 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP sample code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Example}
+\label{sec:sample}
+<<[[sample.f90]]>>=
+! sample.f90 --
+<<Copyleft notice>>
+module sample_functions
+  use kinds
+  use vamp, only: vamp_sum_channels
+  private
+  <<Declaration of [[sample]] procedures>>
+  <<Variables in [[sample]]>>
+contains
+  <<Implementation of [[sample]] procedures>>
+end module sample_functions
+@
+\begin{equation}
+  \begin{aligned}
+    \psi_i: [0,1]^{\otimes N} &\to     [0,1]^{\otimes N} \\
+          (\ldots,x_i,\ldots) &\mapsto
+             (\ldots, x^0_i + a_i\cdot\tan\left(
+                                  x_i\cdot\atan\frac{1-x^0_i}{a_i}
+                                  - (1-x_i)\cdot\atan\frac{x^0_i}{a_i}
+                                \right),\ldots)
+  \end{aligned}
+\end{equation}
+<<Implementation of [[sample]] procedures>>=
+_elemental_(function psi) (x, x0, a) result (psi_x)
+  real(kind=default), intent(in) :: x, x0, a
+  real(kind=default) :: psi_x
+  psi_x = x0 &
+       + a * tan (x * atan ((1 - x0) / a) - (1 - x) * atan (x0 / a))
+end function psi
+@ %def psi
+@
+<<Declaration of [[sample]] procedures>>=
+private :: psi
+@ %def psi
+@ 
+\begin{subequations}
+their compositions
+\begin{equation}
+  \phi_i = \psi_{k^i_1} \circ \ldots \circ \psi_{k^i_j}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+  \phi_{n+1}: [0,1]^{\otimes N} &\to     [0,1]^{\otimes N} \\
+              x                 &\mapsto x
+\end{aligned}
+\end{equation}
+\end{subequations}
+<<Implementation of [[sample]] procedures>>=
+_pure(function phi) (x, channel) result (phi_x)
+  real(kind=default), dimension(:), intent(in) :: x
+  integer, intent(in) :: channel
+  real(kind=default), dimension(size(x)) :: phi_x
+  integer :: i
+  if (channel >= 1 .and. channel <= size (C)) then
+     do i = 1, size (x)
+        if (A(i,channel) >= 0) then
+           phi_x(i) = psi (x(i), X0(i,channel), A(i,channel))
+        else
+           phi_x(i) = x(i)
+        end if
+     end do
+  else if (channel == size (C) + 1) then
+     phi_x = x
+  end if
+end function phi
+@ %def phi
+@ 
+<<Variables in [[sample]]>>=
+integer, private, parameter :: ND = 5, NC = 10
+real(kind=default), dimension(ND,NC), public :: A, X0
+real(kind=default), dimension(NC), public :: C
+@
+<<Define [[X0]], [[A]] and [[C]]>>=
+A = 0.001
+X0(4:,:) = 0.0
+do i = 1, size (C)
+   X0(1:3,i) = 0.25 + 0.5 * real (i) / size (C)
+   C(i) = real (i)
+end do
+@
+<<Declaration of [[sample]] procedures>>=
+public :: phi
+@ %def phi
+@ The inverse mappings are simply
+\begin{subequations}
+\begin{equation}
+\begin{aligned}
+  \psi_i^{-1}: [0,1]^{\otimes N}     &\to     [0,1]^{\otimes N} \\
+               (\ldots,\xi_i,\ldots) &\mapsto
+                 (\ldots,
+                   \frac{\atan\frac{\xi_i-x^0_i}{a_i}
+                           + \atan\frac{x^0_i}{a_i}}%
+                        {\atan\frac{1-x^0_i}{a_i}
+                           + \atan\frac{x^0_i}{a_i}},
+                  \ldots)
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+  \phi_{n+1}^{-1}: [0,1]^{\otimes N} &\to     [0,1]^{\otimes N} \\
+                   \xi               &\mapsto \xi
+\end{aligned}
+\end{equation}
+\end{subequations}
+Using
+\begin{equation}
+  J_{\psi_i^{-1}}(\xi)
+      = \frac{\partial\psi_i^{-1}(\xi)}{\partial(\xi)}
+      = \frac{1}{J_{\psi_i}(\phi^{-1}(\xi))}
+\end{equation}
+i.e.
+\begin{subequations}
+\begin{align}
+  J_{\phi_i^{-1}}(\xi)     &=
+      \frac{a_i}{\atan\frac{1-x^0_i}{a_i} + \atan\frac{x^0_i}{a_i}}
+      \,\frac{1}{(\xi-x^0_i)^2 + a_i^2} \\
+  J_{\phi_{n+1}^{-1}}(\xi) &= 1
+\end{align}
+\end{subequations}
+<<Implementation of [[sample]] procedures>>=
+_elemental_(function g0) (x, x0, a) result (g0_x)
+  real(kind=default), intent(in) :: x, x0, a
+  real(kind=default) :: g0_x
+  g0_x = a / (atan ((1 - x0) / a) + atan (x0 / a)) &
+           / ((x - x0)**2 + a**2)
+end function g0
+@ %def g0
+@
+<<Declaration of [[sample]] procedures>>=
+private :: g0
+@ 
+<<Implementation of [[sample]] procedures>>=
+_pure(recursive function g) (x, weights, channel) result (g_x)
+  real(kind=default), dimension(:), intent(in) :: x, weights
+  integer, intent(in) :: channel
+  real(kind=default) :: g_x
+  integer :: i, ch
+  if (channel == 0) then
+     <<$[[g_x]] = \sum_i\alpha_ig_i(x)$>>
+  else if (channel >= 1 .and. channel <= size (C)) then
+     g_x = 1.0
+     do i = 1, size (x)
+        if (A(i,channel) >= 0) then
+           g_x = g_x * g0 (x(i), X0(i,channel), A(i,channel))
+        end if
+     end do
+  else if (channel == size (C) + 1) then
+     g_x = 1.0
+  end if
+end function g
+@ %def g
+@
+<<Declaration of [[sample]] procedures>>=
+public :: g
+@ 
+<<$[[g_x]] = \sum_i\alpha_ig_i(x)$ (defensive programming)>>=
+g_x = 0.0
+do ch = 1, size (weights)
+   g_x = g_x + weights(ch) * g (x, weights, ch)
+end do
+@ More elegant, but an error in the Fortran standard caused some
+implementations to forbid it:
+<<$[[g_x]] = \sum_i\alpha_ig_i(x)$>>=
+g_x = vamp_sum_channels (x, weights, g)
+@
+\begin{equation}
+  f(x) = \sum_i\, \frac{a_i}{\atan\frac{1-x^0_i}{a_i}
+                              + \atan\frac{x^0_i}{a_i}}
+                \,\frac{c_i}{(x_i-x^0_i)^2 + a_i^2}
+\end{equation}
+<<Implementation of [[sample]] procedures>>=
+_pure(function f) (x, weights, channel) result (f_x)
+  real(kind=default), dimension(:), intent(in) :: x
+  real(kind=default), dimension(:), intent(in), optional :: weights
+  integer, intent(in), optional :: channel
+  real(kind=default) :: f_x
+  integer :: i
+  f_x = 0.0
+  do i = 1, size (C)
+     f_x = f_x + C(i) * g (x, (/ 0.0_double /), i)
+  end do
+end function f
+@ %def f
+@
+<<Declaration of [[sample]] procedures>>=
+public :: f
+@ %def f
+@
+<<Implementation of [[sample]] procedures>>=
+_pure(function w) (x, weights, channel) result (w_x)
+  real(kind=default), dimension(:), intent(in) :: x
+  real(kind=default), dimension(:), intent(in), optional :: weights
+  integer, intent(in), optional :: channel
+  real(kind=default) :: w_x
+  real(kind=default), dimension(size(x)) :: x_prime
+  integer :: ch
+  if (present (channel)) then
+     ch = channel
+  else
+     ch = 0
+  end if
+  if (ch > 0) then
+     x_prime = phi (x, ch)
+     w_x = f (x_prime) / g (x_prime, weights, 0)
+  else if (ch < 0) then
+     x_prime = phi (x, -ch)
+     w_x = g (x_prime, weights, -ch) / g (x_prime, weights, 0)
+  else
+     w_x = f (x)
+  end if
+end function w
+@ %def w
+@
+<<Declaration of [[sample]] procedures>>=
+public :: w
+@ %def w
+@ 
+<<[[sample.f90]]>>=
+program sample
+  use kinds
+  use sample_functions !NODEP!
+  use vamp
+  use tao_random_numbers
+  logical :: mc, quadrupole
+  real(kind=default), dimension(2,size(A,dim=1)) :: region
+  real(kind=default) :: integral, standard_dev, chi_squared
+  integer :: i, it
+  integer, dimension(2,2) :: calls
+  integer, dimension(2,2,3) :: callsx
+  real(kind=default), dimension(size(C)+1) :: weight_vector
+  type(vamp_grids) :: gr
+  type(tao_random_state) :: rng
+  call tao_random_create (rng, 0)
+  read *, mc, quadrupole
+  region(1,:) = 0.0
+  region(2,:) = 1.0
+  <<Define [[X0]], [[A]] and [[C]]>>
+  weight_vector = 1.0
+  if (mc) then
+     print *, "going multi channel ..."
+     call vamp_create_grids (gr, region, 10000, weight_vector, quadrupole = quadrupole)
+     call vamp_sample_grids (rng, gr, w, 4)
+     call vamp_discard_integrals (gr, 100000)
+     do it = 1, 3
+        call vamp_sample_grids (rng, gr, w, 1, integral, standard_dev)
+        print *, integral, standard_dev
+        call vamp_refine_weights (gr)
+     end do
+     call vamp_discard_integrals (gr, 500000)
+     call vamp_sample_grids (rng, gr, w, 2, integral, standard_dev)
+     print *, integral, standard_dev
+  else
+     print *, "going single channel ..."
+     calls(:,1) = (/ 4, 100000 /)
+     calls(:,2) = (/ 6, 100000 /)
+     call vamp_integrate (rng, region, f, calls, integral, &
+                         standard_dev, chi_squared, quadrupole = quadrupole)
+     print *, integral, standard_dev, chi_squared
+     if (.true.) then
+     print *, "revolving ..."
+     callsx(:,1,1:2) = spread ((/ 4,  10000 /), dim = 2, ncopies = 2)
+     callsx(:,2,1:2) = spread ((/ 1, 100000 /), dim = 2, ncopies = 2)
+     callsx(:,:,3) = calls
+     call vamp_integratex (rng, region, f, callsx, integral, &
+                          standard_dev, chi_squared, quadrupole = quadrupole)
+     print *, integral, standard_dev, chi_squared
+     end if
+  endif
+  print *, "expected: ", sum (C)
+end program sample
+@
+<<Sample output>>=
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

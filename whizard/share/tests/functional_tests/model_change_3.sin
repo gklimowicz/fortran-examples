@@ -1,0 +1,23 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+model = QED
+process model_change_3p = e1, E1 => e2, E2
+compile
+
+sqrts = 200 GeV
+
+# Regression test (error: "variable '$model_name' is unknown" from 'integrate' inside scan)
+scan int i = (1) {
+
+    iterations = 1:100  # Defining a local setting to integrate makes the error go away!
+    integrate (model_change_3p) # {iterations = 1:100}
+    simulate (model_change_3p) { n_events = 1 }
+
+}

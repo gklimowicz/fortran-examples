@@ -1,0 +1,16 @@
+include("nlo_settings.sin")
+
+alpha_power = 3
+alphas_power = 0
+
+real R_0 = 0.7
+alias tops = t:T
+
+!!! No jets -> No photon isolation. Just use the Pt and Eta cuts on the photon
+cuts = all abs(Pt) > 20 GeV [A] and all abs(Eta) < 2 [A]
+
+scale = eval Ht/2 [t:T:A]
+
+#?combined_nlo_integration = true
+process nlo_eetta_p1 = e1, E1 => t, T, A { nlo_calculation = full }
+integrate (nlo_eetta_p1) { iterations = 1:100:"gw" }

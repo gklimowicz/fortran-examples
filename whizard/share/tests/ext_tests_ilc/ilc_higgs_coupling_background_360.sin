@@ -1,0 +1,29 @@
+include("ilc_settings.sin")
+
+!! Table 7. Cross sections for e+ e- -> mu- mu+ b bbar b bbar with all contributions due to intermediate Higgs bosons left out.
+!! Expected runtime: ~4 h
+
+process higgs_coupling_background_360_noqcd = e1, E1 => e2, E2, b, B, b, B { $restrictions = "^gs && !H && ^ghgg:ghgaga:ghgaz" }
+process higgs_coupling_background_360_qcd   = e1, E1 => e2, E2, b, B, b, B { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 360 GeV
+alphas = 0.0925
+
+sqrts = 360 GeV
+beams = e1, E1
+
+$run_id = "360"
+
+integrate(higgs_coupling_background_360_noqcd,
+          higgs_coupling_background_360_qcd)
+
+tolerance = 2 * sqrt( error(higgs_coupling_background_360_noqcd)**2 + 6e-06**2 )
+expect(integral(higgs_coupling_background_360_noqcd) == 0.002944)
+tolerance = 2 * sqrt( error(higgs_coupling_background_360_qcd)**2 + 1.4e-05**2 )
+expect(integral(higgs_coupling_background_360_qcd) == 0.007245)
+
+show(results)

@@ -1,0 +1,65 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+$method = "omega"
+| Process library 'qcdtest_1_lib': recorded process 'qcdtest_1_p1'
+| Process library 'qcdtest_1_lib': compiling ...
+| Process library 'qcdtest_1_lib': writing makefile
+| Process library 'qcdtest_1_lib': removing old files
+| Process library 'qcdtest_1_lib': writing driver
+| Process library 'qcdtest_1_lib': creating source code
+| Process library 'qcdtest_1_lib': compiling sources
+| Process library 'qcdtest_1_lib': linking
+| Process library 'qcdtest_1_lib': loading
+| Process library 'qcdtest_1_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process qcdtest_1_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   gl  (mass = 0.0000000E+00 GeV)
+|   gl  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'qcdtest_1_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'qcdtest_1_p1'
+|   Library name  = 'qcdtest_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'qcdtest_1_p1_i1':   gl, gl => u, ubar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'qcdtest_1_p1'
+| Integrate: iterations = 3:1000:"g", 3:1000
+| Integrator: 2 chains, 5 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  1.6032382E+04  2.75E+02    1.71    0.54*  26.61
+   2       1000  1.6322485E+04  2.41E+02    1.48    0.47*  37.24
+   3       1000  1.6804478E+04  2.11E+02    1.25    0.40*  37.25
+|-----------------------------------------------------------------------------|
+   3       3000  1.6454809E+04  1.37E+02    0.83    0.46   37.25    2.71   3
+|-----------------------------------------------------------------------------|
+   4       1000  1.6160060E+04  1.97E+02    1.22    0.39*  35.75
+   5       1000  1.5817144E+04  1.96E+02    1.24    0.39   34.79
+   6       1000  1.6308253E+04  1.86E+02    1.14    0.36*  35.83
+|-----------------------------------------------------------------------------|
+   6       3000  1.6102367E+04  1.11E+02    0.69    0.38   35.83    1.72   3
+|=============================================================================|
+| WHIZARD run finished.
+|=============================================================================|

@@ -1,0 +1,28 @@
+# SINDARIN input for WHIZARD self-test
+# Testing integration LO RECOLA with QCD-only part of mixed
+#   QCD+EW process
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$method = "recola"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+# RECOLA needs to know the alpha_s power of the process
+# This time it gives only the alphas^2 part, but not
+alphas_power = 2
+
+process recola_4_p1 = u, U => t, T
+
+seed = 1
+
+sqrts = 500 GeV
+iterations = 1:100
+integrate (recola_4_p1)

@@ -1,0 +1,47 @@
+# SINDARIN input for WHIZARD self-test
+# Testing complete NLO calculation of ee -> t tbar
+# using dummy-output for virtual matrix elements
+# without cuts in the combined-integration mode and producing an NLO event 
+
+model = "SM"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$loop_me_method = "dummy"
+?combined_nlo_integration = true
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+!!! Final-state top quarks are on-shell, set width to zero
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = false
+?alphas_from_mz = true
+
+process nlo_4_p1 = E1, e1 => t, T { nlo_calculation = full }
+
+seed = 2222
+
+sqrts = 500 GeV
+
+integrate (nlo_4_p1) { iterations = 1:100:"gw" }
+
+n_events = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+?fixed_order_nlo_events = true
+?unweighted = false
+
+simulate (nlo_4_p1)

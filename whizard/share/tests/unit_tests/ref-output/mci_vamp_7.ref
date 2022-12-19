@@ -1,0 +1,110 @@
+* Test output: mci_vamp_7
+*   Purpose: check effect of channel equivalences
+
+* Initialize integrator, sampler, instance
+
+ Two-channel test sampler 3
+   a =  0.70
+   b =  0.30
+
+* Integrate with n_it = 2 and n_calls = 1000, adapt grids
+
+ VAMP integrator:
+   Integral             =  1.0002027295E+00
+   Error                =  3.9437934619E-03
+   Efficiency           =  6.9539437616E-01
+   Number of channels   = 2
+   Number of dimensions = 1
+ Grid parameters:
+   threshold_calls       = 0
+   min_calls_per_channel = 10
+   min_calls_per_bin     = 10
+   min_bins              = 3
+   max_bins              = 20
+   stratified            = F
+   use_vamp_equivalences = F
+   channel_weights_power =  0.2500000
+   min_calls             = 20
+   negative weights      = F
+   verbose               = F
+ Integration pass:
+   n_it          = 2
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = T
+   adapt weights = F
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  1.0088530962E+00  3.4375735070E-03  7.2121395531E-01
+     2 1000 1000  1.0002027295E+00  3.9437934619E-03  6.9539437616E-01
+ MD5 sum (including results) = '6205E35B2BFFFB18E3A8BA41A67A838A'
+
+* Write grids and extract binning
+
+ Equal binning in both channels = F
+
+* Cleanup
+
+* Re-initialize integrator, instance
+
+* Define equivalences
+
+ 1: 1
+     = 1 (1+)
+     = 2 (1+)
+ 2: 1
+     = 1 (1+)
+     = 2 (1+)
+
+* Integrate with n_it = 2 and n_calls = 1000, adapt grids
+
+ VAMP integrator:
+   Integral             =  9.9977448991E-01
+   Error                =  3.7774467176E-03
+   Efficiency           =  6.9313634831E-01
+   Number of channels   = 2
+   Number of dimensions = 1
+ Grid parameters:
+   threshold_calls       = 0
+   min_calls_per_channel = 10
+   min_calls_per_bin     = 10
+   min_bins              = 3
+   max_bins              = 20
+   stratified            = F
+   use_vamp_equivalences = T
+   channel_weights_power =  0.2500000
+   min_calls             = 20
+   negative weights      = F
+   verbose               = F
+ Inequivalent channels:
+   Channel 1:    Mult. = 2    Symm. = 1    Invar.: F
+ Equivalence list:
+   Equivalent channels: 1 1
+     Permutation: 1
+     Mode:        0
+   Equivalent channels: 1 2
+     Permutation: 1
+     Mode:        0
+   Equivalent channels: 2 1
+     Permutation: 1
+     Mode:        0
+   Equivalent channels: 2 2
+     Permutation: 1
+     Mode:        0
+ Integration pass:
+   n_it          = 2
+   n_calls       = 1000
+   n_bins        = 20
+   adapt grids   = T
+   adapt weights = F
+   Results:  [it, calls, valid, integral, error, efficiency]
+     1 1000 1000  1.0088530962E+00  3.4375735070E-03  7.2121395531E-01
+     2 1000 1000  9.9977448991E-01  3.7774467176E-03  6.9313634831E-01
+ MD5 sum (including results) = '93D7FE1CBA3F573B92759BB4B77A3D5F'
+
+* Write grids and extract binning
+
+ Equal binning in both channels = T
+
+* Cleanup
+
+* Test output end: mci_vamp_7

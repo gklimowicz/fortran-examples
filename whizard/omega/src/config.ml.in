@@ -1,0 +1,58 @@
+(* config.ml.in --
+
+   Copyright (C) 1999-2022 by
+
+       Wolfgang Kilian <kilian@physik.uni-siegen.de>
+       Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+       Juergen Reuter <juergen.reuter@desy.de>
+       Christian Speckner <cnspeckn@googlemail.com>
+
+   WHIZARD is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   WHIZARD is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  *)
+
+let version = "@PACKAGE_VERSION@"
+let date = "@PACKAGE_DATE@"
+let status = "@PACKAGE_STATUS@"
+
+let default_UFO_dir = "@OMEGA_DEFAULT_UFO_DIR@"
+
+(*i
+let system_cache_dir = "@OMEGA_SYSTEM_CACHE_DIR@"
+let user_cache_dir = "@OMEGA_USER_CACHE_DIR@"
+
+(* \begin{dubious}
+     This relies on the assumption that executable names are unique,
+     which is not true for the UFO version.
+   \end{dubious} *)
+let cache_prefix =
+  let basename = Filename.basename Sys.executable_name in
+  try Filename.chop_extension basename with | _ -> basename
+
+let cache_suffix = "@OMEGA_CACHE_SUFFIX@"
+i*)
+
+let openmp = false
+
+(*i
+ *  Local Variables:
+ *  mode:caml
+ *  indent-tabs-mode:nil
+ *  page-delimiter:"^(\\* .*\n"
+ *  End:
+i*)
+
+
+
+
+

@@ -1,0 +1,386 @@
+! WHIZARD <<Version>> <<Date>>
+! 
+! Copyright (C) 1999-2022 by 
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by 
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+module system_dependencies
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! All character strings indented by 7 blanks will be automatically
+  ! split into chunks respecting the FORTRAN line length constraint by
+  ! configure.
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  @FC_OPENMP_HEADER@
+
+  implicit none
+  public
+ 
+  ! Program version
+  character(*), parameter :: WHIZARD_VERSION = "@PACKAGE_VERSION@"
+  character(*), parameter :: WHIZARD_DATE = "@PACKAGE_DATE@"
+
+  ! System paths
+  ! These are used for testing without existing installation
+  character(*), parameter :: WHIZARD_TEST_BASICS_MODPATH = &
+       "@BUILDDIR@/src/basics"
+  character(*), parameter :: WHIZARD_TEST_UTILITIES_MODPATH = &
+       "@BUILDDIR@/src/utilities"
+  character(*), parameter :: WHIZARD_TEST_COMBINATORICS_MODPATH = &
+       "@BUILDDIR@/src/combinatorics"
+  character(*), parameter :: WHIZARD_TEST_SYSTEM_MODPATH = &
+       "@BUILDDIR@/src/system"
+  character(*), parameter :: WHIZARD_TEST_PHYSICS_MODPATH = &
+       "@BUILDDIR@/src/physics"
+  character(*), parameter :: WHIZARD_TEST_ME_MODPATH = &
+       "@BUILDDIR@/src/matrix_elements"
+  character(*), parameter :: WHIZARD_TEST_MODELS_MODPATH = &
+       "@BUILDDIR@/src/models"
+  character(*), parameter :: WHIZARD_TEST_THRESHOLD_MODPATH = &
+       "@BUILDDIR@/src/threshold"
+  character(*), parameter :: WHIZARD_TEST_OMEGA_MODPATH = &
+       "@BUILDDIR@/omega/src"
+  character(*), parameter :: WHIZARD_TEST_MAIN_LIBPATH = &
+       "@BUILDDIR@/src/main"
+  character(*), parameter :: WHIZARD_TEST_OMEGA_BINPATH = &
+       "@BUILDDIR@/omega/bin"
+  character(*), parameter :: WHIZARD_TEST_SRC_LIBPATH = &
+       "@BUILDDIR@/src"
+  character(*), parameter :: WHIZARD_TEST_HEPMC_LIBPATH = &
+       "@BUILDDIR@/src/hepmc"
+  character(*), parameter :: WHIZARD_TEST_LCIO_LIBPATH = &
+       "@BUILDDIR@/src/lcio"
+  character(*), parameter :: WHIZARD_TEST_HOPPET_LIBPATH = &
+       "@BUILDDIR@/src/hoppet"
+  character(*), parameter :: WHIZARD_TEST_LOOPTOOLS_LIBPATH = &
+       "@BUILDDIR@/src/looptools"
+  character(*), parameter :: WHIZARD_TEST_MODELPATH = &
+       "@SRCDIR@/share/models"
+  character(*), parameter :: WHIZARD_TEST_MODELPATH_UFO = &
+       "@SRCDIR@/share/models/UFO"
+  character(*), parameter :: WHIZARD_TEST_MODELS_LIBPATH = &
+       "@BUILDDIR@/src/models"
+  character(*), parameter :: WHIZARD_TEST_SUSYPATH = &
+       "@SRCDIR@/share/susy"
+  character(*), parameter :: WHIZARD_TEST_GMLPATH= &
+       "@BUILDDIR@/src/gamelan"
+  character(*), parameter :: WHIZARD_TEST_CUTSPATH = &
+       "@SRCDIR@/share/cuts"
+  character(*), parameter :: WHIZARD_TEST_SHAREPATH = &
+       "@SRCDIR@/share"
+  character(*), parameter :: WHIZARD_TEST_TESTDATAPATH = &
+       "@SRCDIR@/share/test"
+  character(*), parameter :: WHIZARD_TEST_TEXPATH = &
+       "@SRCDIR@/src/feynmf"
+  character(*), parameter :: WHIZARD_TEST_CIRCE2PATH = &
+       "@SRCDIR@/circe2/share/data"
+  character(*), parameter :: WHIZARD_TEST_BEAMSIMPATH = &
+       "@SRCDIR@/share/beam-sim"
+  character(*), parameter :: WHIZARD_TEST_MULIPATH = &
+       "@SRCDIR@/share/muli"
+  character(*), parameter :: PDF_BUILTIN_TEST_DATAPATH = &
+       "@SRCDIR@/share/pdf_builtin"
+
+  ! WHIZARD-specific include flags
+  character(*), parameter :: WHIZARD_TEST_INCLUDES = &
+       "-I" // WHIZARD_TEST_MODELS_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_THRESHOLD_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_OMEGA_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_ME_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_PHYSICS_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_SYSTEM_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_COMBINATORICS_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_UTILITIES_MODPATH // " " // &
+       "-I" // WHIZARD_TEST_BASICS_MODPATH // " " // &
+       "@OPENLOOPS_INCLUDES@ @RECOLA_INCLUDES@" 
+
+  ! WHIZARD-specific link flags
+  character(*), parameter :: WHIZARD_TEST_LDFLAGS = &
+       "-L" // WHIZARD_TEST_MAIN_LIBPATH // " " // &
+       "-L" // WHIZARD_TEST_SRC_LIBPATH // " " // &
+       "-L" // WHIZARD_TEST_HEPMC_LIBPATH // " " // &
+       "-L" // WHIZARD_TEST_LCIO_LIBPATH // " " // &
+       "-L" // WHIZARD_TEST_HOPPET_LIBPATH // " " // &
+       "-L" // WHIZARD_TEST_LOOPTOOLS_LIBPATH // " " // &
+       "-lwhizard_main -lwhizard -lomega " // &
+       "@RPC_CFLAGS@ " // &
+       "@LDFLAGS_HEPMC@ @LDFLAGS_LCIO@ @LDFLAGS_HOPPET@ " // &
+       "@LDFLAGS_LOOPTOOLS@ @LDFLAGS_OPENLOOPS@ " // &
+       "@LDFLAGS_RECOLA@"
+
+  ! Libtool
+  character(*), parameter :: WHIZARD_LIBTOOL_TEST = &
+       "@BUILDDIR@/libtool"
+
+  ! System paths
+  ! These are used for the installed version
+  character(*), parameter :: PREFIX = &
+       "@prefix@"
+  character(*), parameter :: EXEC_PREFIX = &
+       "@exec_prefix@"
+  character(*), parameter :: BINDIR = &
+       "@bindir@"
+  character(*), parameter :: LIBDIR = &
+       "@libdir@"
+  character(*), parameter :: INCLUDEDIR = &
+       "@includedir@"
+  character(*), parameter :: DATAROOTDIR = &
+       "@datarootdir@"
+  character(*), parameter :: FMODDIR = &
+       "@FMODDIR@"
+
+  character(*), parameter :: PKGLIBDIR = LIBDIR  // "/whizard"
+  character(*), parameter :: PKGDATADIR = DATAROOTDIR // "/whizard"
+  character(*), parameter :: PKGTEXDIR = DATAROOTDIR // "/texmf/whizard"
+  character(*), parameter :: PKGCIRCE2DIR = DATAROOTDIR // "/circe2"
+
+  character(*), parameter :: WHIZARD_MODPATH = &
+       FMODDIR // "/whizard"
+  character(*), parameter :: OMEGA_MODPATH = &
+       FMODDIR // "/omega"
+  character(*), parameter :: MODELS_MODPATH = &
+       FMODDIR // "/models"
+  character(*), parameter :: WHIZARD_OMEGA_BINPATH = &
+       BINDIR
+  character(*), parameter :: WHIZARD_OMEGA_LIBPATH = &
+       LIBDIR
+  character(*), parameter :: WHIZARD_MODELPATH = &
+       PKGDATADIR // "/models"
+  character(*), parameter :: WHIZARD_MODELPATH_UFO = &
+       PKGDATADIR // "/models/UFO"
+  character(*), parameter :: WHIZARD_MODELS_LIBPATH = &
+       PKGLIBDIR // "/models"
+  character(*), parameter :: WHIZARD_SUSYPATH = &
+       PKGDATADIR // "/susy"
+  character(*), parameter :: WHIZARD_GMLPATH= &
+       PKGLIBDIR // "/gamelan"
+  character(*), parameter :: WHIZARD_SHAREPATH = &
+       PKGDATADIR
+  character(*), parameter :: WHIZARD_TESTDATAPATH = &
+       PKGDATADIR // "/test"
+  character(*), parameter :: WHIZARD_CUTSPATH = &
+       PKGDATADIR // "/cuts"
+  character(*), parameter :: WHIZARD_TEXPATH = &
+       PKGTEXDIR
+  character(*), parameter :: WHIZARD_CIRCE2PATH = &
+       PKGCIRCE2DIR // "/data"
+  character(*), parameter :: WHIZARD_BEAMSIMPATH = &
+       PKGDATADIR // "/beam-sim"
+  character(*), parameter :: WHIZARD_MULIPATH = &
+       PKGDATADIR // "/muli"
+  character(*), parameter :: PDF_BUILTIN_DATAPATH = &
+       PKGDATADIR // "/pdf_builtin"
+
+  ! WHIZARD-specific include flags
+  character(*), parameter :: WHIZARD_INCLUDES = &
+      "-I" // WHIZARD_MODPATH // " " // &
+      "-I" // OMEGA_MODPATH // " " // &
+      "-I" // MODELS_MODPATH // " " // &
+       "@OPENLOOPS_INCLUDES@ @RECOLA_INCLUDES@"
+
+  ! WHIZARD-specific link flags
+  character(*), parameter :: WHIZARD_LDFLAGS = &
+      "-L" // WHIZARD_OMEGA_LIBPATH // " " // &
+      "-lwhizard_main -lwhizard -lomega " // &
+       "@RPC_CFLAGS@ " // &
+       "@LDFLAGS_HEPMC@ @LDFLAGS_LCIO@ @LDFLAGS_HOPPET@ " // &
+       "@LDFLAGS_LOOPTOOLS@ @LDFLAGS_OPENLOOPS@ " // &
+       "@LDFLAGS_RECOLA@"
+
+  ! Libtool
+  character(*), parameter :: WHIZARD_LIBTOOL = &
+      PKGLIBDIR // "/libtool"
+
+
+  ! Fortran compiler
+  character(*), parameter :: DEFAULT_FC = &
+       "@FC@"
+  character(*), parameter :: DEFAULT_FCFLAGS = &
+       "@FCFLAGS_PROFILING@ @FCFLAGS_OPENMP@ @FCFLAGS_MPI@ @FCFLAGS@"
+  character(*), parameter :: DEFAULT_FCFLAGS_PIC = &
+       "@FCFLAGS_PIC@"
+  character(*), parameter :: DEFAULT_FC_SRC_EXT = &
+       ".@FC_SRC_EXT@"
+  character(*), parameter :: DEFAULT_FC_PRECISION = &
+       "@FC_PRECISION@"
+  character(*), parameter :: FCLIBS = &
+       "@FCLIBS@"
+
+  logical, parameter      :: OS_IS_DARWIN = @OS_IS_DARWIN@
+  
+  ! C compiler
+  character(*), parameter :: DEFAULT_CC = &
+       "@CC@"
+  character(*), parameter :: DEFAULT_CFLAGS = &
+       "@CFLAGS@"
+  character(*), parameter :: DEFAULT_CFLAGS_PIC = &
+       "@CFLAGS_PIC@"
+  logical, parameter :: CC_IS_GNU = @CC_IS_GNU@
+  logical, parameter :: CC_HAS_QUADMATH = @CC_HAS_QUADMATH@
+
+  ! C++ compiler
+  character(*), parameter :: DEFAULT_CXX = &
+       "@CXX@"
+  character(*), parameter :: DEFAULT_CXXFLAGS = &
+       "@CXXFLAGS@"
+  character(*), parameter :: DEFAULT_CXXLIBS = &
+       "@CXXLIBS@"
+
+  ! Object files
+  character(*), parameter :: DEFAULT_OBJ_EXT = &
+       ".@OBJ_EXT@"
+
+  ! Linker
+  character(*), parameter :: DEFAULT_LD = &
+       "@LD@"
+  character(*), parameter :: DEFAULT_LDFLAGS = &
+       ""
+  character(*), parameter :: DEFAULT_LDFLAGS_SO = "-shared"
+  character(*), parameter :: DEFAULT_LDFLAGS_STATIC = &
+       "@LDFLAGS_STATIC@ @RPC_CFLAGS@"
+  character(*), parameter :: DEFAULT_LDFLAGS_HEPMC = &
+       "@LDFLAGS_HEPMC@"
+  character(*), parameter :: DEFAULT_LDFLAGS_LCIO = &
+       "@LDFLAGS_LCIO@"
+  character(*), parameter :: DEFAULT_LDFLAGS_HOPPET = &
+       "@LDFLAGS_HOPPET@"
+  character(*), parameter :: DEFAULT_LDFLAGS_LOOPTOOLS = &
+       "@LDFLAGS_LOOPTOOLS@"
+  character(*), parameter :: DEFAULT_SHRLIB_EXT = "@SHRLIB_EXT@"
+  character(*), parameter :: DEFAULT_FC_SHRLIB_EXT = "so"
+
+  ! Pack/unpack
+  character(*), parameter :: DEFAULT_PACK_CMD = "tar -czf"
+  character(*), parameter :: DEFAULT_UNPACK_CMD = "tar -xzf"
+  character(*), parameter :: DEFAULT_PACK_EXT = ".tgz"
+
+  ! Make
+  character(*), parameter :: DEFAULT_MAKEFLAGS = &
+       "@DEFAULT_MAKEFLAGS@"
+
+  ! LHAPDF library
+  character(*), parameter :: LHAPDF_PDFSETS_PATH = &
+       "@LHAPDF_PDFSETS_PATH@"
+
+  ! Available methods for event analysis display
+  character(*), parameter :: EVENT_ANALYSIS = &
+       "@EVENT_ANALYSIS@"
+  character(*), parameter :: EVENT_ANALYSIS_PS = &
+       "@EVENT_ANALYSIS_PS@"
+  character(*), parameter :: EVENT_ANALYSIS_PDF = &
+       "@EVENT_ANALYSIS_PDF@"
+
+  ! Programs used for event analysis display
+  character(*), parameter :: PRG_LATEX  = &
+       "@LATEX@"
+  character(*), parameter :: PRG_MPOST  = &
+       "@MPOST@"
+  character(*), parameter :: PRG_DVIPS  = &
+       "@DVIPS@"
+  character(*), parameter :: PRG_PS2PDF = &
+       "@PS2PDF@"
+
+  ! Programs and libraries used for NLO calculations
+  ! GoSam
+  character(*), parameter :: GOSAM_DIR = &
+       "@GOSAM_DIR@"
+  character(*), parameter :: GOLEM_DIR = &
+       "@GOLEM_DIR@"
+  character(*), parameter :: FORM_DIR = &
+       "@FORM_DIR@"
+  character(*), parameter :: QGRAF_DIR = &
+       "@QGRAF_DIR@"
+  character(*), parameter :: NINJA_DIR = &
+       "@NINJA_DIR@"
+  character(*), parameter :: SAMURAI_DIR = &
+       "@SAMURAI_DIR@"
+
+  ! OpenLoops
+  character(*), parameter :: OPENLOOPS_DIR = &
+       "@OPENLOOPS_DIR@"
+  character(*), parameter :: RECOLA_DIR = &
+       "@RECOLA_DIR@"  
+
+  ! Hardwired options for batch-mode processing
+  character(*), parameter :: OPT_LATEX  = &
+       "-halt-on-error"
+  character(*), parameter :: OPT_MPOST  = &
+       "@MPOSTFLAG@ -halt-on-error"
+
+  ! dlopen parameters
+  integer, parameter :: &
+     RTLD_LAZY   = @RTLD_LAZY_VALUE@ , &
+     RTLD_NOW    = @RTLD_NOW_VALUE@ , &
+     RTLD_GLOBAL = @RTLD_GLOBAL_VALUE@ , &
+     RTLD_LOCAL  = @RTLD_LOCAL_VALUE@
+
+  ! Misc
+  logical, parameter :: MPOST_AVAILABLE = @MPOST_AVAILABLE_FLAG@
+
+  logical, parameter :: LHAPDF5_AVAILABLE = @LHAPDF5_AVAILABLE_FLAG@
+  logical, parameter :: LHAPDF6_AVAILABLE = @LHAPDF6_AVAILABLE_FLAG@
+  logical, parameter :: HEPMC2_AVAILABLE = @HEPMC2_AVAILABLE_FLAG@
+  logical, parameter :: HEPMC3_AVAILABLE = @HEPMC3_AVAILABLE_FLAG@
+  logical, parameter :: LCIO_AVAILABLE = "@LCIO_AVAILABLE_FLAG@" == "yes"
+  logical, parameter :: HOPPET_AVAILABLE = @HOPPET_AVAILABLE_FLAG@
+
+  logical, parameter :: PYTHIA6_AVAILABLE = @PYTHIA6_AVAILABLE_FLAG@
+  logical, parameter :: PYTHIA8_AVAILABLE = @PYTHIA8_AVAILABLE_FLAG@
+
+  logical, parameter :: GOSAM_AVAILABLE = @GOSAM_AVAILABLE_FLAG@
+  logical, parameter :: OPENLOOPS_AVAILABLE = @OPENLOOPS_AVAILABLE_FLAG@
+  logical, parameter :: RECOLA_AVAILABLE = @RECOLA_AVAILABLE_FLAG@  
+
+contains
+
+  ! Subroutines that depend on configure settings
+
+  ! OpenMP wrapper routines, work independent of OpenMP status
+  function openmp_is_active () result (flag)
+    logical :: flag
+@FC_OPENMP_ON@    flag = .true.
+@FC_OPENMP_OFF@    flag = .false.
+  end function openmp_is_active
+
+  subroutine openmp_set_num_threads (num)
+    integer, intent(in) :: num
+@FC_OPENMP_ON@    call omp_set_num_threads (num)
+  end subroutine openmp_set_num_threads
+  
+  function openmp_get_num_threads () result (num)
+    integer :: num
+@FC_OPENMP_ON@    num = omp_get_num_threads ()
+@FC_OPENMP_OFF@    num = 1
+  end function openmp_get_num_threads
+  
+  function openmp_get_max_threads () result (num)
+    integer :: num
+@FC_OPENMP_ON@    num = omp_get_max_threads ()
+@FC_OPENMP_OFF@    num = 1
+  end function openmp_get_max_threads
+  
+  function openmp_get_default_max_threads () result (num)
+    integer :: num
+    num = @FC_OPENMP_DEFAULT_MAX_THREADS@
+  end function openmp_get_default_max_threads
+
+end module system_dependencies

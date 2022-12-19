@@ -1,0 +1,599 @@
+# $Id: Threeshl.mdl 6476 2015-01-12 22:07:55Z jr_reuter $
+
+########################################################################
+# Three-site higgsless model (unitary gauge)
+
+model "Threeshl"
+
+# Masses of the standard model particles
+parameter me		= 0.
+parameter mmu		= 0.106
+parameter mtau		= 1.78
+parameter muq		= 0.
+parameter mdq		= 0.
+parameter mcq		= 1.25
+parameter msq		= 0.095
+parameter mtq		= 174.
+parameter mbq		= 4.2
+parameter mw		= 80.403
+parameter mz		= 91.188
+
+# Widths of the standard model particles
+parameter wt		= 1.523
+parameter ww		= 2.049
+parameter wz		= 2.443
+
+# Elementary charge
+parameter em		= 0.313329
+
+# Strong coupling at the Z pole
+parameter alphas	= 0.1178
+
+# Mass of the heavy W' and the bulk mass
+parameter mhw		= 500.
+parameter mbulk	= 3000.
+
+# Ideal delocalization can be disabled by setting ideloc to a positive
+# value. In this case, the delocalization parameter must be given
+# explicitely via eps_l.
+parameter eps_l	= 0.
+parameter nideloc	= -1.
+
+# Set this to a positive number to dump the values of couplings etc.
+parameter dump		= -1.
+
+# THIS IS CURRENTLY DISABLED AND WITHOUT EFFECT IN WHIZARD 2
+## This controls the QCD corrections to the heavy quark widths.
+parameter nlow		= 1.
+
+########################################################################
+# Everything below is flagges as derived. The corresponding numbers get 
+# calculated in threeshl.f90 and tglue.f90 on model initilization and
+# are only read out by WHIZARD from the respective arrays.
+########################################################################
+
+# Masses of the other heavy partners
+external mhz
+external mhu
+external mhd
+external mhc
+external mhs
+external mht
+external mhb
+external mhe
+external mhnue
+external mhmu
+external mhnumu
+external mhtau
+external mhnutau
+
+# Widths of the heavy partners
+external whw
+external whz
+external whu
+external whd
+external whc
+external whs
+external wht
+external whb
+external whe
+external whnue
+external whmu
+external whnumu
+external whtau
+external whnutau
+
+
+########################################################################
+# Particle content
+
+# KK-light quarks
+particle D_QUARK 1 parton
+	spin 1/2  charge -1/3  color 3
+	name d
+	anti dbar
+	tex_anti "\bar{d}"
+	mass mdq
+particle U_QUARK 2 parton
+	spin 1/2  charge 2/3  color 3
+	name u
+	anti ubar
+	tex_anti "\bar{u}"
+	mass muq
+particle S_QUARK 3 like D_QUARK
+	name s
+	anti sbar
+	tex_anti "\bar{s}"
+	mass msq
+particle C_QUARK 4 like U_QUARK
+	name c
+	anti cbar
+	tex_anti "\bar{c}"
+	mass mcq
+particle B_QUARK 5 like D_QUARK
+	name b
+	anti bbar
+	tex_anti "\bar{b}"
+	mass mbq
+particle T_QUARK 6 like U_QUARK
+	name t
+	anti tbar
+	tex_anti "\bar{t}"
+	mass mtq
+	width wt
+
+# KK-light leptons and neutrinos
+particle ELECTRON 11
+	spin 1/2  charge -1
+	name "e-"
+	tex_name "e^-"
+	anti "e+"
+	tex_anti "e^+"
+	mass me
+particle ELECTRON_NEUTRINO 12 left
+	spin 1/2  charge 0
+	name nue
+	tex_name "\nu_e"
+	anti nuebar
+	tex_anti "\bar{nu}_e"
+particle MUON 13 like ELECTRON
+	name "mu-"
+	tex_name "\mu^-"
+	anti "mu+"
+	tex_anti "\mu^+"
+	mass mmu
+particle MUON_NEUTRINO 14 like ELECTRON_NEUTRINO
+	name numu
+	tex_name "\nu_\mu"
+	anti numubar
+	tex_anti "\bar{\nu}_\mu"
+particle TAUON 15 like ELECTRON
+	name "tau-"
+	tex_name "\tau^-"
+	anti "tau+"
+	tex_anti "\tau^+"
+	mass mtau
+particle TAUON_NEUTRINO 16 like ELECTRON_NEUTRINO
+	name nutau
+	tex_anti "\nu_\tau"
+	anti nutaubar
+	tex_anti "\bar{\nu}_\tau"
+
+# KK-light vector bosons
+particle PHOTON 22 gauge
+	spin 1
+	name A
+particle Z_BOSON 23 gauge
+	spin 1
+	name Z
+	mass mz
+	width wz
+particle W_BOSON 24 gauge
+	spin 1  charge 1
+	name "W+"
+	tex_name "W^+"
+	anti "W-"
+	tex_anti "W^-"
+	mass mw
+	width ww
+particle GLUON 21 gauge parton
+	spin 1  color 8
+	name g gl gluon
+	tex_name g
+
+# KK-heavy quarks
+particle H_D_QUARK 9901
+	spin 1/2  charge -1/3  color 3
+	name Hd
+	tex_name "d^\prime"
+	anti Hdbar
+	tex_anti "\bar{d}^\prime"
+	mass mhd
+	width mhd
+particle H_U_QUARK 9902
+	spin 1/2  charge 2/3  color 3
+	name Hu
+	tex_name "u^\prime"
+	anti Hubar
+	tex_anti "\bar{u}^\prime"
+	mass mhu
+	width whu
+particle H_S_QUARK 9903 like H_D_QUARK
+	name Hs
+	tex_name "s^\prime"
+	anti Hsbar
+	tex_anti "\bar{s}^\prime"
+	mass mhs
+	width whs
+particle H_C_QUARK 9904 like H_U_QUARK
+	name Hc
+	tex_name "c^\prime"
+	anti Hcbar
+	tex_anti "\bar{c}^\prime"
+	mass mhc
+	width whc
+particle H_B_QUARK 9905 like H_D_QUARK
+	name Hb
+	tex_name "b^\prime"
+	anti Hbbar
+	tex_anti "\bar{b}^\prime"
+	mass mhb
+	width whb
+particle H_T_QUARK 9906 like H_U_QUARK
+	name Ht
+	tex_name "t^\prime"
+	anti Htbar
+	tex_anti "\bar{t}^\prime"
+	mass mht
+	width wht
+
+# KK-heavy leptons and neutrinos
+particle H_ELECTRON 9911
+	spin 1/2  charge -1
+	name "He-"
+	tex_name "e^{-\prime}"
+	anti "He+"
+	tex_anti "e^{+\prime}"
+	mass mhe
+	width whe
+particle H_ELECTRON_NEUTRINO 9912
+	spin 1/2  charge 0
+	name Hnue
+	tex_name "\nu_e^\prime"
+	anti Hnuebar
+	tex_anti "\bar{nu}_e^\prime"
+	mass mhnue
+	width whnue
+particle H_MUON 9913 like H_ELECTRON
+	name "Hmu-"
+	tex_name "\mu^{-\prime}"
+	anti "Hmu+"
+	tex_anti "\mu^{+\prime}"
+	mass mhmu
+	width whmu
+particle H_MUON_NEUTRINO 9914 like H_ELECTRON_NEUTRINO
+	name Hnumu
+	tex_name "\nu_\mu^\prime"
+	anti Hnumubar
+	tex_anti "\bar{\nu}_\mu^\prime"
+	mass mhnumu
+	width whnumu
+particle H_TAUON 9915 like H_ELECTRON
+	name "Htau-"
+	tex_name "\tau^{-\prime}"
+	anti "Htau+"
+	tex_anti "\tau^{+\prime}"
+	mass mhtau
+	width whtau
+particle H_TAUON_NEUTRINO 9916 like H_ELECTRON_NEUTRINO
+	name Hnutau
+	tex_name "\nu_\tau^\prime"
+	anti Hnutaubar
+	tex_anti "\bar{\nu}_\tau^\prime"
+	mass mhnutau
+	width whnutau
+
+# KK-heavy vector bosons
+particle H_Z_BOSON 9923 gauge
+	spin 1
+	name HZ
+	tex_name "Z^\prime"
+	mass mhz
+	width whz
+particle H_W_BOSON 9924 gauge
+	spin 1  charge 1
+	name "HW+"
+	tex_name "W^{+\prime}"
+	anti "HW-"
+	tex_anti "W^{-\prime}"
+	mass mhw
+	width whw
+
+# Hadrons
+particle PROTON 2212
+  spin 1/2  charge 1
+  name p "p+"
+  anti pbar "p-"
+
+# Beam remnants for proton colliders
+particle HADRON_REMNANT 90
+  name hr
+  tex_name "had_r"
+particle HADRON_REMNANT_SINGLET 91
+  name hr1
+  tex_name "had_r^{(1)}"
+particle HADRON_REMNANT_TRIPLET 92
+  color 3
+  name hr3
+  tex_name "had_r^{(3)}"
+  anti hr3bar
+  tex_anti "had_r^{(\bar 3)}"
+particle HADRON_REMNANT_OCTET 93
+  color 8
+  name hr8
+  tex_name "had_r^{(8)}"
+
+
+########################################################################
+# Everything below has been automatically generated from the threeshl
+# model implementation in O'Mega, using the call
+#    ./whizard_vertices.ml --sort-heaviest-kk --write 
+# (with mild editing for WHIZARD 2)
+########################################################################
+# 3 particle vertices
+
+# exception: gluon vertices
+
+vertex g u ubar
+vertex g d dbar
+vertex g g g
+vertex g s sbar
+vertex g c cbar
+vertex g b bbar
+vertex g t tbar
+
+vertex "e+" A "e-"
+vertex dbar A d
+vertex ubar A u
+vertex "mu+" A "mu-"
+vertex sbar A s
+vertex cbar A c
+vertex "tau+" A "tau-"
+vertex bbar A b
+vertex "e+" "W-" nue
+vertex nuebar "W+" "e-"
+vertex dbar "W-" u
+vertex ubar "W+" d
+vertex "mu+" "W-" numu
+vertex numubar "W+" "mu-"
+vertex sbar "W-" c
+vertex cbar "W+" s
+vertex "tau+" "W-" nutau
+vertex nutaubar "W+" "tau-"
+vertex A "W+" "W-"
+vertex nuebar Z nue
+vertex numubar Z numu
+vertex nutaubar Z nutau
+vertex "e+" Z "e-"
+vertex dbar Z d
+vertex ubar Z u
+vertex "mu+" Z "mu-"
+vertex sbar Z s
+vertex cbar Z c
+vertex "tau+" Z "tau-"
+vertex bbar Z b
+vertex Z "W+" "W-"
+vertex bbar "W-" t
+vertex tbar "W+" b
+vertex tbar A t
+vertex tbar Z t
+vertex "e+" "W-" Hnue
+vertex Hnuebar "W+" "e-"
+vertex nuebar Z Hnue
+vertex Hnuebar Z nue
+vertex "mu+" "W-" Hnumu
+vertex Hnumubar "W+" "mu-"
+vertex numubar Z Hnumu
+vertex Hnumubar Z numu
+vertex "tau+" "W-" Hnutau
+vertex Hnutaubar "W+" "tau-"
+vertex nutaubar Z Hnutau
+vertex Hnutaubar Z nutau
+vertex "He+" "W-" nue
+vertex nuebar "W+" "He-"
+vertex "e+" Z "He-"
+vertex "He+" Z "e-"
+vertex Hdbar "W-" u
+vertex ubar "W+" Hd
+vertex dbar Z Hd
+vertex Hdbar Z d
+vertex dbar "W-" Hu
+vertex Hubar "W+" d
+vertex ubar Z Hu
+vertex Hubar Z u
+vertex "Hmu+" "W-" numu
+vertex numubar "W+" "Hmu-"
+vertex "mu+" Z "Hmu-"
+vertex "Hmu+" Z "mu-"
+vertex Hsbar "W-" c
+vertex cbar "W+" Hs
+vertex sbar Z Hs
+vertex Hsbar Z s
+vertex sbar "W-" Hc
+vertex Hcbar "W+" s
+vertex cbar Z Hc
+vertex Hcbar Z c
+vertex "Htau+" "W-" nutau
+vertex nutaubar "W+" "Htau-"
+vertex "tau+" Z "Htau-"
+vertex "Htau+" Z "tau-"
+vertex bbar Z Hb
+vertex Hbbar Z b
+vertex Hbbar "W-" t
+vertex tbar "W+" Hb
+vertex "e+" "HW-" nue
+vertex nuebar "HW+" "e-"
+vertex dbar "HW-" u
+vertex ubar "HW+" d
+vertex "mu+" "HW-" numu
+vertex numubar "HW+" "mu-"
+vertex sbar "HW-" c
+vertex cbar "HW+" s
+vertex "tau+" "HW-" nutau
+vertex nutaubar "HW+" "tau-"
+vertex Z "HW+" "W-"
+vertex Z "W+" "HW-"
+vertex bbar "HW-" t
+vertex tbar "HW+" b
+vertex nuebar HZ nue
+vertex numubar HZ numu
+vertex nutaubar HZ nutau
+vertex "e+" HZ "e-"
+vertex dbar HZ d
+vertex ubar HZ u
+vertex "mu+" HZ "mu-"
+vertex sbar HZ s
+vertex cbar HZ c
+vertex "tau+" HZ "tau-"
+vertex bbar HZ b
+vertex HZ "W+" "W-"
+vertex tbar HZ t
+vertex bbar "W-" Ht
+vertex Htbar "W+" b
+vertex tbar Z Ht
+vertex Htbar Z t
+
+vertex g Hu Hubar
+vertex g Hd Hdbar
+vertex g Hs Hsbar
+vertex g Hc Hcbar
+vertex g Hb Hbbar
+vertex g Ht Htbar
+
+vertex Hnuebar Z Hnue
+vertex Hnumubar Z Hnumu
+vertex Hnutaubar Z Hnutau
+vertex "He+" "W-" Hnue
+vertex Hnuebar "W+" "He-"
+vertex "He+" A "He-"
+vertex "He+" Z "He-"
+vertex Hdbar A Hd
+vertex Hdbar Z Hd
+vertex Hdbar "W-" Hu
+vertex Hubar "W+" Hd
+vertex Hubar A Hu
+vertex Hubar Z Hu
+vertex "Hmu+" "W-" Hnumu
+vertex Hnumubar "W+" "Hmu-"
+vertex "Hmu+" A "Hmu-"
+vertex "Hmu+" Z "Hmu-"
+vertex Hsbar A Hs
+vertex Hsbar Z Hs
+vertex Hsbar "W-" Hc
+vertex Hcbar "W+" Hs
+vertex Hcbar A Hc
+vertex Hcbar Z Hc
+vertex "Htau+" "W-" Hnutau
+vertex Hnutaubar "W+" "Htau-"
+vertex "Htau+" A "Htau-"
+vertex "Htau+" Z "Htau-"
+vertex Hbbar A Hb
+vertex Hbbar Z Hb
+vertex "e+" "HW-" Hnue
+vertex Hnuebar "HW+" "e-"
+vertex "mu+" "HW-" Hnumu
+vertex Hnumubar "HW+" "mu-"
+vertex "tau+" "HW-" Hnutau
+vertex Hnutaubar "HW+" "tau-"
+vertex "He+" "HW-" nue
+vertex nuebar "HW+" "He-"
+vertex Hdbar "HW-" u
+vertex ubar "HW+" Hd
+vertex dbar "HW-" Hu
+vertex Hubar "HW+" d
+vertex "Hmu+" "HW-" numu
+vertex numubar "HW+" "Hmu-"
+vertex Hsbar "HW-" c
+vertex cbar "HW+" Hs
+vertex sbar "HW-" Hc
+vertex Hcbar "HW+" s
+vertex "Htau+" "HW-" nutau
+vertex nutaubar "HW+" "Htau-"
+vertex Hbbar "HW-" t
+vertex tbar "HW+" Hb
+vertex A "HW+" "HW-"
+vertex Z "HW+" "HW-"
+vertex nuebar HZ Hnue
+vertex Hnuebar HZ nue
+vertex numubar HZ Hnumu
+vertex Hnumubar HZ numu
+vertex nutaubar HZ Hnutau
+vertex Hnutaubar HZ nutau
+vertex "e+" HZ "He-"
+vertex "He+" HZ "e-"
+vertex dbar HZ Hd
+vertex Hdbar HZ d
+vertex ubar HZ Hu
+vertex Hubar HZ u
+vertex "mu+" HZ "Hmu-"
+vertex "Hmu+" HZ "mu-"
+vertex sbar HZ Hs
+vertex Hsbar HZ s
+vertex cbar HZ Hc
+vertex Hcbar HZ c
+vertex "tau+" HZ "Htau-"
+vertex "Htau+" HZ "tau-"
+vertex bbar HZ Hb
+vertex Hbbar HZ b
+vertex HZ "HW+" "W-"
+vertex HZ "W+" "HW-"
+vertex Hbbar "W-" Ht
+vertex Htbar "W+" Hb
+vertex bbar "HW-" Ht
+vertex Htbar "HW+" b
+vertex tbar HZ Ht
+vertex Htbar HZ t
+vertex Htbar A Ht
+vertex Htbar Z Ht
+vertex "He+" "HW-" Hnue
+vertex Hnuebar "HW+" "He-"
+vertex Hdbar "HW-" Hu
+vertex Hubar "HW+" Hd
+vertex "Hmu+" "HW-" Hnumu
+vertex Hnumubar "HW+" "Hmu-"
+vertex Hsbar "HW-" Hc
+vertex Hcbar "HW+" Hs
+vertex "Htau+" "HW-" Hnutau
+vertex Hnutaubar "HW+" "Htau-"
+vertex Hnuebar HZ Hnue
+vertex Hnumubar HZ Hnumu
+vertex Hnutaubar HZ Hnutau
+vertex "He+" HZ "He-"
+vertex Hdbar HZ Hd
+vertex Hubar HZ Hu
+vertex "Hmu+" HZ "Hmu-"
+vertex Hsbar HZ Hs
+vertex Hcbar HZ Hc
+vertex "Htau+" HZ "Htau-"
+vertex Hbbar HZ Hb
+vertex HZ "HW+" "HW-"
+vertex Hbbar "HW-" Ht
+vertex Htbar "HW+" Hb
+vertex Htbar HZ Ht
+
+########################################################################
+# 4 particle vertices
+
+vertex g g g g
+
+vertex A "W+" A "W-"
+vertex "W+" "W-" "W+" "W-"
+vertex A "W+" Z "W-"
+vertex Z "W+" Z "W-"
+vertex "W+" "W-" "HW+" "W-"
+vertex "W+" "W-" "W+" "HW-"
+vertex A "HW+" Z "W-"
+vertex A "W+" Z "HW-"
+vertex Z "HW+" Z "W-"
+vertex Z "W+" Z "HW-"
+vertex A "W+" HZ "W-"
+vertex Z "W+" HZ "W-"
+vertex A "HW+" A "HW-"
+vertex "HW+" "W-" "HW+" "W-"
+vertex "W+" "HW-" "W+" "HW-"
+vertex "W+" "W-" "HW+" "HW-"
+vertex A "HW+" Z "HW-"
+vertex Z "HW+" Z "HW-"
+vertex A "HW+" HZ "W-"
+vertex A "W+" HZ "HW-"
+vertex Z "HW+" HZ "W-"
+vertex Z "W+" HZ "HW-"
+vertex HZ "W+" HZ "W-"
+vertex "W+" "HW-" "HW+" "HW-"
+vertex "HW+" "W-" "HW+" "HW-"
+vertex A "HW+" HZ "HW-"
+vertex Z "HW+" HZ "HW-"
+vertex HZ "HW+" HZ "W-"
+vertex HZ "W+" HZ "HW-"
+vertex "HW+" "HW-" "HW+" "HW-"
+vertex HZ "HW+" HZ "HW-"

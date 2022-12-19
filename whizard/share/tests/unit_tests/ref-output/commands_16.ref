@@ -1,0 +1,41 @@
+* Test output: commands_16
+*   Purpose: declare an observable
+
+* Initialization
+
+* Input file
+
+$obs_label = "foo"
+$obs_unit = "cm"
+$title = "Observable foo"
+$description = "This is observable foo"
+observable foo
+
+* Parse file
+
+* Compile command list
+
+ var: $obs_label (string, intrinsic)
+ var: $obs_unit (string, intrinsic)
+ var: $title (string, intrinsic)
+ var: $description (string, intrinsic)
+ observable: foo
+
+* Execute command list
+
+* Record two data items
+
+* Display analysis store
+
+###############################################################################
+# Observable: foo
+title       = "Observable foo"
+description = "This is observable foo"
+average     =  2.000000000000E+00 cm
+error[abs]  =  1.000000000000E+00 cm
+error[rel]  =  5.000000000000E-01
+n_entries   = 2
+
+* Cleanup
+
+* Test output end: commands_16

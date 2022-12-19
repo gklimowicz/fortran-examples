@@ -1,0 +1,64 @@
+* Test output: commands_26
+*   Purpose: declare alternative setups for simulation
+
+* Input file
+
+int i = 0
+alt_setup = ({ i = 1 }, { i = 2 })
+
+* Parse file
+
+* Compile command list
+
+ var: i (int)
+ alt_setup: 2 entries
+
+* Execute command list
+
+========================================================================
+ Cuts: [undefined]
+------------------------------------------------------------------------
+ Scale: [undefined]
+------------------------------------------------------------------------
+ Factorization scale: [undefined]
+------------------------------------------------------------------------
+ Renormalization scale: [undefined]
+------------------------------------------------------------------------
+ Weight: [undefined]
+========================================================================
+ Event selection: [undefined]
+------------------------------------------------------------------------
+ Event reweighting factor: [undefined]
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+========================================================================
+ Alternative setups:
+------------------------------------------------------------------------
+ Commands:
+------------------------------------------------------------------------
++  SEQUENCE    <local_command_list>  =  <cmd_num>
++  SEQUENCE    <cmd_num>  =  <var_name> '=' <expr>
+|  +  IDENTIFIER  <var_name>  = i
+|  +  KEYWORD     '='  = [keyword] =
+|  +  SEQUENCE    <expr>  =  <term>
+|  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  |  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  |  |  +  INTEGER     <integer_literal>  = 1
+------------------------------------------------------------------------
+ Commands:
+------------------------------------------------------------------------
++  SEQUENCE    <local_command_list>  =  <cmd_num>
++  SEQUENCE    <cmd_num>  =  <var_name> '=' <expr>
+|  +  IDENTIFIER  <var_name>  = i
+|  +  KEYWORD     '='  = [keyword] =
+|  +  SEQUENCE    <expr>  =  <term>
+|  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  |  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  |  |  +  INTEGER     <integer_literal>  = 2
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_26

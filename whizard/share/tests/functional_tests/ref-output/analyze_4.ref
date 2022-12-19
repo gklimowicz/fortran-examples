@@ -1,0 +1,164 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+x_min =  0.000000000000E+00
+x_max =  4.000000000000E+00
+y_min =  0.000000000000E+00
+y_max =  1.000000000000E+01
+x_min = -2.000000000000E+00
+x_max =  2.000000000000E+00
+y_min =  0.000000000000E+00
+y_max =  1.000000000000E+01
+| Process library 'analyze_4_lib': recorded process 'analyze_4_p'
+SM.me =>  0.000000000000E+00
+sqrts =  5.000000000000E+02
+jet_algorithm = 2
+jet_r =  7.000000000000E-01
+?keep_flavors_when_clustering = true
+seed = 1
+n_events = 10
+| Starting simulation for process 'analyze_4_p'
+| Simulate: process 'analyze_4_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'analyze_4_lib': compiling ...
+| Process library 'analyze_4_lib': writing makefile
+| Process library 'analyze_4_lib': removing old files
+| Process library 'analyze_4_lib': writing driver
+| Process library 'analyze_4_lib': creating source code
+| Process library 'analyze_4_lib': compiling sources
+| Process library 'analyze_4_lib': linking
+| Process library 'analyze_4_lib': loading
+| Process library 'analyze_4_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process analyze_4_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'analyze_4_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'analyze_4_p'
+|   Library name  = 'analyze_4_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'analyze_4_p_i1':   e-, e+ => u, ubar, gl [omega]
+| ------------------------------------------------------------------------
+| Phase space: 4 channels, 5 dimensions
+| Phase space: found 4 channels, collected in 2 groves.
+| Phase space: Using 4 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'analyze_4_p'
+| Integrate: iterations = 3:5000:"gw", 1:10000
+| Integrator: 2 chains, 4 channels, 5 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 5000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       5000  1.5440747E+03  5.60E+01    3.63    2.57*   1.94
+   2       4998  1.5859471E+03  2.30E+01    1.45    1.02*  10.55
+   3       4996  1.5710142E+03  2.03E+01    1.29    0.91*  11.15
+|-----------------------------------------------------------------------------|
+   3      14994  1.5752643E+03  1.47E+01    0.93    1.14   11.15    0.29   3
+|-----------------------------------------------------------------------------|
+   4       9998  1.5615495E+03  1.52E+01    0.97    0.97    5.70
+|-----------------------------------------------------------------------------|
+   4       9998  1.5615495E+03  1.52E+01    0.97    0.97    5.70
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'analyze_4_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 10
+|             corr. to luminosity [fb-1] =   6.4039E-03
+| Events: writing to raw file 'analyze_4_p.evx'
+| Events: generating 10 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   5.78 %
+| Events: closing raw file 'analyze_4_p.evx'
+$out_file = "analyze_4.dat"
+| Opening file 'analyze_4.dat' for output
+| Writing analysis data to file 'analyze_4.dat'
+| Closing file 'analyze_4.dat' for output
+?rebuild_events = true
+seed = 1
+n_events = 10
+| Starting simulation for process 'analyze_4_p'
+| Simulate: using integration grids from file 'analyze_4_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 10
+|             corr. to luminosity [fb-1] =   6.4039E-03
+| Events: writing to raw file 'analyze_4_p.evx'
+| Events: generating 10 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   6.54 %
+| Events: closing raw file 'analyze_4_p.evx'
+| Opening file 'analyze_4.dat' for output
+| Writing analysis data to file 'analyze_4.dat'
+| Closing file 'analyze_4.dat' for output
+| WHIZARD run finished.
+|=============================================================================|
+Contents of file analyze_4.dat:
+###############################################################################
+# Histogram:  hn
+#     bin midpoint           value               error             excess          n
+   0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+   1.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+   2.000000000000E+00  7.000000000000E+00  2.645751311065E+00  0.000000000000E+00  7
+   3.000000000000E+00  3.000000000000E+00  1.732050807569E+00  0.000000000000E+00  3
+
+# Underflow:
+  -5.000000000000E-01  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+
+# Overflow:
+   3.500000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+
+# Summary: data within bounds
+average     =  2.300000000000E+00
+error[abs]  =  1.527525231652E-01
+error[rel]  =  6.641414050661E-02
+n_entries   = 10
+
+# Summary: all data
+average     =  2.300000000000E+00
+error[abs]  =  1.527525231652E-01
+error[rel]  =  6.641414050661E-02
+n_entries   = 10
+
+###############################################################################
+# Histogram:  hp
+#     bin midpoint           value               error             excess          n
+  -2.000000000000E+00  2.000000000000E+00  1.414213562373E+00  0.000000000000E+00  2
+  -1.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+   0.000000000000E+00  1.000000000000E+00  1.000000000000E+00  0.000000000000E+00  1
+   1.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+   2.000000000000E+00  7.000000000000E+00  2.645751311065E+00  0.000000000000E+00  7
+
+# Underflow:
+  -2.500000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+
+# Overflow:
+   2.500000000000E+00  0.000000000000E+00  0.000000000000E+00  0.000000000000E+00  0
+
+# Summary: data within bounds
+average     =  1.000000000000E+00
+error[abs]  =  5.374838498866E-01
+error[rel]  =  5.374838498866E-01
+n_entries   = 10
+
+# Summary: all data
+average     =  1.000000000000E+00
+error[abs]  =  5.374838498866E-01
+error[rel]  =  5.374838498866E-01
+n_entries   = 10
+

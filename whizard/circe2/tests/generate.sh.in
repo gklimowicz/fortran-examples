@@ -1,0 +1,24 @@
+#! /bin/sh
+########################################################################
+
+src_builddir=@top_builddir@/circe2/src
+test_srcdir=@top_srcdir@/circe2/share/tests
+data_srcdir=@top_srcdir@/circe2/share/data
+circe2_generate=$src_builddir/circe2_generate
+output=generate.output
+
+########################################################################
+
+command="$circe2_generate $data_srcdir/ilc500.circe ILC 500 1 137"
+expect="0.9960313919 0.9999999997"
+result="`$command 2>/dev/null | @SED@ -e 's/^[ \t]*//' -e 's/[ \t]*$//' -e 's/[ \t][ \t]*/ /g' -e 's/^\!.*//' -e 's/^circe.*//'`"
+
+if test X"$result" = X"$expect"; then
+  rm -f $output
+  exit 0
+else
+  echo " FAIL: $command: expected $expect, got $result" >$output
+  exit 1
+fi
+
+########################################################################

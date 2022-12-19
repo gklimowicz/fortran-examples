@@ -1,0 +1,498 @@
+* Test output: processes_6
+*   Purpose: create a process and fill a process instance
+
+* Prepare expressions
+
+scale = sqrts - 100 GeV
+fac_scale = sqrts_hat
+ren_scale = eval sqrt (M2) [collect [s]]
+weight = n_tot * n_in * n_out * (eval Phi / pi [s])
+
+* Build and initialize a test process
+
+* Prepare a trivial beam setup
+
+* Complete process initialization and set cuts
+
+========================================================================
+ Process [scattering]: 'processes4'
+   Run ID        = ''
+   Library name  = 'processes4'
+   Process index = 1
+   Process components:
+     1: 'processes4_i1':   s, s => s, s [test_me]
+------------------------------------------------------------------------
+ Variable list: [not shown]
+------------------------------------------------------------------------
+ Configuration data:
+   Number of incoming particles = 2
+   Number of process components = 1
+   Number of process terms      = 1
+   Number of MCI configurations = 1
+   Model = Test
+   QCD parameters (fixed coupling):
+     alpha =  1.17800E-01
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+   Scale expression:
++  SEQUENCE    <expr>  =  <term> <addition>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <variable>
+|  |  +  IDENTIFIER  <variable>  = sqrts
++  SEQUENCE    <addition>  =  '-' <term>
+|  +  KEYWORD     '-'  = [keyword] -
+|  +  SEQUENCE    <term>  =  <factor>
+|  |  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  |  +  SEQUENCE    <integer_value>  =  <integer_literal> <unit_expr>
+|  |  |  |  +  INTEGER     <integer_literal>  = 100
+|  |  |  |  +  SEQUENCE    <unit_expr>  =  GeV
+|  |  |  |  |  +  KEYWORD     GeV  = [keyword] GeV
+------------------------------------------------------------------------
+   Factorization scale expression:
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <variable>
+|  |  +  IDENTIFIER  <variable>  = sqrts_hat
+------------------------------------------------------------------------
+   Renormalization scale expression:
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <eval_fun>
+|  |  +  SEQUENCE    <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  +  KEYWORD     eval  = [keyword] eval
+|  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  +  SEQUENCE    <factor>  =  <unary_function>
+|  |  |  |  |  |  +  SEQUENCE    <unary_function>  =  sqrt <function_arg1>
+|  |  |  |  |  |  |  +  KEYWORD     sqrt  = [keyword] sqrt
+|  |  |  |  |  |  |  +  ARGUMENTS   <function_arg1>  =  <expr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = M2
+|  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  +  SEQUENCE    <pterm>  =  <collect_fun>
+|  |  |  |  |  |  +  SEQUENCE    <collect_fun>  =  <collect_clause> <pargs1>
+|  |  |  |  |  |  |  +  SEQUENCE    <collect_clause>  =  collect
+|  |  |  |  |  |  |  |  +  KEYWORD     collect  = [keyword] collect
+|  |  |  |  |  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = s
+------------------------------------------------------------------------
+   Weight expression:
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor> <multiplication> <multiplication> <multiplication>
+|  +  SEQUENCE    <factor>  =  <variable>
+|  |  +  IDENTIFIER  <variable>  = n_tot
+|  +  SEQUENCE    <multiplication>  =  '*' <factor>
+|  |  +  KEYWORD     '*'  = [keyword] *
+|  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  +  IDENTIFIER  <variable>  = n_in
+|  +  SEQUENCE    <multiplication>  =  '*' <factor>
+|  |  +  KEYWORD     '*'  = [keyword] *
+|  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  +  IDENTIFIER  <variable>  = n_out
+|  +  SEQUENCE    <multiplication>  =  '*' <factor>
+|  |  +  KEYWORD     '*'  = [keyword] *
+|  |  +  SEQUENCE    <factor>  =  <expr>
+|  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  +  SEQUENCE    <factor>  =  <eval_fun>
+|  |  |  |  |  |  +  SEQUENCE    <eval_fun>  =  eval <expr> <pargs1>
+|  |  |  |  |  |  |  +  KEYWORD     eval  = [keyword] eval
+|  |  |  |  |  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <term>  =  <factor> <multiplication>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = Phi
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <multiplication>  =  '/' <factor>
+|  |  |  |  |  |  |  |  |  |  +  KEYWORD     '/'  = [keyword] /
+|  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  pi
+|  |  |  |  |  |  |  |  |  |  |  +  KEYWORD     pi  = [keyword] pi
+|  |  |  |  |  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = s
+------------------------------------------------------------------------
+ RNG factory: test (1)
+========================================================================
+ Process component configuration:
+------------------------------------------------------------------------
+ Component #1
+   Component ID        = processes4_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = s, s => s, s
+   Method              = test_me
+   Process variant     = test_me
+   MD5 sum (def)       = '                                '
+ Referenced data:
+   Terms                    = 1
+   MC dataset               = 1
+ Partonic phase-space configuration:
+   ID        = 'processes4_i1'
+   n_in      = 2
+   n_out     = 2
+   n_tot     = 4
+   n_state   = 1
+   n_par     = 2
+   n_channel = 2
+   sqrts     =  1.000000000000E+03
+   s_fixed   = T
+   lab_is_cm = T
+   azim.dep. = F
+ Flavor combinations:
+   1: s s s s
+ Phase-space / structure-function channels:
+   1: 1
+   2: 1
+   MD5 sum (model par)  = '34AE44487D84198697E1368F11F2C8D8'
+   MD5 sum (phs config) = '74F122DFC9A35B1F89EE54652C06BF69'
+========================================================================
+ Process term configuration:
+------------------------------------------------------------------------
+ Term #1
+   Process component index      = 1
+   Term index w.r.t. component  = 1
+------------------------------------------------------------------------
+ Hard interaction:
+------------------------------------------------------------------------
+ Interaction: 1
+ Incoming:
+ Particle 1
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Particle 2
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ Outgoing:
+ Particle 3
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+  [momentum undefined]
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)] => ME(1) = ( 0.000000000000E+00, 0.000000000000E+00)
+========================================================================
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+   Azimuthal dependence    = F
+   Lab frame is c.m. frame = T
+========================================================================
+ Multi-channel integrator configurations:
+------------------------------------------------------------------------
+ MCI #1:
+   Associated components = 1
+   MC input parameters   = 2
+   MC parameters (SF)    = 0
+   MC parameters (PHS)   = 2
+ Call statistics (current run): [no calls]
+========================================================================
+
+* Create a process instance and evaluate
+
+========================================================================
+ Process instance [scattering]: 'processes4'
+   Run ID = ''
+   Process components:
+   * 1: 'processes4_i1':   s, s => s, s [test_me]
+   status = evaluated trace
+------------------------------------------------------------------------
+   sqme   =  4.000000000000E+00
+------------------------------------------------------------------------
+ Active MCI instance #1 =
+   0.50000 0.12500
+========================================================================
+ Incoming particles / structure-function chain:
+   n_in      = 2
+   n_strfun  = 0
+   n_par     = 0
+ Beam data (collision):
+   s  (mass = 1.2500000E+02 GeV)
+   s  (mass = 1.2500000E+02 GeV)
+   sqrts = 1.000000000000E+03 GeV
+------------------------------------------------------------------------
+ Colliding beams:
+ Interaction: 2
+ Outgoing:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [FFgT]
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [FFgT]
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+========================================================================
+========================================================================
+ Active terms:
+------------------------------------------------------------------------
+ Term #1 (component #1)
+   passed cuts           = T
+   overall scale         =  9.000000000000E+02
+   factorization scale   =  1.000000000000E+03
+   renormalization scale =  1.000000000000E+03
+   reweighting factor    =  4.000000000000E+00
+ Flux * PHS volume:
+   3.133842031921E+08
+ Jacobian factors per channel:
+   1:  1.0000000E+00 [selected]
+   2:  1.3333333E+00
+------------------------------------------------------------------------
+ Structure-function chain instance: [evaluated]
+   outgoing (interactions) = 0:1 0:2
+------------------------------------------------------------------------
+ Colliding beams:
+ Interaction: 3
+ Outgoing:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [FFgT]
+ source: (2)1
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [FFgT]
+ source: (2)2
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   [f(25)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Partonic phase space: parameters
+   m_in    =  1.250000000000E+02  1.250000000000E+02
+   m_out   =  1.250000000000E+02  1.250000000000E+02
+   Flux   =  3.133842031921E+08
+   Volume =  1.000000000000E+00
+ Channel #1: [selected]
+   r = 0.5000000 0.1250000
+   f = 1.0000000E+00
+ Channel #2:
+   r = 0.1250000 0.1250000
+   f = 1.3333333E+00
+ Partonic phase space: momenta
+   sqrts  =  1.000000000000E+03
+ Incoming:
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ Outgoing:
+ E =   5.000000000000E+02
+ P =   3.423265984407E+02  3.423265984407E+02  0.000000000000E+00
+ E =   5.000000000000E+02
+ P =  -3.423265984407E+02 -3.423265984407E+02  0.000000000000E+00
+------------------------------------------------------------------------
+ Amplitude (transition matrix of the hard interaction):
+------------------------------------------------------------------------
+ Interaction: 4
+ Incoming:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ source: (3)1
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [FFgF]
+ internal links: X => 3 4
+ source: (3)2
+ Outgoing:
+ Particle 3
+ E =   5.000000000000E+02
+ P =   3.423265984407E+02  3.423265984407E+02  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ Particle 4
+ E =   5.000000000000E+02
+ P =  -3.423265984407E+02 -3.423265984407E+02  0.000000000000E+00
+ mask [fch] = [FFgF]
+ internal links: 1 2 => X
+ State matrix:  norm =  1.000000000000E+00
+ [f(25) h(0)]
+   [f(25) h(0)]
+     [f(25) h(0)]
+       [f(25) h(0)] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Evaluators for the hard interaction:
+------------------------------------------------------------------------
+ Evaluator (trace of the squared transition matrix):
+------------------------------------------------------------------------
+ Interaction: 5
+ Incoming:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [FTT]
+ internal links: X => 3 4
+ source: (4)1
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [FTT]
+ internal links: X => 3 4
+ source: (4)2
+ Outgoing:
+ Particle 3
+ E =   5.000000000000E+02
+ P =   3.423265984407E+02  3.423265984407E+02  0.000000000000E+00
+ mask [fch] = [TTT]
+ internal links: 1 2 => X
+ source: (4)3
+ Particle 4
+ E =   5.000000000000E+02
+ P =  -3.423265984407E+02 -3.423265984407E+02  0.000000000000E+00
+ mask [fch] = [TTT]
+ internal links: 1 2 => X
+ source: (4)4
+ State matrix:  norm =  1.000000000000E+00
+ [f(25)]
+   [f(25)]
+     []
+       [] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+ Matrix-element multiplication
+  Input interaction 1: 4
+  Input interaction 2: [undefined]
+  ME(1) =
+    + ME1(1)* x ME2(1) x ( 1.000000000000E+00, 0.000000000000E+00)
+------------------------------------------------------------------------
+ Evaluators for the connected process:
+------------------------------------------------------------------------
+ Evaluator (trace of the squared transition matrix):
+------------------------------------------------------------------------
+ Interaction: 6
+ Virtual:
+ Particle 1
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ mask [fch] = [TTT]
+ internal links: X => 3 4
+ source: (3)1
+ Particle 2
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ mask [fch] = [TTT]
+ internal links: X => 3 4
+ source: (3)2
+ Outgoing:
+ Particle 3
+ E =   5.000000000000E+02
+ P =   3.423265984407E+02  3.423265984407E+02  0.000000000000E+00
+ mask [fch] = [TTT]
+ internal links: 1 2 => X
+ source: (5)3
+ Particle 4
+ E =   5.000000000000E+02
+ P =  -3.423265984407E+02 -3.423265984407E+02  0.000000000000E+00
+ mask [fch] = [TTT]
+ internal links: 1 2 => X
+ source: (5)4
+ State matrix:  norm =  1.000000000000E+00
+ []
+   []
+     []
+       [] => ME(1) = ( 1.000000000000E+00, 0.000000000000E+00)
+ Matrix-element multiplication
+  Input interaction 1: 3
+  Input interaction 2: 5
+  ME(1) =
+    + ME1(1) x ME2(1)
+------------------------------------------------------------------------
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.000000000000E+03
+sqrts_hat* =>  1.000000000000E+03
+n_in* => 2
+n_out* => 2
+n_tot* => 4
+@evt* =>  subevent:
+        1 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.8412292E+02| 1.562500000000E+04| 1)
+        2 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.8412292E+02| 1.562500000000E+04| 2)
+        3 prt(i:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.8412292E+02| 1.562500000000E+04| 3)
+        4 prt(i:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.8412292E+02| 1.562500000000E+04| 4)
+        5 prt(o:25| 5.0000000E+02; 3.4232660E+02, 3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 5)
+        6 prt(o:25| 5.0000000E+02;-3.4232660E+02,-3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 6)
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.8412292E+02| 1.562500000000E+04| 1)
+ 2 prt(b:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.8412292E+02| 1.562500000000E+04| 2)
+ 3 prt(i:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.8412292E+02| 1.562500000000E+04| 3)
+ 4 prt(i:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.8412292E+02| 1.562500000000E+04| 4)
+ 5 prt(o:25| 5.0000000E+02; 3.4232660E+02, 3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 5)
+ 6 prt(o:25| 5.0000000E+02;-3.4232660E+02,-3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 6)
+------------------------------------------------------------------------
+ Scale expression:
+------------------------------------------------------------------------
+ Evaluation tree:
+o [-] =  9.000000000000E+02
+|  o sqrts =>  1.000000000000E+03
+|  o [const] =  1.000000000000E+02
+------------------------------------------------------------------------
+ Factorization scale expression:
+------------------------------------------------------------------------
+ Evaluation tree:
+o sqrts_hat =>  1.000000000000E+03
+------------------------------------------------------------------------
+ Renormalization scale expression:
+------------------------------------------------------------------------
+ Evaluation tree:
+o [eval] =  1.000000000000E+03
+|  o [sqrt] =  1.000000000000E+03
+|  |  o M2 =  1.000000000000E+06
+|  |        prt1 = prt(c: 1.0000000E+03; 0.0000000E+00, 0.0000000E+00, 0.0000000E+00| 1.000000000000E+06| 5 6)
+|  o [collect] = subevent:
+|  |   1 prt(c: 1.0000000E+03; 0.0000000E+00, 0.0000000E+00, 0.0000000E+00| 1.000000000000E+06| 5 6)
+|  |  o [prt_selection] = subevent:
+|  |  |   1 prt(o:25| 5.0000000E+02; 3.4232660E+02, 3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 5)
+|  |  |   2 prt(o:25| 5.0000000E+02;-3.4232660E+02,-3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 6)
+|  |  |  o [const] = 2
+|  |  |  o s => PDG(25)
+|  |  |  o @evt => [event subevent]
+------------------------------------------------------------------------
+ Weight expression:
+------------------------------------------------------------------------
+ Evaluation tree:
+o [*] =  4.000000000000E+00
+|  o [*] = 16
+|  |  o [*] = 8
+|  |  |  o n_tot => 4
+|  |  |  o n_in => 2
+|  |  o n_out => 2
+|  o [eval] =  2.500000000000E-01
+|  |  o [/] =  2.500000000000E-01
+|  |  |  o Phi =  7.853981633974E-01
+|  |  |        prt1 = prt(o:25| 5.0000000E+02; 3.4232660E+02, 3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 5)
+|  |  |  o [const] =  3.141592653590E+00
+|  |  o [prt_selection] = subevent:
+|  |  |   1 prt(o:25| 5.0000000E+02; 3.4232660E+02, 3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 5)
+|  |  |   2 prt(o:25| 5.0000000E+02;-3.4232660E+02,-3.4232660E+02, 0.0000000E+00| 1.562500000000E+04| 6)
+|  |  |  o [const] = 2
+|  |  |  o s => PDG(25)
+|  |  |  o @evt => [event subevent]
+========================================================================
+
+* Cleanup
+
+* Test output end: processes_6

@@ -1,0 +1,448 @@
+* Test output: Expressions
+*   Purpose: test pdg array expressions
+
+* Initialization:
+
+Syntax table:
+ SEQUENCE    <expr> = <subexpr> <addition>*
+ ALTERNATIVE <subexpr> = <addition> | <term>
+ SEQUENCE    <addition> = <plus_or_minus> <term>
+ SEQUENCE    <term> = <factor> <multiplication>*
+ SEQUENCE    <multiplication> = <times_or_over> <factor>
+ SEQUENCE    <factor> = <value> <exponentiation>?
+ SEQUENCE    <exponentiation> = <to_the> <value>
+ ALTERNATIVE <plus_or_minus> = '+' | '-'
+ ALTERNATIVE <times_or_over> = '*' | '/'
+ ALTERNATIVE <to_the> = '^' | '**'
+ KEYWORD     '+'
+ KEYWORD     '-'
+ KEYWORD     '*'
+ KEYWORD     '/'
+ KEYWORD     '^'
+ KEYWORD     '**'
+ ALTERNATIVE <value> = <signed_value> | <unsigned_value>
+ SEQUENCE    <signed_value> = '-' <unsigned_value>
+ ALTERNATIVE <unsigned_value> = <numeric_value> | <constant> | <variable> | <result> | <grouped_expr> | <block_expr> | <conditional_expr> | <unary_function> | <binary_function> | <numeric_pexpr>
+ ALTERNATIVE <numeric_value> = <integer_value> | <real_value> | <complex_value>
+ SEQUENCE    <integer_value> = <integer_literal> <unit_expr>?
+ SEQUENCE    <real_value> = <real_literal> <unit_expr>?
+ SEQUENCE    <complex_value> = <complex_literal> <unit_expr>?
+ INTEGER     <integer_literal>
+ REAL        <real_literal>
+ COMPLEX     <complex_literal>
+ SEQUENCE    <unit_expr> = <unit> <unit_power>?
+ ALTERNATIVE <unit> = TeV | GeV | MeV | keV | eV | meV | nbarn | pbarn | fbarn | abarn | rad | mrad | degree | '%'
+ KEYWORD     TeV
+ KEYWORD     GeV
+ KEYWORD     MeV
+ KEYWORD     keV
+ KEYWORD     eV
+ KEYWORD     meV
+ KEYWORD     nbarn
+ KEYWORD     pbarn
+ KEYWORD     fbarn
+ KEYWORD     abarn
+ KEYWORD     rad
+ KEYWORD     mrad
+ KEYWORD     degree
+ KEYWORD     '%'
+ SEQUENCE    <unit_power> = '^' <frac_expr>
+ ALTERNATIVE <frac_expr> = <frac> | <grouped_frac>
+ GROUP       <grouped_frac> = ( <frac_expr> )
+ SEQUENCE    <frac> = <signed_int> <div>?
+ ALTERNATIVE <signed_int> = <neg_int> | <pos_int> | <integer_literal>
+ SEQUENCE    <neg_int> = '-' <integer_literal>
+ SEQUENCE    <pos_int> = '+' <integer_literal>
+ SEQUENCE    <div> = '/' <integer_literal>
+ ALTERNATIVE <constant> = pi | I
+ KEYWORD     pi
+ KEYWORD     I
+ IDENTIFIER  <variable>
+ SEQUENCE    <result> = <result_key> <result_arg>
+ ALTERNATIVE <result_key> = num_id | integral | error
+ KEYWORD     num_id
+ KEYWORD     integral
+ KEYWORD     error
+ GROUP       <result_arg> = ( <process_id> )
+ IDENTIFIER  <process_id>
+ SEQUENCE    <unary_function> = <fun_unary> <function_arg1>
+ SEQUENCE    <binary_function> = <fun_binary> <function_arg2>
+ ALTERNATIVE <fun_unary> = complex | real | int | nint | floor | ceiling | abs | conjg | sgn | sqrt | exp | log | log10 | sin | cos | tan | asin | acos | atan | sinh | cosh | tanh | asinh | acosh | atanh
+ KEYWORD     complex
+ KEYWORD     real
+ KEYWORD     int
+ KEYWORD     nint
+ KEYWORD     floor
+ KEYWORD     ceiling
+ KEYWORD     abs
+ KEYWORD     conjg
+ KEYWORD     sgn
+ KEYWORD     sqrt
+ KEYWORD     exp
+ KEYWORD     log
+ KEYWORD     log10
+ KEYWORD     sin
+ KEYWORD     cos
+ KEYWORD     tan
+ KEYWORD     asin
+ KEYWORD     acos
+ KEYWORD     atan
+ KEYWORD     sinh
+ KEYWORD     cosh
+ KEYWORD     tanh
+ KEYWORD     asinh
+ KEYWORD     acosh
+ KEYWORD     atanh
+ ALTERNATIVE <fun_binary> = max | min | mod | modulo
+ KEYWORD     max
+ KEYWORD     min
+ KEYWORD     mod
+ KEYWORD     modulo
+ ARGUMENTS   <function_arg1> = ( <expr> )
+ ARGUMENTS   <function_arg2> = ( <expr> , <expr> )
+ GROUP       <grouped_expr> = ( <expr> )
+ SEQUENCE    <block_expr> = let <var_spec> in <expr>
+ KEYWORD     let
+ ALTERNATIVE <var_spec> = <var_num> | <var_int> | <var_real> | <var_complex> | <var_logical> | <var_plist> | <var_alias> | <var_string>
+ SEQUENCE    <var_num> = <var_name> '=' <expr>
+ SEQUENCE    <var_int> = int <var_name> '=' <expr>
+ SEQUENCE    <var_real> = real <var_name> '=' <expr>
+ SEQUENCE    <var_complex> = complex <var_name> '=' <complex_expr>
+ ALTERNATIVE <complex_expr> = <cexpr_real> | <cexpr_complex>
+ ARGUMENTS   <cexpr_complex> = ( <expr> , <expr> )
+ SEQUENCE    <cexpr_real> = <expr>
+ IDENTIFIER  <var_name>
+ KEYWORD     '='
+ KEYWORD     in
+ SEQUENCE    <conditional_expr> = if <lexpr> then <expr> <maybe_elsif_expr> <maybe_else_expr> endif
+ SEQUENCE    <maybe_elsif_expr> = <elsif_expr>*
+ SEQUENCE    <maybe_else_expr> = <else_expr>?
+ SEQUENCE    <elsif_expr> = elsif <lexpr> then <expr>
+ SEQUENCE    <else_expr> = else <expr>
+ KEYWORD     if
+ KEYWORD     then
+ KEYWORD     elsif
+ KEYWORD     else
+ KEYWORD     endif
+ SEQUENCE    <lexpr> = <lsinglet> <lsequel>*
+ SEQUENCE    <lsequel> = ';' <lsinglet>
+ SEQUENCE    <lsinglet> = <lterm> <alternative>*
+ SEQUENCE    <alternative> = or <lterm>
+ SEQUENCE    <lterm> = <lvalue> <coincidence>*
+ SEQUENCE    <coincidence> = and <lvalue>
+ KEYWORD     ';'
+ KEYWORD     or
+ KEYWORD     and
+ ALTERNATIVE <lvalue> = true | false | <lvariable> | <negation> | <grouped_lexpr> | <block_lexpr> | <conditional_lexpr> | <compared_expr> | <compared_sexpr> | <logical_pexpr>
+ KEYWORD     true
+ KEYWORD     false
+ SEQUENCE    <lvariable> = '?' <alt_lvariable>
+ KEYWORD     '?'
+ ALTERNATIVE <alt_lvariable> = <variable> | <grouped_lexpr>
+ SEQUENCE    <negation> = not <lvalue>
+ KEYWORD     not
+ GROUP       <grouped_lexpr> = ( <lexpr> )
+ SEQUENCE    <block_lexpr> = let <var_spec> in <lexpr>
+ ALTERNATIVE <var_logical> = <var_logical_new> | <var_logical_spec>
+ SEQUENCE    <var_logical_new> = logical <var_logical_spec>
+ KEYWORD     logical
+ SEQUENCE    <var_logical_spec> = '?' <var_name> '=' <lexpr>
+ SEQUENCE    <conditional_lexpr> = if <lexpr> then <lexpr> <maybe_elsif_lexpr> <maybe_else_lexpr> endif
+ SEQUENCE    <maybe_elsif_lexpr> = <elsif_lexpr>*
+ SEQUENCE    <maybe_else_lexpr> = <else_lexpr>?
+ SEQUENCE    <elsif_lexpr> = elsif <lexpr> then <lexpr>
+ SEQUENCE    <else_lexpr> = else <lexpr>
+ SEQUENCE    <compared_expr> = <expr> <comparison>+
+ SEQUENCE    <comparison> = <compare> <expr>
+ ALTERNATIVE <compare> = '<' | '>' | '<=' | '>=' | '==' | '<>'
+ KEYWORD     '<'
+ KEYWORD     '>'
+ KEYWORD     '<='
+ KEYWORD     '>='
+ KEYWORD     '=='
+ KEYWORD     '<>'
+ SEQUENCE    <compared_sexpr> = <sexpr> <str_comparison>+
+ SEQUENCE    <str_comparison> = <str_compare> <sexpr>
+ ALTERNATIVE <str_compare> = '==' | '<>'
+ SEQUENCE    <sexpr> = <svalue> <str_concatenation>*
+ SEQUENCE    <str_concatenation> = '&' <svalue>
+ KEYWORD     '&'
+ ALTERNATIVE <svalue> = <grouped_sexpr> | <block_sexpr> | <conditional_sexpr> | <svariable> | <string_function> | <string_literal>
+ GROUP       <grouped_sexpr> = ( <sexpr> )
+ SEQUENCE    <block_sexpr> = let <var_spec> in <sexpr>
+ SEQUENCE    <conditional_sexpr> = if <lexpr> then <sexpr> <maybe_elsif_sexpr> <maybe_else_sexpr> endif
+ SEQUENCE    <maybe_elsif_sexpr> = <elsif_sexpr>*
+ SEQUENCE    <maybe_else_sexpr> = <else_sexpr>?
+ SEQUENCE    <elsif_sexpr> = elsif <lexpr> then <sexpr>
+ SEQUENCE    <else_sexpr> = else <sexpr>
+ SEQUENCE    <svariable> = '$' <alt_svariable>
+ KEYWORD     '$'
+ ALTERNATIVE <alt_svariable> = <variable> | <grouped_sexpr>
+ ALTERNATIVE <var_string> = <var_string_new> | <var_string_spec>
+ SEQUENCE    <var_string_new> = string <var_string_spec>
+ KEYWORD     string
+ SEQUENCE    <var_string_spec> = '$' <var_name> '=' <sexpr>
+ ALTERNATIVE <string_function> = <sprintf_fun>
+ SEQUENCE    <sprintf_fun> = <sprintf_clause> <sprintf_args>?
+ SEQUENCE    <sprintf_clause> = sprintf <sexpr>
+ KEYWORD     sprintf
+ ARGUMENTS   <sprintf_args> = ( <sprintf_arg>* )
+ ALTERNATIVE <sprintf_arg> = <lvariable> | <svariable> | <expr>
+ QUOTED      <string_literal> = '"' ... '"'
+ SEQUENCE    <pexpr> = <pterm> <pconcatenation>*
+ SEQUENCE    <pconcatenation> = '&' <pterm>
+ SEQUENCE    <pterm> = <pvalue> <pcombination>*
+ SEQUENCE    <pcombination> = '+' <pvalue>
+ ALTERNATIVE <pvalue> = <pexpr_src> | <pvariable> | <grouped_pexpr> | <block_pexpr> | <conditional_pexpr> | <prt_function>
+ SEQUENCE    <pexpr_src> = <prefix_cexpr>
+ ALTERNATIVE <prefix_cexpr> = <beam_prt> | <incoming_prt> | <outgoing_prt> | <unspecified_prt>
+ SEQUENCE    <beam_prt> = beam <cexpr>
+ KEYWORD     beam
+ SEQUENCE    <incoming_prt> = incoming <cexpr>
+ KEYWORD     incoming
+ SEQUENCE    <outgoing_prt> = outgoing <cexpr>
+ KEYWORD     outgoing
+ SEQUENCE    <unspecified_prt> = <cexpr>
+ SEQUENCE    <pvariable> = '@' <alt_pvariable>
+ KEYWORD     '@'
+ ALTERNATIVE <alt_pvariable> = <variable> | <grouped_pexpr>
+ GROUP       <grouped_pexpr> = '[' <pexpr> ']'
+ SEQUENCE    <block_pexpr> = let <var_spec> in <pexpr>
+ SEQUENCE    <conditional_pexpr> = if <lexpr> then <pexpr> <maybe_elsif_pexpr> <maybe_else_pexpr> endif
+ SEQUENCE    <maybe_elsif_pexpr> = <elsif_pexpr>*
+ SEQUENCE    <maybe_else_pexpr> = <else_pexpr>?
+ SEQUENCE    <elsif_pexpr> = elsif <lexpr> then <pexpr>
+ SEQUENCE    <else_pexpr> = else <pexpr>
+ ALTERNATIVE <prt_function> = <join_fun> | <combine_fun> | <collect_fun> | <cluster_fun> | <photon_reco_fun> | <select_fun> | <extract_fun> | <sort_fun> | <select_b_jet_fun> | <select_non_b_jet_fun> | <select_c_jet_fun> | <select_light_jet_fun>
+ SEQUENCE    <join_fun> = <join_clause> <pargs2>
+ SEQUENCE    <combine_fun> = <combine_clause> <pargs2>
+ SEQUENCE    <collect_fun> = <collect_clause> <pargs1>
+ SEQUENCE    <cluster_fun> = <cluster_clause> <pargs1>
+ SEQUENCE    <photon_reco_fun> = <photon_reco_clause> <pargs1>
+ SEQUENCE    <select_fun> = <select_clause> <pargs1>
+ SEQUENCE    <extract_fun> = <extract_clause> <pargs1>
+ SEQUENCE    <sort_fun> = <sort_clause> <pargs1>
+ SEQUENCE    <select_b_jet_fun> = <select_b_jet_clause> <pargs1>
+ SEQUENCE    <select_non_b_jet_fun> = <select_non_b_jet_clause> <pargs1>
+ SEQUENCE    <select_c_jet_fun> = <select_c_jet_clause> <pargs1>
+ SEQUENCE    <select_light_jet_fun> = <select_light_jet_clause> <pargs1>
+ SEQUENCE    <join_clause> = join <condition>?
+ SEQUENCE    <combine_clause> = combine <condition>?
+ SEQUENCE    <collect_clause> = collect <condition>?
+ SEQUENCE    <cluster_clause> = cluster <condition>?
+ SEQUENCE    <photon_reco_clause> = photon_recombination <condition>?
+ SEQUENCE    <select_clause> = select <condition>?
+ SEQUENCE    <extract_clause> = extract <position>?
+ SEQUENCE    <sort_clause> = sort <criterion>?
+ SEQUENCE    <select_b_jet_clause> = select_b_jet <condition>?
+ SEQUENCE    <select_non_b_jet_clause> = select_non_b_jet <condition>?
+ SEQUENCE    <select_c_jet_clause> = select_c_jet <condition>?
+ SEQUENCE    <select_light_jet_clause> = select_light_jet <condition>?
+ KEYWORD     join
+ KEYWORD     combine
+ KEYWORD     collect
+ KEYWORD     cluster
+ KEYWORD     photon_recombination
+ KEYWORD     select
+ SEQUENCE    <condition> = if <lexpr>
+ KEYWORD     extract
+ SEQUENCE    <position> = index <expr>
+ KEYWORD     sort
+ KEYWORD     select_b_jet
+ KEYWORD     select_non_b_jet
+ KEYWORD     select_c_jet
+ KEYWORD     select_light_jet
+ SEQUENCE    <criterion> = by <expr>
+ KEYWORD     index
+ KEYWORD     by
+ ARGUMENTS   <pargs2> = '[' <pexpr> , <pexpr> ']'
+ ARGUMENTS   <pargs1> = '[' <pexpr> , <pexpr>? ']'
+ SEQUENCE    <cexpr> = <avalue> <concatenation>*
+ SEQUENCE    <concatenation> = ':' <avalue>
+ KEYWORD     ':'
+ ALTERNATIVE <avalue> = <grouped_cexpr> | <block_cexpr> | <conditional_cexpr> | <variable> | <pdg_code> | <prt_name>
+ GROUP       <grouped_cexpr> = ( <cexpr> )
+ SEQUENCE    <block_cexpr> = let <var_spec> in <cexpr>
+ SEQUENCE    <conditional_cexpr> = if <lexpr> then <cexpr> <maybe_elsif_cexpr> <maybe_else_cexpr> endif
+ SEQUENCE    <maybe_elsif_cexpr> = <elsif_cexpr>*
+ SEQUENCE    <maybe_else_cexpr> = <else_cexpr>?
+ SEQUENCE    <elsif_cexpr> = elsif <lexpr> then <cexpr>
+ SEQUENCE    <else_cexpr> = else <cexpr>
+ SEQUENCE    <pdg_code> = pdg <pdg_arg>
+ KEYWORD     pdg
+ ARGUMENTS   <pdg_arg> = ( <expr> )
+ QUOTED      <prt_name> = '"' ... '"'
+ ALTERNATIVE <var_plist> = <var_plist_new> | <var_plist_spec>
+ SEQUENCE    <var_plist_new> = subevt <var_plist_spec>
+ KEYWORD     subevt
+ SEQUENCE    <var_plist_spec> = '@' <var_name> '=' <pexpr>
+ SEQUENCE    <var_alias> = alias <var_name> '=' <cexpr>
+ KEYWORD     alias
+ ALTERNATIVE <numeric_pexpr> = <eval_fun> | <count_fun> | <sum_fun> | <prod_fun>
+ SEQUENCE    <eval_fun> = eval <expr> <pargs1>
+ SEQUENCE    <count_fun> = <count_clause> <pargs1>
+ SEQUENCE    <count_clause> = count <condition>?
+ SEQUENCE    <sum_fun> = sum <expr> <pargs1>
+ SEQUENCE    <prod_fun> = prod <expr> <pargs1>
+ KEYWORD     eval
+ KEYWORD     count
+ KEYWORD     sum
+ KEYWORD     prod
+ ALTERNATIVE <logical_pexpr> = <all_fun> | <any_fun> | <no_fun> | <photon_isolation_fun>
+ SEQUENCE    <all_fun> = all <lexpr> <pargs1>
+ SEQUENCE    <any_fun> = any <lexpr> <pargs1>
+ SEQUENCE    <no_fun> = no <lexpr> <pargs1>
+ SEQUENCE    <photon_isolation_fun> = <photon_isolation_clause> <pargs2>
+ SEQUENCE    <photon_isolation_clause> = photon_isolation <condition>?
+ KEYWORD     all
+ KEYWORD     any
+ KEYWORD     no
+ KEYWORD     photon_isolation
+Keyword list:
+ + - TeV GeV MeV keV eV meV nbarn pbarn fbarn abarn rad mrad degree % ^ / ( ) pi I num_id integral error let = int real complex , logical ? true false not in if then elsif else endif < > <= >= == <> $ sprintf & all [ ] beam pdg : incoming outgoing @ join c
+
+* Expression:
+     let alias quark = pdg(1):pdg(2):pdg(3) in  any E > 3 GeV     [sort by - Pt        [select if Index < 6           [photon:pdg(-11):pdg(3):quark            & incoming particle]]]  and  eval Theta [extract index -1 [photon]] > 45 degree  and  count [inco
+
+
+* Extract the evaluation tree:
+
+ Evaluation tree:
+o [var_def]quark [expr] =  [unknown logical]
+|  o [const] = PDG(1, 2, 3)
+|  o [coincidence] = [unknown logical]
+|  |  o [coincidence] = [unknown logical]
+|  |  |  o [any] = [unknown logical]
+|  |  |  |  o [>] = [unknown logical]
+|  |  |  |  |  o E = [unknown real]
+|  |  |  |  |        prt1 = prt(?)
+|  |  |  |  |  o [const] =  3.000000000000E+00
+|  |  |  |  o [sort] = [unknown subevent]
+|  |  |  |  |  o [-] = [unknown real]
+|  |  |  |  |  |  o [const] =  0.000000000000E+00
+|  |  |  |  |  |  o Pt = [unknown real]
+|  |  |  |  |  |        prt1 = prt(?)
+|  |  |  |  |  o [select] = [unknown subevent]
+|  |  |  |  |  |  o [<] = [unknown logical]
+|  |  |  |  |  |  |  o Index => 0
+|  |  |  |  |  |  |  o [const] = 6
+|  |  |  |  |  |  o [join] = [unknown subevent]
+|  |  |  |  |  |  |  o [prt_selection] = [unknown subevent]
+|  |  |  |  |  |  |  |  o [const] = 2
+|  |  |  |  |  |  |  |  o [:] = PDG()
+|  |  |  |  |  |  |  |  |  o [:] = PDG()
+|  |  |  |  |  |  |  |  |  |  o [:] = PDG()
+|  |  |  |  |  |  |  |  |  |  |  o photon => PDG(22)
+|  |  |  |  |  |  |  |  |  |  |  o [const] = PDG(-11)
+|  |  |  |  |  |  |  |  |  |  o [const] = PDG(3)
+|  |  |  |  |  |  |  |  |  o quark => PDG(1, 2, 3)
+|  |  |  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  |  |  |  |  o [prt_selection] = [unknown subevent]
+|  |  |  |  |  |  |  |  o [const] = 1
+|  |  |  |  |  |  |  |  o particle => PDG(0)
+|  |  |  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  o [>] = [unknown logical]
+|  |  |  |  o [eval] = [unknown real]
+|  |  |  |  |  o Theta = [unknown real]
+|  |  |  |  |        prt1 = prt(?)
+|  |  |  |  |  o [extract] = [unknown subevent]
+|  |  |  |  |  |  o [const] = -1
+|  |  |  |  |  |  o [prt_selection] = [unknown subevent]
+|  |  |  |  |  |  |  o [const] = 2
+|  |  |  |  |  |  |  o photon => PDG(22)
+|  |  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  |  o [const] =  7.853981633974E-01
+|  |  o [>] = [unknown logical]
+|  |  |  o [*] = [unknown integer]
+|  |  |  |  o [count] = [unknown integer]
+|  |  |  |  |  o [prt_selection] = [unknown subevent]
+|  |  |  |  |  |  o [const] = 1
+|  |  |  |  |  |  o photon => PDG(22)
+|  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  |  o [const] = 3
+|  |  |  o [const] = 0
+
+* Evaluate the tree:
+
+ Evaluation tree:
+o [var_def]quark [expr] =  false
+|  o [const] = PDG(1, 2, 3)
+|  o [coincidence] = false
+|  |  o [coincidence] = true
+|  |  |  o [any] = true
+|  |  |  |  o [>] = true
+|  |  |  |  |  o E =  6.000000000000E+00
+|  |  |  |  |        prt1 = prt(o:-11| 6.0000000E+00; 6.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 6)
+|  |  |  |  |  o [const] =  3.000000000000E+00
+|  |  |  |  o [sort] = subevent:
+|  |  |  |  |   1 prt(o:-11| 6.0000000E+00; 6.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 6)
+|  |  |  |  |   2 prt(o:22| 4.0000000E+00; 4.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 4)
+|  |  |  |  |   3 prt(o:22| 3.0000000E+00; 3.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 3)
+|  |  |  |  |   4 prt(i:-1|-2.0000000E+00;-2.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 2)
+|  |  |  |  |   5 prt(i:1|-1.0000000E+00;-1.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 1)
+|  |  |  |  |  o [-] = -2.000000000000E+00
+|  |  |  |  |  |  o [const] =  0.000000000000E+00
+|  |  |  |  |  |  o Pt =  2.000000000000E+00
+|  |  |  |  |  |        prt1 = prt(i:-1|-2.0000000E+00;-2.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 2)
+|  |  |  |  |  o [select] = subevent:
+|  |  |  |  |  |   1 prt(o:22| 3.0000000E+00; 3.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 3)
+|  |  |  |  |  |   2 prt(o:22| 4.0000000E+00; 4.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 4)
+|  |  |  |  |  |   3 prt(o:-11| 6.0000000E+00; 6.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 6)
+|  |  |  |  |  |   4 prt(i:1|-1.0000000E+00;-1.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 1)
+|  |  |  |  |  |   5 prt(i:-1|-2.0000000E+00;-2.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 2)
+|  |  |  |  |  |  o [<] = true
+|  |  |  |  |  |  |  o Index => 5
+|  |  |  |  |  |  |  o [const] = 6
+|  |  |  |  |  |  o [join] = subevent:
+|  |  |  |  |  |  |   1 prt(o:22| 3.0000000E+00; 3.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 3)
+|  |  |  |  |  |  |   2 prt(o:22| 4.0000000E+00; 4.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 4)
+|  |  |  |  |  |  |   3 prt(o:-11| 6.0000000E+00; 6.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 6)
+|  |  |  |  |  |  |   4 prt(i:1|-1.0000000E+00;-1.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 1)
+|  |  |  |  |  |  |   5 prt(i:-1|-2.0000000E+00;-2.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 2)
+|  |  |  |  |  |  |  o [prt_selection] = subevent:
+|  |  |  |  |  |  |  |   1 prt(o:22| 3.0000000E+00; 3.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 3)
+|  |  |  |  |  |  |  |   2 prt(o:22| 4.0000000E+00; 4.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 4)
+|  |  |  |  |  |  |  |   3 prt(o:-11| 6.0000000E+00; 6.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 6)
+|  |  |  |  |  |  |  |  o [const] = 2
+|  |  |  |  |  |  |  |  o [:] = PDG(22, -11, 3, 1, 2, 3)
+|  |  |  |  |  |  |  |  |  o [:] = PDG(22, -11, 3)
+|  |  |  |  |  |  |  |  |  |  o [:] = PDG(22, -11)
+|  |  |  |  |  |  |  |  |  |  |  o photon => PDG(22)
+|  |  |  |  |  |  |  |  |  |  |  o [const] = PDG(-11)
+|  |  |  |  |  |  |  |  |  |  o [const] = PDG(3)
+|  |  |  |  |  |  |  |  |  o quark => PDG(1, 2, 3)
+|  |  |  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  |  |  |  |  o [prt_selection] = subevent:
+|  |  |  |  |  |  |  |   1 prt(i:1|-1.0000000E+00;-1.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 1)
+|  |  |  |  |  |  |  |   2 prt(i:-1|-2.0000000E+00;-2.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 2)
+|  |  |  |  |  |  |  |  o [const] = 1
+|  |  |  |  |  |  |  |  o particle => PDG(0)
+|  |  |  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  o [>] = true
+|  |  |  |  o [eval] =  1.570796326795E+00
+|  |  |  |  |  o Theta =  1.570796326795E+00
+|  |  |  |  |        prt1 = prt(o:22| 4.0000000E+00; 4.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 4)
+|  |  |  |  |  o [extract] = subevent:
+|  |  |  |  |  |   1 prt(o:22| 4.0000000E+00; 4.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 4)
+|  |  |  |  |  |  o [const] = -1
+|  |  |  |  |  |  o [prt_selection] = subevent:
+|  |  |  |  |  |  |   1 prt(o:22| 3.0000000E+00; 3.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 3)
+|  |  |  |  |  |  |   2 prt(o:22| 4.0000000E+00; 4.0000000E+00, 0.0000000E+00, 0.0000000E+00| 0.000000000000E+00| 4)
+|  |  |  |  |  |  |  o [const] = 2
+|  |  |  |  |  |  |  o photon => PDG(22)
+|  |  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  |  o [const] =  7.853981633974E-01
+|  |  o [>] = false
+|  |  |  o [*] = 0
+|  |  |  |  o [count] = 0
+|  |  |  |  |  o [prt_selection] = subevent:
+|  |  |  |  |  |  o [const] = 1
+|  |  |  |  |  |  o photon => PDG(22)
+|  |  |  |  |  |  o @evt => [event subevent]
+|  |  |  |  o [const] = 3
+|  |  |  o [const] = 0
+
+* Cleanup
+
+
+* Test output end: expressions_4

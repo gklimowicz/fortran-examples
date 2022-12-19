@@ -1,0 +1,60 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+$method = "unit_test"
+process_num_id = 42
+| Process library 'testproc_1_lib': recorded process 'testproc_1_p1' (42)
+seed = 0
+| Process library 'testproc_1_lib': compiling ...
+| Process library 'testproc_1_lib': ... success.
+$phs_method = "single"
+$integration_method = "midpoint"
+sqrts =  1.000000000000E+03
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process testproc_1_p1:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   s  (mass = 1.2500000E+02 GeV)
+|   s  (mass = 1.2500000E+02 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| ------------------------------------------------------------------------
+| Process [scattering]: 'testproc_1_p1'
+|   ID (num)      = 42
+|   Library name  = 'testproc_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'testproc_1_p1_i1':   s, s => s, s [unit_test]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: single-particle
+Warning: No cuts have been defined.
+| Starting integration for process 'testproc_1_p1'
+| Integrate: iterations = 1:1000
+| Integrator: 1 channels, 2 dimensions
+| Integrator: Midpoint rule: 1 binned dimensions
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00*  96.82
+|-----------------------------------------------------------------------------|
+   1       1000  7.7464622E+03  0.00E+00    0.00    0.00   96.82
+|=============================================================================|
+[user variable] n = 42
+[user variable] res =  7.746462203555E+03
+n_events = 5
+?read_raw = false
+| Starting simulation for process 'testproc_1_p1'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 5
+|             corr. to luminosity [fb-1] =   6.4546E-04
+| Events: writing to raw file 'testproc_1_p1.evx'
+| Events: generating 5 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing raw file 'testproc_1_p1.evx'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

@@ -1,0 +1,35 @@
+include("nlo_settings_ew.sin")
+
+alias pr= u:U:d:D:s:S:c:C:b:B:g:A
+alias j= u:U:d:D:s:S:c:C:b:B:g:A
+
+$openloops_allowed_libs = "pptt_ew"
+
+alpha_power = 0
+alphas_power = 2
+
+
+scale = sum sqrt(Pt^2 + M^2)/2 [t:T] + sum Pt/2 [j]
+$nlo_correction_type = "EW"
+seed=1
+process pptt_as2a0 = pr, pr => t,T {nlo_calculation = full}
+
+integrate (pptt_as2a0) { iterations = 1:1000:"gw" mult_call_virt = 0.1}
+
+alpha_power = 1
+alphas_power = 1
+
+seed=1
+process pptt_as1a1 = pr, pr => t,T {nlo_calculation = full}
+
+integrate (pptt_as1a1) { iterations = 1:1000:"gw" mult_call_virt = 0.1}
+
+alias pr= u:U:d:D:s:S:c:C:b:B:A
+
+alpha_power = 2
+alphas_power = 0
+
+seed=1
+process pptt_as0a2 = pr, pr => t,T {nlo_calculation = full}
+
+integrate (pptt_as0a2) { iterations = 1:1000:"gw" mult_call_virt = 0.1}

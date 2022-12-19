@@ -1,0 +1,418 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*-
+% WHIZARD code as NOWEB source
+\chapter{Testing}
+\includemodulegraph{testing}
+
+This part contains tools for automatic testing.
+\begin{description}
+\item[unit\_tests]
+  A handler that executes test procedures and compares and collects results.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Unit tests}
+We provide functionality for automated unit tests.  Each test is
+required to produce output which is compared against a reference
+file.  If the two are identical, we signal success.  Otherwise, we
+signal failure and write the output to a file.
+<<[[unit_tests.f90]]>>=
+<<File header>>
+
+module unit_tests
+
+<<Use strings>>
+
+<<Standard module head>>
+
+<<Tests: public>>
+
+<<Tests: types>>
+
+<<Tests: interfaces>>
+
+  interface
+<<Tests: sub interfaces>>
+  end interface
+
+end module unit_tests
+@ %def unit_tests
+@
+<<[[unit_tests_sub.f90]]>>=
+<<File header>>
+
+submodule (unit_tests) unit_tests_s
+
+  use io_units
+
+  implicit none
+
+<<Tests: parameters>>
+
+contains
+
+<<Tests: procedures>>
+
+end submodule unit_tests_s
+
+@ %def unit_tests_s
+@
+\subsection{Parameters}
+Building blocks of file names.  The directory names and suffixes are
+hard-coded here, and they must reflect actual Makefile targets where
+applicable.
+<<Tests: parameters>>=
+  character(*), parameter :: ref_prefix = "ref-output/"
+  character(*), parameter :: ref = ".ref"
+
+  character(*), parameter :: err_prefix = "err-output/"
+  character(*), parameter :: err = ".out"
+
+@ %def prefix ref err
+@
+\subsection{Type for storing test results}
+We store the results of the individual unit tests in a linked list.
+Here is the entry:
+<<Tests: public>>=
+  public :: test_results_t
+<<Tests: types>>=
+  type :: test_result_t
+     logical :: success = .false.
+     type(string_t) :: name
+     type(string_t) :: description
+     type(test_result_t), pointer :: next => null ()
+  end type test_result_t
+
+  type :: test_results_t
+     private
+     type(test_result_t), pointer :: first => null ()
+     type(test_result_t), pointer :: last => null ()
+     integer :: n_success = 0
+     integer :: n_failure = 0
+   contains
+   <<Tests: test results: TBP>>
+  end type test_results_t
+
+@ %def test_result_t test_results_t
+@ Add a test result.
+<<Tests: test results: TBP>>=
+  procedure :: add => test_results_add
+<<Tests: sub interfaces>>=
+    module subroutine test_results_add (list, name, description, success)
+      class(test_results_t), intent(inout) :: list
+      character(len=*), intent(in) :: name
+      character(len=*), intent(in) :: description
+      logical, intent(in) :: success
+    end subroutine test_results_add
+<<Tests: procedures>>=
+  module subroutine test_results_add (list, name, description, success)
+    class(test_results_t), intent(inout) :: list
+    character(len=*), intent(in) :: name
+    character(len=*), intent(in) :: description
+    logical, intent(in) :: success
+    type(test_result_t), pointer :: result
+    allocate (result)
+    result%success = success
+    result%name = name
+    result%description = description
+    if (associated (list%first)) then
+       list%last%next => result
+    else
+       list%first => result
+    end if
+    list%last => result
+    if (success) then
+       list%n_success = list%n_success + 1
+    else
+       list%n_failure = list%n_failure + 1
+    end if
+  end subroutine test_results_add
+
+@ %def test_results_add
+@ Display the current state.
+<<Tests: test results: TBP>>=
+  procedure, private :: write => test_results_write
+<<Tests: sub interfaces>>=
+    module subroutine test_results_write (list, u)
+      class(test_results_t), intent(in) :: list
+      integer, intent(in) :: u
+    end subroutine test_results_write
+<<Tests: procedures>>=
+  module subroutine test_results_write (list, u)
+    class(test_results_t), intent(in) :: list
+    integer, intent(in) :: u
+    type(test_result_t), pointer :: result
+    write (u, "(A)")  "*** Test Summary ***"
+    if (list%n_success > 0) then
+       write (u, "(2x,A)")  "Success:"
+       result => list%first
+       do while (associated (result))
+          if (result%success)  write (u, "(4x,A,': ',A)")  &
+               char (result%name), char (result%description)
+          result => result%next
+       end do
+    end if
+    if (list%n_failure > 0) then
+       write (u, "(2x,A)")  "Failure:"
+       result => list%first
+       do while (associated (result))
+          if (.not. result%success)  write (u, "(4x,A,': ',A)")  &
+               char (result%name), char (result%description)
+          result => result%next
+       end do
+    end if
+    write (u, "(A,I0)")  "Total   = ", list%n_success + list%n_failure
+    write (u, "(A,I0)")  "Success = ", list%n_success
+    write (u, "(A,I0)")  "Failure = ", list%n_failure
+    write (u, "(A)")  "*** End of test Summary ***"
+  end subroutine test_results_write
+
+@ %def test_results_write
+@ Return true if all tests were successful (or no test).
+<<Tests: test results: TBP>>=
+  procedure, private :: report => test_results_report
+<<Tests: sub interfaces>>=
+    module subroutine test_results_report (list, success)
+      class(test_results_t), intent(in) :: list
+      logical, intent(out) :: success
+    end subroutine test_results_report
+<<Tests: procedures>>=
+  module subroutine test_results_report (list, success)
+    class(test_results_t), intent(in) :: list
+    logical, intent(out) :: success
+    success = list%n_failure == 0
+  end subroutine test_results_report
+
+@ %def test_results_report
+@ Return the number of successful/failed/total tests..
+<<Tests: test results: TBP>>=
+  procedure :: get_n_pass => test_results_get_n_pass
+  procedure :: get_n_fail => test_results_get_n_fail
+  procedure :: get_n_total => test_results_get_n_total
+<<Tests: sub interfaces>>=
+    module function test_results_get_n_pass (list) result (n)
+      class(test_results_t), intent(in) :: list
+      integer :: n
+    end function test_results_get_n_pass
+    module function test_results_get_n_fail (list) result (n)
+      class(test_results_t), intent(in) :: list
+      integer :: n
+    end function test_results_get_n_fail
+    module function test_results_get_n_total (list) result (n)
+      class(test_results_t), intent(in) :: list
+      integer :: n
+    end function test_results_get_n_total
+<<Tests: procedures>>=
+  module function test_results_get_n_pass (list) result (n)
+    class(test_results_t), intent(in) :: list
+    integer :: n
+    n = list%n_success
+  end function test_results_get_n_pass
+
+  module function test_results_get_n_fail (list) result (n)
+    class(test_results_t), intent(in) :: list
+    integer :: n
+    n = list%n_failure
+  end function test_results_get_n_fail
+
+  module function test_results_get_n_total (list) result (n)
+    class(test_results_t), intent(in) :: list
+    integer :: n
+    n = list%n_success + list%n_failure
+  end function test_results_get_n_total
+
+@ %def test_results_get_n_pass
+@ %def test_results_get_n_fail
+@ %def test_results_get_n_total
+@ Delete the list.
+<<Tests: test results: TBP>>=
+  procedure, private :: final => test_results_final
+<<Tests: sub interfaces>>=
+    module subroutine test_results_final (list)
+      class(test_results_t), intent(inout) :: list
+    end subroutine test_results_final
+<<Tests: procedures>>=
+  module subroutine test_results_final (list)
+    class(test_results_t), intent(inout) :: list
+    type(test_result_t), pointer :: result
+    do while (associated (list%first))
+       result => list%first
+       list%first => result%next
+       deallocate (result)
+    end do
+    list%last => null ()
+    list%n_success = 0
+    list%n_failure = 0
+  end subroutine test_results_final
+
+@ %def test_results_final
+@
+\subsection{Wrapup}
+This will write results, report status, and finalize.  This is the
+only method which we need to access from outside.
+<<Tests: test results: TBP>>=
+  procedure :: wrapup => test_results_wrapup
+<<Tests: sub interfaces>>=
+    module subroutine test_results_wrapup (list, u, success)
+      class(test_results_t), intent(inout) :: list
+      integer, intent(in) :: u
+      logical, intent(out), optional :: success
+    end subroutine test_results_wrapup
+<<Tests: procedures>>=
+  module subroutine test_results_wrapup (list, u, success)
+    class(test_results_t), intent(inout) :: list
+    integer, intent(in) :: u
+    logical, intent(out), optional :: success
+    call list%write (u)
+    if (present (success))  call list%report (success)
+    call list%final ()
+  end subroutine test_results_wrapup
+
+@ %def test_results_wrapup
+@
+\subsection{Tool for Unit Tests}
+This procedure takes a test routine as an argument.  It runs the test,
+output directed to a temporary file.  Then, it compares the file
+against a reference file.
+
+The test routine must take the output unit as argument.  We export
+this abstract interface, so the test drivers can reference it for
+declaring the actual test routines.
+<<Tests: public>>=
+  public :: unit_test
+<<Tests: interfaces>>=
+  abstract interface
+     subroutine unit_test (u)
+       integer, intent(in) :: u
+     end subroutine unit_test
+  end interface
+
+@ %def unit_test
+@ The test routine can print to screen and, optionally, to a logging unit.
+This driver runs the test given as an argument, directing its output to a
+scratch file which is then checked against a ref file.  Only if it differs, it
+is copied to an err file.
+
+NB: We call [[fatal_force_crash]] to produce a deliberate crash with backtrace
+on any fatal error, if the runtime system does allow it.
+This is not normal behavior, but should be useful if something goes wrong.
+<<Tests: public>>=
+  public :: test
+<<Tests: sub interfaces>>=
+    module subroutine test (test_proc, name, description, u_log, results)
+      procedure(unit_test) :: test_proc
+      character(*), intent(in) :: name
+      character(*), intent(in) :: description
+      integer, intent(in) :: u_log
+      type(test_results_t), intent(inout) :: results
+    end subroutine test
+<<Tests: procedures>>=
+  module subroutine test (test_proc, name, description, u_log, results)
+    procedure(unit_test) :: test_proc
+    character(*), intent(in) :: name
+    character(*), intent(in) :: description
+    integer, intent(in) :: u_log
+    type(test_results_t), intent(inout) :: results
+    integer :: u_test
+    logical :: success
+
+    call start_test (u_log, name)
+
+    u_test = free_unit ()
+    open (unit = u_test, status="scratch", action="readwrite")
+    call fatal_force_crash ()
+    call test_proc (u_test)
+    rewind (u_test)
+
+    call compare_test_results (u_test, u_log, name, success)
+    call results%add (name, description, success)
+    close (u_test)
+    
+  end subroutine test
+
+@ %def test
+@ Startup message.  We expose this, as well as the comparison routine, for
+re-use in external test programs.
+<<Tests: public>>=
+  public :: start_test
+<<Tests: sub interfaces>>=
+    module subroutine start_test (u_log, name)
+      integer, intent(in) :: u_log
+      character(*), intent(in) :: name
+    end subroutine start_test
+<<Tests: procedures>>=
+  module subroutine start_test (u_log, name)
+    integer, intent(in) :: u_log
+    character(*), intent(in) :: name
+
+    write (*, "(A)", advance="no")  "Running test: " // name
+    write (u_log, "(A)")  "Test: " // name
+    
+  end subroutine start_test
+  
+@ %def start_test 
+@ Do the actual comparison, given an open I/O unit [[u_test]].  In case of
+failure, copy the test results to an error file. 
+<<Tests: public>>=
+  public :: compare_test_results
+<<Tests: sub interfaces>>=
+    module subroutine compare_test_results (u_test, u_log, name, success)
+      integer, intent(in) :: u_test
+      integer, intent(in) :: u_log
+      character(*), intent(in) :: name
+      logical, intent(out) :: success
+    end subroutine compare_test_results
+<<Tests: procedures>>=
+  module subroutine compare_test_results (u_test, u_log, name, success)
+    integer, intent(in) :: u_test
+    integer, intent(in) :: u_log
+    character(*), intent(in) :: name
+    logical, intent(out) :: success
+    
+    integer :: u_ref, u_err
+    logical :: exist
+    character(256) :: buffer1, buffer2
+    integer :: iostat1, iostat2
+
+    inquire (file=ref_prefix//name//ref, exist=exist)
+    if (exist) then
+       open (newunit = u_ref, file=ref_prefix//name//ref, &
+            status="old", action="read")
+       COMPARE_FILES: do
+          read (u_test, "(A)", iostat=iostat1)  buffer1
+          read (u_ref, "(A)", iostat=iostat2)  buffer2
+          if (iostat1 /= iostat2) then
+             success = .false.
+             exit COMPARE_FILES
+          else if (iostat1 < 0) then
+             success = .true.
+             exit COMPARE_FILES
+          else if (buffer1 /= buffer2) then
+             success = .false.
+             exit COMPARE_FILES
+          end if
+       end do COMPARE_FILES
+       close (u_ref)
+    else
+       write (*, "(A)", advance="no") " ... no reference output available"
+       write (u_log, "(A)") "  No reference output available."
+       success = .false.
+    end if
+    if (success) then
+       write (*, "(A)") " ... success."
+       write (u_log, "(A)")  "  Success."
+    else
+       write (*, "(A)") " ... failure.  See: " // err_prefix//name//err
+       write (u_log, "(A)")  "  Failure."
+       rewind (u_test)
+       open (newunit = u_err, file=err_prefix//name//err, &
+            action="write", status="replace")
+       WRITE_OUTPUT: do
+          read (u_test, "(A)", end=1) buffer1
+          write (u_err, "(A)")  trim (buffer1)
+       end do WRITE_OUTPUT
+1      close (u_err)
+    end if
+
+  end subroutine compare_test_results
+
+@ %def compare_test_results

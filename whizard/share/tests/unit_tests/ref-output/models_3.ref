@@ -1,0 +1,45 @@
+* Test output: models_3
+*   Purpose: create a model instance
+
+model "Test"
+ ! md5sum = 'DB28187ADA60804A3CFC14A025DED784'
+
+   parameter gy =  1.000000000000E+00
+   parameter ms =  1.250000000000E+02
+   parameter ff =  1.500000000000E+00
+   external mf =  1.875000000000E+02
+
+   particle SCALAR 25
+     name "s"
+     spin 0
+     mass ms
+   particle FERMION 6
+     name "f"
+     anti "fbar" "F"
+     tex_anti "\bar{f}"
+     spin 1/2  isospin 1/2  charge 2/3  color 3
+     mass mf
+
+   vertex "fbar" "f" "s"
+   vertex "s" "s" "s"
+
+* Variable list
+
+gy =>  1.000000000000E+00
+ms =>  1.250000000000E+02
+ff =>  1.500000000000E+00
+mf* =>  1.875000000000E+02
+particle* = PDG(0)
+SCALAR* = PDG(25)
+s* = PDG(25)
+FERMION* = PDG(6)
+f* = PDG(6)
+fbar* = PDG(-6)
+F* = PDG(-6)
+charged* = PDG(6, -6)
+neutral* = PDG(25)
+colored* = PDG(6, -6)
+
+* Cleanup
+
+* Test output end: models_3

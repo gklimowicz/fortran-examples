@@ -1,0 +1,207 @@
+* Test output: event_streams_3
+*   Purpose: handle in/out switching
+
+* Generate test process event
+
+* Allocate raw eio stream and write event to file
+
+ Event stream array:
+ Raw event stream:
+   Check MD5 sum     = T
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Writing to file   = event_streams_3.evx
+
+* Reallocate raw eio stream for reading
+
+ Event stream array:
+ Input stream:
+ Raw event stream:
+   Check MD5 sum     = T
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Reading from file = event_streams_3.evx
+
+* Reread event
+
+* Attempt to read another event (fail), then generate
+
+ Event stream array:
+ Raw event stream:
+   Check MD5 sum     = T
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Writing to file   = event_streams_3.evx
+
+========================================================================
+ Event #2
+------------------------------------------------------------------------
+   Unweighted         = F
+   Normalization      = 'sigma'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  1.000000000000E+00
+   Squared matrix el. (prc) =  1.000000000000E+00
+   Event weight (ref)       =  2.709767398832E+08
+   Event weight (prc)       =  2.709767398832E+08
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 2
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.000000000000E+00
+   Analysis flag      = T
+========================================================================
+ Process instance [scattering]: 'processes_test'
+   Run ID = 'run_test'
+   Process components:
+   * 1: 'processes_test_i1':   s, s => s, s [test_me]
+   status = event complete
+------------------------------------------------------------------------
+   sqme   =  1.000000000000E+00
+   weight =  2.709767398832E+08
+------------------------------------------------------------------------
+ Active MCI instance #1 =
+   0.10000 0.30000
+ Result value = 2.7097674E+08
+ Rel. weight  = 4.3233950E-01
+ Integrand    = 3.1338420E+08
+ MCI weight   = 8.6467900E-01
+   c = 2
+   g = 6.9389912E-01
+ Channel parameters:
+ 1: w/f/g/m = 5.0000000E-01 1.0000000E+00 1.0000000E+00 2.0000000E+00
+    x = 0.4641589 0.3000000
+ 2: w/f/g/m = 5.0000000E-01 1.5471963E+00 6.0000000E-01 2.0000000E+00
+    x = 0.1000000 0.3000000
+ Call statistics (current run):
+   total       = 2
+   failed kin. = 0
+   failed cuts = 0
+   passed cuts = 0
+   evaluated   = 2
+========================================================================
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'processes_test'
+   Random-number generator: test (state = 3)
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(25)
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ T =   1.562500000000E+04
+ Children: 3 4
+ Particle 2 [i] f(25)
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ T =   1.562500000000E+04
+ Children: 3 4
+ Particle 3 [o] f(25)
+ E =   5.000000000000E+02
+ P =  -1.492173604062E+02  4.592438135829E+02  3.470301196281E+01
+ T =   1.562500000000E+04
+ Parents:  1 2
+ Particle 4 [o] f(25)
+ E =   5.000000000000E+02
+ P =   1.492173604062E+02 -4.592438135829E+02 -3.470301196281E+01
+ T =   1.562500000000E+04
+ Parents:  1 2
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  1.000000000000E+03
+sqrts_hat* =>  1.000000000000E+03
+n_in* => 2
+n_out* => 2
+n_tot* => 4
+$process_id* => "processes_test"
+process_num_id* => [unknown integer]
+sqme* =>  1.000000000000E+00
+sqme_ref* =>  1.000000000000E+00
+event_index* => 2
+event_weight* =>  2.709767398832E+08
+event_weight_ref* =>  2.709767398832E+08
+event_excess* =>  0.000000000000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(i:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00,-4.8412292E+02| 1.562500000000E+04| 1)
+ 2 prt(i:25|-5.0000000E+02; 0.0000000E+00, 0.0000000E+00, 4.8412292E+02| 1.562500000000E+04| 2)
+ 3 prt(o:25| 5.0000000E+02;-1.4921736E+02, 4.5924381E+02, 3.4703012E+01| 1.562500000000E+04| 3)
+ 4 prt(o:25| 5.0000000E+02; 1.4921736E+02,-4.5924381E+02,-3.4703012E+01| 1.562500000000E+04| 4)
+========================================================================
+
+* Reallocate raw eio stream for reading
+
+ Event stream array:
+ Input stream:
+ Raw event stream:
+   Check MD5 sum     = T
+   Alpha_s from file = F
+   Scale from file   = F
+   Events for fNLO   = F
+   Reading from file = event_streams_3.evx
+
+* Reread two events and display 2nd event
+
+========================================================================
+ Event #2 [incomplete]
+------------------------------------------------------------------------
+   Unweighted         = F
+   Normalization      = 'sigma'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  1.000000000000E+00
+   Event weight (ref)       =  2.709767398832E+08
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 2
+========================================================================
+ Process instance [scattering]: 'processes_test'
+   Run ID = 'run_test'
+   Process components:
+     1: 'processes_test_i1':   s, s => s, s [test_me]
+   status = initialized
+========================================================================
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'processes_test'
+   Random-number generator: test (state = 3)
+   Number of tries = 0
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [i] f(25)
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00  4.841229182759E+02
+ T =   1.562500000000E+04
+ Children: 3 4
+ Particle 2 [i] f(25)
+ E =   5.000000000000E+02
+ P =   0.000000000000E+00  0.000000000000E+00 -4.841229182759E+02
+ T =   1.562500000000E+04
+ Children: 3 4
+ Particle 3 [o] f(25)
+ E =   5.000000000000E+02
+ P =  -1.492173604062E+02  4.592438135829E+02  3.470301196281E+01
+ T =   1.562500000000E+04
+ Parents:  1 2
+ Particle 4 [o] f(25)
+ E =   5.000000000000E+02
+ P =   1.492173604062E+02 -4.592438135829E+02 -3.470301196281E+01
+ T =   1.562500000000E+04
+ Parents:  1 2
+========================================================================
+
+* Test output end: event_streams_3

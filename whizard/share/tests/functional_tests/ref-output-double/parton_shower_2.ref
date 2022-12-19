@@ -1,0 +1,97 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+SM.me =>  0.000000000000E+00
+$method = "omega"
+| Process library 'parton_shower_2_lib': recorded process 'parton_shower_2_p1'
+seed = 0
+| Process library 'parton_shower_2_lib': compiling ...
+| Process library 'parton_shower_2_lib': writing makefile
+| Process library 'parton_shower_2_lib': removing old files
+| Process library 'parton_shower_2_lib': writing driver
+| Process library 'parton_shower_2_lib': creating source code
+| Process library 'parton_shower_2_lib': compiling sources
+| Process library 'parton_shower_2_lib': linking
+| Process library 'parton_shower_2_lib': loading
+| Process library 'parton_shower_2_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+02
+openmp_num_threads = 1
+sqrts =  1.000000000000E+03
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process parton_shower_2_p1:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'parton_shower_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'parton_shower_2_p1'
+|   Library name  = 'parton_shower_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'parton_shower_2_p1_i1':   u, ubar => e+, e- [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 2 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'parton_shower_2_p1'
+| Integrate: iterations = 5:1000:"gw", 3:1000
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1       1000  1.1028255E+04  8.90E+02    8.07    2.55*   2.95
+   2        999  1.1784333E+04  3.34E+02    2.84    0.90*  17.13
+   3        998  1.2154429E+04  2.53E+02    2.08    0.66*  27.76
+   4        997  1.1379571E+04  2.24E+02    1.97    0.62*  30.69
+   5        996  1.1971100E+04  4.02E+02    3.36    1.06    8.15
+|-----------------------------------------------------------------------------|
+   5       4990  1.1744224E+04  1.39E+02    1.18    0.83    8.15    1.57   5
+|-----------------------------------------------------------------------------|
+   6        996  1.1089457E+04  2.15E+02    1.94    0.61*   7.55
+   7        996  1.1299280E+04  2.16E+02    1.91    0.60*   7.46
+   8        996  1.1512412E+04  2.11E+02    1.83    0.58*   7.51
+|-----------------------------------------------------------------------------|
+   8       2988  1.1303212E+04  1.24E+02    1.09    0.60    7.51    0.98   3
+|=============================================================================|
+n_events = 1
+?allow_shower = true
+?ps_isr_active = true
+?ps_isr_only_onshell_emitted_partons = true
+$shower_method = "WHIZARD"
+$sample = "parton_shower_2"
+?sample_pacify = true
+| Starting simulation for process 'parton_shower_2_p1'
+| Simulate: using integration grids from file 'parton_shower_2_p1.m1.vg'
+| Simulate: activating parton shower
+| Shower: interfacing PDF builtin set #3
+| Shower: Using WHIZARD internal shower
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   8.8470E-05
+| Events: writing to ASCII file 'parton_shower_2.evt'
+| Events: writing to raw file 'parton_shower_2.evx'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   4.76 %
+| Events: closing ASCII file 'parton_shower_2.evt'
+| Events: closing raw file 'parton_shower_2.evx'
+| WHIZARD run finished.
+|=============================================================================|
+Contents of parton_shower_2.evt:

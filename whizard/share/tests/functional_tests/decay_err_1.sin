@@ -1,0 +1,34 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM_CKM
+me = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+# T-quark mixing: switch off d
+vckm31 = 0            # Vtd
+vckm32 = -0.04161     # Vts
+vckm33 = 0.99910      # Vtb
+
+process decay_err_1_d1 = t => d, Wp
+process decay_err_1_d2 = t => s, Wp
+process decay_err_1_d3 = t => b, Wp
+
+process decay_err_1_p = e1, E1 => t, T
+
+seed = 0
+sqrts = 500
+integrate (decay_err_1_p) { iterations=1:1000 }
+
+error_threshold = 1e-8
+
+# One partial width zero, should proceed
+unstable t (decay_err_1_d1, decay_err_1_d2, decay_err_1_d3)
+simulate (decay_err_1_p) { n_events = 1 }
+
+# All selected partical widths zero, fatal error
+unstable t (decay_err_1_d1)
+simulate (decay_err_1_p) { n_events = 1 }

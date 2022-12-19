@@ -1,0 +1,100 @@
+model = SM_tt_threshold
+
+mZ = 91.1876
+mW = 80.385
+mb = 4.2
+mH =  1.250000000000E+02
+me =  0.0
+alpha_em_i = 132.23323     !!! GF = 1.1663787E-005
+m1S = 172.0
+Vtb = 1.
+wZ =  2.443
+wW =  2.049
+wH =  4.143E-03
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alphas = 0.118 ! (Z pole, NLL running to mu_h)
+alphas_order = 2
+alphas_nf = 5
+scale = m1S
+
+alpha_power = 4
+alphas_power = 0
+
+library = NLO_NLL_matched
+
+offshell_strategy = 1 +    !!! NLO width and decay
+                    32     !!! helicity-approximated
+nrqcd_order = 1            !!! NLL form factor
+FF = -4  !!! MATCHED
+mpole_fixed = 1
+real wtop1S = wtop
+mpole_fixed = -1
+show(model)
+
+mult_call_virt = 0.75
+! mult_call_real = 20
+! iterations = 10:40000:"gw",5:20000
+!!! For reliable, high-quality results use the above iterations and average over
+!!! ~20 integration runs
+mult_call_real = 5
+iterations = 3:2000:"gw",3:2000
+
+!!! {{{ Variables to scan over
+real scale_variations = 0      !!! can be used for common scale variations
+real mass_cut = -1             !!! can be used to cut on mWB
+real matched_variations = 0    !!! can be used for matching variations
+sqrts = 350.0
+!!! }}}
+sqrtsstepsize = 0.1 GeV
+sqrtsmin = sqrts - 2 * sqrtsstepsize
+sqrtsmax = sqrts + 2 * sqrtsstepsize
+
+if (scale_variations == 0) then
+  sh = 1.0
+  sf = 1.0
+elsif (scale_variations == 1) then
+  sh = 0.5
+  sf = 2.0
+elsif (scale_variations == 2) then
+  sh = 2.0
+  sf = 1.0
+elsif (scale_variations == 3) then
+  sh = 2.0
+  sf = 0.5
+elsif (scale_variations == 4) then
+  sh = 0.5
+  sf = 1.0
+endif
+if (matched_variations == 0) then
+  v1 = 0.10
+  v2 = 0.30
+elsif (matched_variations == 1) then
+  v1 = 0.15
+  v2 = 0.30
+elsif (matched_variations == 4) then
+  v1 = 0.10
+  v2 = 0.40
+endif
+if (mass_cut > 0) then
+  cuts = all abs (M - m1S) < mass_cut [Wp, b] and
+         all abs (M - m1S) < mass_cut [Wm, B]
+endif
+
+$method                = "threshold"
+!!! full can be separated into Born, Real and Virtual
+process matched_nlodecay = E1, e1 => Wp, Wm, b, B { nlo_calculation = full }
+integrate (matched_nlodecay)
+
+$method                = "openloops"
+process nlofull = E1, e1 => Wp, Wm, b, B { nlo_calculation = full }
+
+!!! h * m1S * sqrt(nustar)
+scale = sh * m1S * sqrt(abs(sqrt((sqrts - 2 * m1S + I * wtop1S) / m1S)) + 0.05)
+integrate (nlofull)
+
+printf "sqrts       = %6.2f" (sqrts)
+printf "NLO         = %6.2f +- %5.2f" (integral(nlofull), error(nlofull))
+printf "MATCHED-NLO = %6.2f +- %5.2f" (integral(matched_nlodecay), error(matched_nlodecay))
+printf "MATCHED     = %6.2f +- %5.2f" (integral(nlofull) + integral(matched_nlodecay), sqrt(error(nlofull)**2 + error(matched_nlodecay)**2))

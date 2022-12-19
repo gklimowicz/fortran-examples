@@ -1,0 +1,229 @@
+* Test output: blha_3
+* Purpose: Test the creation of olp-files for single "and polarized flavor structures
+
+* Process: e+ e- -> W+ W- b b~
+* BLHA matrix elements assumed for all process components
+* Mode: GoSam
+------------------------------------------------------------------------
+OLP-File content for loop matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: GoSam
+# process: BLHA_Test_LOOP
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+IRregularisation         CDR
+MassiveParticleScheme    OnShell
+CouplingPower QCD        0
+CouplingPower QED        4
+EWScheme                 alphaGF
+MassiveParticles          5  6 13 15 23 24 25
+
+# Process definitions
+
+DebugUnstable            True
+
+AmplitudeType            Loop
+ 11 -11 ->  24 -24   5  -5
+
+AmplitudeType            ccTree
+ 11 -11 ->  24 -24   5  -5
+
+------------------------------------------------------------------------
+OLP-File content for subtraction matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: GoSam
+# process: BLHA_Test_SUB
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+IRregularisation         CDR
+MassiveParticleScheme    OnShell
+CouplingPower QCD        0
+CouplingPower QED        4
+EWScheme                 alphaGF
+MassiveParticles          5  6 13 15 23 24 25
+
+# Process definitions
+
+DebugUnstable            True
+
+AmplitudeType            Tree
+ 11 -11 ->  24 -24   5  -5
+
+AmplitudeType            ccTree
+ 11 -11 ->  24 -24   5  -5
+
+AmplitudeType            scTree
+ 11 -11 ->  24 -24   5  -5
+
+------------------------------------------------------------------------
+OLP-File content for real matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: GoSam
+# process: BLHA_Test_REAL
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+IRregularisation         CDR
+MassiveParticleScheme    OnShell
+CouplingPower QCD        1
+CouplingPower QED        4
+EWScheme                 alphaGF
+MassiveParticles          5  6 13 15 23 24 25
+
+# Process definitions
+
+DebugUnstable            True
+
+AmplitudeType            Tree
+ 11 -11 ->  24 -24   5  -5  21
+
+------------------------------------------------------------------------
+OLP-File content for born matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: GoSam
+# process: BLHA_Test_BORN
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+IRregularisation         CDR
+MassiveParticleScheme    OnShell
+CouplingPower QCD        0
+CouplingPower QED        4
+EWScheme                 alphaGF
+MassiveParticles          5  6 13 15 23 24 25
+
+# Process definitions
+
+DebugUnstable            True
+
+AmplitudeType            Tree
+ 11 -11 ->  24 -24   5  -5
+
+* Switch to OpenLoops
+------------------------------------------------------------------------
+OLP-File content for loop matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: OpenLoops
+# process: BLHA_Test_LOOP
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+Extra AnswerFile         BLHA_Test_LOOP.olc
+IRregularisation         CDR
+CouplingPower QCD        0
+CouplingPower QED        4
+ewscheme                 Gmu
+extra use_cms            0
+extra me_cache           0
+extra IR_on              0
+extra psp_tolerance      10e-7
+
+
+# Process definitions
+
+
+AmplitudeType            Loop
+ 11 -11 ->  24 -24   5  -5
+
+AmplitudeType            ccTree
+ 11 -11 ->  24 -24   5  -5
+
+------------------------------------------------------------------------
+OLP-File content for subtraction matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: OpenLoops
+# process: BLHA_Test_SUB
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+Extra AnswerFile         BLHA_Test_SUB.olc
+IRregularisation         CDR
+CouplingPower QCD        0
+CouplingPower QED        4
+ewscheme                 Gmu
+extra use_cms            0
+extra me_cache           0
+extra IR_on              0
+extra psp_tolerance      10e-7
+
+
+# Process definitions
+
+
+AmplitudeType            Tree
+ 11 -11 ->  24 -24   5  -5
+
+AmplitudeType            ccTree
+ 11 -11 ->  24 -24   5  -5
+
+AmplitudeType            sctree_polvect
+ 11 -11 ->  24 -24   5  -5
+
+------------------------------------------------------------------------
+OLP-File content for real matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: OpenLoops
+# process: BLHA_Test_REAL
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+Extra AnswerFile         BLHA_Test_REAL.olc
+IRregularisation         CDR
+CouplingPower QCD        1
+CouplingPower QED        4
+ewscheme                 Gmu
+extra use_cms            0
+extra me_cache           0
+extra IR_on              0
+extra psp_tolerance      10e-7
+
+
+# Process definitions
+
+
+AmplitudeType            Tree
+ 11 -11 ->  24 -24   5  -5  21
+
+------------------------------------------------------------------------
+OLP-File content for born matrix elements
+------------------------------------------------------------------------
+# BLHA order written by WHIZARD [version]
+
+# BLHA interface mode: OpenLoops
+# process: BLHA_Test_BORN
+# model: SM
+InterfaceVersion         BLHA2
+CorrectionType           QCD
+Extra AnswerFile         BLHA_Test_BORN.olc
+IRregularisation         CDR
+CouplingPower QCD        0
+CouplingPower QED        4
+ewscheme                 Gmu
+extra use_cms            0
+extra me_cache           0
+extra IR_on              0
+extra psp_tolerance      10e-7
+
+
+# Process definitions
+
+
+AmplitudeType            Tree
+ 11 -11 ->  24 -24   5  -5
+

@@ -1,0 +1,39 @@
+# SINDARIN input for WHIZARD self-test
+# Check rebuilding/keeping of grid file
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+error_threshold = 1E-5
+
+$method = "unit_test"
+process testproc_10_p1 = s, s => s, s
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+sqrts = 1000
+iterations = 1:1000
+integrate (testproc_10_p1)
+
+# Keep everything
+?rebuild_phase_space = false
+?rebuild_grids = false
+integrate (testproc_10_p1)
+
+# Rebuild phs and grids because parameter has changed
+sqrts = 500
+integrate (testproc_10_p1)
+
+# Rebuild only grids because QCD setup has changed
+?alphas_is_fixed = false
+?alphas_from_mz = true
+integrate (testproc_10_p1)
+

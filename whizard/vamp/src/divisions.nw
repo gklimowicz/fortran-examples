@@ -1,0 +1,1674 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP divisions code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Implementation}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Abstract Datatype \texttt{division}}
+<<[[divisions.f90]]>>=
+! divisions.f90 --
+<<Copyleft notice>>
+module divisions
+  use kinds
+  use exceptions
+  use vamp_stat
+  use utils
+  use iso_fortran_env
+  implicit none
+  private
+  <<Declaration of [[divisions]] procedures>>
+  <<Interfaces of [[divisions]] procedures>>
+  <<Variables in [[divisions]]>>
+  <<Declaration of [[divisions]] types>>
+  <<Constants in [[divisions]]>>
+contains
+  <<Implementation of [[divisions]] procedures>>
+end module divisions
+@ 
+\begin{dubious}
+  [[vamp_apply_equivalences]] from [[vamp]] accesses [[%variance]] \ldots
+\end{dubious}
+<<Declaration of [[divisions]] types>>=
+type, public :: division_t
+!   private
+!!! Avoiding a g95 bug 
+   real(kind=default), dimension(:), pointer :: x => null ()
+   real(kind=default), dimension(:), pointer :: integral => null ()
+   real(kind=default), dimension(:), pointer &
+                                      :: variance => null ()
+!                                      public :: variance => null ()
+!  real(kind=default), dimension(:), pointer :: efficiency => null ()
+   real(kind=default) :: x_min, x_max
+   real(kind=default) :: x_min_true, x_max_true
+   real(kind=default) :: dx, dxg
+   integer :: ng = 0
+   logical :: stratified = .true.
+end type division_t
+@ %def division_t
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Creation, Manipulation \&\ Injection}
+<<Declaration of [[divisions]] procedures>>=
+public :: create_division, create_empty_division
+public :: copy_division, delete_division
+public :: set_rigid_division, reshape_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine create_division &
+     (d, x_min, x_max, x_min_true, x_max_true)
+  type(division_t), intent(out) :: d
+  real(kind=default), intent(in) :: x_min, x_max
+  real(kind=default), intent(in), optional :: x_min_true, x_max_true
+  allocate (d%x(0:1), d%integral(1), d%variance(1))
+! allocate (d%efficiency(1))
+  d%x(0) = 0.0
+  d%x(1) = 1.0
+  d%x_min = x_min
+  d%x_max = x_max
+  d%dx = d%x_max - d%x_min
+  d%stratified = .false.
+  d%ng = 1
+  d%dxg = 1.0 / d%ng
+  if (present (x_min_true)) then
+     d%x_min_true = x_min_true
+  else
+     d%x_min_true = x_min
+  end if
+  if (present (x_max_true)) then
+     d%x_max_true = x_max_true
+  else
+     d%x_max_true = x_max
+  end if
+end subroutine create_division
+
+@ %def create_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine create_empty_division (d)
+  type(division_t), intent(out) :: d
+  nullify (d%x, d%integral, d%variance)
+! nullify (d%efficiency)
+end subroutine create_empty_division
+
+@ %def create_empty_division
+@
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine set_rigid_division (d, ng)
+  type(division_t), intent(inout) :: d
+  integer, intent(in) :: ng
+  d%stratified = ng > 1
+  d%ng = ng
+  d%dxg = real (ubound (d%x, dim=1), kind=default) / d%ng
+end subroutine set_rigid_division
+
+@ %def set_rigid_division
+@
+\begin{equation}
+  [[dxg]] = \frac{n_{\text{div}}}{n_g}
+\end{equation}
+such that $0 < [[cell]]\cdot[[dxg]] < n_{\text{div}}$
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine reshape_division (d, max_num_div, ng, use_variance)
+  type(division_t), intent(inout) :: d
+  integer, intent(in) :: max_num_div
+  integer, intent(in), optional :: ng
+  logical, intent(in), optional :: use_variance
+  real(kind=default), dimension(:), allocatable :: old_x, m
+  integer :: num_div, equ_per_adap
+  if (present (ng)) then
+     if (max_num_div > 1) then
+        d%stratified = ng > 1
+     else
+        d%stratified = .false.
+     end if
+  else
+     d%stratified = .false.
+  end if
+  if (d%stratified) then
+     d%ng = ng
+     <<Initialize stratified sampling>>
+  else
+     num_div = max_num_div
+     d%ng = 1
+  end if
+  d%dxg = real (num_div, kind=default) / d%ng
+  allocate (old_x(0:ubound(d%x,dim=1)), m(ubound(d%x,dim=1)))
+  old_x = d%x
+  <<Set [[m]] to $(1,1,\ldots)$ or to rebinning weights from [[d%variance]]>>
+  <<Resize arrays, iff necessary>>
+  d%x = rebin (m, old_x, num_div)
+  deallocate (old_x, m)
+end subroutine reshape_division
+
+@ %def reshape_division
+@ 
+<<Set [[m]] to $(1,1,\ldots)$ or to rebinning weights from [[d%variance]]>>=
+if (present (use_variance)) then
+   if (use_variance) then
+      m = rebinning_weights (d%variance)
+   else
+      m = 1.0
+   end if
+else
+   m = 1.0
+end if
+@ %def m
+@ 
+<<Resize arrays, iff necessary>>=
+if (ubound (d%x, dim=1) /= num_div) then
+   deallocate (d%x, d%integral, d%variance)
+!  deallocate (d%efficiency)
+   allocate (d%x(0:num_div), d%integral(num_div), d%variance(num_div))
+!  allocate (d%efficiency(num_div))
+end if
+@ 
+\begin{empcmds}
+  vardef layout =
+    pair ul, ur, ll, lr;
+    ypart (ul) = ypart (ur); ypart (ll) = ypart (lr);
+    xpart (ul) = xpart (ll); xpart (ur) = xpart (lr);
+    numeric weight_width, weight_dist;
+    weight_width = 0.1w; weight_dist = 0.05w;
+    ll = (.1w,.1w);
+    ur = (w-weight_width-weight_dist,h-weight_width-weight_dist);
+    numeric equ_div, adap_div, rx, ry, rxp, rxm, ryp, rym;
+    equ_div = 3;  adap_div = 8;
+    rx = 5.2; ry = 3.6;
+    rxp = ceiling rx; rxm = floor rx;
+    ryp = ceiling ry; rym = floor ry;
+    numeric pi; pi = 180;
+    vardef adap_fct_x (expr x) = (x + sind(2*x*pi)/8) enddef;
+    vardef weight_x (expr x) = (1 + 2*sind(1*x*pi)**2) / 3 enddef;
+    vardef adap_fct_y (expr x) = (x + sind(4*x*pi)/16) enddef;
+    vardef weight_y (expr x) = (1 + 2*sind(2*x*pi)**2) / 3 enddef;
+    vardef grid_pos (expr i, j) =
+      (adap_fct_y(j/adap_div))[(adap_fct_x(i/adap_div))[ll,lr],
+                               (adap_fct_x(i/adap_div))[ul,ur]]
+    enddef;
+    vardef grid_square (expr i, j) =
+      grid_pos (i,j) -- grid_pos (i+1,j) -- grid_pos (i+1,j+1)
+        -- grid_pos (i,j+1) -- cycle
+    enddef;
+  enddef;
+  vardef decoration =
+    fill (lr shifted (weight_y(0)*(weight_width,0))
+             for y = .1 step .1 until 1.01:
+               .. y[lr,ur] shifted (weight_y(y)*(weight_width,0))
+             endfor
+             -- ur -- lr -- cycle) shifted (weight_dist,0) withcolor 0.7white;
+    fill (ul shifted (weight_x(0)*(0,weight_width))
+             for x = .1 step .1 until 1.01:
+               .. x[ul,ur] shifted (weight_x(x)*(0,weight_width))
+             endfor
+             -- ur -- ul -- cycle) shifted (0,weight_dist) withcolor 0.7white;
+    picture px, py;
+    px = btex $p_1(x_1)$ etex; py = btex $p_2(x_2)$ etex;
+    label.top (image (unfill bbox px; draw px),
+                .5[ul,ur] shifted (0,weight_dist));
+    label.rt (image (unfill bbox py; draw py),
+                .75[lr,ur] shifted (weight_dist,0));
+    label.lrt (btex \texttt{domain(1,1)} etex, ll);
+    label.bot (btex $x_1$ etex, .5[ll,lr]);
+    label.llft (btex \texttt{domain(2,1)} etex, lr);
+    label.ulft (btex \texttt{domain(1,2)} etex, ll);
+    label.lft (btex $x_2$ etex, .5[ll,ul]);
+    label.llft (btex \texttt{domain(2,2)} etex, ul);
+  enddef;
+\end{empcmds}
+\begin{figure}
+  \begin{center}
+    \begin{emp}(90,70)
+      layout;
+      fill grid_square (rxm,rym) withcolor 0.7white;
+      pickup pencircle scaled .7pt;
+      for i = 0 upto adap_div:
+        draw grid_pos(i,0) -- grid_pos(i,adap_div);
+        draw grid_pos(0,i) -- grid_pos(adap_div,i);
+      endfor
+      pickup pencircle scaled 2pt;
+      drawdot grid_pos(rx,ry);
+      decoration;
+    \end{emp}
+  \end{center}
+  \caption{\label{fig:nonstrat}%
+    \texttt{vegas} grid structure for non-stratified sampling.
+    N.B.: the grid and the weight functions~$p_{1,2}$ are only in
+    qualitative agreement.}
+\end{figure}
+\begin{figure}
+  \begin{center}
+    \begin{emp}(90,70)
+      layout;
+      vardef grid_sub_pos (expr i, di, j, dj) =
+        (dj/equ_div)[(di/equ_div)[grid_pos(i,j),grid_pos(i+1,j)],
+                     (di/equ_div)[grid_pos(i,j+1),grid_pos(i+1,j+1)]]
+      enddef;
+      vardef grid_sub_square (expr i, di, j, dj) =
+        grid_sub_pos (i,di,j,dj)
+          -- grid_sub_pos (i,di+1,j,dj)
+          -- grid_sub_pos (i,di+1,j,dj+1)
+          -- grid_sub_pos (i,di,j,dj+1)
+          -- cycle
+      enddef;
+      fill grid_square (rxm,rym) withcolor 0.8white;
+      fill grid_sub_square (rxm,0,rym,1) withcolor 0.6white;
+      pickup pencircle scaled .7pt;
+      for i = 0 upto adap_div:
+        draw grid_pos(i,0) -- grid_pos(i,adap_div);
+        draw grid_pos(0,i) -- grid_pos(adap_div,i);
+      endfor
+      pickup pencircle scaled .5pt;
+      for i = 0 upto (adap_div-1):
+        for j = 1 upto (equ_div-1):
+          draw grid_sub_pos(i,j,0,0)
+                 -- grid_sub_pos(i,j,adap_div,0) dashed evenly;
+          draw grid_sub_pos(0,0,i,j)
+                 -- grid_sub_pos(adap_div,0,i,j) dashed evenly;
+        endfor
+      endfor
+      pickup pencircle scaled 2pt;
+      drawdot grid_pos(rx,ry);
+      decoration;
+    \end{emp}
+  \end{center}
+  \caption{\label{fig:strat}%
+    \texttt{vegas} grid structure for genuinely stratified sampling, which
+    is used in low dimensions.  N.B.: the grid and the weight
+    functions~$p_{1,2}$ are only in qualitative agreement.}
+\end{figure}
+Genuinely stratified sampling will superimpose an equidistant grid on
+the adaptive grid, as shown in figure~\ref{fig:strat}.
+\begin{table}
+  \begin{center}
+    \begin{tabular}{c|c}
+       $n_{\text{dim}}$
+           & $N_{\text{calls}}^{\max}(n_g=25)$\\\hline
+        2  & $1\cdot10^{3}$ \\
+        3  & $3\cdot10^{4}$ \\
+        4  & $8\cdot10^{5}$ \\
+        5  & $2\cdot10^{7}$ \\
+        6  & $5\cdot10^{8}$
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:dimen}%
+    To stratify or not to stratify.}
+\end{table}
+Obviously, this is only possible when the number of cells of the
+stratification grid is large enough, specifically when
+$n_g \ge n_{\text{div}}^{\min} = n_{\text{div}}^{\max}/2 = 25$).
+This condition can be met by a high number of sampling points or by a
+low dimensionality of the integration region
+(cf.~table~\ref{tab:dimen}).\par
+@ For a low number of sampling points and high dimensions, genuinely
+stratified sampling is impossible, because we would have to reduce the
+number~$n_{\text{div}}$ of adaptive divisions too far.  Instead, we
+keep [[stratified]] false which will tell the integration
+routine not to concentrate the grid in the regions where the
+contribution to the error is largest, but to use importance sampling,
+i.\,e.~concentrating the grid in the regions where the contribution to
+the value is largest.\par
+In this case, the rigid grid is much coarser than the adaptive grid
+and furthermore, the boundaries of the cells overlap in general.  The
+interplay of the two grids during the sampling process is shown in
+figure~\ref{fig:grids}.\par
+@ First we determine the (integer) number~$k$ of equidistant divisions
+of an adaptive cell for at most~$n_{\text{div}}^{\max}$ divisions of
+the adaptive grid
+\begin{subequations}
+\begin{equation}
+  k = \left\lfloor \frac{n_g}{n_{\text{div}}^{\max}} \right\rfloor + 1
+\end{equation}
+and the corresponding number~$n_{\text{div}}$ of adaptive divisions
+\begin{equation}
+  n_{\text{div}} = \left\lfloor \frac{n_g}{k} \right\rfloor
+\end{equation}
+Finally, adjust~$n_g$ to an exact multiple of~$n_{\text{div}}$
+\begin{equation}
+  n_g = k \cdot n_{\text{div}}
+\end{equation}
+\end{subequations}
+<<Initialize stratified sampling>>=
+if (d%ng >= max_num_div / 2) then 
+   d%stratified = .true.
+   equ_per_adap = d%ng / max_num_div + 1
+   num_div = d%ng / equ_per_adap
+   if (num_div < 2) then
+      d%stratified = .false.
+      num_div = 2
+      d%ng = 1
+   else if (mod (num_div,2) == 1) then
+      num_div = num_div - 1
+      d%ng = equ_per_adap * num_div
+   else
+      d%ng = equ_per_adap * num_div
+   end if
+else
+   d%stratified = .false.
+   num_div = max_num_div
+   d%ng = 1
+end if
+@ %def num_div ng
+@
+Figure~\ref{fig:grids} on page~\pageref{fig:grids} is a
+one-dimensional illustration of the sampling algorithm.
+In each cell of the rigid equidistant grid, two random points are
+selected (or $N_{\text{calls}}$ in the not stratified case).  For each
+point, the corresponding cell and relative coordinate in the adaptive
+grid is found, \emph{as if the adaptive grid was equidistant} (upper
+arrow).  Then this point is mapped according to the adapted grid
+(lower arrow) and the proper Jacobians are applied to the weight.
+\begin{equation} 
+  \prod_{j=1}^n \,(x^j_i-x^j_{i-1}) \cdot N^n
+     = \text{Vol}(\text{cell}') \cdot \frac{1}{\text{Vol}(\text{cell})}
+     = \frac{1}{p(x^j_i)}
+\end{equation}
+\begin{figure}
+  \begin{center}
+    \begin{emp}(120,30)
+      pseudo (.3w, .8w, .1h, .8h, 0, 8, 8,  0, 12, 12, 5.2,   true, true);
+    \end{emp}
+  \end{center}
+  \caption{\label{fig:grids}%
+    One-dimensional illustration of the \texttt{vegas} grid structure
+    for pseudo stratified sampling, which is used in high dimensions.}
+\end{figure}
+<<Declaration of [[divisions]] procedures>>=
+public :: inject_division, inject_division_short
+@ %def inject_division inject_division_short
+@
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine inject_division (d, r, cell, x, x_mid, idx, wgt)
+  type(division_t), intent(in) :: d
+  real(kind=default), intent(in) :: r
+  integer, intent(in) :: cell
+  real(kind=default), intent(out) :: x, x_mid
+  integer, intent(out) :: idx
+  real(kind=default), intent(out) :: wgt
+  real(kind=default) :: delta_x, xi
+  integer :: i
+  xi = (cell - r) * d%dxg + 1.0
+  <<Set [[i]], [[delta_x]], [[x]], and [[wgt]] from [[xi]]>>
+  idx = i
+  x_mid = d%x_min + 0.5 * (d%x(i-1) + d%x(i)) * d%dx
+end subroutine inject_division
+
+@ %def inject_division
+@ 
+<<Set [[i]], [[delta_x]], [[x]], and [[wgt]] from [[xi]]>>=
+i = max (min (int (xi), ubound (d%x, dim=1)), 1)
+delta_x = d%x(i) - d%x(i-1)
+x = d%x_min + (d%x(i-1) + (xi - i) * delta_x) * d%dx
+wgt = delta_x * ubound (d%x, dim=1)
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine inject_division_short (d, r, x, idx, wgt)
+  type(division_t), intent(in) :: d
+  real(kind=default), intent(in) :: r
+  integer, intent(out) :: idx
+  real(kind=default), intent(out) :: x, wgt
+  real(kind=default) :: delta_x, xi
+  integer :: i
+  xi = r * ubound (d%x, dim=1) + 1.0
+  <<Set [[i]], [[delta_x]], [[x]], and [[wgt]] from [[xi]]>>
+  idx = i
+end subroutine inject_division_short
+
+@ %def inject_division_short
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Grid Refinement}
+<<Declaration of [[divisions]] procedures>>=
+public :: record_integral, record_variance, clear_integral_and_variance
+! public :: record_efficiency
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine record_integral (d, i, f)
+  type(division_t), intent(inout) :: d
+  integer, intent(in) :: i
+  real(kind=default), intent(in) :: f
+  d%integral(i) = d%integral(i) + f
+  if (.not. d%stratified) then 
+     d%variance(i) = d%variance(i) + f*f
+  end if
+end subroutine record_integral
+
+@ %def record_integral
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine record_variance (d, i, var_f)
+  type(division_t), intent(inout) :: d
+  integer, intent(in) :: i
+  real(kind=default), intent(in) :: var_f
+  if (d%stratified) then 
+     d%variance(i) = d%variance(i) + var_f
+  end if
+end subroutine record_variance
+
+@ %def record_variance
+@ 
+<<Implementation of [[divisions]] procedures (removed from WHIZARD)>>=
+elemental subroutine record_efficiency (d, i, eff)
+  type(division_t), intent(inout) :: d
+  integer, intent(in) :: i
+  real(kind=default), intent(in) :: eff
+! d%efficiency(i) = d%efficiency(i) + eff
+end subroutine record_efficiency
+@ %def record_efficiency
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine clear_integral_and_variance (d)
+  type(division_t), intent(inout) :: d
+  d%integral = 0.0
+  d%variance = 0.0
+! d%efficiency = 0.0
+end subroutine clear_integral_and_variance
+@ %def clear_integral_and_variance
+@
+<<Declaration of [[divisions]] procedures>>=
+public :: refine_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine refine_division (d)
+  type(division_t), intent(inout) :: d
+  character(len=*), parameter :: FN = "refine_division"
+  d%x = rebin (rebinning_weights (d%variance), d%x, size (d%variance))
+end subroutine refine_division
+@ %def refine_division
+@
+Smooth the $d_i = \bar f_i \Delta x_i$
+\begin{equation}
+  \begin{aligned}
+    d_1     &\to \frac{1}{2}(d_1+d_2) \\
+    d_2     &\to \frac{1}{3}(d_1+d_2+d_3) \\
+            &\ldots\\
+    d_{n-1} &\to \frac{1}{3}(d_{n-2}+d_{n-1}+d_n) \\
+    d_n     &\to \frac{1}{2}(d_{n-1}+d_n)
+  \end{aligned}
+\end{equation}
+As long as the initial $[[num_div]] \ge 6$,
+we know that $[[num_div]] \ge 3$.
+@
+<<Variables in [[divisions]]>>=
+integer, private, parameter :: MIN_NUM_DIV = 3
+@ %def MIN_NUM_DIV
+@ Here the \texttt{Fortran90} array notation really shines, but we
+have to handle the cases $\text{[[nd]]}\le2$ specially, because the
+[[quadrupole]] option can lead to small [[nd]]s.  The equivalent
+\texttt{Fortran77} code~\cite{Lepage:1980:vegas} is orders of
+magnitude less obvious~\footnote{Some old timers call this a feature,
+however.} Also protect against vanishing~$d_i$ that will blow up the
+logarithm.
+\begin{equation}
+  m_i = \left(
+     \frac{\frac{\bar f_i \Delta x_i}{\sum_j\bar f_j \Delta x_j}-1}
+          {\ln\left(\frac{\bar f_i \Delta x_i}{\sum_j\bar f_j \Delta x_j}\right)}
+       \right)^\alpha
+\end{equation}
+<<Implementation of [[divisions]] procedures>>=
+pure function rebinning_weights (d) result (m)
+  real(kind=default), dimension(:), intent(in) :: d
+  real(kind=default), dimension(size(d)) :: m
+  real(kind=default), dimension(size(d)) :: smooth_d
+  real(kind=default), parameter :: ALPHA = 1.5
+  integer :: nd
+  <<Bail out if [[any (d == NaN)]]>>
+  nd = size (d)
+  if (nd > 2) then
+     smooth_d(1) = (d(1) + d(2)) / 2.0
+     smooth_d(2:nd-1) = (d(1:nd-2) + d(2:nd-1) + d(3:nd)) / 3.0
+     smooth_d(nd) = (d(nd-1) + d(nd)) / 2.0
+  else
+     smooth_d = d
+  end if
+  if (all (smooth_d < tiny (1.0_default))) then
+     m = 1.0_default
+  else
+     smooth_d = smooth_d / sum (smooth_d)
+     where (smooth_d < tiny (1.0_default))
+        smooth_d = tiny (1.0_default)
+     end where
+     where (smooth_d /= 1._default)
+        m = ((smooth_d - 1.0) / (log (smooth_d)))**ALPHA
+     elsewhere
+        m = 1.0_default
+     endwhere
+  end if
+end function rebinning_weights
+@ %def rebinning_weights
+@
+<<Declaration of [[divisions]] procedures>>=
+private :: rebinning_weights
+@
+\begin{dubious}
+\index{system dependencies}
+\index{IEEE hacks}
+   The [[NaN]] test is probably not portable:
+\end{dubious}
+<<Bail out if [[any (d == NaN)]]>>=
+if (any (d /= d)) then
+   m = 1.0
+   return
+end if
+@ Take a binning~[[x]] and return a new binning with [[num_div]] bins
+with the [[m]] homogeneously distributed:
+<<Implementation of [[divisions]] procedures>>=
+pure function rebin (m, x, num_div) result (x_new)
+  real(kind=default), dimension(:), intent(in) :: m
+  real(kind=default), dimension(0:), intent(in) :: x
+  integer, intent(in) :: num_div
+  real(kind=default), dimension(0:num_div) :: x_new
+  integer :: i, k
+  real(kind=default) :: step, delta
+  step = sum (m) / num_div
+  k = 0
+  delta = 0.0
+  x_new(0) = x(0)
+  do i = 1, num_div - 1
+     <<Increment~$k$ until $\sum m_k\ge\Delta$ and keep the surplus in~$\delta$>>
+     <<Interpolate the new $x_i$ from $x_k$ and~$\delta$>>
+  end do
+  x_new(num_div) = 1.0
+end function rebin
+@ %def rebin
+@ %def k delta x_new
+@
+<<Declaration of [[divisions]] procedures>>=
+private :: rebin
+@
+\begin{figure}
+  \begin{center}
+    \begin{empgraph}(70,30)
+      randomseed := 720.251;
+      pickup pencircle scaled 0.7pt;
+      path m[], g[];
+      numeric pi; pi = 180;
+      numeric dx; dx = 0.05;
+      numeric dg; dg = -0.04;
+      vardef adap_fct (expr x) = (x + sind(4*x*pi)/16) enddef;
+      autogrid (,);
+      frame.bot;
+      setrange (0, 0, 1, 1.2);
+      for x = 0 step dx until 1+dx/2:
+        numeric r;
+        r = 1 + normaldeviate/10;
+        augment.m[x] (adap_fct (x), r);
+        augment.m[x] (adap_fct (x+dx), r);
+        augment.m[x] (adap_fct (x+dx), 0);
+        augment.m[x] (adap_fct (x), 0);
+        augment.g[x] (adap_fct (x), 0);
+        augment.g[x] (adap_fct (x), dg);
+      endfor
+      for x = 0 step dx until 1-dx/2:
+        gfill m[x] -- cycle withcolor 0.7white;
+        gdraw m[x] -- cycle;
+      endfor
+      for x = 0 step dx until 1+dx/2:
+        gdraw g[x];
+      endfor
+      glabel.bot (btex $x_0$     etex, (adap_fct (0*dx), dg));
+      glabel.bot (btex $x_1$     etex, (adap_fct (1*dx), dg));
+      glabel.bot (btex $x_2$     etex, (adap_fct (2*dx), dg));
+      glabel.bot (btex $x_{n-1}$ etex, (adap_fct (1-dx), dg));
+      glabel.bot (btex $x_n$     etex, (adap_fct (1), dg));
+      glabel.lft (btex $\displaystyle
+                   \bar f_i\approx\frac{m_i}{\Delta x_i}$ etex, OUT);
+    \end{empgraph}
+  \end{center}
+  \caption{\label{fig:rebin}%
+    Typical weights used in the rebinning algorithm.}
+\end{figure}
+We increment~$k$ until another $\Delta$ (a.\,k.\,a.~[[step]]) of the
+integral has been accumulated (cf.~figure~\ref{fig:rebin}).  The
+mismatch will be corrected below.
+<<Increment~$k$ until $\sum m_k\ge\Delta$ and keep the surplus in~$\delta$>>=
+do
+   if (step <= delta) then 
+      exit
+   end if
+   k = k + 1
+   delta = delta + m(k)
+end do
+delta = delta - step
+@ %def k delta
+@ 
+<<Interpolate the new $x_i$ from $x_k$ and~$\delta$>>=
+x_new(i) = x(k) - (x(k) - x(k-1)) * delta / m(k)
+@ %def x_new
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Probability Density}
+<<Declaration of [[divisions]] procedures>>=
+public :: probability
+@ 
+\begin{equation}
+   \xi = \frac{x-x_{\min}}{x_{\max}-x_{\min}} \in [0,1]
+\end{equation}
+and
+\begin{equation}
+   \int_{x_{\min}}^{x_{\max}}\!\textrm{d}x\; p(x) = 1
+\end{equation}
+<<Implementation of [[divisions]] procedures>>=
+elemental function probability (d, x) result (p)
+  type(division_t), intent(in) :: d
+  real(kind=default), intent(in) :: x
+  real(kind=default) :: p
+  real(kind=default) :: xi
+  integer :: hi, mid, lo
+  xi = (x - d%x_min) / d%dx
+  if ((xi >= 0) .and. (xi <= 1)) then
+     lo = lbound (d%x, dim=1)
+     hi = ubound (d%x, dim=1)
+     bracket: do
+        if (lo >= hi - 1) then
+           p = 1.0 / (ubound (d%x, dim=1) * d%dx * (d%x(hi) - d%x(hi-1)))
+           return
+        end if
+        mid = (hi + lo) / 2
+        if (xi > d%x(mid)) then
+           lo = mid
+        else
+           hi = mid
+        end if
+     end do bracket
+  else
+     p = 0
+  end if
+end function probability
+@ %def probability
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Quadrupole}
+<<Declaration of [[divisions]] procedures>>=
+public :: quadrupole_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental function quadrupole_division (d) result (q)
+  type(division_t), intent(in) :: d
+  real(kind=default) :: q
+  !!!   q = value_spread_percent (rebinning_weights (d%variance))
+  q = standard_deviation_percent (rebinning_weights (d%variance))
+end function quadrupole_division
+@ %def quadrupole_division
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Forking and Joining}
+The goal is to split a division in such a way, that we can later
+sample the pieces separately and combine the results.
+<<Declaration of [[divisions]] procedures>>=
+public :: fork_division, join_division, sum_division
+@
+\begin{dubious}
+  Caveat emptor: splitting divisions can lead to $[[num_div]]<3$ and
+  the application \emph{must not} try to refine such grids before
+  merging them again!
+\end{dubious}
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine fork_division (d, ds, sum_calls, num_calls, exc)
+  type(division_t), intent(in) :: d
+  type(division_t), dimension(:), intent(inout) :: ds
+  integer, intent(in) :: sum_calls
+  integer, dimension(:), intent(inout) :: num_calls
+  type(exception), intent(inout), optional :: exc
+  character(len=*), parameter :: FN = "fork_division"
+  integer, dimension(size(ds)) :: n0, n1
+  integer, dimension(0:size(ds)) :: n, ds_ng
+  integer :: i, j, num_div, num_forks, nx
+  real(kind=default), dimension(:), allocatable :: d_x, d_integral, d_variance
+! real(kind=default), dimension(:), allocatable :: d_efficiency
+  num_div = ubound (d%x, dim=1)
+  num_forks = size (ds)
+  if (d%ng == 1) then
+     <<Fork an importance sampling division>>
+  else if (num_div >= num_forks) then
+     if (modulo (d%ng, num_div) == 0) then
+        <<Fork a pure stratified sampling division>>
+     else
+        <<Fork a pseudo stratified sampling division>>
+     end if
+  else
+     if (present (exc)) then
+        call raise_exception (exc, EXC_FATAL, FN, "internal error")
+     end if
+     num_calls = 0
+  end if
+end subroutine fork_division
+@ %def fork_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine join_division (d, ds, exc)
+  type(division_t), intent(inout) :: d
+  type(division_t), dimension(:), intent(in) :: ds
+  type(exception), intent(inout), optional :: exc
+  character(len=*), parameter :: FN = "join_division"
+  integer, dimension(size(ds)) :: n0, n1
+  integer, dimension(0:size(ds)) :: n, ds_ng
+  integer :: i, j, num_div, num_forks, nx
+  real(kind=default), dimension(:), allocatable :: d_x, d_integral, d_variance
+! real(kind=default), dimension(:), allocatable :: d_efficiency
+  num_div = ubound (d%x, dim=1)
+  num_forks = size (ds)
+  if (d%ng == 1) then
+     <<Join importance sampling divisions>>
+  else if (num_div >= num_forks) then
+     if (modulo (d%ng, num_div) == 0) then
+        <<Join pure stratified sampling divisions>>
+     else
+        <<Join pseudo stratified sampling divisions>>
+     end if
+  else
+     if (present (exc)) then
+        call raise_exception (exc, EXC_FATAL, FN, "internal error")
+     end if
+  end if
+end subroutine join_division
+@ %def join_division
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Importance Sampling}
+Importance sampling ([[d%ng == 1]]) is trivial, since we can just
+sample [[size(ds)]] copies of the same grid with (almost) the same
+number of points
+<<Fork an importance sampling division>>=
+if (d%stratified) then
+   call raise_exception (exc, EXC_FATAL, FN, &
+                         "ng == 1 incompatiple w/ stratification")
+else
+   call copy_division (ds, d)
+   num_calls(2:) = ceiling (real (sum_calls) / num_forks)
+   num_calls(1) = sum_calls - sum (num_calls(2:))
+end if
+@ and sum up the results in the end:
+<<Join importance sampling divisions>>=
+call sum_division (d, ds)
+@ Note, however, that this is only legitimate as long as [[d%ng == 1]]
+implies [[d%stratified == .false.]], because otherwise the sampling
+code would be incorrect (cf.~[[var_f]] on page~\pageref{pg:var_f}).
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Stratified Sampling}
+For stratified sampling, we have to work a little harder, because
+there are just two points per cell and we have to slice along the
+lines of the stratification grid.  Actually, we are slicing along the
+adaptive grid, since it has a reasonable size.  Slicing along the
+stratification grid could be done using the method below.  However, in
+this case \emph{very} large adaptive grids would be shipped from one
+process to the other and the comunication costs will outweigh the
+gains fom paralell processing.
+<<Setup to fork a pure stratified sampling division>>=
+n = (num_div * (/ (j, j=0,num_forks) /)) / num_forks
+n0(1:num_forks) = n(0:num_forks-1)
+n1(1:num_forks) = n(1:num_forks)
+@ 
+<<Fork a pure stratified sampling division>>=
+<<Setup to fork a pure stratified sampling division>>
+do i = 1, num_forks
+   call copy_array_pointer (ds(i)%x, d%x(n0(i):n1(i)), lb = 0)
+   call copy_array_pointer (ds(i)%integral, d%integral(n0(i)+1:n1(i)))
+   call copy_array_pointer (ds(i)%variance, d%variance(n0(i)+1:n1(i)))
+!  call copy_array_pointer (ds(i)%efficiency, d%efficiency(n0(i)+1:n1(i)))
+   ds(i)%x = (ds(i)%x - ds(i)%x(0)) / (d%x(n1(i)) - d%x(n0(i)))
+end do
+ds%x_min = d%x_min + d%dx * d%x(n0)
+ds%x_max = d%x_min + d%dx * d%x(n1)
+ds%dx = ds%x_max - ds%x_min
+ds%x_min_true = d%x_min_true
+ds%x_max_true = d%x_max_true
+ds%stratified = d%stratified
+ds%ng = (d%ng * (n1 - n0)) / num_div
+num_calls = sum_calls !: this is a misnomer, it remains ``calls per cell'' here
+ds%dxg = real (n1 - n0, kind=default) / ds%ng
+@ Joining is the exact inverse, but we're only interested in
+[[d%integral]] and [[d%variance]] for the grid refinement:
+<<Join pure stratified sampling divisions>>=
+<<Setup to fork a pure stratified sampling division>>
+do i = 1, num_forks
+   d%integral(n0(i)+1:n1(i)) = ds(i)%integral
+   d%variance(n0(i)+1:n1(i)) = ds(i)%variance
+!  d%efficiency(n0(i)+1:n1(i)) = ds(i)%efficiency
+end do
+@
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Pseudo Stratified Sampling}
+\begin{figure}
+  \begin{center}
+    \begin{emp}(120,90)
+       pseudo (.3w, .8w, .7h, .9h, 0, 8, 8,  0, 12, 12, 5.2,   true, true);
+       % lcm (lcm (3, 8) / 3, 12)
+       pseudo (.3w, .8w, .4h, .6h, 0, 8, 8,  0, 24, 24, 5.2*2, false, true);
+       % forks
+       pseudo (.2w, .7w, .1h, .3h, 0, 2, 8,  0,  6, 24, 5.2*2, false, false);
+       pseudo (.3w, .8w, .1h, .3h, 2, 5, 8,  6, 15, 24, 5.2*2, false, true);
+       pseudo (.4w, .9w, .1h, .3h, 5, 8, 8, 15, 24, 24, 5.2*2, false, false);
+       label.urt (btex \texttt{ds(1)} etex, (.2w, 0));
+       label.top (btex \texttt{ds(2)} etex, (.5w, 0));
+       label.ulft (btex \texttt{ds(3)} etex, (.9w, 0));
+    \end{emp}
+  \end{center}
+  \caption{\label{fig:grids-split}%
+    Forking one dimension~\texttt{d} of a grid into three parts
+    \texttt{ds(1)}, \texttt{ds(2)}, and~\texttt{ds(3)}.  The picture
+    illustrates the most complex case of pseudo stratified sampling
+    (cf.~fig.~\ref{fig:grids}).}
+\end{figure}
+The coarsest grid covering the division of~$n_g$ bins into~$n_f$
+forks has $n_g / \mathop{\textrm{gcd}}(n_f,n_g) =
+\mathop{\textrm{lcm}}(n_f,n_g) / n_f$ bins per fork.  Therefore, we
+need
+\begin{equation}
+  \mathop{\textrm{lcm}}
+     \left( \frac{\mathop{\textrm{lcm}}(n_f,n_g)}{n_f}, n_x \right)
+\end{equation}
+divisions of the adaptive grid (if~$n_x$ is the number of bins in the
+original adaptive grid).\par
+@ Life would be much easier, if we knew that~$n_f$ divides~$n_g$.
+However, this is hard to maintain in real life applications.  We can
+try to achieve this if possible, but the algorithms must be prepared
+to handle the general case.
+<<Setup to fork a pseudo stratified sampling division>>=
+nx = lcm (d%ng / gcd (num_forks, d%ng), num_div)
+ds_ng = (d%ng * (/ (j, j=0,num_forks) /)) / num_forks
+n = (nx * ds_ng) / d%ng
+n0(1:num_forks) = n(0:num_forks-1)
+n1(1:num_forks) = n(1:num_forks)
+@ 
+<<Fork a pseudo stratified sampling division>>=
+<<Setup to fork a pseudo stratified sampling division>>
+allocate (d_x(0:nx), d_integral(nx), d_variance(nx))
+! allocate (d_efficiency(nx))
+call subdivide (d_x, d%x)
+call distribute (d_integral, d%integral)
+call distribute (d_variance, d%variance)
+! call distribute (d_efficiency, d%efficiency)
+do i = 1, num_forks
+   call copy_array_pointer (ds(i)%x, d_x(n0(i):n1(i)), lb = 0)
+   call copy_array_pointer (ds(i)%integral, d_integral(n0(i)+1:n1(i)))
+   call copy_array_pointer (ds(i)%variance, d_variance(n0(i)+1:n1(i)))
+!  call copy_array_pointer (ds(i)%efficiency, d_efficiency(n0(i)+1:n1(i)))
+   ds(i)%x = (ds(i)%x - ds(i)%x(0)) / (d_x(n1(i)) - d_x(n0(i)))
+end do
+ds%x_min = d%x_min + d%dx * d_x(n0)
+ds%x_max = d%x_min + d%dx * d_x(n1)
+ds%dx = ds%x_max - ds%x_min
+ds%x_min_true = d%x_min_true
+ds%x_max_true = d%x_max_true
+ds%stratified = d%stratified
+ds%ng = ds_ng(1:num_forks) - ds_ng(0:num_forks-1)
+num_calls = sum_calls !: this is a misnomer, it remains ``calls per cell'' here
+ds%dxg = real (n1 - n0, kind=default) / ds%ng
+deallocate (d_x, d_integral, d_variance)
+! deallocate (d_efficiency)
+@
+<<Join pseudo stratified sampling divisions>>=
+<<Setup to fork a pseudo stratified sampling division>>
+allocate (d_x(0:nx), d_integral(nx), d_variance(nx))
+! allocate (d_efficiency(nx))
+do i = 1, num_forks
+   d_integral(n0(i)+1:n1(i)) = ds(i)%integral
+   d_variance(n0(i)+1:n1(i)) = ds(i)%variance
+!  d_efficiency(n0(i)+1:n1(i)) = ds(i)%efficiency
+end do
+call collect (d%integral, d_integral)
+call collect (d%variance, d_variance)
+! call collect (d%efficiency, d_efficiency)
+deallocate (d_x, d_integral, d_variance)
+! deallocate (d_efficiency)
+@ 
+<<Declaration of [[divisions]] procedures>>=
+private :: subdivide
+private :: distribute
+private :: collect
+@
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine subdivide (x, x0)
+  real(kind=default), dimension(0:), intent(inout) :: x
+  real(kind=default), dimension(0:), intent(in) :: x0
+  integer :: i, n, n0
+  n0 = ubound (x0, dim=1)
+  n = ubound (x, dim=1) / n0
+  x(0) = x0(0)
+  do i = 1, n
+     x(i::n) = x0(0:n0-1) * real (n - i) / n + x0(1:n0) * real (i) / n
+  end do
+end subroutine subdivide
+@ %def subdivide
+@
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine distribute (x, x0)
+  real(kind=default), dimension(:), intent(inout) :: x
+  real(kind=default), dimension(:), intent(in) :: x0
+  integer :: i, n
+  n = ubound (x, dim=1) / ubound (x0, dim=1)
+  do i = 1, n
+     x(i::n) = x0 / n
+  end do
+end subroutine distribute
+@ %def distribute
+@
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine collect (x0, x)
+  real(kind=default), dimension(:), intent(inout) :: x0
+  real(kind=default), dimension(:), intent(in) :: x
+  integer :: i, n, n0
+  n0 = ubound (x0, dim=1)
+  n = ubound (x, dim=1) / n0
+  do i = 1, n0
+     x0(i) = sum (x((i-1)*n+1:i*n))
+  end do
+end subroutine collect
+@ %def collect
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Trivia}
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine sum_division (d, ds)
+  type(division_t), intent(inout) :: d
+  type(division_t), dimension(:), intent(in) :: ds
+  integer :: i
+  d%integral = 0.0
+  d%variance = 0.0
+! d%efficiency = 0.0
+  do i = 1, size (ds)
+     d%integral = d%integral + ds(i)%integral
+     d%variance = d%variance + ds(i)%variance
+!    d%efficiency = d%efficiency + ds(i)%efficiency
+  end do
+end subroutine sum_division
+@ %def sum_division
+@ 
+<<Declaration of [[divisions]] procedures>>=
+public :: debug_division
+public :: dump_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine debug_division (d, prefix)
+  type(division_t), intent(in) :: d
+  character(len=*), intent(in) :: prefix
+  print "(1x,a,2(a,1x,i3,1x,f10.7))", prefix, ": d%x: ", &
+       lbound(d%x,dim=1), d%x(lbound(d%x,dim=1)), &
+       " ... ", &
+       ubound(d%x,dim=1), d%x(ubound(d%x,dim=1))
+  print "(1x,a,2(a,1x,i3,1x,f10.7))", prefix, ": d%i: ", &
+       lbound(d%integral,dim=1), d%integral(lbound(d%integral,dim=1)), &
+       " ... ", &
+       ubound(d%integral,dim=1), d%integral(ubound(d%integral,dim=1))
+  print "(1x,a,2(a,1x,i3,1x,f10.7))", prefix, ": d%v: ", &
+       lbound(d%variance,dim=1), d%variance(lbound(d%variance,dim=1)), &
+       " ... ", &
+       ubound(d%variance,dim=1), d%variance(ubound(d%variance,dim=1))
+! print "(1x,a,2(a,1x,i3,1x,f10.7))", prefix, ": d%e: ", &
+!      lbound(d%efficiency,dim=1), d%efficiency(lbound(d%efficiency,dim=1)), &
+!      " ... ", &
+!      ubound(d%efficiency,dim=1), d%efficiency(ubound(d%efficiency,dim=1))
+end subroutine debug_division
+@ %def debug_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine dump_division (d, prefix)
+  type(division_t), intent(in) :: d
+  character(len=*), intent(in) :: prefix
+! print "(2(1x,a),100(1x,f10.7))", prefix, ":x: ", d%x
+  print "(2(1x,a),100(1x,f10.7))", prefix, ":x: ", d%x(1:)
+  print "(2(1x,a),100(1x,e10.3))", prefix, ":i: ", d%integral
+  print "(2(1x,a),100(1x,e10.3))", prefix, ":v: ", d%variance
+! print "(2(1x,a),100(1x,e10.3))", prefix, ":e: ", d%efficiency
+end subroutine dump_division
+@ %def dump_division
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Inquiry}
+Trivial, but necessary for making [[divisions]] an abstract data type:
+<<Declaration of [[divisions]] procedures>>=
+public :: inside_division, stratified_division
+public :: volume_division, rigid_division, adaptive_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental function inside_division (d, x) result (theta)
+  type(division_t), intent(in) :: d
+  real(kind=default), intent(in) :: x
+  logical :: theta
+  theta = (x >= d%x_min_true) .and. (x <= d%x_max_true)
+end function inside_division
+@ %def inside_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental function stratified_division (d) result (yorn)
+  type(division_t), intent(in) :: d
+  logical :: yorn
+  yorn = d%stratified
+end function stratified_division
+@ %def stratified_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental function volume_division (d) result (vol)
+  type(division_t), intent(in) :: d
+  real(kind=default) :: vol
+  vol = d%dx
+end function volume_division
+@ %def volume_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental function rigid_division (d) result (n)
+  type(division_t), intent(in) :: d
+  integer :: n
+  n = d%ng
+end function rigid_division
+@ %def rigid_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental function adaptive_division (d) result (n)
+  type(division_t), intent(in) :: d
+  integer :: n
+  n = ubound (d%x, dim=1)
+end function adaptive_division
+@ %def adaptive_division
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Diagnostics}
+<<Declaration of [[divisions]] types>>=
+type, public :: div_history
+   private
+   logical :: stratified
+   integer :: ng, num_div
+   real(kind=default) :: x_min, x_max, x_min_true, x_max_true
+   real(kind=default) :: &
+        spread_f_p, stddev_f_p, spread_p, stddev_p, spread_m, stddev_m
+end type div_history
+@ %def div_history
+@ 
+<<Declaration of [[divisions]] procedures>>=
+public :: copy_history, summarize_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental function summarize_division (d) result (s)
+  type(division_t), intent(in) :: d
+  type(div_history) :: s
+  real(kind=default), dimension(:), allocatable :: p, m
+  allocate (p(ubound(d%x,dim=1)), m(ubound(d%x,dim=1)))
+  p = probabilities (d%x)
+  m = rebinning_weights (d%variance)
+  s%ng = d%ng
+  s%num_div = ubound (d%x, dim=1)
+  s%stratified = d%stratified
+  s%x_min = d%x_min
+  s%x_max = d%x_max
+  s%x_min_true = d%x_min_true
+  s%x_max_true = d%x_max_true
+  s%spread_f_p = value_spread_percent (d%integral)
+  s%stddev_f_p = standard_deviation_percent (d%integral)
+  s%spread_p = value_spread_percent (p)
+  s%stddev_p = standard_deviation_percent (p)
+  s%spread_m = value_spread_percent (m)
+  s%stddev_m = standard_deviation_percent (m)
+  deallocate (p, m)
+end function summarize_division
+@ %def summarize_division
+@ 
+<<Declaration of [[divisions]] procedures>>=
+private :: probabilities
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure function probabilities (x) result (p)
+  real(kind=default), dimension(0:), intent(in) :: x
+  real(kind=default), dimension(ubound(x,dim=1)) :: p
+  integer :: num_div
+  num_div = ubound (x, dim=1)
+  p = 1.0 / (x(1:num_div) - x(0:num_div-1))
+  p = p / sum(p)
+end function probabilities
+@ %def probabilities
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine print_history (h, tag)
+  type(div_history), dimension(:), intent(in) :: h
+  character(len=*), intent(in), optional :: tag
+  call write_history (output_unit, h, tag)
+  flush (output_unit)
+end subroutine print_history
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine write_history (u, h, tag)
+  integer, intent(in) :: u
+  type(div_history), dimension(:), intent(in) :: h
+  character(len=*), intent(in), optional :: tag
+  character(len=BUFFER_SIZE) :: pfx
+  character(len=1) :: s
+  integer :: i
+  if (present (tag)) then
+     pfx = tag
+  else
+     pfx = "[vamp]"
+  end if
+  if ((minval (h%x_min) == maxval (h%x_min)) &
+       .and. (minval (h%x_max) == maxval (h%x_max))) then
+     write (u, "(1X,A11,1X,2X,1X,2(ES10.3,A4,ES10.3,A7))") pfx, &
+          h(1)%x_min, " <= ", h(1)%x_min_true, &
+          " < x < ", h(1)%x_max_true, " <= ", h(1)%x_max
+  else
+     do i = 1, size (h)
+        write (u, "(1X,A11,1X,I2,1X,2(ES10.3,A4,ES10.3,A7))") pfx, &
+             i, h(i)%x_min, " <= ", h(i)%x_min_true, &
+             " < x < ", h(i)%x_max_true, " <= ", h(i)%x_max
+     end do
+  end if
+  write (u, "(1X,A11,1X,A2,2(1X,A3),A1,6(1X,A8))") pfx, &
+       "it", "nd", "ng", "", &
+       "spr(f/p)", "dev(f/p)", "spr(m)", "dev(m)", "spr(p)", "dev(p)"
+  iterations: do i = 1, size (h)
+     if (h(i)%stratified) then
+        s = "*"
+     else
+        s = ""
+     end if
+     write (u, "(1X,A11,1X,I2,2(1X,I3),A1,6(1X,F7.2,A1))") pfx, &
+          i, h(i)%num_div, h(i)%ng, s, &
+          h(i)%spread_f_p, "%", h(i)%stddev_f_p, "%", &
+          h(i)%spread_m, "%", h(i)%stddev_m, "%", &
+          h(i)%spread_p, "%", h(i)%stddev_p, "%"
+  end do iterations
+  flush (u)
+end subroutine write_history
+@ %def print_history
+@ 
+<<Variables in [[divisions]]>>=
+integer, private, parameter :: BUFFER_SIZE = 50
+@ %def BUFFER_SIZE
+@ 
+<<Declaration of [[divisions]] procedures>>=
+public :: print_history, write_history
+@ %def print_history, write_history
+@ 
+<<Declaration of [[divisions]] procedures (removed from WHIZARD)>>=
+public :: division_x, division_integral
+public :: division_variance, division_efficiency
+@ 
+<<Implementation of [[divisions]] procedures (removed from WHIZARD)>>=
+pure subroutine division_x (x, d)
+  real(kind=default), dimension(:), pointer :: x
+  type(division_t), intent(in) :: d
+  call copy_array_pointer (x, d%x, 0)
+end subroutine division_x
+@ %def division_x
+@ 
+<<Implementation of [[divisions]] procedures (removed from WHIZARD)>>=
+pure subroutine division_integral (integral, d)
+  real(kind=default), dimension(:), pointer :: integral
+  type(division_t), intent(in) :: d
+  call copy_array_pointer (integral, d%integral)
+end subroutine division_integral
+@ %def division_integral
+@ 
+<<Implementation of [[divisions]] procedures (removed from WHIZARD)>>=
+pure subroutine division_variance (variance, d)
+  real(kind=default), dimension(:), pointer :: variance
+  type(division_t), intent(in) :: d
+  call copy_array_pointer (variance, d%variance, 0)
+end subroutine division_variance
+@ %def division_variance
+
+@ 
+<<Implementation of [[divisions]] procedures (removed from WHIZARD)>>=
+pure subroutine division_efficiency (eff, d)
+  real(kind=default), dimension(:), pointer :: eff
+  type(division_t), intent(in) :: d
+  call copy_array_pointer (eff, d%efficiency, 0)
+end subroutine division_efficiency
+@ %def division_efficiency
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{I/O}
+<<Declaration of [[divisions]] procedures>>=
+public :: write_division
+private :: write_division_unit, write_division_name
+public :: read_division
+private :: read_division_unit, read_division_name
+public :: write_division_raw
+private :: write_division_raw_unit, write_division_raw_name
+public :: read_division_raw
+private :: read_division_raw_unit, read_division_raw_name
+@
+<<Interfaces of [[divisions]] procedures>>=
+interface write_division
+   module procedure write_division_unit, write_division_name
+end interface
+interface read_division
+   module procedure read_division_unit, read_division_name
+end interface
+interface write_division_raw
+   module procedure write_division_raw_unit, write_division_raw_name
+end interface
+interface read_division_raw
+   module procedure read_division_raw_unit, read_division_raw_name
+end interface
+@ %def write_division write_division_raw
+@ %def read_division read_division_raw
+@ It makes no sense to read or write [[d%integral]],
+[[d%variance]], and [[d%efficiency]], because they are only used
+during sampling.
+<<Implementation of [[divisions]] procedures>>=
+subroutine write_division_unit (d, unit, write_integrals)
+  type(division_t), intent(in) :: d
+  integer, intent(in) :: unit
+  logical, intent(in), optional :: write_integrals
+  logical :: write_integrals0
+  integer :: i
+  write_integrals0 = .false.
+  if (present(write_integrals)) write_integrals0 = write_integrals
+  write (unit = unit, fmt = descr_fmt) "begin type(division_t) :: d"
+  write (unit = unit, fmt = integer_fmt) "ubound(d%x,1) = ", ubound (d%x, dim=1)
+  write (unit = unit, fmt = integer_fmt) "d%ng = ", d%ng
+  write (unit = unit, fmt = logical_fmt) "d%stratified = ", d%stratified
+  write (unit = unit, fmt = double_fmt) "d%dx = ", d%dx
+  write (unit = unit, fmt = double_fmt) "d%dxg = ", d%dxg
+  write (unit = unit, fmt = double_fmt) "d%x_min = ", d%x_min
+  write (unit = unit, fmt = double_fmt) "d%x_max = ", d%x_max
+  write (unit = unit, fmt = double_fmt) "d%x_min_true = ", d%x_min_true
+  write (unit = unit, fmt = double_fmt) "d%x_max_true = ", d%x_max_true
+  write (unit = unit, fmt = descr_fmt) "begin d%x" 
+  do i = 0, ubound (d%x, dim=1)
+     if (write_integrals0 .and. i/=0) then
+        write (unit = unit, fmt = double_array_fmt) &
+             i, d%x(i), d%integral(i), d%variance(i)
+     else
+        write (unit = unit, fmt = double_array_fmt) i, d%x(i)
+     end if
+  end do
+  write (unit = unit, fmt = descr_fmt) "end d%x"
+  write (unit = unit, fmt = descr_fmt) "end type(division_t)"
+end subroutine write_division_unit
+@ %def write_division_unit
+@
+<<Variables in [[divisions]]>>=
+character(len=*), parameter, private :: &
+     descr_fmt =        "(1x,a)", &
+     integer_fmt =      "(1x,a15,1x,i15)", &
+     logical_fmt =      "(1x,a15,1x,l1)", &
+     double_fmt =       "(1x,a15,1x,e30.22)", &
+     double_array_fmt = "(1x,i15,1x,3(e30.22))"
+@ %def descr_fmt integer_fmt logical_fmt double_fmt double_array_fmt
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine read_division_unit (d, unit, read_integrals)
+  type(division_t), intent(inout) :: d
+  integer, intent(in) :: unit
+  logical, intent(in), optional :: read_integrals
+  logical :: read_integrals0
+  integer :: i, idum, num_div
+  character(len=80) :: chdum
+  read_integrals0 = .false.
+  if (present(read_integrals)) read_integrals0 = read_integrals
+  read (unit = unit, fmt = descr_fmt) chdum
+  read (unit = unit, fmt = integer_fmt) chdum, num_div
+  <<Insure that [[ubound (d%x, dim=1) == num_div]]>>
+  read (unit = unit, fmt = integer_fmt) chdum, d%ng
+  read (unit = unit, fmt = logical_fmt) chdum, d%stratified
+  read (unit = unit, fmt = double_fmt) chdum, d%dx
+  read (unit = unit, fmt = double_fmt) chdum, d%dxg
+  read (unit = unit, fmt = double_fmt) chdum, d%x_min
+  read (unit = unit, fmt = double_fmt) chdum, d%x_max
+  read (unit = unit, fmt = double_fmt) chdum, d%x_min_true
+  read (unit = unit, fmt = double_fmt) chdum, d%x_max_true
+  read (unit = unit, fmt = descr_fmt) chdum
+  do i = 0, ubound (d%x, dim=1)
+     if (read_integrals0 .and. i/=0) then
+        read (unit = unit, fmt = double_array_fmt) &
+             & idum, d%x(i), d%integral(i), d%variance(i)
+     else
+        read (unit = unit, fmt = double_array_fmt) idum, d%x(i)
+     end if
+  end do
+  read (unit = unit, fmt = descr_fmt) chdum
+  read (unit = unit, fmt = descr_fmt) chdum
+  if (.not.read_integrals0) then
+     d%integral = 0.0
+     d%variance = 0.0
+!    d%efficiency = 0.0
+  end if
+end subroutine read_division_unit
+@ %def read_division_unit
+@
+\begin{dubious}
+  What happened to [[d%efficiency]]?
+\end{dubious}
+<<Insure that [[ubound (d%x, dim=1) == num_div]]>>=
+if (associated (d%x)) then
+   if (ubound (d%x, dim=1) /= num_div) then
+      deallocate (d%x, d%integral, d%variance)
+!     deallocate (d%efficiency)
+      allocate (d%x(0:num_div), d%integral(num_div), d%variance(num_div))
+!     allocate (d%efficiency(num_div))
+   end if
+else
+   allocate (d%x(0:num_div), d%integral(num_div), d%variance(num_div))
+!  allocate (d%efficiency(num_div))
+end if
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine write_division_name (d, name, write_integrals)
+  type(division_t), intent(in) :: d
+  character(len=*), intent(in) :: name
+  logical, intent(in), optional :: write_integrals
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "write", status = "replace", file = name)
+  call write_division_unit (d, unit, write_integrals)
+  close (unit = unit)
+end subroutine write_division_name
+@ %def write_division_name
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine read_division_name (d, name, read_integrals)
+  type(division_t), intent(inout) :: d
+  character(len=*), intent(in) :: name
+  logical, intent(in), optional :: read_integrals
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "read", status = "old", file = name)
+  call read_division_unit (d, unit, read_integrals)
+  close (unit = unit)
+end subroutine read_division_name
+@ %def read_division_name
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine write_division_raw_unit (d, unit, write_integrals)
+  type(division_t), intent(in) :: d
+  integer, intent(in) :: unit
+  logical, intent(in), optional :: write_integrals
+  logical :: write_integrals0
+  integer :: i
+  write_integrals0 = .false.
+  if (present(write_integrals)) write_integrals0 = write_integrals
+  write (unit = unit) MAGIC_DIVISION_BEGIN
+  write (unit = unit) ubound (d%x, dim=1)
+  write (unit = unit) d%ng
+  write (unit = unit) d%stratified
+  write (unit = unit) d%dx
+  write (unit = unit) d%dxg
+  write (unit = unit) d%x_min
+  write (unit = unit) d%x_max
+  write (unit = unit) d%x_min_true
+  write (unit = unit) d%x_max_true
+  do i = 0, ubound (d%x, dim=1)
+     if (write_integrals0 .and. i/=0) then
+        write (unit = unit) d%x(i), d%integral(i), d%variance(i)
+     else
+        write (unit = unit) d%x(i)
+     end if
+  end do
+  write (unit = unit) MAGIC_DIVISION_END
+end subroutine write_division_raw_unit
+@ %def write_division_raw_unit
+@
+<<Constants in [[divisions]]>>=
+integer, parameter, private :: MAGIC_DIVISION = 11111111
+integer, parameter, private :: MAGIC_DIVISION_BEGIN = MAGIC_DIVISION + 1
+integer, parameter, private :: MAGIC_DIVISION_END = MAGIC_DIVISION + 2
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine read_division_raw_unit (d, unit, read_integrals)
+  type(division_t), intent(inout) :: d
+  integer, intent(in) :: unit
+  logical, intent(in), optional :: read_integrals
+  logical :: read_integrals0
+  integer :: i, num_div, magic
+  character(len=*), parameter :: FN = "read_division_raw_unit"
+  read_integrals0 = .false.
+  if (present(read_integrals)) read_integrals0 = read_integrals
+  read (unit = unit) magic
+  if (magic /= MAGIC_DIVISION_BEGIN) then
+     print *, FN, " fatal: expecting magic ", MAGIC_DIVISION_BEGIN, &
+                  ", found ", magic
+     stop
+  end if
+  read (unit = unit) num_div
+  <<Insure that [[ubound (d%x, dim=1) == num_div]]>>
+  read (unit = unit) d%ng
+  read (unit = unit) d%stratified
+  read (unit = unit) d%dx
+  read (unit = unit) d%dxg
+  read (unit = unit) d%x_min
+  read (unit = unit) d%x_max
+  read (unit = unit) d%x_min_true
+  read (unit = unit) d%x_max_true
+  do i = 0, ubound (d%x, dim=1)
+     if (read_integrals0 .and. i/=0) then
+        read (unit = unit) d%x(i), d%integral(i), d%variance(i)
+     else
+        read (unit = unit) d%x(i)
+     end if
+  end do
+  if (.not.read_integrals0) then
+     d%integral = 0.0
+     d%variance = 0.0
+!    d%efficiency = 0.0
+  end if
+  read (unit = unit) magic
+  if (magic /= MAGIC_DIVISION_END) then
+     print *, FN, " fatal: expecting magic ", MAGIC_DIVISION_END, &
+                  ", found ", magic
+     stop
+  end if
+end subroutine read_division_raw_unit
+@ %def read_division_raw_unit
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine write_division_raw_name (d, name, write_integrals)
+  type(division_t), intent(in) :: d
+  character(len=*), intent(in) :: name
+  logical, intent(in), optional :: write_integrals
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "write", status = "replace", &
+        form = "unformatted", file = name)
+  call write_division_unit (d, unit, write_integrals)
+  close (unit = unit)
+end subroutine write_division_raw_name
+@ %def write_division_raw_name
+@ 
+<<Implementation of [[divisions]] procedures>>=
+subroutine read_division_raw_name (d, name, read_integrals)
+  type(division_t), intent(inout) :: d
+  character(len=*), intent(in) :: name
+  logical, intent(in), optional :: read_integrals
+  integer :: unit
+  call find_free_unit (unit)
+  open (unit = unit, action = "read", status = "old", &
+        form = "unformatted", file = name)
+  call read_division_unit (d, unit, read_integrals)
+  close (unit = unit)
+end subroutine read_division_raw_name
+@ %def read_division_raw_name
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Marshaling}
+Note that we can not use the~[[transfer]] intrinsic function for
+marshalling types that contain pointers that substitute for
+allocatable array components.  [[transfer]] will copy the pointers
+in this case and not where they point to!
+<<Declaration of [[divisions]] procedures>>=
+public :: marshal_division_size, marshal_division, unmarshal_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine marshal_division (d, ibuf, dbuf)
+  type(division_t), intent(in) :: d
+  integer, dimension(:), intent(inout) :: ibuf
+  real(kind=default), dimension(:), intent(inout) :: dbuf
+  integer :: num_div
+  num_div = ubound (d%x, dim=1)
+  ibuf(1) = d%ng
+  ibuf(2) = num_div
+  if (d%stratified) then
+     ibuf(3) = 1
+  else
+     ibuf(3) = 0
+  end if
+  dbuf(1) = d%x_min
+  dbuf(2) = d%x_max
+  dbuf(3) = d%x_min_true
+  dbuf(4) = d%x_max_true
+  dbuf(5) = d%dx
+  dbuf(6) = d%dxg
+  dbuf(7:7+num_div) = d%x
+  dbuf(8+  num_div:7+2*num_div) = d%integral
+  dbuf(8+2*num_div:7+3*num_div) = d%variance
+! dbuf(8+3*num_div:7+4*num_div) = d%efficiency
+end subroutine marshal_division
+@ %def marshal_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine marshal_division_size (d, iwords, dwords)
+  type(division_t), intent(in) :: d
+  integer, intent(out) :: iwords, dwords
+  iwords = 3
+  dwords = 7 + 3 * ubound (d%x, dim=1)
+! dwords = 7 + 4 * ubound (d%x, dim=1)
+end subroutine marshal_division_size
+@ %def marshal_division_size
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine unmarshal_division (d, ibuf, dbuf)
+  type(division_t), intent(inout) :: d
+  integer, dimension(:), intent(in) :: ibuf
+  real(kind=default), dimension(:), intent(in) :: dbuf
+  integer :: num_div
+  d%ng = ibuf(1)
+  num_div = ibuf(2)
+  d%stratified = ibuf(3) /= 0
+  d%x_min = dbuf(1)
+  d%x_max = dbuf(2)
+  d%x_min_true = dbuf(3)
+  d%x_max_true = dbuf(4)
+  d%dx = dbuf(5)
+  d%dxg = dbuf(6)
+  <<Insure that [[ubound (d%x, dim=1) == num_div]]>>
+  d%x = dbuf(7:7+num_div)
+  d%integral = dbuf(8+  num_div:7+2*num_div)
+  d%variance = dbuf(8+2*num_div:7+3*num_div)
+! d%efficiency = dbuf(8+3*num_div:7+4*num_div)
+end subroutine unmarshal_division
+@ %def unmarshal_division
+@ 
+<<Declaration of [[divisions]] procedures>>=
+public :: marshal_div_history_size, marshal_div_history, unmarshal_div_history
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine marshal_div_history (h, ibuf, dbuf)
+  type(div_history), intent(in) :: h
+  integer, dimension(:), intent(inout) :: ibuf
+  real(kind=default), dimension(:), intent(inout) :: dbuf
+  ibuf(1) = h%ng
+  ibuf(2) = h%num_div
+  if (h%stratified) then
+     ibuf(3) = 1
+  else
+     ibuf(3) = 0
+  end if
+  dbuf(1) = h%x_min
+  dbuf(2) = h%x_max
+  dbuf(3) = h%x_min_true
+  dbuf(4) = h%x_max_true
+  dbuf(5) = h%spread_f_p
+  dbuf(6) = h%stddev_f_p
+  dbuf(7) = h%spread_p
+  dbuf(8) = h%stddev_p
+  dbuf(9) = h%spread_m
+  dbuf(10) = h%stddev_m
+end subroutine marshal_div_history
+@ %def marshal_div_history
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine marshal_div_history_size (h, iwords, dwords)
+  type(div_history), intent(in) :: h
+  integer, intent(out) :: iwords, dwords
+  iwords = 3
+  dwords = 10
+end subroutine marshal_div_history_size
+@ %def marshal_div_history_size
+@ 
+<<Implementation of [[divisions]] procedures>>=
+pure subroutine unmarshal_div_history (h, ibuf, dbuf)
+  type(div_history), intent(inout) :: h
+  integer, dimension(:), intent(in) :: ibuf
+  real(kind=default), dimension(:), intent(in) :: dbuf
+  h%ng = ibuf(1)
+  h%num_div = ibuf(2)
+  h%stratified = ibuf(3) /= 0
+  h%x_min = dbuf(1)
+  h%x_max = dbuf(2)
+  h%x_min_true = dbuf(3)
+  h%x_max_true = dbuf(4)
+  h%spread_f_p = dbuf(5)
+  h%stddev_f_p = dbuf(6)
+  h%spread_p = dbuf(7)
+  h%stddev_p = dbuf(8)
+  h%spread_m = dbuf(9)
+  h%stddev_m = dbuf(10)
+end subroutine unmarshal_div_history
+@ %def unmarshal_div_history
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Boring Copying and Deleting of Objects}
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine copy_division (lhs, rhs)
+  type(division_t), intent(inout) :: lhs
+  type(division_t), intent(in) :: rhs
+  if (associated (rhs%x)) then
+     call copy_array_pointer (lhs%x, rhs%x, lb = 0)
+  else if (associated (lhs%x)) then
+     deallocate (lhs%x)
+  end if
+  if (associated (rhs%integral)) then
+     call copy_array_pointer (lhs%integral, rhs%integral)
+  else if (associated (lhs%integral)) then
+     deallocate (lhs%integral)
+  end if
+  if (associated (rhs%variance)) then
+     call copy_array_pointer (lhs%variance, rhs%variance)
+  else if (associated (lhs%variance)) then
+     deallocate (lhs%variance)
+  end if
+! if (associated (rhs%efficiency)) then
+!    call copy_array_pointer (lhs%efficiency, rhs%efficiency)
+! else if (associated (lhs%efficiency)) then
+!    deallocate (lhs%efficiency)
+! end if
+  lhs%dx = rhs%dx
+  lhs%dxg = rhs%dxg
+  lhs%x_min = rhs%x_min
+  lhs%x_max = rhs%x_max
+  lhs%x_min_true = rhs%x_min_true
+  lhs%x_max_true = rhs%x_max_true
+  lhs%ng = rhs%ng
+  lhs%stratified = rhs%stratified
+end subroutine copy_division
+@ %def copy_division
+@
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine delete_division (d)
+  type(division_t), intent(inout) :: d
+  if (associated (d%x)) then
+     deallocate (d%x, d%integral, d%variance)
+!    deallocate (d%efficiency)
+  end if
+end subroutine delete_division
+@ %def delete_division
+@ 
+<<Implementation of [[divisions]] procedures>>=
+elemental subroutine copy_history (lhs, rhs)
+  type(div_history), intent(out) :: lhs
+  type(div_history), intent(in) :: rhs
+  lhs%stratified = rhs%stratified
+  lhs%ng = rhs%ng
+  lhs%num_div = rhs%num_div
+  lhs%x_min = rhs%x_min
+  lhs%x_max = rhs%x_max
+  lhs%x_min_true = rhs%x_min_true
+  lhs%x_max_true = rhs%x_max_true
+  lhs%spread_f_p = rhs%spread_f_p
+  lhs%stddev_f_p = rhs%stddev_f_p
+  lhs%spread_p = rhs%spread_p
+  lhs%stddev_p = rhs%stddev_p
+  lhs%spread_m = rhs%spread_m
+  lhs%stddev_m = rhs%stddev_m
+end subroutine copy_history
+@ %def copy_history
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,33 @@
+# SINDARIN input for WHIZARD self-test
+# Process g g -> u ubar
+
+model = "QCD"
+alphas = 0.1178 
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+$method = "omega"
+process qcdtest_2_p1 = "g", "g" => "u", "ubar"
+
+compile ()
+
+$phs_method = "wood"
+
+$integration_method = "vamp"
+
+iterations = 3:1000:"g", 3:2000
+sqrts = 1000
+beams = p, p => pdf_builtin
+
+cuts = 
+  all Pt > 100 [u:ubar]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (qcdtest_2_p1)

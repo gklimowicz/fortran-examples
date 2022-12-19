@@ -1,0 +1,68 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> u dbar mu nu_mu_bar
+# with resonance insertion, ISR recoil, shower and hadronization
+#
+# Check: rescanning from LCIO and recovery of elementary process
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+seed = 814995 
+model = SM
+
+sqrts = 250 GeV
+$circe2_file = "ilc250.circe"
+$circe2_design = "ILC"
+?circe2_polarized = false
+
+?resonance_history = true 
+resonance_on_shell_limit = 16
+resonance_on_shell_turnoff = 2
+
+process resonances_15_p =  e1,E1 => (u,D,e2,N2) + (c,S,e2,N2)
+
+alias any_final = u:D:e2:N2
+real M_min = 5 GeV
+real E_min  = 1  GeV
+cuts =
+  all M > M_min [any_final, any_final] and 
+  all E > E_min [any_final]
+
+compile
+
+beams = e1, E1 => circe2 => isr,isr  
+
+integrate (resonances_15_p) { iterations = 3:10000 }
+
+?update_sqme = true
+?update_weight = false
+?write_raw = false
+
+?hadronization_active = true
+! OPAL tune:
+$ps_PYTHIA_PYGIVE = "MSTJ(28)=0; PMAS(25,1)=125.; PMAS(25,2)=0.3605E-02; PMAS(116,1)=0.493677 ; MSTJ(41)=2; MSTU(22)=2000; PARJ(21)=0.40000; PARJ(41)=0.11000; PARJ(42)=0.52000; PARJ(81)=0.25000; PARJ(82)=1.90000; MSTJ(11)=3; PARJ(54)=-0.03100; PARJ(55)=-0.00200; PARJ(1)=0.08500; PARJ(3)=0.45000; PARJ(4)=0.02500; PARJ(2)=0.31000; PARJ(11)=0.60000; PARJ(12)=0.40000; PARJ(13)=0.72000; PARJ(14)=0.43000; PARJ(15)=0.08000; PARJ(16)=0.08000; PARJ(17)=0.17000;   MSTP(125)=2; MSTP(3)=1;MSTP(71)=1"
+?ps_fsr_active = true
+$shower_method = "PYTHIA6"
+
+isr_mass = me
+?isr_handler = true
+$isr_handler_mode = "recoil"
+
+simulate (resonances_15_p) {
+ n_events = 200
+ $sample = "resonances_15_a"
+ sample_format = lcio, weight_stream #, debug
+}
+
+?resonance_history = false
+
+rescan "resonances_15_a" (resonances_15_p) {
+ $rescan_input_format = "lcio"
+ $sample = "resonances_15_b"
+ sample_format = weight_stream #, debug
+ ?recover_beams = false
+ alt_setup = { me = me }   # trivial alt_setup should yield same results
+}

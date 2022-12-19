@@ -1,0 +1,18 @@
+include ("nlo_settings.sin")
+
+alias bjet = b:B
+
+cuts = all Pt > 30 GeV [bjet] and all abs(Eta) < 4 [bjet]
+       and count [cluster if E > 0 GeV [bjet]] > 3
+
+alpha_power = 2
+alphas_power = 2
+
+alphas_nf = 4
+mb = 4.75
+
+scale = eval Ht/2 [bjet]
+
+#?combined_nlo_integration = true
+process nlo_ee4b_p1 = e1, E1 => b, B, b, B { nlo_calculation = full }
+integrate (nlo_ee4b_p1) { iterations = 1:100:"gw" }

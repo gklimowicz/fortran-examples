@@ -1,0 +1,99 @@
+* Test output: commands_32
+*   Purpose: define selection
+
+*  Initialization
+
+*  Input file
+
+selection = any PDG == 13 [particle]
+
+*  Parse file
+
+Parse tree:
++  <command_list>  =  <cmd_selection>
+|  +  <cmd_selection>  =  selection '=' <lexpr>
+|  |  +  selection  = [keyword] selection
+|  |  +  '='  = [keyword] =
+|  |  +  <lexpr>  =  <lsinglet>
+|  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  +  <lterm>  =  <any_fun>
+|  |  |  |  |  +  <any_fun>  =  any <lexpr> <pargs1>
+|  |  |  |  |  |  +  any  = [keyword] any
+|  |  |  |  |  |  +  <lexpr>  =  <lsinglet>
+|  |  |  |  |  |  |  +  <lsinglet>  =  <lterm>
+|  |  |  |  |  |  |  |  +  <lterm>  =  <compared_expr>
+|  |  |  |  |  |  |  |  |  +  <compared_expr>  =  <expr> <comparison>
+|  |  |  |  |  |  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  |  |  |  |  |  +  <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  |  +  <variable>  = PDG
+|  |  |  |  |  |  |  |  |  |  +  <comparison>  =  '==' <expr>
+|  |  |  |  |  |  |  |  |  |  |  +  '=='  = [keyword] ==
+|  |  |  |  |  |  |  |  |  |  |  +  <expr>  =  <term>
+|  |  |  |  |  |  |  |  |  |  |  |  +  <term>  =  <factor>
+|  |  |  |  |  |  |  |  |  |  |  |  |  +  <factor>  =  <integer_value>
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  +  <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  +  <integer_literal>  = 13
+|  |  |  |  |  |  +  <pargs1>  =  <pexpr>
+|  |  |  |  |  |  |  +  <pexpr>  =  <pterm>
+|  |  |  |  |  |  |  |  +  <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  |  |  |  +  <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  |  |  |  +  <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  |  |  |  +  <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  |  |  +  <variable>  = particle
+
+* Compile command list
+
+ selection expression: [defined]
+
+* Execute command list
+
+========================================================================
+ Cuts: [undefined]
+------------------------------------------------------------------------
+ Scale: [undefined]
+------------------------------------------------------------------------
+ Factorization scale: [undefined]
+------------------------------------------------------------------------
+ Renormalization scale: [undefined]
+------------------------------------------------------------------------
+ Weight: [undefined]
+========================================================================
+ Event selection:
+------------------------------------------------------------------------
++  SEQUENCE    <lexpr>  =  <lsinglet>
++  SEQUENCE    <lsinglet>  =  <lterm>
+|  +  SEQUENCE    <lterm>  =  <any_fun>
+|  |  +  SEQUENCE    <any_fun>  =  any <lexpr> <pargs1>
+|  |  |  +  KEYWORD     any  = [keyword] any
+|  |  |  +  SEQUENCE    <lexpr>  =  <lsinglet>
+|  |  |  |  +  SEQUENCE    <lsinglet>  =  <lterm>
+|  |  |  |  |  +  SEQUENCE    <lterm>  =  <compared_expr>
+|  |  |  |  |  |  +  SEQUENCE    <compared_expr>  =  <expr> <comparison>
+|  |  |  |  |  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <variable>
+|  |  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = PDG
+|  |  |  |  |  |  |  +  SEQUENCE    <comparison>  =  '==' <expr>
+|  |  |  |  |  |  |  |  +  KEYWORD     '=='  = [keyword] ==
+|  |  |  |  |  |  |  |  +  SEQUENCE    <expr>  =  <term>
+|  |  |  |  |  |  |  |  |  +  SEQUENCE    <term>  =  <factor>
+|  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  |  |  |  |  |  |  |  |  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  |  |  |  |  |  |  |  |  |  +  INTEGER     <integer_literal>  = 13
+|  |  |  +  ARGUMENTS   <pargs1>  =  <pexpr>
+|  |  |  |  +  SEQUENCE    <pexpr>  =  <pterm>
+|  |  |  |  |  +  SEQUENCE    <pterm>  =  <pexpr_src>
+|  |  |  |  |  |  +  SEQUENCE    <pexpr_src>  =  <unspecified_prt>
+|  |  |  |  |  |  |  +  SEQUENCE    <unspecified_prt>  =  <cexpr>
+|  |  |  |  |  |  |  |  +  SEQUENCE    <cexpr>  =  <variable>
+|  |  |  |  |  |  |  |  |  +  IDENTIFIER  <variable>  = particle
+------------------------------------------------------------------------
+ Event reweighting factor: [undefined]
+------------------------------------------------------------------------
+ Event analysis: [undefined]
+========================================================================
+
+* Cleanup
+
+* Test output end: commands_32

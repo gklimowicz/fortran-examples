@@ -1,0 +1,127 @@
+% gmllongtest.tex --
+% Test for gamelan.mp
+\documentclass[10pt]{article}
+\usepackage{gamelan}
+\begin{document}
+\begin{gmlfile}
+\begin{gmlcode}
+  message "These should be 1, 20, 300, 4e10, 5e-13, -6, -7e8, -8e-2.";
+  showfloat #1, #20, #300, #4e10, #5e-13, #-6, #-7e8, #-8e-2;
+  message "This should be 1.2345678.";
+  showfloat #1.2345678;
+\end{gmlcode}
+\input{gmlcolors}
+\begin{center}\unitlength1mm
+\begin{gmlfigure}
+tracingsets:=1; tracingonline:=1;
+picture px; px =
+begingraph(12cm,10cm)
+  graphrange (#0,#1.7), (#10,??);
+  fromfile "gmllongtest.dat": 
+
+    % A curve to be plotted in one line
+    table plot(u)(); showdata u;
+
+    % data points with x and y error bars
+    for l withinblock: get x,y,h; plot(t) z vbar h hbar (h over two); endfor
+    showdata t;
+
+    % Two named datasets
+    tables plot(a1,a2)();
+    showdata a1,a2;
+
+    for l withinblock: get x,y; hist(s) (x, y plus #6); endfor
+    showdata s;
+  endfrom
+
+  % A band between two curves. 
+  fill from(a1|a2\) linked(smoothly,straight) 
+    withbackground 
+        (spectrum(50)(red,magenta,blue) xscaled width yscaled height)
+    withlegend "Band";
+
+  % A small histogram that has been read in as horizontal bars,
+  % drawn with an offset in absolute coordinates.  The label points to
+  % the midpoint of the 2nd bar, that is point#1 on part#1 of the path
+  % set.  
+  calculate bb(s) (x,#6);
+  draw piecewise cyclic from(s,bb/\) shifted (5mm,0);
+  phantom from(bb$1\) shifted (5mm,0)
+    withlabel.bot("Histogram", on curve at 1);
+
+  % A triangle in graph coordinates
+  fill plot((#3,#4),(#9,#5),(#6,#4)) withcolor green
+    withlegend "Triangle" outlined;
+
+  % A curve with circles at the data points.  The first label refers to 
+  % point#2 on the first drawn path, the second one to the point where
+  % it intersects x=0.
+  draw from(u) dashed evenly withcolor red
+    withsymbol(circle scaled 3mm) withlegend "Curve"
+    withdotlabel.urt("Maximum", on curve at 2)
+    withdotlabel.lft(btex $x=0$ etex, on curve at (#0,??) shifted (-3mm,0));
+
+  % A label at a point in graph coords
+  dotlabel.lrt(image(drawarrow (1cm,-1cm)--origin;
+                     label.lrt(btex $(8,6)$ etex, (1cm,-1cm))),
+               on graph at (#8,#6));
+
+  % Horizontal and vertical error bars, with square symbols
+  picture sq; sq = 
+    image(draw square scaled 3mm; fill square scaled 2mm);
+  draw piecewise from(t) withcolor .5white withsymbol sq withticks 
+    withlegend btex Error bars etex;
+
+  % Another triangle, completely in absolute coords
+  draw(3cm,4cm)--(2cm,5cm)--(1cm,1cm)--cycle 
+    dashed withdots scaled .5 withpenscale 2
+    withdotlabel.ulft("Corner", on curve at 2);
+
+  % A histogram, calculated directly instead of using a file, drawn with
+  % dots at the reference points.  The color has been read from rgb.txt
+  hist(c) (#5,#4), (#5.5,#4.8), (#6,#5.4), (#6.5,#4.5), (#7,??);
+  calculate cb(c) (x,#3.5);
+  fill piecewise from(c,cb/\) hatched withstripes rotated 30 
+    withcolor orange
+    withshadow shifted (2mm,-3mm) withcolor .8[orange,white]
+    withlegend "Histogram";
+  phantom from(c) withsymbol(fshape(circle scaled 2mm)() colored red)
+    withlegend "Values";
+
+  % A closed shape
+  draw cyclic plot(
+    (#8,#2),(#9,#2.1),(#10,#2.5),(#9,#2.9),
+    (#8,#3),(#7,#2.9),(#6,#2.5),(#7,#2.1))
+    dashed withdashdots linked smoothly;
+
+  % A label picture that shows up at the left margin (slightly offset)
+  label.rt(image(drawarrow (1cm,0)--origin;
+                 label.rt(btex$6.5$etex, (1cm,0))),
+           on graph at (??,#6.5) shifted (3mm,0));
+
+  % Data points with cumulative errors
+  fromfile "gmllongtest.dat":
+    for l withinblock: 
+      get x,y,a,b; plot(r1) z vbar a; plot(r2) z vbar (a plus b);
+    endfor
+  endfrom;
+
+  % Outer labels and tick marks
+  label.top(btex\Large Test graph etex, out);
+  grid(labeled noticks rt, 10 iticks top, small iticks top) withlength 6mm; 
+  defaultgrid(2); grid.bot(small oticks);
+  frame.llft;
+
+  % The legend
+  begingroup interim bboxmargin:=3mm;
+    label.urt(fdbox(thelegend)
+        (withcolor yellow withshadow shifted (2mm,-3mm) withcolor .8white)
+            ()(), on graph at (#2,#5.2));
+  endgroup;
+endgraph;    
+% Show the picture together with its bounding box
+draw dbox(px)()();
+\end{gmlfigure}
+\end{center}
+\end{gmlfile}
+\end{document}

@@ -1,0 +1,79 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+seed = 0
+| Process library 'lhef_11_lib': recorded process 'lhef_11_p'
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+| Integrate: current process library needs compilation
+| Process library 'lhef_11_lib': compiling ...
+| Process library 'lhef_11_lib': writing makefile
+| Process library 'lhef_11_lib': removing old files
+| Process library 'lhef_11_lib': writing driver
+| Process library 'lhef_11_lib': creating source code
+| Process library 'lhef_11_lib': compiling sources
+| Process library 'lhef_11_lib': linking
+| Process library 'lhef_11_lib': loading
+| Process library 'lhef_11_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process lhef_11_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   u     (mass = 0.0000000E+00 GeV)
+|   ubar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lhef_11_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lhef_11_p'
+|   Library name  = 'lhef_11_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lhef_11_p_i1':   u, ubar => gl, gl [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 18 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'lhef_11_p'
+| Integrate: iterations = 1:100
+| Integrator: 2 chains, 5 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  1.9224662E+05  1.62E+04    8.40    0.84*  28.94
+|-----------------------------------------------------------------------------|
+   1        100  1.9224662E+05  1.62E+04    8.40    0.84   28.94
+|=============================================================================|
+n_events = 1000
+sample_split_n_kbytes = 200
+$lhef_version = "2.0"
+| Starting simulation for process 'lhef_11_p'
+| Simulate: using integration grids from file 'lhef_11_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1000
+|             corr. to luminosity [fb-1] =   5.2017E-03
+| Events: writing to LHEF file 'lhef_11_p.0.lhe'
+| Events: generating 1000 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+| Events: writing to LHEF file 'lhef_11_p.1.lhe'
+| Events: writing to LHEF file 'lhef_11_p.2.lhe'
+| Events: writing to LHEF file 'lhef_11_p.3.lhe'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  31.08 %
+Warning: Encountered events with excess weight: 127 events ( 12.700 %)
+| Maximum excess weight = 1.183E+02
+| Average excess weight = 5.761E-01
+| Events: closing LHEF file 'lhef_11_p.3.lhe'
+| There were no errors and    2 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

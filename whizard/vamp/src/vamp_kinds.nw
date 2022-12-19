@@ -1,0 +1,29 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP kinds code as NOWEB source (superseded by WHIZARD kinds code)
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+\chapter{Constants}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Kinds}
+\label{sec:kinds}
+This borders on overkill, but it is the most portable way to get
+double precision in standard Fortran without relying on [[kind (1.0D0)]]
+Currently, it is possible to change [[double]] to any other supported
+real kind.  The MPI interface is a potential trouble source for such
+things, however.
+<<[[vamp_kinds.f90]]>>=
+! vamp_kinds.f90 --
+<<Copyleft notice>>
+module kinds
+  implicit none
+  integer, parameter, private :: single = &
+       & selected_real_kind (precision(1.0), range(1.0))
+  integer, parameter, private :: double = &
+       & selected_real_kind (precision(1.0_single) + 1, range(1.0_single) + 1)
+  integer, parameter, private :: extended = &
+       & selected_real_kind (precision (1.0_double) + 1, range (1.0_double))
+  integer, parameter, public :: default = double
+end module kinds
+@
+
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

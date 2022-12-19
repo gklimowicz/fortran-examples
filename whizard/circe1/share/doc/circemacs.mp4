@@ -1,0 +1,303 @@
+% circemacs.mp4 --
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MetaPost's `input' doesn't blend well with verbatimtex.
+% Let's use m4(1) instead.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+verbatimtex
+  \documentclass{article}
+  \usepackage{amsmath}
+  %%%\usepackage{euler,beton}
+  \begin{document}
+etex;
+
+define(`postlude',`
+  verbatimtex
+    \end{document}
+  etex;
+  end.')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+input graphx;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+vardef init_scriptsize_numbers =
+  init_numbers (btex {\scriptsize$-$} etex,
+                btex {\scriptsize$\text{1}$} etex,
+                btex {\scriptsize$\cdot\text{10}$} etex,
+                btex {\scriptsize${}^-$} etex,
+                btex {\scriptsize${}^{\text{2}}$} etex);
+  Fe_base := btex {\scriptsize$\text{10}$} etex;
+  defaultfont := Fmfont_;
+  defaultscale := Fmscale_;
+enddef;
+
+vardef init_normalsize_numbers =
+  init_numbers (btex $-$ etex,
+                btex $\text{1}$ etex,
+                btex $\cdot\text{10}$ etex,
+                btex ${}^-$ etex,
+                btex ${}^{\text{2}}$ etex);
+  Fe_base := btex $\text{10}$ etex;
+  defaultfont := Fmfont_;
+  defaultscale := Fmscale_;
+enddef;
+
+init_normalsize_numbers;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Hack around a bug in Mleq/Sleq which blows up when one operand
+% is negative.  [Thanks to Wolfgang Kilian for the correct fix in
+% Mleq.  My fix in Smin and Smax was stupid.]
+
+tertiarydef a Mleq b =
+  (if a = Mabs a:
+     if b = Mabs b:    %
+       a <= b          % a > 0, b > 0
+     else:             %
+       false           % a > 0, b < 0
+     fi                %
+   elseif b = Mabs b:  %
+     true              % a < 0, b > 0
+   else:               %
+     b <= a            % a < 0, b < 0
+   fi)
+enddef;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+pwidth := 1.5pt;
+width := 38mm;
+height := 40mm;
+
+vardef energy expr e =
+  if e = 350:
+    btex $\sqrt s = 350$GeV etex
+  elseif e = 500:
+    btex $\sqrt s = 500$GeV etex
+  elseif e = 800:
+    btex $\sqrt s = 800$GeV etex
+  elseif e = 1000:
+    btex $\sqrt s = 1$TeV etex
+  fi
+enddef;
+
+vardef gdist (expr n, prefix, postfix, e) =
+  beginfig (n);
+    Gmarks := 3;
+    pickup pencircle scaled pwidth;
+    draw begingraph (width, height);
+      setcoords (log, log);
+      gdraw (prefix & "-sband" & postfix);
+      if e = 500:
+        glabel.urt (btex S-Band etex, 30);
+      elseif e = 1000:
+        glabel.urt (btex S-Band etex, 10);
+      fi
+      gdraw (prefix & "-tesla" & postfix) dashed evenly;
+      glabel.llft (btex Tesla etex, 40);
+      gdraw (prefix & "-xband" & postfix) dashed withdots;
+      if e = 500:
+        glabel.llft (btex X-Band etex, 20);
+      elseif e = 1000:
+        glabel.urt (btex X-Band etex rotated -90, 45);
+      fi
+      glabel.lft (btex $d_{\gamma}(x)$ etex rotated 90, OUT);
+      glabel.bot (btex $x_{\gamma}$ etex, OUT);
+      glabel.top (energy e, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+vardef tgdist (expr n) =
+  beginfig (n);
+    Gmarks := 3;
+    pickup pencircle scaled pwidth;
+    draw begingraph (width, height);
+      setcoords (log, log);
+      gdraw ("dg-tesla3.dat");
+      glabel.llft (btex 350 GeV etex, 30);
+      gdraw ("dg-tesla.dat") dashed evenly;
+      gdraw ("dg-tesla8.dat") dashed withdots;
+      glabel.urt (btex 800 GeV etex rotated -90, 40);
+      glabel.lft (btex $d_{\gamma}(x)$ etex rotated 90, OUT);
+      glabel.bot (btex $x_{\gamma}$ etex, OUT);
+      glabel.top (btex Tesla etex, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+vardef e_gdraw (expr file) text w =
+  save s, i;
+  gdraw (gdata (file, s,
+                if i > 1: -- fi
+                ((4000 - (4000 * scantokens s1)) / 4000,
+                 scantokens s2))) w;
+enddef;
+
+vardef edist (expr n, prefix, postfix, e) =
+  beginfig (n);
+    Gmarks := 3;
+    pickup pencircle scaled pwidth;
+    draw begingraph (width, height);
+      setcoords (-log, log);
+      gdraw (prefix & "-sband" & postfix);
+      if e = 500:
+        glabel.ulft (btex S-Band etex, 30);
+      elseif e = 1000:
+        glabel.ulft (btex S-Band etex, 15);
+      fi
+      gdraw (prefix & "-tesla" & postfix) dashed evenly;
+      glabel.lrt (btex Tesla etex, 40);
+      gdraw (prefix & "-xband" & postfix) dashed withdots;
+      glabel.ulft (btex X-Band etex rotated 90, 45);
+      glabel.lft (btex $d_{e^\pm}(x)$ etex rotated 90, OUT);
+      glabel.bot (btex $1 - x_{e^\pm}$ etex, OUT);
+      glabel.top (energy e, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+vardef tedist (expr n) =
+  beginfig (n);
+    Gmarks := 3;
+    pickup pencircle scaled pwidth;
+    draw begingraph (width, height);
+      setcoords (-log, log);
+      gdraw ("de-tesla3.dat");
+      glabel.lrt (btex 350 GeV etex, 30);
+      gdraw ("de-tesla.dat") dashed evenly;
+      gdraw ("de-tesla8.dat") dashed withdots;
+      glabel.ulft (btex 800 GeV etex rotated 90, 40);
+      glabel.lft (btex $d_{e^\pm}(x)$ etex rotated 90, OUT);
+      glabel.bot (btex $1 - x_{e^\pm}$ etex, OUT);
+      glabel.top (btex Tesla etex, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+vardef gdist_ee (expr n, prefix, postfix, e) =
+  beginfig (n);
+    Gmarks := 3;
+    pickup pencircle scaled pwidth;
+    draw begingraph (width, height);
+      setcoords (log, log);
+      gdraw (prefix & postfix);
+      glabel.urt (btex $e^+e^-$ etex, 20);
+      gdraw (prefix & "-ee" & postfix) dashed evenly;
+      glabel.llft (btex $e^-e^-$ etex, 20);
+      glabel.lft (btex $d_{\gamma}(x)$ etex rotated 90, OUT);
+      glabel.bot (btex $x_{\gamma}$ etex, OUT);
+      glabel.top (energy e, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+vardef edist_ee (expr n, prefix, postfix, e) =
+  beginfig (n);
+    Gmarks := 3;
+    pickup pencircle scaled pwidth;
+    draw begingraph (width, height);
+      setcoords (-log, log);
+      gdraw (prefix & postfix);
+      glabel.lrt (btex $e^+e^-$ etex, 30);
+      gdraw (prefix & "-ee" & postfix) dashed evenly;
+      glabel.ulft (btex $e^-e^-$ etex, 30);
+      glabel.lft (btex $d_{e^\pm}(x)$ etex rotated 90, OUT);
+      glabel.bot (btex $1 - x_{e^\pm}$ etex, OUT);
+      glabel.top (energy e, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+picture eslice[], gslice[];
+
+vardef twodigs (expr n) =
+  if (n >= 0) and (n <= 9):
+    "0" & decimal n
+  elseif (n >= 10) and (n <= 99):
+    decimal n
+  else:
+    "**"
+  fi
+enddef;
+
+vardef fod_name (expr acc, mode, tag, sli) =
+  "output" 
+    & "/" & acc & "_" & mode 
+    & "/lumidiff-" & tag
+    & "x" & twodigs (sli)
+enddef;
+
+vardef fit_name (expr acc, mode, tag, sli) =
+  fod_name (acc, mode, tag, sli) & ".fit"
+enddef;
+
+vardef dat_name (expr acc, mode, tag, sli) =
+  fod_name (acc, mode, tag, sli) & ".dat"
+enddef;
+
+vardef acc_name expr acc =
+  if acc = "sband":
+    btex S-Band, $\sqrt s = 500$GeV etex
+  elseif acc = "sband1000":
+    btex S-Band, $\sqrt s = 1$TeV etex
+  elseif acc = "tesla350":
+    btex Tesla,  $\sqrt s = 350$GeV etex
+  elseif acc = "tesla":
+    btex Tesla,  $\sqrt s = 500$GeV etex
+  elseif acc = "tesla500":
+    btex Tesla,  $\sqrt s = 500$GeV etex
+  elseif acc = "tesla800":
+    btex Tesla,  $\sqrt s = 800$GeV etex
+  elseif acc = "tesla1000":
+    btex Tesla,  $\sqrt s = 1$TeV etex
+  elseif substring (0,4) of acc = "nlc_":
+    btex X-Band, $\sqrt s = 500$GeV etex
+  elseif substring (0,8) of acc = "nlc1000_":
+    btex X-Band, $\sqrt s = 1$TeV etex
+  fi
+enddef;
+
+vardef gfit (expr n, acc, mode, tag, sli) =
+  beginfig (n);
+    pickup pencircle scaled 1pt;
+    draw begingraph (width, height);
+      setcoords (log, linear);
+      message ("gfit: " & fod_name (acc, mode, tag, sli));
+      gdraw (fit_name (acc, mode, tag, sli));
+      gdraw_err (dat_name (acc, mode, tag, sli), circle, false, 0);
+      glabel.lft (gslice[sli] rotated 90, OUT);
+      glabel.bot (btex $x_\gamma$ etex, OUT);
+      glabel.ulft (btex  etex, OUT);
+      glabel.top (acc_name acc, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+vardef efit (expr n, acc, mode, tag, sli) =
+  beginfig (n);
+    pickup pencircle scaled 1pt;
+    draw begingraph (width, height);
+      save s;
+      setcoords (-log, linear);
+      message ("efit: " & fod_name (acc, mode, tag, sli));
+      gdraw (fit_name (acc, mode, tag, sli));
+      gdraw_err (dat_name (acc, mode, tag, sli), circle, false, 0);
+      glabel.lft (eslice[sli] rotated 90, OUT);
+      glabel.bot (btex $1-x_{e^\pm}$ etex, OUT);
+      glabel.top (acc_name acc, OUT);
+    endgraph;
+  endfig;
+enddef;
+
+warningcheck := 0;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Local Variables:
+% mode:indented-text
+% End:

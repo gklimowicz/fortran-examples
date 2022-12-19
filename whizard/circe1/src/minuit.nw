@@ -1,0 +1,1262 @@
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fitting}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Version 1: Factorized Beta Distributions}
+@
+<<Copyleft notice>>=
+! 
+! Copyright (C) 1999-2022 by 
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!     Christian Speckner <cnspeckn@googlemail.com>
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by 
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'minuit.nw'
+<<[[circe1_fit.f90]]>>=
+! circe1_fit.f90 -- fitting for circe
+<<Copyleft notice>>
+
+module fit_routines
+  use kinds
+
+  implicit none
+  private
+
+<<[[circe1_fit.f90: public]]>>
+
+contains
+<<[[circe1_fit.f90: subroutines]]>>
+end module fit_routines
+
+program fit
+  use kinds       
+  use fit_routines
+
+  implicit none
+
+  integer :: i, rcode
+<<Declare [[NPARAM]]>>
+<<Declare parameters>>
+<<Declare arguments>>
+
+      <<Initialize parameters for [[circe1_fit.f90]]>>
+      call mninit (5, 6, 7)
+      <<Load parameters>>
+      call mnseti ('CIRCE: fit version 1     ')
+      argv(1) = 1
+      call mnexcm (fct, 'SET PRINTOUT        ', argv, 1, rcode, 0d0)
+      argv(1) = 1
+      call mnexcm (fct, 'CALL FCT            ', argv, 1, rcode, 0d0)
+      call mnexcm (fct, 'MIGRAD              ', argv, 0, rcode, 0d0)
+      call mnexcm (fct, 'MINOS               ', argv, 0, rcode, 0d0)
+      argv(1) = 3
+      call mnexcm (fct, 'CALL FCT            ', argv, 1, rcode, 0d0)
+      call mnexcm (fct, 'STOP                ', argv, 0, rcode, 0d0)
+
+end program fit
+
+@ %def fit
+@ 
+<<Declare [[NPARAM]]>>=
+    integer, parameter :: NPARAM = 6  
+@ %def NPARAM
+@
+<<Declare parameters>>=
+  integer, dimension(NPARAM) :: pnum
+  character(len=10), dimension(NPARAM) :: pname
+  real(kind=double), dimension(NPARAM) :: pstart, pstep
+@
+<<Declare arguments>>=
+  integer, parameter :: ARGC = 10
+  real(kind=double), dimension(ARGC) :: argv
+@
+<<Load parameters>>=
+  do i = 1, NPARAM
+     call mnparm (pnum(i), pname(i), pstart(i), pstep (i), 0d0, 0d0, rcode)
+     if (rcode .ne. 0) then
+        print *, "fit: MINUIT won''t accept parameter ", pnum(i)
+        stop
+     endif
+  end do
+@ 
+<<Initialize parameters for [[circe1_fit.f90]]>>=
+  data pnum   /     1,     2,       3,     4,     5,       6 /
+  data pname  / '1_e', 'x_e', '1-x_e', '1_g', 'x_g', '1-x_g' /
+  data pstart / -1.00, 20.00,    0.20, -1.00,  0.20,   20.00 /
+  data pstep  /  0.01,  0.01,    0.01,  0.01,  0.01,    0.01 /
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: fct
+<<[[circe1_fit.f90: subroutines]]>>=
+  subroutine fct (nx, df, f, a, mode, g)
+    integer :: nx, mode
+    real(kind=double) :: f, g
+    real(kind=double), dimension(:) :: df, a     
+    <<Local variables for [[fct]] (v1)>>
+    if (mode .eq. 1) then
+      <<Read input data (v1)>>
+    else if (mode .eq. 2) then
+      <<Calculate $\nabla f$>>
+    end if
+    <<Calculate $f$ (v1)>>
+    end if
+    if (mode .eq. 3) then
+       <<Write output (v1)>>
+    end if
+  end subroutine fct
+
+@ %def fct
+@
+<<Read input data (v1)>>=
+      <<Read data from file>>
+      <<Fixup errors>>
+      <<Normalize>>
+@
+<<Read data from file>>=
+    call gethst ('ee', NDATA, xee, fee, dfee, see, tee, pwr)
+    call gethst ('eg', NDATA, xeg, feg, dfeg, seg, teg, pwr)
+    call gethst ('ge', NDATA, xge, fge, dfge, sge, tge, pwr)
+    call gethst ('gg', NDATA, xgg, fgg, dfgg, sgg, tgg, pwr)
+@
+<<Local variables for [[fct]] (v1)>>=
+    integer, parameter :: NDATA = 20
+    real(kind=double) :: see, tee, dtee
+    real(kind=double) :: seg, teg, dteg
+    real(kind=double) :: sge, tge, dtge
+    real(kind=double) :: sgg, tgg, dtgg
+    real(kind=double), dimension(2,0:NDATA+1,0:NDATA+1) :: xee, xeg, &
+         xge, xgg
+    real(kind=double), dimension(0:NDATA+1,0:NDATA+1) :: fee, dfee, &
+         feg, dfeg, fge, dfge, fgg, dfgg
+    real(kind=double) :: pwr
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: gethst
+<<[[circe1_fit.f90: subroutines]]>>=
+  subroutine gethst (tag, ndata, x, f, df, s, t, pwr)
+    character(len=2) :: tag
+    integer :: ndata
+    real(kind=double) :: s, t, pwr
+    real(kind=double), dimension(2,0:ndata+1,0:ndata+1) :: x
+    real(kind=double), dimension(0:ndata+1,0:ndata+1) :: f, df
+    integer :: i, j
+    open (10, file = 'lumidiff-'//tag//'.dat')
+    read (10, *) pwr
+    s = 0d0
+    <<Read continuum, summing in [[s]]>>
+    t = s
+    <<Read single $\delta$, summing in [[t]]>>
+    <<Read double $\delta$, summing in [[t]]>>
+    close (10)
+  end subroutine gethst
+
+@ %def gethst
+@
+<<Read continuum, summing in [[s]]>>=
+    do i = 1, ndata
+       do j = 1, ndata
+          read (10, *) x(1,i,j), x(2,i,j), f(i,j), df(i,j)
+          s = s + f(i,j)
+       end do
+    end do
+@
+<<Read single $\delta$, summing in [[t]]>>=
+    do i = 1, ndata
+       read (10, *) x(1,i,0), f(i,0), df(i,0), &
+                              f(i,ndata+1), df(i,ndata+1)
+       x(1,i,ndata+1) = x(1,i,0)
+       t = t + f(i,0) + f(i,ndata+1)
+    end do
+@
+<<Read single $\delta$, summing in [[t]]>>=
+    do i = 1, ndata
+       read (10, *) x(2,0,i), f(0,i), df(0,i), &
+                              f(ndata+1,i), df(ndata+1,i)
+       x(2,ndata+1,i) = x(2,0,i)
+       t = t + f(0,i) + f(ndata+1,i)
+    end do
+@
+<<Read double $\delta$, summing in [[t]]>>=
+    read (10, *) f(0,0), df(0,0), f(0,ndata+1), df(0,ndata+1)
+    t = t + f(0,0) + f(0,ndata+1)
+    read (10, *) f(ndata+1,0), df(ndata+1,0), &
+                 f(ndata+1,ndata+1), df(ndata+1,ndata+1)
+    t = t + f(ndata+1,0) + f(ndata+1,ndata+1)
+@ \texttt{Guinea-Pig} does not provide the full error.  A Monte Carlo
+study shows that it is a reasonable approximation to rescale the bin
+error by suitable factors.  These factors are different for eahc
+distribution and the factors for the $\delta$-pieces are bigger than
+those for the continuum parts.  The follows factors are for the
+[[slow]] parameter set.
+<<Fixup errors>>=
+    call fixerr (NDATA, dfee, 20d0, 30d0, 40d0)
+    call fixerr (NDATA, dfeg, 15d0, 20d0,  0d0)
+    call fixerr (NDATA, dfge, 15d0, 20d0,  0d0)
+    call fixerr (NDATA, dfgg, 10d0,  0d0,  0d0)
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: fixerr
+<<[[circe1_fit.f90: subroutines]]>>=
+  subroutine fixerr (ndata, df, c, sd, dd)
+    integer :: ndata
+    real(kind=double) :: c, sd, dd
+    real(kind=double), dimension(0:ndata+1,0:ndata+1) :: df
+    integer :: i, j
+    do i = 1, NDATA
+       do j = 1, NDATA
+          df(i,j) = c * df(i,j)
+       end do
+    end do
+    do i = 1, NDATA
+       df(0,i) = sd * df(0,i)
+       df(i,0) = sd * df(i,0)
+       df(ndata+1,i) = sd * df(ndata+1,i)
+       df(i,ndata+1) = sd * df(i,ndata+1)
+    end do
+    df(0,0) = dd * df(0,0)
+    df(ndata+1,0) = dd * df(ndata+1,0)
+    df(0,ndata+1) = dd * df(0,ndata+1)
+    df(ndata+1,ndata+1) = dd * df(ndata+1,ndata+1)
+  end subroutine fixerr
+
+@ %def fixerr
+@ The error on the integrated luminosity is obtained from adding the
+error in channels in quadrature.
+<<Normalize>>=
+    dtee = sumsqu (NDATA, dfee)
+    dteg = sumsqu (NDATA, dfeg)
+    dtge = sumsqu (NDATA, dfge)
+    dtgg = sumsqu (NDATA, dfgg)
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: sumsqu
+<<[[circe1_fit.f90: subroutines]]>>=
+  function sumsqu (ndata, f)
+    integer :: ndata
+    real(kind=double) :: sumsqu
+    real(kind=double), dimension(0:ndata+1,0:ndata+1) :: f
+    integer :: i, j
+    real(kind=double) :: s2
+    s2 = 0
+    do i = 0, NDATA+1
+       do j = 0, NDATA+1
+          s2 = s2 + f(i,j)*f(i,j)
+       end do
+    end do
+    sumsqu = sqrt (s2)
+  end function sumsqu
+
+@ %def sumsqu
+@
+<<Normalize>>=
+    call scale (NDATA, 1d0/tee, fee)
+    call scale (NDATA, 1d0/tee, dfee)
+    call scale (NDATA, 1d0/tee, feg)
+    call scale (NDATA, 1d0/tee, dfeg)
+    call scale (NDATA, 1d0/tee, fge)
+    call scale (NDATA, 1d0/tee, dfge)
+    call scale (NDATA, 1d0/tee, fgg)
+    call scale (NDATA, 1d0/tee, dfgg)
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: scale
+<<[[circe1_fit.f90: subroutines]]>>=
+  subroutine scale (ndata, s, f)
+    integer :: ndata
+    real(kind=double) :: s
+    real(kind=double), dimension(0:ndata+1,0:ndata+1) :: f
+    integer :: i, j
+    do i = 0, NDATA+1
+       do j = 0, NDATA+1
+          f(i,j) = s * f(i,j)
+       end do
+    end do
+  end subroutine scale
+
+@ %def scale
+@
+<<Calculate $\nabla f$>>=
+    print *, "ERROR: $\nabla f$ n.a."
+    stop
+@ Log-likelihood won't fly, because we can't normalize the likelihood
+function for an unbounded parameter range.  Let's use good ole
+least-squares instead. 
+<<Calculate $f$ (v1)>>=
+    f = 0d0
+    do i = 1, NDATA
+       do j = 1, NDATA
+          if (dfee(i,j) .gt. 0d0) then
+             f = f + ((phie(xee(1,i,j),a) * phie(xee(2,i,j),a) &
+                        - fee(i,j)) / dfee(i,j))**2
+          end if
+          if (dfeg(i,j) .gt. 0d0) then
+             f = f + ((phie(xeg(1,i,j),a) * phig(xeg(2,i,j),a) &
+                        - feg(i,j)) / dfeg(i,j))**2
+          end if
+          if (dfge(i,j) .gt. 0d0) then
+             f = f + ((phig(xge(1,i,j),a) * phie(xge(2,i,j),a) &
+                        - fge(i,j)) / dfge(i,j))**2
+          end if
+          if (dfgg(i,j) .gt. 0d0) then
+             f = f + ((phig(xgg(1,i,j),a) * phig(xgg(2,i,j),a) &
+                        - fgg(i,j)) / dfgg(i,j))**2
+          end if
+       end do
+    end do
+@
+<<Local variables for [[fct]] (v1)>>=
+    integer :: i, j
+    real(kind=double) :: delta
+@
+<<Calculate $f$ (v1)>>=
+    if ((a(2) .le. -1d0) .or. (a(3) .le. -1d0/pwr)) then
+       print *, "warning: discarding out-of-range a2/3: ", a(2), a(3)
+       <<Give up on $f$>>
+    else
+      delta = 1d0 - exp(a(1)) * beta(a(2)+1d0,a(3)+1d0/pwr) * dble(NDATA) / pwr
+      if (delta .lt. 0d0) then
+         print *, "warnimg: delta forced to 0 from ", delta
+         delta = 0d0
+      end if
+@
+<<Give up on $f$>>=
+    f = 1d100
+@
+<<Calculate $f$ (v1)>>=
+    do i = 1, NDATA
+       if (dfee(ndata+1,i) .gt. 0d0) then
+          f = f + ((delta*phie(xee(2,ndata+1,i),a) &
+                    - fee(ndata+1,i)) / dfee(ndata+1,i))**2
+       end if
+       if (dfeg(ndata+1,i) .gt. 0d0) then
+          f = f + ((delta*phig(xeg(2,ndata+1,i),a) &
+                    - feg(ndata+1,i)) / dfeg(ndata+1,i))**2
+       end if
+       if (dfee(i,ndata+1) .gt. 0d0) then
+          f = f + ((delta*phie(xee(1,i,ndata+1),a) &
+                    - fee(i,ndata+1)) / dfee(i,ndata+1))**2
+       end if
+       if (dfge(i,ndata+1) .gt. 0d0) then
+          f = f + ((delta*phig(xge(1,i,ndata+1),a) &
+                    - fge(i,ndata+1)) / dfge(i,ndata+1))**2
+       end if
+    end do
+@
+<<Calculate $f$ (v1)>>=
+    if (dfee(ndata+1,ndata+1) .gt. 0d0) then
+       f = f + ((delta*delta &
+                 - fee(ndata+1,ndata+1)) / dfee(ndata+1,ndata+1))**2
+    end if
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: phie
+<<[[circe1_fit.f90: subroutines]]>>=
+  function phie (x, a)
+    real(kind=double) :: x, phie 
+    real(kind=double), dimension(6) :: a
+    phie = exp (a(1) + a(2)*log(x) + a(3)*log(1d0-x))
+  end function phie
+
+@ %def phie
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: phig
+<<[[circe1_fit.f90: subroutines]]>>=
+  function phig (x, a)
+    real(kind=double) :: x, phig
+    real(kind=double), dimension(6) :: a
+    phig = exp (a(4) + a(5)*log(x) + a(6)*log(1d0-x))
+  end function phig
+
+@ %def phig
+@ 
+<<Write output (v1)>>=
+    a1(1) = exp(a(1)) * dble(NDATA) / pwr
+    a1(2) = a(2)
+    a1(3) = a(3) - 1d0 + 1d0/pwr
+    a1(4) = exp(a(4)) * dble(NDATA) / pwr
+    a1(5) = a(5) - 1d0 + 1d0/pwr
+    a1(6) = a(6)
+    open (10, file = 'Parameters')
+    write (10, 1000) REV, tee / 1D32
+    write (10, 1001) REV, &
+          1d0 - a1(1) * beta(a1(2)+1d0,a1(3)+1d0), &
+          a1(1), a1(2), a1(3), a1(4), a1(5), a1(6), &
+          a1(4) * beta(a1(5)+1d0,a1(6)+1d0)
+1000 format ('      data xa5lum(@ENERGY@,@ACC@,', I2, ') / ', E12.5, ' /')
+1001 format ('      data (xa5(i,@ENERGY@,@ACC@,', I2 ,'),i=0,7) /', /, &
+             '     $  ', 4(E12.5,', '), /, &
+             '     $  ', 3(E12.5,', '), E12.5, ' /')
+    close (10)
+@
+<<Local variables for [[fct]] (v1)>>=
+    <<Declare [[NPARAM]]>>
+    real(kind=double), dimension(NPARAM) :: a1
+    integer, parameter :: REV = 1
+@ The average elektron energy in the continuum can be calculated
+analytically:
+\begin{multline}
+  \left\langle E_{e^\pm} \right\rangle_{\text{cont}}
+    = E_{\text{beam}}  \left\langle x_{e^\pm} \right\rangle_{\text{cont}}
+    = E_{\text{beam}} \frac{\int\!dx\,x^{a_2}(1-x)^{a_3}x}{B(a_2,a_3)} \\
+    = E_{\text{beam}} \frac{B(a_2+1,a_3)}{B(a_2,a_3)}
+    = E_{\text{beam}} \frac{a_2+1}{a_2+a_3+2}
+\end{multline}
+<<Write output (v1)>>=
+    delta = 1d0 - a1(1) * beta(a1(2)+1d0,a1(3)+1d0)
+    print *, '< x_e > = ', delta + (1d0-delta)*(a1(2)+1d0)/(a1(2)+a1(3)+2d0)
+@ similarly:
+\begin{equation}
+  \left\langle E_\gamma \right\rangle
+    = E_{\text{beam}} \frac{a_5+1}{a_5+a_6+2}
+\end{equation}
+<<Write output (v1)>>=
+    print *, '< x_g > = ', (a1(5)+1d0)/(a1(5)+a1(6)+2d0)
+@ Count the degrees of freedom in [[ndof]]:
+<<Write output (v1)>>=
+    ndof = 0
+    do i = 0, ndata+1
+       do j = 0, ndata+1
+          if (dfee(i,j) .gt. 0d0) ndof = ndof + 1
+          if (dfeg(i,j) .gt. 0d0) ndof = ndof + 1
+          if (dfge(i,j) .gt. 0d0) ndof = ndof + 1
+          if (dfgg(i,j) .gt. 0d0) ndof = ndof + 1
+       end do
+    end do
+    print *, 'CHI2 = ', f / ndof
+@
+<<Local variables for [[fct]] (v1)>>=
+    integer :: ndof
+@ The error on the luminosity is just the (possibly rescaled) counting
+error:
+<<Write output (v1)>>=
+    open (10, file = 'Errors.tex')
+    write (10, 1099) tee / 1d32, dtee / 1d32, dtee / 1d32
+1099 format ('$', F8.2, '_{-', F4.2, '}^{+', F4.2, '}$')
+@ After retrieving the error from \texttt{MINUIT}, we have to take
+care of the mapping of the parameters
+\begin{equation}
+  a_{1/4}' = e^{a_{1/4}} B(a_{2/5}+1,a_{3/6}+1) N_{\text{bins}} \eta^{-1}
+    \Longrightarrow \delta a_{1/4}' = a_{1/4}' \delta a_{1/4}
+\end{equation}
+ignoring the errors in the integral (i.e.~the Beta function).
+<<Write output (v1)>>=
+    call mnerrs (1,  eplus, eminus, epara, corr)
+    ab = a1(1) * beta(a1(2)+1d0,a1(3)+1d0)
+    write (10, 1100) ab, abs (ab*eminus), abs (ab*eplus)
+1100 format ('$', F8.4, '_{-', F6.4, '}^{+', F6.4, '}$')
+@
+<<Local variables for [[fct]] (v1)>>=
+    real(kind=double) :: ab
+@ The other mappings are even more trivial:
+\begin{align}
+  a_{2/6}' = a_{2/6} - 1 + \eta^{-1}
+    & \Longrightarrow \delta a_{2/6}' = \delta a_{2/6} &
+  a_{3/5}' = a_{3/5} - 1 + \eta^{-1}
+    & \Longrightarrow \delta a_{3/5}' = \delta a_{3/5}
+\end{align}
+<<Write output (v1)>>=
+    do i = 2, 3
+       call mnerrs (i,  eplus, eminus, epara, corr)
+       write (10, 1100) a1(i), abs (eminus), abs (eplus)
+    end do
+    call mnerrs (4,  eplus, eminus, epara, corr)
+    ab = a1(4) * beta(a1(5)+1d0,a1(6)+1d0)
+    write (10, 1100) ab, abs (ab*eminus), abs (ab*eplus)
+    do i = 5, 6
+       call mnerrs (i,  eplus, eminus, epara, corr)
+       write (10, 1100) a1(i), abs (eminus), abs (eplus)
+    end do
+    close (10)
+@
+<<Local variables for [[fct]] (v1)>>=
+    real(kind=double) :: eplus, eminus, epara, corr
+    integer :: n
+@ 
+<<Write output (v1)>>=
+    do n = 1, 10
+       call pslice ('ee','x',n,NDATA,xee,fee,dfee,phie,phie,a)
+       call pslice ('eg','x',n,NDATA,xeg,feg,dfeg,phie,phig,a)
+       call pslice ('ge','x',n,NDATA,xge,fge,dfge,phig,phie,a)
+       call pslice ('gg','x',n,NDATA,xgg,fgg,dfgg,phig,phig,a)
+       call pslice ('ee','y',n,NDATA,xee,fee,dfee,phie,phie,a)
+       call pslice ('eg','y',n,NDATA,xeg,feg,dfeg,phie,phig,a)
+       call pslice ('ge','y',n,NDATA,xge,fge,dfge,phig,phie,a)
+       call pslice ('gg','y',n,NDATA,xgg,fgg,dfgg,phig,phig,a)
+    end do
+    call pslice ('ee','x',21,NDATA,xee,fee,dfee,phie,phie,a)
+    call pslice ('eg','x',21,NDATA,xeg,feg,dfeg,phie,phig,a)
+    call pslice ('ee','y',21,NDATA,xee,fee,dfee,phie,phie,a)
+    call pslice ('ge','y',21,NDATA,xge,fge,dfge,phig,phie,a)
+@ UNIX Fortran compiler want backslashes escaped:
+\index{System dependecies}
+<<Write output (v1)>>=
+    open (10, file = 'Slices.mp4')
+    write (10,*) "picture eslice[], gslice[];"
+    do n = 1, NDATA
+       write (10,*) 'eslice[', n, '] := ', &
+            'btex $x_{e^\\pm} = ', xee(1,n,1), '$ etex;'
+       write (10,*) 'gslice[', n, '] := ', &
+            'btex $x_\\gamma = ', xgg(1,n,1), '$ etex;'
+    end do
+    close (10)
+@
+<<[[circe1_fit.f90: public]]>>=
+  public :: pslice
+<<[[circe1_fit.f90: subroutines]]>>=
+  subroutine pslice (pp, xy, n, ndata, x, f, df, phi1, phi2, a)
+    character(len=2) :: pp
+    character(len=1) :: xy
+    integer :: n, ndata
+    real(kind=double), dimension(2,0:ndata+1,0:ndata+1) :: x
+    real(kind=double), dimension(0:ndata+1,0:ndata+1) :: f, df
+    real(kind=double), dimension(6) :: a
+    real(kind=double) :: z
+    real(kind=double) :: phi1, phi2, d, delta, pwr
+    external phi1, phi2
+    integer :: i
+    character(len=2) digits
+    write (digits, '(I2.2)') n
+    open (10, file = 'lumidiff-'//pp//xy//digits//'.dat')
+    open (11, file = 'lumidiff-'//pp//xy//digits//'.fit')
+    open (12, file = 'lumidiff-'//pp//xy//digits//'.chi')
+    if (n .eq. ndata+1) then
+       pwr = 5d0
+       delta = 1d0 - exp(a(1))*beta(a(2)+1d0,a(3)+1d0/pwr) &
+                       * dble(NDATA) / pwr
+    else
+       delta = 0
+    end if
+    if (xy .eq. 'x') then
+       do i = 1, ndata
+          if (df(n,i) .gt. 0d0) then
+             if (pp(2:2) .eq. 'g') then
+                z = x(2,n,i)
+             else
+                z = 1d0 - x(2,n,i)
+             endif
+             if (n .eq. ndata+1) then
+                d = delta*phi2(x(2,n,i),a)
+             else
+                d = phi1(x(1,n,i),a)*phi2(x(2,n,i),a)
+             endif
+             write (10,*) z, f(n,i), df(n,i)
+             write (11,*) z, d
+             write (12,*) z, (f(n,i) - d) / df(n,i)
+          endif
+       end do
+    else if (xy .eq. 'y') then
+       do i = 1, ndata
+          if (df(i,n) .gt. 0d0) then
+             if (pp(1:1) .eq. 'g') then
+                z = x(1,i,n)
+             else
+                z = 1d0 - x(1,i,n)
+             endif
+             if (n .eq. ndata+1) then
+                d = phi1(x(1,i,n),a)*delta
+             else
+                d = phi1(x(1,i,n),a)*phi2(x(2,i,n),a)
+             endif
+             write (10,*) z, f(i,n), df(i,n)
+             write (11,*) z, d
+             write (12,*) z, (f(i,n) - d) / df(i,n)
+          endif
+       end do
+    endif
+    close (10)
+    close (11)
+    close (12)
+  end subroutine pslice
+
+@ %def pslice
+@
+<<[[circe1_fit.f90: subroutines]]>>=
+  function beta (a, b)
+    real(kind=double) :: a, b, beta
+    beta = exp (dlgama(a) + dlgama(b) - dlgama(a+b))
+    contains
+      function dlgama (x)
+        real(kind=double) :: dlgama
+        real(kind=double), dimension(7) :: p1, q1, p2, q2, p3, q3
+        real(kind=double), dimension(5) :: c, xl
+        real(kind=double) :: x, y, zero, one, two, half, ap, aq
+        integer :: i
+        data ZERO /0.0D0/, ONE /1.0D0/, TWO /2.0D0/, HALF /0.5D0/
+        data XL /0.0D0,0.5D0,1.5D0,4.0D0,12.0D0/
+        data p1 /+3.8428736567460D+0, +5.2706893753010D+1, &
+                 +5.5584045723515D+1, -2.1513513573726D+2, &
+                 -2.4587261722292D+2, -5.7500893603041D+1, &
+      	     -2.3359098949513D+0/
+        data q1 /+1.0000000000000D+0, +3.3733047907071D+1, &
+      	     +1.9387784034377D+2, +3.0882954973424D+2, &
+      	     +1.5006839064891D+2, +2.0106851344334D+1, &
+      	     +4.5717420282503D-1/
+        data p2 /+4.8740201396839D+0, +2.4884525168574D+2, &
+      	     +2.1797366058896D+3, +3.7975124011525D+3, &
+      	     -1.9778070769842D+3, -3.6929834005591D+3, &
+      	     -5.6017773537804D+2/
+        data q2 /+1.0000000000000D+0, +9.5099917418209D+1, &
+      	     +1.5612045277929D+3, +7.2340087928948D+3, &
+      	     +1.0459576594059D+4, +4.1699415153200D+3, &
+      	     +2.7678583623804D+2/
+        data p3 /-6.8806240094594D+3, -4.3069969819571D+5, &
+                 -4.7504594653440D+6, -2.9423445930322D+6, &
+      	     +3.6321804931543D+7, -3.3567782814546D+6, &
+      	     -2.4804369488286D+7/
+        data q3 /+1.0000000000000D+0, -1.4216829839651D+3, &
+      	     -1.5552890280854D+5, -3.4152517108011D+6, &
+      	     -2.0969623255804D+7, -3.4544175093344D+7, &
+      	     -9.1605582863713D+6/
+        data c / 1.1224921356561D-1,  7.9591692961204D-2, &
+                -1.7087794611020D-3,  9.1893853320467D-1, &
+                 1.3469905627879D+0/
+        if (x .le. xl(1)) then
+             print *, 'ERROR: DLGAMA non positive argument: ', X
+         	 dlgama = zero
+        end if
+        if (x .le. xl(2)) then
+          y = x + one
+          ap = p1(1)
+          aq = q1(1)
+          do i = 2, 7
+            ap = p1(i) + y * ap
+            aq = q1(i) + y * aq
+          end do
+          y = - log(x) + x * ap / aq
+        else if (x .le. xl(3)) then
+          ap = p1(1)
+          aq = q1(1)
+          do i = 2, 7
+             ap = p1(i) + x * ap
+             aq = q1(i) + x * aq
+          end do
+          y = (x - one) * ap / aq
+        else if (x .le. xl(4)) then
+          ap = p2(1)
+          aq = q2(1)
+          do i = 2, 7
+             ap = p2(i) + x * ap
+             aq = q2(i) + x * aq
+          end do	 
+          y = (x-two) * ap / aq
+        else if (x .le. xl(5)) then
+          ap = p3(1)
+          aq = q3(1)
+          do i = 2, 7
+             ap = p3(i) + x * ap
+             aq = q3(i) + x * aq
+          end do 
+          y = ap / aq
+        else
+         y = one / x**2
+         y = (x-half) * log(x) - x + c(4) + &
+             (c(1) + y * (c(2) + y * c(3))) / ((c(5) + y) * x)
+        end if
+        dlgama = y
+      end function dlgama
+  end function beta
+
+@ %def beta
+@
+<<[[circe1_fit.sh]]>>=
+#! /bin/sh
+# mode=${2-slow}
+mode=${2-fast}
+root=`pwd`
+indir=${root}/${3-input}
+tmpdir=${root}/tmp
+outdir=${root}/output
+acc="${1-sband350 sband500 sband800 sband1000 sband1600
+         tesla350 tesla500 tesla800 tesla1000 tesla1600
+         tesla350-low tesla500-low tesla800-low tesla1000-low tesla1600-low
+         xband350 xband500 xband800 xband1000 xband1600}"
+@
+<<[[circe1_fit.sh]]>>=
+xmkdir () {
+  for d in "$@"; do
+    mkdir $d 2>/dev/null || true
+  done
+}
+rm -fr ${tmpdir}
+xmkdir ${outdir} ${tmpdir}
+@
+<<[[circe1_fit.sh]]>>=
+cd ${tmpdir}
+cat /dev/null >${outdir}/Params.f90
+for a in $acc; do
+  case "$a" in
+    *1600*) energy=TEV16;;
+    *1000*) energy=TEV1;;
+     *800*) energy=GEV800;;
+     *500*) energy=GEV500;;
+  *3[56]0*) energy=GEV350;;
+     *170*) energy=GEV170;;
+      *90*) energy=GEV090;;
+         *) energy=GEV500;;
+  esac
+  cp ${indir}/${a}_${mode}/lumidiff-??.dat .
+  ${root}/circe1_fit.bin
+  rm -fr ${outdir}/${a}_${mode}
+  mkdir ${outdir}/${a}_${mode}
+  cp Slices.mp4 ${outdir}
+  cp Errors.tex lumidiff-??x[0-9][0-9].??? ${outdir}/${a}_${mode}
+  sed -e "s/@ENERGY@/$energy/g" \
+      -e "s/@ACC@/`echo $a | tr a-z A-Z | tr -cd A-Z`/g" Parameters \
+    >>${outdir}/Params.f90
+done
+cd ${root}
+rm -fr ${tmpdir}
+@
+<<[[circe1_fit.sh]]>>=
+cat >${outdir}/Params.tex <<'END'
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|}\hline
+      & \texttt{SBAND} & \texttt{TESLA} & \texttt{TESLA'} & \texttt{XBAND}
+      \\\hline\hline
+END
+@
+<<[[circe1_fit.sh]]>>=
+line () {
+  for a in $acc; do
+    case $a in
+      *350* | *800* | *1000* | *1600*)
+          ;;
+      *)  echo -n ' & '
+          sed -n $1p ${outdir}/${a}_${mode}/Errors.tex
+          ;;
+    esac
+  done
+  echo '\\\hline'
+}
+(echo '$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$'; line 1
+ echo '$\int d_{e^\pm}$';                          line 2
+ echo '$x_{e^\pm}^\alpha$';                        line 3
+ echo '$(1-x_{e^\pm})^\alpha$';                    line 4
+ echo '$\int d_\gamma$';                           line 5
+ echo '$x_\gamma^\alpha$';                         line 6
+ echo '$(1-x_\gamma)^\alpha$';                     line 7
+) >>${outdir}/Params.tex
+@
+<<[[circe1_fit.sh]]>>=
+cat >>${outdir}/Params.tex <<'END'
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param}%
+    Version 1, revision 1997 04 16 of the beam spectra at 500 GeV.
+    The rows correspond to the luminosity per effective year, the
+    integral over the continuum and the powers in the factorized Beta
+    distributions~(\ref{eq:beta}).}
+\end{table}
+END
+@
+<<[[circe1_fit.sh]]>>=
+cat >>${outdir}/Params.tex <<'END'
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|}\hline
+      & \texttt{SBAND} & \texttt{TESLA} & \texttt{TESLA'} & \texttt{XBAND}
+      \\\hline\hline
+END
+@
+<<[[circe1_fit.sh]]>>=
+line () {
+  for a in $acc; do
+    case $a in
+      *1000*)
+        echo -n ' & '
+        sed -n $1p ${outdir}/${a}_${mode}/Errors.tex
+        ;;
+    esac
+  done
+  echo '\\\hline'
+}
+(echo '$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$'; line 1
+ echo '$\int d_{e^\pm}$';                          line 2
+ echo '$x_{e^\pm}^\alpha$';                        line 3
+ echo '$(1-x_{e^\pm})^\alpha$';                    line 4
+ echo '$\int d_\gamma$';                           line 5
+ echo '$x_\gamma^\alpha$';                         line 6
+ echo '$(1-x_\gamma)^\alpha$';                     line 7
+) >>${outdir}/Params.tex
+@
+<<[[circe1_fit.sh]]>>=
+cat >>${outdir}/Params.tex <<'END'
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/TeV}%
+    Version 1, revision 1997 04 17 of the beam spectra at 1 TeV.}
+\end{table}
+END
+@
+<<[[circe1_fit.sh]]>>=
+cat >>${outdir}/Params.tex <<'END'
+\begin{table}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c||c|c|c|c|}\hline
+      & 350 GeV & 500 GeV & 800 GeV & 1600 GeV
+      \\\hline\hline
+END
+@
+<<[[circe1_fit.sh]]>>=
+line () {
+  for a in $acc; do
+    case $a in
+      tesla*-low)
+        ;;
+      tesla1000)
+        ;;
+      tesla*)
+        echo -n ' & '
+        sed -n $1p ${outdir}/${a}_${mode}/Errors.tex
+        ;;
+    esac
+  done
+  echo '\\\hline'
+}
+(echo '$\mathcal{L}/\text{fb}^{-1}\upsilon^{-1}$'; line 1
+ echo '$\int d_{e^\pm}$';                          line 2
+ echo '$x_{e^\pm}^\alpha$';                        line 3
+ echo '$(1-x_{e^\pm})^\alpha$';                    line 4
+ echo '$\int d_\gamma$';                           line 5
+ echo '$x_\gamma^\alpha$';                         line 6
+ echo '$(1-x_\gamma)^\alpha$';                     line 7
+) >>${outdir}/Params.tex
+@
+<<[[circe1_fit.sh]]>>=
+cat >>${outdir}/Params.tex <<'END'
+    \end{tabular}
+  \end{center}
+  \caption{\label{tab:param/Tesla}%
+    Version 1, revision 1997 04 17 of the beam spectra for TESLA.}
+\end{table}
+END
+exit 0
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Experimental}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Quasi One Dimensional}
+<<[[circe1_minuit1.f90]]>>=
+! circe1_minuit1.f90 -- fitting for circe
+<<Copyleft notice>>
+@ We're utilizing the familiar ``\texttt{MINUIT}''
+package~\cite{James/Roos:1989:Minuit}.
+<<[[circe1_minuit1.f90]]>>=
+<<Minuit1 module>>
+<<Minuit1 main program>>
+@ 
+<<Minuit1 module>>=
+module minuit1
+  use kinds
+
+  implicit none
+
+  public :: fct
+  public :: phi
+
+contains
+
+<<Function to minimize>>
+
+<<Function phi1>>
+end module minuit1    
+
+@ %def minuit1
+@
+<<Minuit1 main program>>=
+program fit
+  use kinds
+  use minuit1
+
+  implicit none
+
+  call minuit (fct, 0d0)
+end program fit
+@
+<<Minuit2 main program>>=
+program fit
+  use kinds
+  use minuit2
+
+  implicit none
+
+  call minuit (fct, 0d0)
+end program fit
+@ 
+<<Function to minimize>>=
+  subroutine fct (nx, df, f, a, mode, g)
+    integer, intent(in) ::  nx, mode
+    real(kind=double) :: f, g
+    real(kind=double), dimension(:) :: df, a
+    <<Local variables for [[fct]]>>
+    if (mode .eq. 1) then
+      <<Read input data>>
+    else if (mode .eq. 2) then
+      <<Calculate $\nabla f$>>
+    end if
+    <<Calculate $f$>>
+    if (mode .eq. 3) then
+       <<Write output>>
+    end if
+  end subroutine fct
+
+@ %def fct
+@
+<<Read input data>>=
+    open (10, file = 'minuit.data')
+    do i = 1, NDATA
+       do j = 1, NDATA
+          read (10, *) xi(1,i,j), xi(2,i,j), fi(i,j), dfi(i,j)
+          fi(i,j) = fi(i,j)/1d30
+          dfi(i,j) = dfi(i,j)/1d30
+       end do   
+    end do
+    close (10)
+@
+<<Local variables for [[fct]]>>=
+    integer, parameter :: NDATA = 20
+    real(kind=double) :: chi, chi2
+    real(kind=double), dimension(2,NDATA,NDATA) :: xi
+    real(kind=double), dimension(NDATA,NDATA) :: fi, dfi
+    integer :: i, j, n
+@
+<<Calculate $f$>>=
+    f = 0d0
+    do i = 1, NDATA
+       do j = 1, NDATA
+          if (dfi(i,j).gt.0d0) then
+             f = f + ((phi(xi(1,i,j),xi(2,i,j),a) &
+                        - fi(i,j)) / dfi(i,j))**2
+          end if
+       end do
+    end do
+@ 
+<<Write output>>=
+    chi2 = 0d0
+    n = 0
+    open (10, file = 'minuit.fit')
+    do i = 1, NDATA
+       do j = 1, NDATA
+          if (dfi(i,j).gt.0d0) then
+             chi = (phi(xi(1,i,j),xi(2,i,j),a)-fi(i,j))/dfi(i,j)
+             write (10,*) xi(1,i,j), xi(2,i,j), &
+                          1d30 * phi(xi(1,i,j),xi(2,i,j),a), &
+                          1d30 * fi(i,j), &
+                          chi
+             chi2 = chi2 + chi**2
+             n = n + 1
+          else
+             write (10,*) xi(1,i,j), xi(2,i,j), &
+                          1d30 * phi(xi(1,i,j),xi(2,i,j),a), &
+                          1d30 * fi(i,j)
+          end if
+       end do
+    end do
+    close (10)
+    print *, 'CHI2 = ', chi2/n
+@ 
+<<Function phi1>>=
+  function phi (e1, e2, a)
+    real(kind=double) :: e1, e2
+    real(kind=double), dimension(17) :: a
+    real(kind=double) :: phi
+    real(kind=double) :: y1, y2
+    y1 = e1 / 250d0
+    y2 = e2 / 250d0
+    phi = exp (                         &
+         + a( 1) * 1d0                  & 
+         + a( 2) * log(y1)              &        
+         + a( 3) * log(1d0-y1)          &
+         + a( 4) * log(-log(y1))        &
+         + a( 5) * log(-log(1d0-y1))    &
+         + a( 6) * y1                   &
+         + a( 7) * log(y1)**2           &
+         + a( 8) * log(1d0-y1)**2       &
+         + a( 9) * log(-log(y1))**2     &
+         + a(10) * log(-log(1d0-y1))**2 &       
+         + a(11) * y1**2                &
+         + a(12) / log(y1)              &
+         + a(13) / log(1d0-y1)          &
+         + a(14) / log(-log(y1))        &
+         + a(15) / log(-log(1d0-y1))    &
+         + a(16) / y1                   &
+         + a(17) / (1d0-y1)             &
+         + a( 2) * log(y2)              &
+         + a( 3) * log(1d0-y2)          &
+         + a( 4) * log(-log(y2))        &
+         + a( 5) * log(-log(1d0-y2))    &
+         + a( 6) * y2                   &
+         + a( 7) * log(y2)**2           &
+         + a( 8) * log(1d0-y2)**2       &
+         + a( 9) * log(-log(y2))**2     &
+         + a(10) * log(-log(1d0-y2))**2 &
+         + a(11) * y2**2                &        
+         + a(12) / log(y2)              &
+         + a(13) / log(1d0-y2)          &
+         + a(14) / log(-log(y2))        &
+         + a(15) / log(-log(1d0-y2))    &
+         + a(16) / y2                   &
+         + a(17) / (1d0-y2)             &
+         )
+    end function phi
+
+@ %def phi
+@ 
+<<[[circe1_minuit1.sh]]>>=
+#! /bin/sh
+minuit_bin=`pwd`/circe1_minuit1.bin
+<<Process arguments>>
+(
+  <<Define parameters>>
+  <<Fix parameters>>
+  <<Fix strategy>>
+  <<Run Minuit>>
+) | eval "$minuit_bin $filter"
+<<Maybe plot results>>
+exit 0
+@ 
+<<Process arguments>>=
+tmp="$IFS"
+  IFS=:
+  args=":$*:"
+IFS="$tmp"
+@ 
+<<Process arguments>>=
+filter="| \
+  awk '/STATUS=(CONVERGED|CALL LIMIT|FAILED)/ { p=1; print }; \
+       /@.* \.00000 *fixed/ { next }; \
+       /EDM=|CHI2|@/ && p { print }' "
+@ 
+<<Process arguments>>=
+case "$args" in
+  *:v:*) filter=;;
+esac
+@
+<<Define parameters>>=
+cat <<END
+set title
+CIRCE
+parameters
+1  '@ 1        ' 0.00 0.01
+2  '@ lx       ' 0.20 0.01
+3  '@ l(1-x)   ' 0.20 0.01
+4  '@ llx      ' 0.00 0.01
+5  '@ ll(1-x)  ' 0.00 0.01
+6  '@ x        ' 0.00 0.01
+7  '@ lx^2     ' 0.00 0.01
+8  '@ l(1-x)^2 ' 0.00 0.01
+9  '@ llx^2    ' 0.00 0.01
+10 '@ ll(1-x)^2' 0.00 0.01
+11 '@ x^2      ' 0.00 0.01
+12 '@ 1/lx     ' 0.00 0.01
+13 '@ 1/l(1-x) ' 0.00 0.01
+14 '@ 1/llx    ' 0.00 0.01
+15 '@ 1/ll(1-x)' 0.00 0.01
+16 '@ 1/x      ' 0.00 0.01
+17 '@ 1/(1-x)  ' 0.00 0.01
+
+END
+@
+<<Fix parameters>>=
+for p in 1  2  3  4  5  6  7  8  9 10 \
+        11 12 13 14 15 16 17; do
+  case "$args" in
+    *:$p=*:*) val=`echo "$args" | sed 's/.*:'"$p"'=\\([0-9.-]*\\):.*/\\1/'`;
+              echo set parameter $p $val;
+              echo fix $p;;
+      *:$p:*) ;;
+           *) echo fix $p;;
+  esac
+done
+@
+<<Fix strategy>>=
+case "$args" in
+  *:S0:*) echo set strategy 0;;
+  *:S1:*) echo set strategy 1;;
+  *:S2:*) echo set strategy 2;;
+esac
+@
+<<Run Minuit>>=
+cat <<END
+migrat 10000 0.01
+stop
+END
+@
+<<Maybe plot results>>=
+case "$args" in
+  *:p:*) awk '$5 != "" { print $1, $2, $5 }' minuit.fit > chi2
+         awk '$5 != "" { print $1, $5 }' minuit.fit > chix
+         awk '$5 != "" { print $2, $5 }' minuit.fit > chiy
+         gnuplot -geometry -0+0 plot2 >/dev/null 2>&1
+esac
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Quasi Two Dimensional}
+<<[[circe1_minuit2.f90]]>>=
+! minuit2.f90 -- fitting for circe
+<<Copyleft notice>>
+@ 
+<<[[circe1_minuit2.f90]]>>=
+<<Minuit2 module>>
+<<Minuit2 main program>>
+@ 
+<<Minuit2 module>>=
+module minuit2
+  use kinds
+
+  implicit none
+
+  public :: fct
+  public :: phi
+
+contains
+
+<<Function to minimize>>
+<<Function phi2>>
+end module minuit2
+
+@ %def minuit2
+@
+<<Function phi2>>=
+  function phi (e1, e2, a)
+    real(kind=double) :: e1, e2
+    real(kind=double), dimension(33) :: a
+    real(kind=double) :: phi
+    real(kind=double) :: y1, y2
+    y1 = e1 / 250d0
+    y2 = e2 / 250d0
+    phi = exp (                         &
+         + a( 1) * 1d0                  &        
+         + a( 2) * log(y1)              &
+         + a( 3) * log(1d0-y1)          &
+         + a( 4) * log(-log(y1))        &
+         + a( 5) * log(-log(1d0-y1))    &
+         + a( 6) * y1                   &
+         + a( 7) * log(y1)**2           &
+         + a( 8) * log(1d0-y1)**2       &
+         + a( 9) * log(-log(y1))**2     &
+         + a(10) * log(-log(1d0-y1))**2 &
+         + a(11) * y1**2                &
+         + a(12) / log(y1)              &
+         + a(13) / log(1d0-y1)          &
+         + a(14) / log(-log(y1))        &
+         + a(15) / log(-log(1d0-y1))    &
+         + a(16) / y1                   &
+         + a(17) / (1d0-y1)             &
+         + a(18) * log(y2)              &
+         + a(19) * log(1d0-y2)          &
+         + a(20) * log(-log(y2))        &
+         + a(21) * log(-log(1d0-y2))    &
+         + a(22) * y2                   &
+         + a(23) * log(y2)**2           &
+         + a(24) * log(1d0-y2)**2       &
+         + a(25) * log(-log(y2))**2     &
+         + a(26) * log(-log(1d0-y2))**2 &
+         + a(27) * y2**2                &
+         + a(28) / log(y2)              &
+         + a(29) / log(1d0-y2)          &
+         + a(30) / log(-log(y2))        &
+         + a(31) / log(-log(1d0-y2))    &
+         + a(32) / y2                   &
+         + a(33) / (1d0-y2)             &
+         )
+    end function phi
+
+@ %def phi
+@ 
+<<[[circe1_minuit2.sh]]>>=
+#! /bin/sh
+minuit_bin=`pwd`/circe1_minuit2.bin
+<<Process arguments>>
+(
+  <<Define parameters (2dim)>>
+  <<Fix parameters (2dim)>>
+  <<Fix strategy>>
+  <<Run Minuit>>
+) | eval "$minuit_bin $filter"
+<<Maybe plot results>>
+exit 0
+@
+<<Define parameters (2dim)>>=
+cat <<END
+set title
+CIRCE
+parameters
+1  '@ 1        ' 0.00 0.01
+2  '@ lx       ' 0.20 0.01
+3  '@ l(1-x)   ' 0.20 0.01
+4  '@ llx      ' 0.00 0.01
+5  '@ ll(1-x)  ' 0.00 0.01
+6  '@ x        ' 0.00 0.01
+7  '@ lx^2     ' 0.00 0.01
+8  '@ l(1-x)^2 ' 0.00 0.01
+9  '@ llx^2    ' 0.00 0.01
+10 '@ ll(1-x)^2' 0.00 0.01
+11 '@ x^2      ' 0.00 0.01
+12 '@ 1/lx     ' 0.00 0.01
+13 '@ 1/l(1-x) ' 0.00 0.01
+14 '@ 1/llx    ' 0.00 0.01
+15 '@ 1/ll(1-x)' 0.00 0.01
+16 '@ 1/x      ' 0.00 0.01
+17 '@ 1/(1-x)  ' 0.00 0.01
+18 '@ ly       ' 0.20 0.01
+19 '@ l(1-y)   ' 0.20 0.01
+20 '@ lly      ' 0.00 0.01
+21 '@ ll(1-y)  ' 0.00 0.01
+22 '@ y        ' 0.00 0.01
+23 '@ ly^2     ' 0.00 0.01
+24 '@ l(1-y)^2 ' 0.00 0.01
+25 '@ lly^2    ' 0.00 0.01
+26 '@ ll(1-y)^2' 0.00 0.01
+27 '@ y^2      ' 0.00 0.01
+28 '@ 1/ly     ' 0.00 0.01
+29 '@ 1/l(1-y) ' 0.00 0.01
+30 '@ 1/lly    ' 0.00 0.01
+31 '@ 1/ll(1-y)' 0.00 0.01
+32 '@ 1/y      ' 0.00 0.01
+33 '@ 1/(1-y)  ' 0.00 0.01
+
+END
+@
+<<Fix parameters (2dim)>>=
+for p in 1  2  3  4  5  6  7  8  9 10 \
+        11 12 13 14 15 16 17 18 19 20 \
+        21 22 23 24 25 26 27 28 29 30 \
+        31 32 33; do
+  case "$args" in
+    *:$p=*:*) val=`echo "$args" | sed 's/.*:'"$p"'=\\([0-9.-]*\\):.*/\\1/'`;
+              echo set parameter $p $val;
+              echo fix $p;;
+      *:$p:*) ;;
+           *) echo fix $p;;
+  esac
+done
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Version 2}
+@
+% Local Variables:
+% mode:noweb
+% noweb-doc-mode:latex-mode
+% noweb-code-mode:fortran-mode
+% indent-tabs-mode:nil
+% page-delimiter:"^@ %%%.*\n"
+% End:

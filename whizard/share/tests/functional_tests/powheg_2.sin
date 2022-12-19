@@ -1,0 +1,85 @@
+# SINDARIN input for WHIZARD self-test
+# Testing POWHEG matching for the process dd -> ee
+
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+?pacify = true
+?write_raw = false
+
+mZ = 91.188
+mW = 80.419
+mH = 125.0
+GF = 1.16639E-5
+
+me = 0
+mmu = 0
+mtau = 1.777
+
+ms = 0
+mc = 0
+mb = 0
+
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+?alphas_from_lhapdf = false
+alphas_nf = 5
+alphas_order = 1
+
+alias pr = d:D:u:U:s:S:c:C:b:B
+$exclude_gauge_splittings = "t"
+
+$method = "dummy"
+
+beams = p, p => pdf_builtin
+$pdf_builtin_set = "mstw2008nlo"
+sqrts = 14 TeV
+
+cuts = all M > 10 GeV [e1, E1]
+
+scale = mZ
+
+?combined_nlo_integration = true
+
+process powheg_2_p1 = d, D => e1, E1 { nlo_calculation = full }
+process powheg_2_p2 = pr, pr => e1, E1 { nlo_calculation = full }
+
+seed = 487
+! chosen to produce Born-like and real-like events, positive and negative weights.
+
+# Options for POWHEG matching
+## These need to be set before the integration!
+# We do not want to generate fixed order events anymore
+?fixed_order_nlo_events = false
+?unweighted = true
+# Instead we want to use POWHEG matching
+?powheg_matching = true
+# This sets up a grid required for POWHEG matching
+powheg_grid_size_xi = 10
+powheg_grid_size_y = 10
+# minimum scale for the POWHEG evolution
+powheg_pt_min = 1 GeV
+
+integrate (powheg_2_p1) { iterations = 1:1000:"gw" }
+
+## Event settings:
+n_events = 5
+
+?negative_weights = true 
+?keep_failed_events = true
+
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+
+simulate(powheg_2_p1)
+
+integrate (powheg_2_p2) { iterations = 1:1000:"gw" }
+simulate(powheg_2_p2)
+

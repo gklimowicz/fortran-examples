@@ -1,0 +1,75 @@
+# SINDARIN input for WHIZARD self-test
+
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+alias quark = u:d
+alias antiq = U:D
+
+process mlm_pythia6_isr_qqee = quark:antiq, quark:antiq => e1, E1
+process mlm_pythia6_isr_qqeeg = quark:antiq, quark:antiq => e1, E1, g
+process mlm_pythia6_isr_qgeeq = quark:antiq, g => e1, E1, quark:antiq
+process mlm_pythia6_isr_gqeeq = g, quark:antiq => e1, E1, quark:antiq
+
+compile ()
+
+seed = 0
+
+sqrts = 1960 GeV
+beams = p, pbar => lhapdf
+
+ps_isr_primordial_kt_width = 0
+ps_isr_tscalefactor = 1
+
+?allow_shower = true
+?ps_fsr_active = true
+?ps_isr_active = true
+?hadronization_active = true
+$shower_method = "PYTHIA6"
+?ps_isr_pt_ordered = false
+?ps_isr_only_onshell_emitted_partons = true
+ps_max_n_flavors = 5
+ps_mass_cutoff = 0.5
+
+### MSTP(81)=0  : no multiple interactions
+### MSTJ(41)=1  : only QCD branchings
+### MSTJ(21)=0  : no decays
+### MSTP(68)=0  : hopefully turn off PYTHIA's matching
+$ps_PYTHIA_PYGIVE = "MSTP(81)=0;MSTJ(41)=1;MSTJ(21)=0;MSTP(68)=0"
+
+?mlm_matching = true
+mlm_ptmin = 5 GeV
+mlm_etamax = 2.5
+mlm_Rmin = 1
+mlm_nmaxMEjets = 1
+cuts = all M > 80 GeV [combine [e1,E1]]
+       and all M < 100 GeV [combine [e1,E1]]
+       and all Pt > mlm_ptmin [g:quark:antiq]
+       and all abs(Eta) < mlm_etamax [g:quark:antiq]
+
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (mlm_pythia6_isr_qqee) { iterations = 2:2000 }
+
+n_events = 1
+?rebuild_events = true
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+
+$sample = "mlm_pythia6_isr_a"
+simulate (mlm_pythia6_isr_qqee) {?mlm_matching = false}
+
+integrate (mlm_pythia6_isr_qqee, mlm_pythia6_isr_qqeeg, mlm_pythia6_isr_qgeeq, mlm_pythia6_isr_gqeeq) { iterations = 2:2000 }
+
+$sample = "mlm_pythia6_isr_b"
+simulate (mlm_pythia6_isr_qqee, mlm_pythia6_isr_qqeeg, mlm_pythia6_isr_qgeeq, mlm_pythia6_isr_gqeeq)

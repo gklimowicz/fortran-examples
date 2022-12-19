@@ -1,0 +1,1090 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP application code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Application}
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Cross section}
+<<[[application.f90]]>>=
+! application.f90 --
+<<Copyleft notice>>
+module cross_section
+  use kinds
+  use constants
+  use utils
+  use kinematics
+  use tao_random_numbers
+  use products, only: dot
+  use helicity
+  use vamp, only: vamp_grid, vamp_probability
+  implicit none
+  private
+  <<Declaration of [[cross_section]] procedures>>
+  <<Types in [[cross_section]]>>
+  <<Variables in [[cross_section]]>>
+contains
+  <<Implementation of [[cross_section]] procedures>>
+end module cross_section
+@ 
+<<Variables in [[cross_section]]>>=
+  real(kind=default), private, parameter :: &
+       MA_0 = 0.0, &
+       MB_0 = 0.0, &
+       M1_0 = 0.0, &
+       M2_0 = 0.0, &
+       M3_0 = 0.0, &
+       S_0 = 200.0 ** 2
+@ 
+
+<<XXX Variables in [[cross_section]]>>=
+  real(kind=default), private, parameter :: &
+       MA_0 = 0.01, &
+       MB_0 = 0.01, &
+       M1_0 = 0.01, &
+       M2_0 = 0.01, &
+       M3_0 = 0.01, &
+       S_0 = 200.0 ** 2
+@ 
+<<XXX Variables in [[cross_section]]>>=
+  real(kind=default), private, parameter :: &
+       S1_MIN_0 = 0.0 ** 2, &
+       S2_MIN_0 = 0.0 ** 2, &
+       S3_MIN_0 = 0.0 ** 2, &
+       T1_MIN_0 = 0.0 ** 2, &
+       T2_MIN_0 = 0.0 ** 2
+@ 
+<<Variables in [[cross_section]]>>=
+  real(kind=default), private, parameter :: &
+       S1_MIN_0 = 1.0 ** 2, &
+       S2_MIN_0 = 1.0 ** 2, &
+       S3_MIN_0 = 1.0 ** 2, &
+       T1_MIN_0 = 10.0 ** 2, &
+       T2_MIN_0 = 10.0 ** 2
+
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  private :: cuts
+
+@
+<<XXX Implementation of [[cross_section]] procedures>>=
+  pure function cuts (k1, k2, p1, p2, q) result (inside)
+    real(kind=default), dimension(0:), intent(in) :: k1, k2, p1, p2, q
+    logical :: inside
+    inside =   (abs (dot (k1 - q, k1 - q)) >= T1_MIN_0) &
+         .and. (abs (dot (k2 - q, k2 - q)) >= T2_MIN_0) &
+         .and. (abs (dot (p1 + q, p1 + q)) >= S1_MIN_0) &
+         .and. (abs (dot (p2 + q, p2 + q)) >= S2_MIN_0) &
+         .and. (abs (dot (p1 + p2, p1 + p2)) >= S3_MIN_0)
+  end function cuts
+
+@ 
+<<Variables in [[cross_section]]>>=
+  real(kind=default), private, parameter :: &
+       E_MIN = 1.0, &
+       COSTH_SEP_MAX = 0.99, &
+       COSTH_BEAM_MAX = 0.99
+
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function cuts (k1, k2, p1, p2, q) result (inside)
+    real(kind=default), dimension(0:), intent(in) :: k1, k2, p1, p2, q
+    logical :: inside
+    real(kind=default), dimension(3) :: p1n, p2n, qn
+    inside = .false.
+    if ((p1(0) < E_MIN) .or. (p2(0) < E_MIN) .or. (q(0) < E_MIN)) then
+       return
+    end if
+    p1n = p1(1:3) / sqrt (dot_product (p1(1:3), p1(1:3)))
+    p2n = p2(1:3) / sqrt (dot_product (p2(1:3), p2(1:3)))
+    qn = q(1:3) / sqrt (dot_product (q(1:3), q(1:3)))
+    if ((abs (qn(3)) > COSTH_BEAM_MAX) &
+         .or. (abs (p1n(3)) > COSTH_BEAM_MAX)&
+         .or. (abs (p2n(3)) > COSTH_BEAM_MAX)) then
+       return
+    end if
+    if (dot_product (p1n, qn) > COSTH_SEP_MAX) then
+       return
+    end if
+    if (dot_product (p2n, qn) > COSTH_SEP_MAX) then
+       return
+    end if
+    if (dot_product (p1n, p2n) > COSTH_SEP_MAX) then
+       return
+    end if
+    inside = .true.
+  end function cuts
+
+@
+<<Implementation of [[cross_section]] procedures>>=
+  function xsect (k1, k2, p1, p2, q) result (xs)
+    real(kind=default), dimension(0:), intent(in) :: k1, k2, p1, p2, q
+    real(kind=default) :: xs
+    complex(kind=default), dimension(-1:1,-1:1,-1:1,-1:1,-1:1) :: amp
+    !!! xs = 1.0_double / phase_space_volume (3, k1(0) + k2(0))
+    !!! xs = 1.0_double / dot (p1 + q, p1 + q) &
+    !!!      + 1.0_double / dot (p2 + q, p2 + q)
+    !!! return
+    amp = nneeg (k1, k2, p1, p2, q)
+    xs = sum (amp(-1:1:2,-1:1:2,-1:1:2,-1:1:2,-1:1:2) &
+               * conjg (amp(-1:1:2,-1:1:2,-1:1:2,-1:1:2,-1:1:2)))
+  end function xsect
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  private :: xsect
+@
+\begin{equation}
+  \begin{aligned}
+    \phi: [0,1]^{\otimes5} & \to
+         \begin{aligned}[t]
+           & [(m_2+m_3)^2,(\sqrt{s}-m_1)^2]
+             \otimes [t_1^{\min}(s_2),t_1^{\max}(s_2)] \\
+           & \;\;\; \otimes [0,2\pi]
+                    \otimes [-1,1]
+                    \otimes [0,2\pi]
+         \end{aligned} \\
+            (x_1,\ldots,x_5) &\mapsto
+         \begin{aligned}[t]
+           & (s_2, t_1, \phi, \cos\theta_3, \phi_3) \\
+           & \;\;\; = (s_2(x_1),
+            	       x_2 t_1^{\max}(s_2) + (1-x_2) t_1^{\min}(s_2),
+            	       2\pi x_3,
+            	       2x_4-1,
+            	       2\pi x_5)
+         \end{aligned}
+  \end{aligned}
+\end{equation}
+where
+\begin{multline}
+  t_1^{\max/\min}(s_2) \\
+    = m_a^2 + m_1^2 -
+         \frac{(s + m_a^2 - m_b^2) (s - s_2 + m_1^2)
+                \mp \sqrt{\lambda (s, m_a^2, m_b^2) \lambda (s, s_2, m_1^2)}}%
+              {2s}
+\end{multline}
+<<Set $(s_2,t_1,\phi,\cos\theta_3,\phi_3)$ from $(x_1,\ldots,x_5)$>>=
+    ! s2_min = S1_MIN_0
+    s2_min = (m2 + m3)**2
+    s2_max = (sqrt (s) - m1)**2
+    s2 = s2_max * x(1) + s2_min * (1 - x(1))
+    t1_min = ma**2 + m1**2 - ((s + ma**2 - mb**2) * (s - s2 + m1**2) &
+         + sqrt (lambda (s, ma**2, mb**2) * lambda (s, s2, m1**2))) / (2*s)
+    t1_max = ma**2 + m1**2 - ((s + ma**2 - mb**2) * (s - s2 + m1**2) &
+         - sqrt (lambda (s, ma**2, mb**2) * lambda (s, s2, m1**2))) / (2*s)
+    t1 = t1_max * x(2) + t1_min * (1 - x(2))
+    phi = 2*PI * x(3)
+    cos_theta3 = 2 * x(4) - 1
+    phi3 = 2*PI * x(5)
+@ 
+<<Set $(s_2,t_1,\phi,\cos\theta_3,\phi_3)$ from $(x_1,\ldots,x_5)$ (massless case)>>=
+    ! s2_min = S1_MIN_0
+    s2_min = 0
+    s2_max = s
+    s2 = s2_max * x(1) + s2_min * (1 - x(1))
+    t1_min = - (s - s2)
+    t1_max = 0
+    t1 = t1_max * x(2) + t1_min * (1 - x(2))
+    phi = 2*PI * x(3)
+    cos_theta3 = 2 * x(4) - 1
+    phi3 = 2*PI * x(5)
+@ 
+\begin{equation}
+  J_{\phi}(x_1,\ldots,x_5)
+      = \begin{vmatrix}
+          \frac{\partial s_2}{\partial x_1}
+            & \frac{\partial t_1}{\partial x_1} \\
+          \frac{\partial s_2}{\partial x_2}
+            & \frac{\partial t_1}{\partial x_2}
+	\end{vmatrix}
+          \cdot 8\pi^2
+\end{equation}
+i.e.
+\begin{equation}
+  J_{\phi}(x_1,\ldots,x_5)
+    = 8\pi^2
+        \cdot \left| \frac{\mathrm{d} s_2}{\mathrm{d} x_1} \right|
+        \cdot \left( t_1^{\max}(s_2) - t_1^{\min}(s_2) \right)
+\end{equation}
+<<Adjust Jacobian>>=
+    p%jacobian = p%jacobian &
+         * (8.0 * PI**2 * (s2_max - s2_min) * (t1_max - t1_min))
+@ 
+<<Implementation of [[cross_section]] procedures>>=
+  pure function phase_space (x, channel) result (p)
+    real(kind=default), dimension(:), intent(in) :: x
+    integer, intent(in) :: channel
+    type(LIPS3) :: p
+    real(kind=default) :: &
+         ma, mb, m1, m2, m3, s, t1, s2, phi, cos_theta3, phi3
+    real(kind=default) :: s2_min, s2_max, t1_min, t1_max
+    s = S_0
+    <<$m_a\leftrightarrow m_b$, $m_1\leftrightarrow m_2$ for channel \#1>>
+    <<Set $(s_2,t_1,\phi,\cos\theta_3,\phi_3)$ from $(x_1,\ldots,x_5)$>>
+    p = two_to_three (s, t1, s2, phi, cos_theta3, phi3, ma, mb, m1, m2, m3)
+    <<Adjust Jacobian>>
+    <<$p_1\leftrightarrow p_2$ for channel \#2>>
+  end function phase_space
+
+@ 
+<<$m_a\leftrightarrow m_b$, $m_1\leftrightarrow m_2$ for channel \#1>>=
+    select case (channel)
+    case (1)
+       ma = MA_0
+       mb = MB_0
+       m1 = M1_0
+       m2 = M2_0
+       m3 = M3_0
+    case (2)
+       ma = MB_0
+       mb = MA_0
+       m1 = M2_0
+       m2 = M1_0
+       m3 = M3_0
+    case (3)
+       ma = MA_0
+       mb = MB_0
+       m1 = M3_0
+       m2 = M2_0
+       m3 = M1_0
+    case default
+       ma = MA_0
+       mb = MB_0
+       m1 = M1_0
+       m2 = M2_0
+       m3 = M3_0
+    end select
+@
+<<$p_1\leftrightarrow p_2$ for channel \#2>>=
+    select case (channel)
+    case (1)
+       ! OK
+    case (2)
+       call swap (p%p(1,:), p%p(2,:))
+    case (3)
+       call swap (p%p(1,:), p%p(3,:))
+    case default
+       ! OK
+    end select
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  private :: jacobian
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function jacobian (k1, k2, p1, p2, q) result (jac)
+    real(kind=default), dimension(0:), intent(in) :: k1, k2, p1, p2, q
+    real(kind=default) :: jac
+    real(kind=default) :: ma_2, mb_2, m1_2, m2_2, m3_2
+    real(kind=default) :: s, s2, s2_min, s2_max, t1_min, t1_max
+    ma_2 = max (dot (k1, k1), 0.0_double)
+    mb_2 = max (dot (k2, k2), 0.0_double)
+    m1_2 = max (dot (p1, p1), 0.0_double)
+    m2_2 = max (dot (p2, p2), 0.0_double)
+    m3_2 = max (dot (q, q), 0.0_double)
+    s = dot (k1 + k2, k1 + k2)
+    s2 = dot (p2 + q, p2 + q)
+    ! s2_min = S1_MIN_0
+    s2_min = (sqrt (m2_2) + sqrt (m3_2))**2
+    s2_max = (sqrt (s) - sqrt (m1_2))**2
+    t1_min = ma_2 + m1_2 - ((s + ma_2 - mb_2) * (s - s2 + m1_2) &
+         + sqrt (lambda (s, ma_2, mb_2) * lambda (s, s2, m1_2))) / (2*s)
+    t1_max = ma_2 + m1_2 - ((s + ma_2 - mb_2) * (s - s2 + m1_2) &
+         - sqrt (lambda (s, ma_2, mb_2) * lambda (s, s2, m1_2))) / (2*s)
+    jac = 1.0 / ((2*PI)**5 * 32 * s2) &
+         * sqrt (lambda (s2, m2_2, m3_2) / lambda (s, ma_2, mb_2)) &
+         * (8.0 * PI**2 * (s2_max - s2_min) * (t1_max - t1_min))
+  end function jacobian
+
+@ %def jacobian
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  private :: phase_space, phase_space_massless
+@ 
+<<Implementation of [[cross_section]] procedures>>=
+  pure function phase_space_massless (x, channel) result (p)
+    real(kind=default), dimension(:), intent(in) :: x
+    integer, intent(in) :: channel
+    type(LIPS3) :: p
+    real(kind=default) :: s, t1, s2, phi, cos_theta3, phi3
+    real(kind=default) :: s2_min, s2_max, t1_min, t1_max
+    s = S_0
+    <<Set $(s_2,t_1,\phi,\cos\theta_3,\phi_3)$ from $(x_1,\ldots,x_5)$ (massless case)>>
+    p = two_to_three (s, t1, s2, phi, cos_theta3, phi3)
+    <<Adjust Jacobian>>
+    <<$p_1\leftrightarrow p_2$ for channel \#2>>
+  end function phase_space_massless
+
+@ 
+<<Types in [[cross_section]]>>=
+    type, public :: LIPS3_m5i2a3
+       ! private
+       real(kind=default) :: ma, mb, m1, m2, m3
+       real(kind=default) :: s, s2, t1
+       real(kind=default) :: phi, cos_theta3, phi3
+       real(kind=default) :: jacobian
+    end type LIPS3_m5i2a3
+@ %def LIPS3_m5i2a3
+@ 
+<<Types in [[cross_section]]>>=
+    type, public :: x5
+       ! private
+       real(kind=default), dimension(5) :: x
+       real(kind=default) :: jacobian
+    end type x5
+@ %def x5
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  private :: invariants_from_p, invariants_to_p
+  private :: invariants_from_x, invariants_to_x
+@ 
+<<Implementation of [[cross_section]] procedures>>=
+  pure function invariants_from_p (p, k1, k2) result (q)
+    type(LIPS3), intent(in) :: p
+    real(kind=default), dimension(0:), intent(in) :: k1, k2
+    type(LIPS3_m5i2a3) :: q
+    real(kind=default) :: ma_2, mb_2, m1_2, m2_2, m3_2
+    real(kind=default), dimension(0:3) :: k1k2, p2p3, k1p1, p3_23
+    k1k2 = k1 + k2
+    k1p1 = - k1 + p%p(1,:)
+    p2p3 = p%p(2,:) + p%p(3,:)
+    ma_2 = max (dot (k1, k1), 0.0_double)
+    mb_2 = max (dot (k2, k2), 0.0_double)
+    m1_2 = max (dot (p%p(1,:), p%p(1,:)), 0.0_double)
+    m2_2 = max (dot (p%p(2,:), p%p(2,:)), 0.0_double)
+    m3_2 = max (dot (p%p(3,:), p%p(3,:)), 0.0_double)
+    q%ma = sqrt (ma_2)
+    q%mb = sqrt (mb_2)
+    q%m1 = sqrt (m1_2)
+    q%m2 = sqrt (m2_2)
+    q%m3 = sqrt (m3_2)
+    q%s = dot (k1k2, k1k2)
+    q%s2 = dot (p2p3, p2p3)
+    q%t1 = dot (k1p1, k1p1)
+    q%phi = atan2 (p%p(1,2), p%p(1,1))
+    if (q%phi < 0) then
+       q%phi = q%phi + 2*PI
+    end if
+    p3_23 = boost_momentum (p%p(3,:), p2p3)
+    q%cos_theta3 = p3_23(3) / sqrt (dot_product (p3_23(1:3), p3_23(1:3)))
+    q%phi3 = atan2 (p3_23(2), p3_23(1))
+    if (q%phi3 < 0) then
+       q%phi3 = q%phi3 + 2*PI
+    end if
+    q%jacobian = 1.0 / ((2*PI)**5 * 32 * q%s2) &
+         * sqrt (lambda (q%s2, m2_2, m3_2) / lambda (q%s, ma_2, mb_2))
+  end function invariants_from_p
+
+@ %def invariants_from_p
+@ 
+<<Implementation of [[cross_section]] procedures>>=
+  pure function invariants_to_p (p) result (q)
+    type(LIPS3_m5i2a3), intent(in) :: p
+    type(LIPS3) :: q
+    q = two_to_three (p%s, p%t1, p%s2, p%phi, p%cos_theta3, p%phi3)
+    q%jacobian = q%jacobian * p%jacobian
+  end function invariants_to_p
+
+@ %def invariants_to_p
+@ 
+<<Implementation of [[cross_section]] procedures>>=
+  pure function invariants_from_x (x, s, ma, mb, m1, m2, m3) result (p)
+    real(kind=default), dimension(:), intent(in) :: x
+    real(kind=default), intent(in) :: s, ma, mb, m1, m2, m3
+    type(LIPS3_m5i2a3) :: p
+    real(kind=default) :: s2_min, s2_max, t1_min, t1_max
+    p%ma = ma
+    p%mb = mb
+    p%m1 = m1
+    p%m2 = m2
+    p%m3 = m3
+    p%s = s
+    s2_min = (p%m2 + p%m3)**2
+    s2_max = (sqrt (p%s) - p%m1)**2
+    p%s2 = s2_max * x(1) + s2_min * (1 - x(1))
+    t1_min = p%ma**2 + p%m1**2 &
+         - ((p%s + p%ma**2 - p%mb**2) * (p%s - p%s2 + p%m1**2) &
+              + sqrt (lambda (p%s, p%ma**2, p%mb**2) &
+                 * lambda (p%s, p%s2, p%m1**2))) / (2*p%s)
+    t1_max = p%ma**2 + p%m1**2 &
+         - ((p%s + p%ma**2 - p%mb**2) * (p%s - p%s2 + p%m1**2) &
+              - sqrt (lambda (p%s, p%ma**2, p%mb**2) &
+                 * lambda (p%s, p%s2, p%m1**2))) / (2*p%s)
+    p%t1 = t1_max * x(2) + t1_min * (1 - x(2))
+    p%phi = 2*PI * x(3)
+    p%cos_theta3 = 2 * x(4) - 1
+    p%phi3 = 2*PI * x(5)
+    p%jacobian = 8*PI**2 * (s2_max - s2_min) * (t1_max - t1_min)
+  end function invariants_from_x
+
+@ %def invariants_from_x
+@ 
+<<Implementation of [[cross_section]] procedures>>=
+  pure function invariants_to_x (p) result (x)
+    type(LIPS3_m5i2a3), intent(in) :: p
+    type(x5) :: x
+    real(kind=default) :: s2_min, s2_max, t1_min, t1_max
+    s2_min = (p%m2 + p%m3)**2
+    s2_max = (sqrt (p%s) - p%m1)**2
+    t1_min = p%ma**2 + p%m1**2 &
+         - ((p%s + p%ma**2 - p%mb**2) * (p%s - p%s2 + p%m1**2) &
+              + sqrt (lambda (p%s, p%ma**2, p%mb**2) &
+                 * lambda (p%s, p%s2, p%m1**2))) / (2*p%s)
+    t1_max = p%ma**2 + p%m1**2 &
+         - ((p%s + p%ma**2 - p%mb**2) * (p%s - p%s2 + p%m1**2) &
+              - sqrt (lambda (p%s, p%ma**2, p%mb**2) &
+                 * lambda (p%s, p%s2, p%m1**2))) / (2*p%s)
+    x%x(1) = (p%s2 - s2_min) / (s2_max - s2_min)
+    x%x(2) = (p%t1 - t1_min) / (t1_max - t1_min)
+    x%x(3) = p%phi / (2*PI)
+    x%x(4) = (p%cos_theta3 + 1) / 2
+    x%x(5) = p%phi3 / (2*PI)
+    x%jacobian = p%jacobian * 8*PI**2 * (s2_max - s2_min) * (t1_max - t1_min)
+  end function invariants_to_x
+
+@ %def invariants_to_x
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  public :: sigma, sigma_raw, sigma_massless
+@
+<<Implementation of [[cross_section]] procedures>>=
+  function sigma (x, weights, channel, grids) result (xs)
+    real(kind=default), dimension(:), intent(in) :: x
+    real(kind=default), dimension(:), intent(in), optional :: weights
+    integer, intent(in), optional :: channel
+    type(vamp_grid), dimension(:), intent(in), optional :: grids
+    real(kind=default) :: xs
+    real(kind=default), dimension(2,0:3) :: k
+    type(LIPS3) :: p
+    k(1,:) = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k(2,:) = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    if (present (channel)) then
+       p = phase_space (x, channel)
+    else
+       p = phase_space (x, 0)
+    end if
+    if (cuts (k(1,:), k(2,:), p%p(1,:), p%p(2,:), p%p(3,:))) then
+       xs = xsect (k(1,:), k(2,:), p%p(1,:), p%p(2,:), p%p(3,:)) &
+            * jacobian (k(1,:), k(2,:), p%p(1,:), p%p(2,:), p%p(3,:))
+            !!! * p%jacobian
+    else
+       xs = 0.0
+    end if
+  end function sigma
+
+@
+<<Implementation of [[cross_section]] procedures>>=
+  function sigma_raw (k1, k2, p1, p2, q) result (xs)
+    real(kind=default), dimension(0:), intent(in) :: k1, k2, p1, p2, q
+    real(kind=default) :: xs
+    if (cuts (k1, k2, p1, p2, q)) then
+       xs = xsect (k1, k2, p1, p2, q)
+    else
+       xs = 0.0
+    end if
+  end function sigma_raw
+
+@ %def sigma_raw
+@
+<<Implementation of [[cross_section]] procedures>>=
+  function sigma_massless (x, weights, channel, grids) result (xs)
+    real(kind=default), dimension(:), intent(in) :: x
+    real(kind=default), dimension(:), intent(in), optional :: weights
+    integer, intent(in), optional :: channel
+    type(vamp_grid), dimension(:), intent(in), optional :: grids
+    real(kind=default) :: xs
+    real(kind=default), dimension(2,0:3) :: k
+    type(LIPS3) :: p
+    k(1,:) = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k(2,:) = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    p = phase_space_massless (x, 0)
+    if (cuts (k(1,:), k(2,:), p%p(1,:), p%p(2,:), p%p(3,:))) then
+       xs = xsect (k(1,:), k(2,:), p%p(1,:), p%p(2,:), p%p(3,:)) &
+             * p%jacobian
+    else
+       xs = 0.0
+    end if
+  end function sigma_massless
+
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  public :: w
+@
+\begin{center}
+  \hfill\\
+  \vspace*{\baselineskip}
+  \begin{fmfgraph*}(30,20)
+    \fmfleft{pa,pb}
+    \fmfright{p1,p3,p2}
+    \fmflabel{$p_a$}{pa}
+    \fmflabel{$p_b$}{pb}
+    \fmflabel{$p_1$}{p1}
+    \fmflabel{$p_2$}{p2}
+    \fmflabel{$p_3$}{p3}
+    \fmf{plain}{pa,v,pb}
+    \fmf{plain}{p1,v}
+    \fmf{dbl_plain,label=$s_2$}{v,v3}
+    \fmf{plain}{v3,p2}
+    \fmffreeze
+    \fmf{plain}{v3,p3}
+    \fmfdot{v,v3}
+  \end{fmfgraph*}
+  \qquad
+  \begin{fmfgraph*}(30,20)
+    \fmfleft{pa,pb}
+    \fmfright{p1,p3,p2} 
+    \fmflabel{$p_a$}{pa}
+    \fmflabel{$p_b$}{pb}
+    \fmflabel{$p_1$}{p1}
+    \fmflabel{$p_2$}{p2}
+    \fmflabel{$p_3$}{p3}
+    \fmf{plain}{pa,v,pb}
+    \fmf{plain}{p1,v3}
+    \fmf{dbl_plain,label=$s_1$}{v,v3}
+    \fmf{plain}{v,p2}
+    \fmffreeze
+    \fmf{plain}{v3,p3}
+    \fmfdot{v,v3}
+  \end{fmfgraph*}
+\end{center}
+<<Implementation of [[cross_section]] procedures>>=
+  function w (x, weights, channel, grids) result (w_x)
+    real(kind=default), dimension(:), intent(in) :: x
+    real(kind=default), dimension(:), intent(in), optional :: weights
+    integer, intent(in), optional :: channel
+    type(vamp_grid), dimension(:), intent(in), optional :: grids
+    real(kind=default) :: w_x
+    real(kind=default), dimension(size(weights)) :: g_x
+    real(kind=default), dimension(2,0:3) :: k
+    type(LIPS3) :: p
+    integer :: ch
+    if (present (channel)) then
+       ch = channel
+    else
+       ch = 0
+    end if
+    k(1,:) = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k(2,:) = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    p = phase_space (x, abs (ch))
+    g_x(1) = 1.0_double / jacobian (k(1,:), k(2,:), p%p(1,:), p%p(2,:), p%p(3,:))
+    g_x(2) = 1.0_double / jacobian (k(1,:), k(2,:), p%p(2,:), p%p(1,:), p%p(3,:))
+    g_x(3) = 1.0_double / jacobian (k(1,:), k(2,:), p%p(3,:), p%p(2,:), p%p(1,:))
+    if (ch > 0) then
+       w_x = sigma_raw (k(1,:), k(2,:), p%p(1,:), p%p(2,:), p%p(3,:)) &
+              / sum (weights * g_x)
+    else if (ch < 0) then
+       w_x = g_x(-ch) / sum (weights * g_x)
+    else
+       w_x = -1
+    end if
+  end function w
+
+@
+<<Implementation of [[cross_section]] procedures>>=
+  function sigma_rambo (x, weights, channel, grids) result (xs)
+    real(kind=default), dimension(:), intent(in) :: x
+    real(kind=default), dimension(:), intent(in), optional :: weights
+    integer, intent(in), optional :: channel 
+    type(vamp_grid), dimension(:), intent(in), optional :: grids
+    real(kind=default) :: xs
+    real(kind=default), dimension(2,0:3) :: k
+    real(kind=default), dimension(3,0:3) :: p
+    k(1,:) = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k(2,:) = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    p = massless_isotropic_decay (sum (k(:,0)), reshape (x, (/ 3, 4 /)))
+    if (cuts (k(1,:), k(2,:), p(1,:), p(2,:), p(3,:))) then
+       xs = xsect (k(1,:), k(2,:), p(1,:), p(2,:), p(3,:)) &
+            * phase_space_volume (size (p, dim = 1), sum (k(:,0)))
+    else
+       xs = 0.0
+    end if
+  end function sigma_rambo
+@ 
+
+<<Declaration of [[cross_section]] procedures>>=
+  public :: sigma_rambo
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  public :: check_kinematics
+  private :: print_LIPS3_m5i2a3
+@
+<<Implementation of [[cross_section]] procedures>>=
+  subroutine check_kinematics (rng)
+    type(tao_random_state), intent(inout) :: rng
+    real(kind=default), dimension(5) :: x
+    real(kind=default), dimension(0:3) :: k1, k2
+    type(x5) :: x1, x2
+    type(LIPS3) :: p1, p2
+    type(LIPS3_m5i2a3) :: q, q1, q2
+    k1 = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k2 = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    call tao_random_number (rng, x)
+    q = invariants_from_x (x, S_0, MA_0, MB_0, M1_0, M2_0, M3_0)
+    p1 = invariants_to_p (q)
+    q1 = invariants_from_p (p1, k1, k2)
+    p2 = phase_space (x, 1)
+    q2 = invariants_from_p (p2, k1, k2)
+    x1 = invariants_to_x (q1)
+    x2 = invariants_to_x (q2)
+    print *, p1%jacobian, p2%jacobian, x1%jacobian, x2%jacobian
+    call print_lips3_m5i2a3 (q)
+    call print_lips3_m5i2a3 (q1)
+    call print_lips3_m5i2a3 (q2)
+  end subroutine check_kinematics
+
+@ %def check_kinematics
+@
+<<Implementation of [[cross_section]] procedures>>=
+  subroutine print_LIPS3_m5i2a3 (p)
+    type(LIPS3_m5i2a3), intent(in) :: p
+    print "(1x,5('m',a1,'=',e9.2,' '))", &
+         'a', p%ma, 'b', p%mb, '1', p%m1, '2', p%m2, '3', p%m3
+    print "(1x,'s=',e9.2,' s2=',e9.2,' t1=',e9.2)", &
+         p%s, p%s2, p%t1
+    print "(1x,'phi=',e9.2,' cos(th3)=',e9.2,' phi2=',e9.2)", &
+         p%phi, p%cos_theta3, p%phi3
+    print "(1x,'j=',e9.2)", &
+         p%jacobian
+  end subroutine print_LIPS3_m5i2a3
+
+@ %def print_LIPS3_m5i2a3
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  public :: phi12, phi21, phi1, phi2
+  public :: g12, g21, g1, g2
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function phi12 (x1, dummy) result (x2)
+    real(kind=default), dimension(:), intent(in) :: x1
+    integer, intent(in) :: dummy
+    real(kind=default), dimension(size(x1)) :: x2
+    type(LIPS3) :: p1, p2
+    type(LIPS3_m5i2a3) :: q1, q2
+    type(x5) :: x52
+    real(kind=default), dimension(0:3) :: k1, k2
+    k1 = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k2 = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    q1 = invariants_from_x (x1, S_0, MA_0, MB_0, M1_0, M2_0, M3_0)
+    p1 = invariants_to_p (q1)
+    p2%p(1,:) = p1%p(2,:)
+    p2%p(2,:) = p1%p(1,:)
+    p2%p(3,:) = p1%p(3,:)
+    if (dummy < 0) then
+       q2 = invariants_from_p (p2, k2, k1)
+    else
+       q2 = invariants_from_p (p2, k1, k2)
+    end if
+    x52 = invariants_to_x (q2)
+    x2 = x52%x
+  end function phi12
+
+@ %def phi12
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function phi21 (x2, dummy) result (x1)
+    real(kind=default), dimension(:), intent(in) :: x2
+    integer, intent(in) :: dummy
+    real(kind=default), dimension(size(x2)) :: x1
+    type(LIPS3) :: p1, p2
+    type(LIPS3_m5i2a3) :: q1, q2
+    type(x5) :: x51
+    real(kind=default), dimension(0:3) :: k1, k2
+    k1 = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k2 = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    q2 = invariants_from_x (x2, S_0, MA_0, MB_0, M2_0, M1_0, M3_0)
+    p2 = invariants_to_p (q2)
+    p1%p(1,:) = p2%p(2,:)
+    p1%p(2,:) = p2%p(1,:)
+    p1%p(3,:) = p2%p(3,:)
+    if (dummy < 0) then
+       q1 = invariants_from_p (p1, k2, k1)
+    else
+       q1 = invariants_from_p (p1, k1, k2)
+    end if
+    x51 = invariants_to_x (q1)
+    x1 = x51%x
+  end function phi21
+
+@ %def phi21
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function phi1 (x1) result (p1)
+    real(kind=default), dimension(:), intent(in) :: x1
+    type(LIPS3) :: p1
+    type(LIPS3_m5i2a3) :: q1
+    q1 = invariants_from_x (x1, S_0, MA_0, MB_0, M1_0, M2_0, M3_0)
+    p1 = invariants_to_p (q1)
+  end function phi1
+
+@ %def phi1
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function phi2 (x2) result (p2)
+    real(kind=default), dimension(:), intent(in) :: x2
+    type(LIPS3) :: p2
+    type(LIPS3_m5i2a3) :: q2
+    q2 = invariants_from_x (x2, S_0, MA_0, MB_0, M2_0, M1_0, M3_0)
+    p2 = invariants_to_p (q2)
+  end function phi2
+
+@ %def phi2
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function g12 (x1) result (g)
+    real(kind=default), dimension(:), intent(in) :: x1
+    real(kind=default) :: g
+    type(LIPS3) :: p1, p2
+    type(LIPS3_m5i2a3) :: q1, q2
+    type(x5) :: x52
+    real(kind=default), dimension(0:3) :: k1, k2
+    k1 = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k2 = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    q1 = invariants_from_x (x1, S_0, MA_0, MB_0, M1_0, M2_0, M3_0)
+    p1 = invariants_to_p (q1)
+    p2%p(1,:) = p1%p(2,:)
+    p2%p(2,:) = p1%p(1,:)
+    p2%p(3,:) = p1%p(3,:)
+    q2 = invariants_from_p (p2, k2, k1)
+    x52 = invariants_to_x (q2)
+    g = x52%jacobian / p1%jacobian
+  end function g12
+
+@ %def g12
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function g21 (x2) result (g)
+    real(kind=default), dimension(:), intent(in) :: x2
+    real(kind=default) :: g
+    type(LIPS3) :: p1, p2
+    type(LIPS3_m5i2a3) :: q1, q2
+    type(x5) :: x51
+    real(kind=default), dimension(0:3) :: k1, k2
+    k1 = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k2 = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    q2 = invariants_from_x (x2, S_0, MA_0, MB_0, M2_0, M1_0, M3_0)
+    p2 = invariants_to_p (q2)
+    p1%p(1,:) = p2%p(2,:)
+    p1%p(2,:) = p2%p(1,:)
+    p1%p(3,:) = p2%p(3,:)
+    q1 = invariants_from_p (p1, k2, k1)
+    x51 = invariants_to_x (q1)
+    g = x51%jacobian / p2%jacobian
+  end function g21
+
+@ %def g21
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function g1 (x1) result (g)
+    real(kind=default), dimension(:), intent(in) :: x1
+    real(kind=default) :: g
+    type(LIPS3) :: p1
+    type(LIPS3_m5i2a3) :: q1
+    q1 = invariants_from_x (x1, S_0, MA_0, MB_0, M1_0, M2_0, M3_0)
+    p1 = invariants_to_p (q1)
+    g = 1 / p1%jacobian
+  end function g1
+
+@ %def g1
+@
+<<Implementation of [[cross_section]] procedures>>=
+  pure function g2 (x2) result (g)
+    real(kind=default), dimension(:), intent(in) :: x2
+    real(kind=default) :: g
+    type(LIPS3) :: p2
+    type(LIPS3_m5i2a3) :: q2
+    q2 = invariants_from_x (x2, S_0, MA_0, MB_0, M2_0, M1_0, M3_0)
+    p2 = invariants_to_p (q2)
+    g = 1 / p2%jacobian
+  end function g2
+
+@ %def g2
+@ 
+<<Declaration of [[cross_section]] procedures>>=
+  public :: wx
+@
+<<Implementation of [[cross_section]] procedures>>=
+  function wx (x, weights, channel, grids) result (w_x)
+    real(kind=default), dimension(:), intent(in) :: x
+    real(kind=default), dimension(:), intent(in) :: weights
+    integer, intent(in) :: channel
+    type(vamp_grid), dimension(:), intent(in) :: grids
+    real(kind=default) :: w_x
+    real(kind=default), dimension(size(weights)) :: g_x, p_q
+    real(kind=default), dimension(size(x)) :: x1, x2
+    real(kind=default), dimension(2,0:3) :: k
+    type(LIPS3) :: q
+    k(1,:) = (/ 100.0_double, 0.0_double, 0.0_double,  100.0_double /)
+    k(2,:) = (/ 100.0_double, 0.0_double, 0.0_double, -100.0_double /)
+    select case (abs (channel))
+    case (1)
+       x1 = x
+       x2 = phi12 (x, 0)
+       q = phi1 (x1)
+    case (2)
+       x1 = phi21 (x, 0)
+       x2 = x
+       q = phi2 (x2)
+    end select
+    p_q(1) = vamp_probability (grids(1), x1)
+    p_q(2) = vamp_probability (grids(2), x2)
+    g_x(1) = p_q(1) * g1 (x1)
+    g_x(2) = p_q(2) * g2 (x2)
+    g_x = g_x / p_q(abs(channel))
+    if (channel > 0) then
+       w_x = sigma_raw (k(1,:), k(2,:), q%p(1,:), q%p(2,:), q%p(3,:)) &
+            / dot_product (weights, g_x)
+    else if (channel < 0) then
+       w_x = vamp_probability (grids(-channel), x) / dot_product (weights, g_x)
+    else
+       w_x = 0
+    end if
+  end function wx
+
+@ %def wx
+@
+<<[[application.f90]]>>=
+program application
+  use kinds
+  use utils
+  use vampi
+  use mpi90
+  use linalg
+  use exceptions
+  use kinematics, only: phase_space_volume
+  use cross_section !NODEP!
+  use tao_random_numbers
+  implicit none
+  type(vamp_grid) :: gr
+  type(vamp_grids) :: grs
+  real(kind=default), dimension(:,:), allocatable :: region
+  real(kind=default) :: integral, standard_dev, chi_squared
+  real(kind=default) :: &
+       single_integral, single_standard_dev, &
+       rambo_integral, rambo_standard_dev
+  real(kind=default), dimension(2) :: weight_vector
+  integer, dimension(2) :: calls, iterations
+  type(vamp_history), dimension(100) :: history
+  type(vamp_history), dimension(100,size(weight_vector)) :: histories
+  type(exception) :: exc
+  type(tao_random_state) :: rng
+  real(kind=default), dimension(5) :: x
+  real(kind=default) :: jac
+  integer :: i
+  integer :: num_proc, proc_id, ticks, ticks0, ticks_per_second, command
+  character(len=72) :: command_line
+  integer, parameter :: &
+       CMD_SINGLE = 1, &
+       CMD_MULTI = 2, &
+       CMD_ROTATING = 3, &
+       CMD_RAMBO = 4, &
+       CMD_COMPARE = 5, &
+       CMD_MASSLESS = 6, &
+       CMD_ERROR = 0
+  call mpi90_init ()
+  call mpi90_size (num_proc)
+  call mpi90_rank (proc_id)
+  call system_clock (ticks0)
+  call tao_random_create (rng, 0)
+  call tao_random_seed (rng, ticks0 + proc_id)
+  !!! call tao_random_seed (rng, proc_id)
+  call vamp_create_history (history, verbose = .true.)
+  call vamp_create_history (histories, verbose = .true.)
+  iterations = (/ 3, 4 /)
+  calls =  (/  10000, 100000 /)
+  if (proc_id == 0) then
+     read *, command_line
+     if (command_line == "single") then
+        command = CMD_SINGLE
+     else if (command_line == "multi") then
+        command = CMD_MULTI
+     else if (command_line == "rotating") then
+        command = CMD_ROTATING
+     else if (command_line == "rambo") then
+        command = CMD_RAMBO
+     else if (command_line == "compare") then
+        command = CMD_COMPARE
+     else if (command_line == "massless") then
+        command = CMD_MASSLESS
+     else
+        command = CMD_ERROR
+     end if
+  end if
+  call mpi90_broadcast (command, 0)
+  call system_clock (ticks0)
+  select case (command)
+  case (CMD_SINGLE)
+     <<Application in single channel mode>>
+  case (CMD_MASSLESS)
+     <<Application in massless single channel mode>>
+  case (CMD_MULTI)
+     <<Application in multi channel mode>>
+  case (CMD_ROTATING)
+     allocate (region(2,5))
+     region(1,:) =  0.0
+     region(2,:) =  1.0
+     if (proc_id == 0) then
+        print *, "rotating N/A yet ..."
+     end if
+  case (CMD_RAMBO)
+     <<Application in Rambo mode>>
+  case (CMD_COMPARE)
+     <<Application in single channel mode>>
+     single_integral = integral
+     single_standard_dev = standard_dev
+     <<Application in Rambo mode>>
+     if (proc_id == 0) then
+        rambo_integral = integral
+        rambo_standard_dev = standard_dev
+        integral = &
+             (single_integral / single_standard_dev**2 &
+               + rambo_integral / rambo_standard_dev**2) &
+           / (1.0_double / single_standard_dev**2 &
+               + 1.0_double / rambo_standard_dev**2)
+        standard_dev = 1.0_double &
+             / sqrt (1.0_double / single_standard_dev**2 &
+                      + 1.0_double / rambo_standard_dev**2)
+        chi_squared = &
+             ((single_integral - integral)**2 / single_standard_dev**2) &
+                  + ((rambo_integral - integral)**2 / rambo_standard_dev**2)
+        print *, "S&R:    ", integral, standard_dev, chi_squared
+     end if
+  case default
+     if (proc_id == 0) then
+        print *, "???: ", command
+        !!! TO BE REMOVED !!!
+        call check_kinematics (rng)
+        allocate (region(2,5))
+        region(1,:) = 0
+        region(2,:) = 1
+        do i = 1, 10
+           call tao_random_number (rng, x)
+           call vamp_jacobian (phi12, 0, x, region, jac)
+           print *, "12:  ", jac, 1 / g12 (x), jac * g12 (x) - 1
+           call vamp_jacobian (phi21, 0, x, region, jac)
+           print *, "21:  ", jac, 1 / g21 (x), jac * g21 (x) - 1
+           print *, "1:   ", real(x)
+           print *, "2:   ", real(phi12(phi21(x,0),0))
+           print *, "2':  ", real(phi12(phi21(x,-1),-1))
+           print *, "3:   ", real(phi21(phi12(x,0),0))
+           print *, "3':  ", real(phi21(phi12(x,-1),-1))
+           print *, "2-1: ", real(phi12(phi21(x,0),0) - x)
+           print *, "3-1: ", real(phi21(phi12(x,0),0) - x)
+           print *, "a:   ", real(phi12(x,0))
+           print *, "a':  ", real(phi12(x,-1))
+           print *, "b:   ", real(phi21(x,0))
+           print *, "b':  ", real(phi21(x,-1))
+        end do
+        deallocate (region)
+        ! do i = 2, 5
+        !    print *, i, phase_space_volume (i, 200.0_double)
+        ! end do
+     end if
+  end select
+  if (proc_id == 0) then
+     call system_clock (ticks, ticks_per_second)
+     print "(1X,A,F8.2,A)", &
+          "time = ", real (ticks - ticks0) / ticks_per_second, " secs"
+  end if
+  call mpi90_finalize ()
+end program application
+@ 
+<<Application in single channel mode>>=
+    allocate (region(2,5))
+    region(1,:) =  0.0
+    region(2,:) =  1.0
+    call vamp_create_grid (gr, region, calls(1))
+    call clear_exception (exc)
+    call vamp_sample_grid &
+         (rng, gr, sigma, iterations(1), history = history, exc = exc)
+    call handle_exception (exc)
+    call vamp_discard_integral (gr, calls(2))
+    call vamp_sample_grid &
+         (rng, gr, sigma, iterations(2), &
+          integral, standard_dev, chi_squared, &
+          history = history(iterations(1)+1:), exc = exc)
+    call handle_exception (exc)
+    call vamp_print_history (history, "single")
+    if (proc_id == 0) then
+       print *, "SINGLE: ", integral, standard_dev, chi_squared
+    end if
+    call vamp_write_grid (gr, "application.grid")
+    call vamp_delete_grid (gr)
+    deallocate (region)
+@ 
+<<Application in massless single channel mode>>=
+    allocate (region(2,5))
+    region(1,:) =  0.0
+    region(2,:) =  1.0
+    call vamp_create_grid (gr, region, calls(1))
+    call clear_exception (exc)
+    call vamp_sample_grid &
+         (rng, gr, sigma_massless, iterations(1), history = history, exc = exc)
+    call handle_exception (exc)
+    call vamp_discard_integral (gr, calls(2))
+    call vamp_sample_grid &
+         (rng, gr, sigma_massless, iterations(2), &
+          integral, standard_dev, chi_squared, &
+          history = history(iterations(1)+1:), exc = exc)
+    call handle_exception (exc)
+    call vamp_print_history (history, "single")
+    if (proc_id == 0) then
+       print *, "M=0:    ", integral, standard_dev, chi_squared
+    end if
+    call vamp_write_grid (gr, "application.grid")
+    call vamp_delete_grid (gr)
+    deallocate (region)
+@
+<<Application in multi channel mode>>=
+    allocate (region(2,5))
+    region(1,:) =  0.0
+    region(2,:) =  1.0
+    weight_vector = 1.0
+    if (proc_id == 0) then
+       read *, weight_vector
+    end if
+    call mpi90_broadcast (weight_vector, 0)
+    weight_vector = weight_vector / sum (weight_vector)
+    call vamp_create_grids (grs, region, calls(1), weight_vector)
+    do i = 1, 3
+       call clear_exception (exc)
+       call vamp_sample_grids &
+            (rng, grs, wx, iterations(1), &
+             history = history(1+(i-1)*iterations(1):), &
+             histories = histories(1+(i-1)*iterations(1):,:), exc = exc)
+       call handle_exception (exc)
+       call vamp_refine_weights (grs)
+    end do
+    call vamp_discard_integrals (grs, calls(2))
+    call vamp_sample_grids &
+         (rng, grs, wx, iterations(2), &
+          integral, standard_dev, chi_squared, &
+          history = history(3*iterations(1)+1:), &
+          histories = histories(3*iterations(1)+1:,:), exc = exc)
+    call handle_exception (exc)
+    call vamp_print_history (history, "multi")
+    call vamp_print_history (histories, "multi")
+    if (proc_id == 0) then
+       print *, "MULTI:  ", integral, standard_dev, chi_squared
+    end if
+    call vamp_write_grids (grs, "application.grids")
+    call vamp_delete_grids (grs)
+    deallocate (region)
+@ 
+<<Application in Rambo mode>>=
+    allocate (region(2,12))
+    region(1,:) =  0.0
+    region(2,:) =  1.0
+    call vamp_create_grid (gr, region, calls(1))
+    call clear_exception (exc)
+    call vamp_sample_grid &
+         (rng, gr, sigma_rambo, iterations(1), history = history, exc = exc)
+    call handle_exception (exc)
+    call vamp_discard_integral (gr, calls(2))
+    call vamp_sample_grid &
+         (rng, gr, sigma_rambo, iterations(2), &
+          integral, standard_dev, chi_squared, &
+          history = history(iterations(1)+1:), exc = exc)
+    call handle_exception (exc)
+    call vamp_print_history (history, "rambo")
+    if (proc_id == 0) then
+       print *, "RAMBO:  ", integral, standard_dev, chi_squared
+    end if
+    call vamp_delete_grid (gr)
+    deallocate (region)
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

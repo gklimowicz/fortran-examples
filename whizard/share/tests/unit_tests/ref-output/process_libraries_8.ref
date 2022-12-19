@@ -1,0 +1,87 @@
+* Test output: process_libraries_8
+* Purpose: build and load a process library
+*          with an external (pseudo) matrix element
+*          Check status updates
+
+* Initialize a process library with one entry
+
+* Configure library
+
+ library loaded = F
+ lib status   = 2
+ proc1 status = 2
+
+* Write makefile
+
+* Update status
+
+ library loaded = F
+ lib status   = 2
+ proc1 status = 2
+
+* Write driver source code
+
+* Write process source code
+
+ library loaded = F
+ lib status   = 3
+ proc1 status = 3
+
+* Compile and load
+
+ library loaded = T
+ lib status   = 6
+ proc1 status = 6
+
+* Append process and reconfigure
+
+ library loaded = F
+ lib status   = 2
+ proc1 status = 2
+ proc2 status = 2
+
+* Update status
+
+ library loaded = F
+ lib status   = 2
+ proc1 status = 4
+ proc2 status = 2
+
+* Write source code
+
+ library loaded = F
+ lib status   = 3
+ proc1 status = 4
+ proc2 status = 3
+
+* Reset status
+
+ library loaded = F
+ lib status   = 2
+ proc1 status = 2
+ proc2 status = 2
+
+* Update status
+
+ library loaded = F
+ lib status   = 3
+ proc1 status = 4
+ proc2 status = 3
+
+* Partial cleanup
+
+ library loaded = F
+ lib status   = 2
+ proc1 status = 2
+ proc2 status = 2
+
+* Update status
+
+ library loaded = F
+ lib status   = 2
+ proc1 status = 2
+ proc2 status = 2
+
+* Complete cleanup
+
+* Test output end: process_libraries_8

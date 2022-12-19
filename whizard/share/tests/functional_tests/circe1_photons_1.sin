@@ -1,0 +1,50 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process circe1_photons_1_p1 = A, A => "mu-", "mu+"
+process circe1_photons_1_p2 = A, A => "mu-", "mu+"
+process circe1_photons_1_p3 = A, A => "mu-", "mu+"
+process circe1_photons_1_p4 = A, A => "mu-", "mu+"
+
+seed = 0
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+sqrts = 500
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+int n = 1000
+
+cuts = all Pt > 10 ["mu+":"mu-"]
+integrate (circe1_photons_1_p1) { iterations = 3:n:"g", 3:n }
+
+beams = "e-", "e+" => epa
+epa_x_min = 0.1
+epa_mass = me
+integrate (circe1_photons_1_p2) { iterations = 5:n:"g", 3:n }
+
+beams = "e-", "e+" => circe1 => epa
+$circe1_acc = "TESLA"
+circe1_chat = 2
+?circe1_generate = true
+
+integrate (circe1_photons_1_p3) { iterations = 5:n:"g", 3:n }
+
+n = 1000
+?circe1_photon1 = true
+?circe1_photon2 = true
+beams = "e-", "e+" => circe1
+integrate (circe1_photons_1_p4) { iterations = 5:n:"g", 3:n }

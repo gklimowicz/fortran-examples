@@ -1,0 +1,176 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+seed = 0
+| Process library 'lhef_3_lib': recorded process 'lhef_3_p'
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+| Integrate: current process library needs compilation
+| Process library 'lhef_3_lib': compiling ...
+| Process library 'lhef_3_lib': writing makefile
+| Process library 'lhef_3_lib': removing old files
+| Process library 'lhef_3_lib': writing driver
+| Process library 'lhef_3_lib': creating source code
+| Process library 'lhef_3_lib': compiling sources
+| Process library 'lhef_3_lib': linking
+| Process library 'lhef_3_lib': loading
+| Process library 'lhef_3_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process lhef_3_p:
+| Beam structure: p, p => pdf_builtin
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Initialized builtin PDF CTEQ6L
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lhef_3_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lhef_3_p'
+|   Library name  = 'lhef_3_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lhef_3_p_i1':   u, ubar => gl, gl [omega]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 18 equivalences between channels.
+| Phase space: wood
+| Beam structure: pdf_builtin, none => none, pdf_builtin
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'lhef_3_p'
+| Integrate: iterations = 1:100
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  6.4023106E+08  5.57E+08   86.92    8.69*   5.58
+|-----------------------------------------------------------------------------|
+   1        100  6.4023106E+08  5.57E+08   86.92    8.69    5.58
+|=============================================================================|
+n_events = 1
+$lhef_version = "1.0"
+$sample = "lhef_3.1"
+?keep_beams = false
+| Starting simulation for process 'lhef_3_p'
+| Simulate: using integration grids from file 'lhef_3_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.5619E-09
+| Events: writing to LHEF file 'lhef_3.1.lhe'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   2.13 %
+Warning: Encountered events with excess weight: 1 events (100.000 %)
+| Maximum excess weight = 1.254E+01
+| Average excess weight = 1.254E+01
+| Events: closing LHEF file 'lhef_3.1.lhe'
+$sample = "lhef_3.2"
+?keep_beams = true
+| Starting simulation for process 'lhef_3_p'
+| Simulate: using integration grids from file 'lhef_3_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.5619E-09
+| Events: writing to LHEF file 'lhef_3.2.lhe'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   0.70 %
+Warning: Encountered events with excess weight: 1 events (100.000 %)
+| Maximum excess weight = 4.235E+00
+| Average excess weight = 4.235E+00
+| Events: closing LHEF file 'lhef_3.2.lhe'
+$sample = "lhef_3.3"
+?keep_remnants = false
+| Starting simulation for process 'lhef_3_p'
+| Simulate: using integration grids from file 'lhef_3_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.5619E-09
+| Events: writing to LHEF file 'lhef_3.3.lhe'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =   2.04 %
+Warning: Encountered events with excess weight: 1 events (100.000 %)
+| Maximum excess weight = 1.584E+01
+| Average excess weight = 1.584E+01
+| Events: closing LHEF file 'lhef_3.3.lhe'
+| There were no errors and    4 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+LHEF file contents (no beams):
+<LesHouchesEvents version="1.0">
+<header>
+  <generator_name>WHIZARD</generator_name>
+[...]
+</header>
+<init>
+ 2212 2212  5.0000000000E+02  5.0000000000E+02 -1 -1 -1 -1 3 1
+  6.4023106070E+05  5.5651515873E+05  1.0000000000E+00 1
+</init>
+<event>
+ 4 1  1.0000000000E+00  1.3178174384E+01 -1.0000000000E+00  1.1780000000E-01
+ 2 -1 0 0 501 0  0.0000000000E+00  0.0000000000E+00  1.9027611654E+00  1.9027611654E+00  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -2 -1 0 0 0 502  0.0000000000E+00  0.0000000000E+00 -2.2817403893E+01  2.2817403893E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 21 1 1 2 510 502 -4.0213919904E+00 -3.8448480372E+00 -1.7079232814E+01  1.7962590111E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 21 1 1 2 501 510  4.0213919904E+00  3.8448480372E+00 -3.8354099139E+00  6.7575749480E+00  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+</event>
+</LesHouchesEvents>
+LHEF file contents (with beams):
+<LesHouchesEvents version="1.0">
+<header>
+  <generator_name>WHIZARD</generator_name>
+[...]
+</header>
+<init>
+ 2212 2212  5.0000000000E+02  5.0000000000E+02 -1 -1 -1 -1 3 1
+  6.4023106070E+05  5.5651515873E+05  1.0000000000E+00 1
+</init>
+<event>
+ 8 1  1.0000000000E+00  7.0690084249E+00 -1.0000000000E+00  1.1780000000E-01
+ 2212 -9 0 0 0 0  0.0000000000E+00  0.0000000000E+00  5.0000000000E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 2212 -9 0 0 0 0  0.0000000000E+00  0.0000000000E+00 -5.0000000000E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 2 -1 1 0 501 0  0.0000000000E+00  0.0000000000E+00  1.8303991327E+02  1.8303991327E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -2 -1 2 0 0 502  0.0000000000E+00  0.0000000000E+00 -6.8251343682E-02  6.8251343682E-02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -92 1 1 0 0 501  0.0000000000E+00  0.0000000000E+00  3.1696008673E+02  3.1696008673E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 92 1 2 0 502 0  0.0000000000E+00  0.0000000000E+00 -4.9993174866E+02  4.9993174866E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 21 1 3 4 501 511  1.9522288849E+00  2.9456476689E+00  9.3258285477E+01  9.3325215499E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 21 1 3 4 511 502 -1.9522288849E+00 -2.9456476689E+00  8.9713376445E+01  8.9782949110E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+</event>
+</LesHouchesEvents>
+LHEF file contents (with beams and remnants as real):
+<LesHouchesEvents version="1.0">
+<header>
+  <generator_name>WHIZARD</generator_name>
+[...]
+</header>
+<init>
+ 2212 2212  5.0000000000E+02  5.0000000000E+02 -1 -1 -1 -1 3 1
+  6.4023106070E+05  5.5651515873E+05  1.0000000000E+00 1
+</init>
+<event>
+ 8 1  1.0000000000E+00  2.3931965232E+01 -1.0000000000E+00  1.1780000000E-01
+ 2212 -9 0 0 0 0  0.0000000000E+00  0.0000000000E+00  5.0000000000E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 2212 -9 0 0 0 0  0.0000000000E+00  0.0000000000E+00 -5.0000000000E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 2 -1 1 0 501 0  0.0000000000E+00  0.0000000000E+00  6.9836810347E+01  6.9836810347E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -2 -1 2 0 0 502  0.0000000000E+00  0.0000000000E+00 -2.0502760543E+00  2.0502760543E+00  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -92 3 1 0 0 501  0.0000000000E+00  0.0000000000E+00  4.3016318965E+02  4.3016318965E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 92 3 2 0 502 0  0.0000000000E+00  0.0000000000E+00 -4.9794972395E+02  4.9794972395E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 21 1 3 4 501 511  3.7391983708E-01  8.7867748106E-01  6.9722172028E+01  6.9728711178E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 21 1 3 4 511 502 -3.7391983708E-01 -8.7867748106E-01 -1.9356377359E+00  2.1583752234E+00  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+</event>
+</LesHouchesEvents>

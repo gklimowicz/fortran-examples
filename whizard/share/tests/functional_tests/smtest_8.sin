@@ -1,0 +1,29 @@
+# SINDARIN input for WHIZARD self-test
+# Process u, U -> e2, E2
+
+model = SM
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+mmu = 0
+
+seed = 0
+
+process smtest_8p = u, U => "mu+", "mu-"
+
+sqrts = 1000
+cuts = all M > 50 ["mu+", "mu-"]
+beams = p, p => pdf_builtin
+
+?rebuild_phase_space = true
+?phs_keep_nonresonant = false
+?phs_s_mapping = true
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 4:2000:"wg", 3:2000
+integrate (smtest_8p)

@@ -1,0 +1,21 @@
+# SINDARIN input for WHIZARD self-test
+# Process b tbar -> Wm, A
+
+model = SM
+
+process fatal_beam_decay_1 = b, tbar => Wm, A
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?fatal_beam_decay = false
+?pacify = true
+
+seed = 0
+
+compile ()
+
+sqrts = 500 GeV
+
+integrate (fatal_beam_decay_1) { iterations = 1:1000 }

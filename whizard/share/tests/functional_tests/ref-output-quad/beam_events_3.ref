@@ -1,0 +1,119 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+$method = "omega"
+| Process library 'beam_events_3_lib': recorded process 'beam_events_3_p1'
+| Process library 'beam_events_3_lib': recorded process 'beam_events_3_p2'
+seed = 0
+| Process library 'beam_events_3_lib': compiling ...
+| Process library 'beam_events_3_lib': writing makefile
+| Process library 'beam_events_3_lib': removing old files
+| Process library 'beam_events_3_lib': writing driver
+| Process library 'beam_events_3_lib': creating source code
+| Process library 'beam_events_3_lib': compiling sources
+| Process library 'beam_events_3_lib': linking
+| Process library 'beam_events_3_lib': loading
+| Process library 'beam_events_3_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  5.00000E+02
+openmp_num_threads = 1
+[user variable] n = 1000
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process beam_events_3_p1:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'beam_events_3_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'beam_events_3_p1'
+|   Library name  = 'beam_events_3_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'beam_events_3_p1_i1':   e-, e+ => Z [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 0 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'beam_events_3_p1'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     1.234E+04   1.01E+01    0.08    0.02    83.8
+   2        800     1.234E+04   2.99E+00    0.02    0.01    20.9
+   3        800     1.235E+04   3.46E+00    0.03    0.01    21.9
+|-----------------------------------------------------------------------------|
+   3       2400     1.234E+04   2.21E+00    0.02    0.01    21.9    2.17   3
+|-----------------------------------------------------------------------------|
+   4        800     1.234E+04   4.08E+00    0.03    0.01    21.9
+   5        800     1.235E+04   4.41E+00    0.04    0.01    21.9
+   6        800     1.234E+04   3.98E+00    0.03    0.01    21.9
+|-----------------------------------------------------------------------------|
+   6       2400     1.234E+04   2.39E+00    0.02    0.01    21.9    0.41   3
+|=============================================================================|
+$beam_events_file = "uniform_spread_2.5%.dat"
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process beam_events_3_p2:
+| Beam structure: e-, e+ => beam_events => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'beam_events_3_p2.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'beam_events_3_p2'
+|   Library name  = 'beam_events_3_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'beam_events_3_p2_i1':   e-, e+ => Z [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 0 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+| Beam structure: beam_events => isr, none => none, isr
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Beam events: reading from file 'uniform_spread_2.5%.dat'
+| Starting integration for process 'beam_events_3_p2'
+| Integrate: iterations = 3:1000:"gw", 3:1000
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 1000 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        800     1.235E+04   1.36E+01    0.11    0.03    82.6
+   2        800     1.235E+04   3.37E+00    0.03    0.01    22.3
+   3        800     1.234E+04   5.33E+00    0.04    0.01    19.1
+|-----------------------------------------------------------------------------|
+   3       2400     1.235E+04   2.79E+00    0.02    0.01    19.1    0.37   3
+|-----------------------------------------------------------------------------|
+   4        800     1.235E+04   3.87E+00    0.03    0.01    19.1
+   5        800     1.235E+04   3.39E+00    0.03    0.01    19.1
+   6        800     1.235E+04   4.75E+00    0.04    0.01    19.1
+|-----------------------------------------------------------------------------|
+   6       2400     1.235E+04   2.25E+00    0.02    0.01    19.1    0.74   3
+|=============================================================================|
+| Beam events: closed file 'uniform_spread_2.5%.dat'
+| WHIZARD run finished.
+|=============================================================================|

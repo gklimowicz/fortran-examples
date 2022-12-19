@@ -1,0 +1,16 @@
+# SINDARIN input for WHIZARD self-test
+# Process t -> b, W+
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process smtest_1_tbw = t => b, "W+"
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+integrate (smtest_1_tbw)
+

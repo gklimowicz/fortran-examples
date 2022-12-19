@@ -1,0 +1,261 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?phs_s_mapping = false
+?write_raw = false
+seed = 0
+[user variable] q = PDG(2, 1, 3)
+[user variable] Q = PDG(-2, -1, -3)
+[user variable] lepton = PDG(11, 13, 15, -11, -13, -15)
+$method = "omega"
+| Process library 'lhapdf5_1_lib': recorded process 'lhapdf5_1_p'
+| Process library 'lhapdf5_lib': compiling ...
+| Process library 'lhapdf5_lib': ... success.
+| Process library 'lhapdf5_1_lib': compiling ...
+| Process library 'lhapdf5_1_lib': writing makefile
+| Process library 'lhapdf5_1_lib': removing old files
+| Process library 'lhapdf5_1_lib': writing driver
+| Process library 'lhapdf5_1_lib': creating source code
+| Process library 'lhapdf5_1_lib': compiling sources
+| Process library 'lhapdf5_1_lib': linking
+| Process library 'lhapdf5_1_lib': loading
+| Process library 'lhapdf5_1_lib': ... success.
+$phs_method = "wood"
+$integration_method = "vamp"
+sqrts =  1.000000000000E+03
+openmp_num_threads = 1
+n_events = 1
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process lhapdf5_1_p:
+| Beam structure: u, ubar
+| Beam data (collision):
+|   u     (mass = 0.0000000E+00 GeV)
+|   ubar  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lhapdf5_1_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lhapdf5_1_p'
+|   Library name  = 'lhapdf5_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lhapdf5_1_p_i1':   u:d:s, ubar:dbar:sbar => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Applying user-defined cuts.
+| Starting integration for process 'lhapdf5_1_p'
+| Integrate: iterations = 4:500:"gw", 2:500
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 500 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        400  1.8321997E+01  2.98E-01    1.63    0.33*  35.80
+   2        400  1.8828751E+01  1.70E-01    0.90    0.18*  40.76
+   3        400  1.8682775E+01  1.30E-01    0.70    0.14*  53.32
+   4        400  1.8636496E+01  1.06E-01    0.57    0.11*  40.51
+|-----------------------------------------------------------------------------|
+   4       1600  1.8666882E+01  7.19E-02    0.39    0.15   40.51    0.78   4
+|-----------------------------------------------------------------------------|
+   5        400  1.8881752E+01  1.31E-01    0.69    0.14   40.70
+   6        400  1.8558177E+01  1.27E-01    0.68    0.14*  39.83
+|-----------------------------------------------------------------------------|
+   6        800  1.8715083E+01  9.12E-02    0.49    0.14   39.83    3.14   2
+|=============================================================================|
+$sample = "lhapdf5_1_p_1"
+$lhef_version = "1.0"
+| Starting simulation for process 'lhapdf5_1_p'
+| Simulate: using integration grids from file 'lhapdf5_1_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   5.3433E-02
+| Events: writing to LHEF file 'lhapdf5_1_p_1.lhe'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  25.00 %
+| Events: closing LHEF file 'lhapdf5_1_p_1.lhe'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 2
+| Initializing integration for process lhapdf5_1_p:
+| Beam structure: p, p => lhapdf
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lhapdf5_1_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lhapdf5_1_p'
+|   Library name  = 'lhapdf5_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lhapdf5_1_p_i1':   u:d:s, ubar:dbar:sbar => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: lhapdf, none => none, lhapdf
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'lhapdf5_1_p'
+| Integrate: iterations = 4:500:"gw", 2:500
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 500 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        500  1.0864974E+00  5.15E-01   47.42   10.60*   0.74
+   2        499  1.4808863E+00  1.32E-01    8.90    1.99*   5.28
+   3        498  1.5241721E+00  8.33E-02    5.47    1.22*  10.59
+   4        497  1.5931010E+00  7.19E-02    4.52    1.01*  14.05
+|-----------------------------------------------------------------------------|
+   4       1994  1.5471878E+00  5.01E-02    3.24    1.45   14.05    0.51   4
+|-----------------------------------------------------------------------------|
+   5        497  1.6797470E+00  8.18E-02    4.87    1.09   12.06
+   6        497  1.5302789E+00  6.93E-02    4.53    1.01*  10.99
+|-----------------------------------------------------------------------------|
+   6        994  1.5927968E+00  5.29E-02    3.32    1.05   10.99    1.94   2
+|=============================================================================|
+$sample = "lhapdf5_1_p_2"
+$lhef_version = "1.0"
+| Starting simulation for process 'lhapdf5_1_p'
+| Simulate: using integration grids from file 'lhapdf5_1_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 3
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   6.2783E-01
+| Events: writing to LHEF file 'lhapdf5_1_p_2.lhe'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  50.00 %
+| Events: closing LHEF file 'lhapdf5_1_p_2.lhe'
+$lhapdf_file = "cteq5l.LHgrid"
+$lhapdf_photon_file = "GSG961.LHgrid"
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 4
+| Initializing integration for process lhapdf5_1_p:
+| Beam structure: p, A => lhapdf, lhapdf_photon
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   A  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.000000000000E+03 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'lhapdf5_1_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'lhapdf5_1_p'
+|   Library name  = 'lhapdf5_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'lhapdf5_1_p_i1':   u:d:s, ubar:dbar:sbar => mu-, mu+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: lhapdf, none => none, lhapdf_photon
+| Beam structure: 1 channels, 2 dimensions
+| Applying user-defined cuts.
+| Starting integration for process 'lhapdf5_1_p'
+| Integrate: iterations = 4:500:"gw", 2:500
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 500 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        500  1.1006175E+00  1.83E-01   16.64    3.72*   3.61
+   2        499  1.0506387E+00  6.59E-02    6.27    1.40*  11.01
+   3        498  9.4072476E-01  3.69E-02    3.92    0.88*  22.96
+   4        497  9.7874259E-01  3.68E-02    3.76    0.84*  20.13
+|-----------------------------------------------------------------------------|
+   4       1994  9.7428043E-01  2.40E-02    2.47    1.10   20.13    0.89   4
+|-----------------------------------------------------------------------------|
+   5        497  9.5199031E-01  3.65E-02    3.84    0.86   16.44
+   6        497  9.8527409E-01  3.87E-02    3.92    0.87   17.01
+|-----------------------------------------------------------------------------|
+   6        994  9.6768152E-01  2.65E-02    2.74    0.86   17.01    0.39   2
+|=============================================================================|
+$sample = "lhapdf5_1_p_3"
+$lhef_version = "1.0"
+| Starting simulation for process 'lhapdf5_1_p'
+| Simulate: using integration grids from file 'lhapdf5_1_p.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 5
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   1.0334E+00
+| Events: writing to LHEF file 'lhapdf5_1_p_3.lhe'
+| Events: generating 1 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  50.00 %
+| Events: closing LHEF file 'lhapdf5_1_p_3.lhe'
+| WHIZARD run finished.
+|=============================================================================|
+LHEF file contents:
+<LesHouchesEvents version="1.0">
+<header>
+  <generator_name>WHIZARD</generator_name>
+[...]
+</header>
+<init>
+ 2 -2  5.0000000000E+02  5.0000000000E+02 -1 -1 -1 -1 3 1
+  1.8715082960E-02  9.1205217394E-05  1.0000000000E+00 1
+</init>
+<event>
+ 4 1  1.0000000000E+00  1.0000000000E+03 -1.0000000000E+00  1.1780000000E-01
+ 2 -1 0 0 501 0  0.0000000000E+00  0.0000000000E+00  5.0000000000E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -2 -1 0 0 0 501  0.0000000000E+00  0.0000000000E+00 -5.0000000000E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 13 1 1 2 0 0  2.0159017056E+02 -1.1549984428E+02  4.4274280243E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -13 1 1 2 0 0 -2.0159017056E+02  1.1549984428E+02 -4.4274280243E+02  5.0000000000E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+</event>
+</LesHouchesEvents>
+<LesHouchesEvents version="1.0">
+<header>
+  <generator_name>WHIZARD</generator_name>
+[...]
+</header>
+<init>
+ 2212 2212  5.0000000000E+02  5.0000000000E+02 -1 -1 -1 -1 3 1
+  1.5927968443E-03  5.2887330731E-05  1.0000000000E+00 1
+</init>
+<event>
+ 4 1  1.0000000000E+00  2.3173194200E+02 -1.0000000000E+00  1.1780000000E-01
+ 2 -1 0 0 501 0  0.0000000000E+00  0.0000000000E+00  1.9684255276E+02  1.9684255276E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -2 -1 0 0 0 501  0.0000000000E+00  0.0000000000E+00 -6.8201326629E+01  6.8201326629E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 13 1 1 2 0 0 -4.4411906732E+01 -1.0699457600E+02  6.1849875074E+01  1.3132274670E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -13 1 1 2 0 0  4.4411906732E+01  1.0699457600E+02  6.6791351059E+01  1.3372113270E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+</event>
+</LesHouchesEvents>
+<LesHouchesEvents version="1.0">
+<header>
+  <generator_name>WHIZARD</generator_name>
+[...]
+</header>
+<init>
+ 2212 22  5.0000000000E+02  5.0000000000E+02 -1 -1 -1 -1 3 1
+  9.6768151747E-04  2.6545171439E-05  1.0000000000E+00 1
+</init>
+<event>
+ 4 1  1.0000000000E+00  3.6473337425E+02 -1.0000000000E+00  1.1780000000E-01
+ 2 -1 0 0 501 0  0.0000000000E+00  0.0000000000E+00  7.6387253728E+01  7.6387253728E+01  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -2 -1 0 0 0 501  0.0000000000E+00  0.0000000000E+00 -4.3538165009E+02  4.3538165009E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ 13 1 1 2 0 0 -6.8022996058E+00  1.6158346316E+02 -6.1249568193E+01  1.7293639424E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+ -13 1 1 2 0 0  6.8022996058E+00 -1.6158346316E+02 -2.9774482817E+02  3.3883250958E+02  0.0000000000E+00  0.0000000000E+00  9.0000000000E+00
+</event>
+</LesHouchesEvents>

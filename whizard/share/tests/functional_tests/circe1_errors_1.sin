@@ -1,0 +1,97 @@
+# $Id: circe1_errors_1.sin 7076 2015-06-29 00:09:21Z jr_reuter $
+# SINDARIN input for Circe1/WHIZARD self-test
+
+# We need to force the seed to control the number of
+# invocations of Circe1 by WHIZARD:
+seed = 0
+
+model = "SM"
+process ttbar = "e-", "e+" => t, tbar
+compile
+
+?vis_history = false
+
+circe1_chat = 3
+sqrts = 500 GeV
+beams = "e-", "e+" => circe1
+iterations = 1:1       # don't need a lot of iterations
+
+########################################################################
+# Valid ILC
+########################################################################
+$circe1_acc = "ILC"
+circe1_ver = 10        # most recent version, 2014-03-05
+circe1_sqrts = 500 GeV 
+
+circe1_rev = 0         # most recent revision
+integrate (ttbar)
+circe1_rev = 20140303  # too early, but will fall back
+integrate (ttbar)
+
+########################################################################
+# Energies
+########################################################################
+$circe1_acc = "ILC"
+circe1_ver = 10        # most recent version, 2014-03-05
+circe1_rev = 0         # most recent revision
+
+circe1_sqrts = 100 GeV # too low
+integrate (ttbar)
+circe1_sqrts = 600 GeV # too high
+integrate (ttbar)
+circe1_sqrts = 400 GeV # interpolated
+integrate (ttbar)
+
+########################################################################
+# Invalid versions for ILC
+########################################################################
+
+circe1_sqrts = 500 GeV 
+circe1_rev = 0         # most recent revision
+
+circe1_ver = 11        # not yet available version
+integrate (ttbar)
+
+circe1_ver = 1         # obsolete version
+integrate (ttbar)
+circe1_ver = 2         # obsolete version
+integrate (ttbar)
+circe1_ver = 3         # obsolete version
+integrate (ttbar)
+circe1_ver = 4         # obsolete version
+integrate (ttbar)
+circe1_ver = 5         # obsolete version
+integrate (ttbar)
+circe1_ver = 6         # obsolete version
+integrate (ttbar)
+circe1_ver = 7         # obsolete version
+integrate (ttbar)
+circe1_ver = 8         # obsolete version
+integrate (ttbar)
+circe1_ver = 9         # ILC not available before v10
+integrate (ttbar)
+
+########################################################################
+# Invalid accelerators in v10
+########################################################################
+
+circe1_ver = 10        # most recent version, 2014-03-05
+
+$circe1_acc = "SBAND"
+integrate (ttbar)
+$circe1_acc = "TESLA"
+integrate (ttbar)
+$circe1_acc = "XBAND"
+integrate (ttbar)
+$circe1_acc = "JLCNLC"
+integrate (ttbar)
+$circe1_acc = "SBNDEE"
+integrate (ttbar)
+$circe1_acc = "TESLEE"
+integrate (ttbar)
+$circe1_acc = "XBNDEE"
+integrate (ttbar)
+$circe1_acc = "NLCH"
+integrate (ttbar)
+$circe1_acc = "CLIC"
+integrate (ttbar)

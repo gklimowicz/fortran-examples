@@ -1,0 +1,536 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+[user variable] jet = PDG(2, -2, 1, -1, 3, -3, 4, -4, 5, -5, 22, 11, -11, 13, -13, 12, -12, 14, -14)
+[user variable] pr = PDG(2, -2, 1, -1, 3, -3, 4, -4, 5, -5, 22)
+[user variable] leptons = PDG(11, -11, 13, -13, 15, -15)
+$exclude_gauge_splittings = "t"
+| Switching to model 'SM', scheme 'Complex_Mass_Scheme'
+$blha_ew_scheme = "GF"
+SM.mZ =>  9.118760000000E+01
+SM.mW =>  8.038500000000E+01
+SM.mH =>  1.250000000000E+02
+SM.GF =>  1.166390000000E-05
+SM.wZ =>  0.000000000000E+00
+SM.wtop =>  0.000000000000E+00
+SM.wW =>  0.000000000000E+00
+SM.wH =>  0.000000000000E+00
+SM.ms =>  0.000000000000E+00
+SM.mc =>  0.000000000000E+00
+SM.mb =>  0.000000000000E+00
+SM.mtop =>  1.733400000000E+02
+SM.me =>  0.000000000000E+00
+SM.mmu =>  0.000000000000E+00
+SM.mtau =>  0.000000000000E+00
+alpha_power = 2
+alphas_power = 0
+alphas_nf = 5
+alphas_order = 2
+?alphas_is_fixed = false
+?alphas_from_mz = false
+?alphas_from_lhapdf = true
+?alphas_from_lambda_qcd = false
+SM.alphas =>  1.180000000000E-01
+$method = "openloops"
+?openloops_use_cms = true
+$integration_method = "vamp2"
+$rng_method = "rng_stream"
+openmp_num_threads = 1
+?omega_openmp = false
+sqrts =  1.300000000000E+04
+$lhapdf_file = "LUXqed_plus_PDF4LHC15_nnlo_100"
+photon_rec_r0 =  1.000000000000E-01
+jet_algorithm = 2
+jet_r =  4.000000000000E-01
+| End of included 'nlo_settings_ew.sin'
+[user variable] pr = PDG(2, -2, 1, -1, 3, -3, 4, -4, 5, -5, 21, 22)
+[user variable] j = PDG(2, -2, 1, -1, 3, -3, 4, -4, 5, -5, 21, 22)
+$openloops_allowed_libs = "pptt_ew"
+alpha_power = 0
+alphas_power = 2
+$nlo_correction_type = "EW"
+seed = 1
+| Process library 'nlo_pptt_ew_lib': recorded process 'pptt_as2a0'
+mult_call_virt =  1.000000000000E-01
+| Integrate: current process library needs compilation
+| Process library 'nlo_pptt_ew_lib': compiling ...
+| Process library 'nlo_pptt_ew_lib': writing makefile
+| Process library 'nlo_pptt_ew_lib': removing old files
+| Process library 'nlo_pptt_ew_lib': writing driver
+| Process library 'nlo_pptt_ew_lib': creating source code
+| Process library 'nlo_pptt_ew_lib': compiling sources
+| Process library 'nlo_pptt_ew_lib': linking
+| Process library 'nlo_pptt_ew_lib': loading
+| Process library 'nlo_pptt_ew_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing RNG Stream random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process pptt_as2a0:
+| Beam structure: p, p => lhapdf
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.300000000000E+04 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pptt_as2a0.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pptt_as2a0.i3.phs'
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| ------------------------------------------------------------------------
+| Process [scattering]: 'pptt_as2a0'
+|   Library name  = 'nlo_pptt_ew_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'pptt_as2a0_i1':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [openloops]
+|     2: 'pptt_as2a0_i2':   dbar:d:ubar:u:sbar:s:cbar:c:bbar:b:gl:A, dbar:d:ubar:u:sbar:s:cbar:c:bbar:b:gl:A => t, tbar, d:dbar:u:ubar:s:sbar:c:cbar:b:bbar:gl:A [openloops], [real]
+|     3: 'pptt_as2a0_i3':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [openloops], [virtual]
+|     4: 'pptt_as2a0_i4':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [inactive], [subtraction]
+|     5: 'pptt_as2a0_i5':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [openloops], [dglap]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 5 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 3 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: lhapdf, none => none, lhapdf
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Using user-defined general scale.
+| Starting integration for process 'pptt_as2a0' part 'born'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as2a0.m1.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as2a0.m1.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        810  2.8637550E+05  9.41E+04   32.87    9.35*   1.10
+|-----------------------------------------------------------------------------|
+   1        810  2.8637550E+05  9.41E+04   32.87    9.35    1.10
+|=============================================================================|
+| Starting integration for process 'pptt_as2a0' part 'real'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 7 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as2a0.m2.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as2a0.m2.vg2'.
+| VAMP2: set chain: use chained weights.
+   1       1001 -2.4141809E+03  6.67E+02   27.64    8.75*   1.09
+|-----------------------------------------------------------------------------|
+   1       1001 -2.4141809E+03  6.67E+02   27.64    8.75    1.09
+|=============================================================================|
+| Starting integration for process 'pptt_as2a0' part 'virtual'
+| Integrate: iterations = 1:100:"gw"
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as2a0.m3.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 100 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as2a0.m3.vg2'.
+| VAMP2: set chain: use chained weights.
+   1         88 -5.3275767E+03  3.28E+03   61.63    5.78*   5.71
+|-----------------------------------------------------------------------------|
+   1         88 -5.3275767E+03  3.28E+03   61.63    5.78    5.71
+|=============================================================================|
+| Starting integration for process 'pptt_as2a0' part 'dglap'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 5 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as2a0.m4.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as2a0.m4.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        992  9.6063155E+02  3.79E+02   39.43   12.42*   0.75
+|-----------------------------------------------------------------------------|
+   1        992  9.6063155E+02  3.79E+02   39.43   12.42    0.75
+|=============================================================================|
+| Integrate: sum of all components
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          0  2.7959438E+05  9.42E+04   33.69    0.00*   1.07
+| NLO Correction: [O(alpha_s+1)/O(alpha_s)]
+|  (  -2.37 +-   1.41 ) %
+|=============================================================================|
+alpha_power = 1
+alphas_power = 1
+seed = 1
+| Process library 'nlo_pptt_ew_lib': unloading
+| Process library 'nlo_pptt_ew_lib': open
+| Process library 'nlo_pptt_ew_lib': recorded process 'pptt_as1a1'
+mult_call_virt =  1.000000000000E-01
+| Integrate: current process library needs compilation
+| Process library 'nlo_pptt_ew_lib': compiling ...
+| Process library 'nlo_pptt_ew_lib': writing makefile
+| Process library 'nlo_pptt_ew_lib': removing old files
+| Process library 'nlo_pptt_ew_lib': writing driver
+| Process library 'nlo_pptt_ew_lib': creating source code
+| Process library 'nlo_pptt_ew_lib': compiling sources
+| Process library 'nlo_pptt_ew_lib': linking
+| Process library 'nlo_pptt_ew_lib': loading
+| Process library 'nlo_pptt_ew_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing RNG Stream random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process pptt_as1a1:
+| Beam structure: p, p => lhapdf
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.300000000000E+04 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pptt_as1a1.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pptt_as1a1.i3.phs'
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| ------------------------------------------------------------------------
+| Process [scattering]: 'pptt_as1a1'
+|   Library name  = 'nlo_pptt_ew_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'pptt_as1a1_i1':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [openloops]
+|     2: 'pptt_as1a1_i2':   dbar:d:ubar:u:sbar:s:cbar:c:bbar:b:gl:A, dbar:d:ubar:u:sbar:s:cbar:c:bbar:b:gl:A => t, tbar, d:dbar:u:ubar:s:sbar:c:cbar:b:bbar:gl:A [openloops], [real]
+|     3: 'pptt_as1a1_i3':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [openloops], [virtual]
+|     4: 'pptt_as1a1_i4':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [inactive], [subtraction]
+|     5: 'pptt_as1a1_i5':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:gl:A => t, tbar [openloops], [dglap]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 5 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 3 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: lhapdf, none => none, lhapdf
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Using user-defined general scale.
+| Starting integration for process 'pptt_as1a1' part 'born'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as1a1.m1.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as1a1.m1.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        810  1.4427615E+03  3.35E+02   23.19    6.60*   1.65
+|-----------------------------------------------------------------------------|
+   1        810  1.4427615E+03  3.35E+02   23.19    6.60    1.65
+|=============================================================================|
+| Starting integration for process 'pptt_as1a1' part 'real'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 7 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as1a1.m2.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as1a1.m2.vg2'.
+| VAMP2: set chain: use chained weights.
+   1       1000  2.9705353E+03  1.08E+03   36.33   11.49*   0.87
+|-----------------------------------------------------------------------------|
+   1       1000  2.9705353E+03  1.08E+03   36.33   11.49    0.87
+|=============================================================================|
+| Starting integration for process 'pptt_as1a1' part 'virtual'
+| Integrate: iterations = 1:100:"gw"
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as1a1.m3.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 100 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as1a1.m3.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        101 -3.8202422E+02  3.48E+02   91.17    9.16*   5.50
+|-----------------------------------------------------------------------------|
+   1        101 -3.8202422E+02  3.48E+02   91.17    9.16    5.50
+|=============================================================================|
+| Starting integration for process 'pptt_as1a1' part 'dglap'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 5 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as1a1.m4.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as1a1.m4.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        928  5.3722743E+01  2.38E+02  443.54  135.12*   1.32
+|-----------------------------------------------------------------------------|
+   1        928  5.3722743E+01  2.38E+02  443.54  135.12    1.32
+|=============================================================================|
+| Integrate: sum of all components
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          0  4.0849953E+03  1.21E+03   29.53    0.00*   0.94
+| NLO Correction: [O(alpha_s+1)/O(alpha_s)]
+|  ( 183.14 +-  90.86 ) %
+|=============================================================================|
+[user variable] pr = PDG(2, -2, 1, -1, 3, -3, 4, -4, 5, -5, 22)
+alpha_power = 2
+alphas_power = 0
+seed = 1
+| Process library 'nlo_pptt_ew_lib': unloading
+| Process library 'nlo_pptt_ew_lib': open
+| Process library 'nlo_pptt_ew_lib': recorded process 'pptt_as0a2'
+mult_call_virt =  1.000000000000E-01
+| Integrate: current process library needs compilation
+| Process library 'nlo_pptt_ew_lib': compiling ...
+| Process library 'nlo_pptt_ew_lib': writing makefile
+| Process library 'nlo_pptt_ew_lib': removing old files
+| Process library 'nlo_pptt_ew_lib': writing driver
+| Process library 'nlo_pptt_ew_lib': creating source code
+| Process library 'nlo_pptt_ew_lib': compiling sources
+| Process library 'nlo_pptt_ew_lib': linking
+| Process library 'nlo_pptt_ew_lib': loading
+| Process library 'nlo_pptt_ew_lib': ... success.
+| Integrate: compilation done
+| QCD alpha: using a running strong coupling
+| RNG: Initializing RNG Stream random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process pptt_as0a2:
+| Beam structure: p, p => lhapdf
+| Beam data (collision):
+|   p  (mass = 0.0000000E+00 GeV)
+|   p  (mass = 0.0000000E+00 GeV)
+|   sqrts = 1.300000000000E+04 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pptt_as0a2.i1.phs'
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'pptt_as0a2.i3.phs'
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| ------------------------------------------------------------------------
+| Process [scattering]: 'pptt_as0a2'
+|   Library name  = 'nlo_pptt_ew_lib'
+|   Process index = 3
+|   Process components:
+|     1: 'pptt_as0a2_i1':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A => t, tbar [openloops]
+|     2: 'pptt_as0a2_i2':   dbar:d:ubar:u:sbar:s:cbar:c:bbar:b:A, dbar:d:ubar:u:sbar:s:cbar:c:bbar:b:A => t, tbar, d:dbar:u:ubar:s:sbar:c:cbar:b:bbar:A [openloops], [real]
+|     3: 'pptt_as0a2_i3':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A => t, tbar [openloops], [virtual]
+|     4: 'pptt_as0a2_i4':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A => t, tbar [inactive], [subtraction]
+|     5: 'pptt_as0a2_i5':   u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A, u:ubar:d:dbar:s:sbar:c:cbar:b:bbar:A => t, tbar [openloops], [dglap]
+| ------------------------------------------------------------------------
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 5 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 2 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Phase space: 5 channels, 3 dimensions
+| Phase space: found 5 channels, collected in 2 groves.
+| Phase space: Using 9 equivalences between channels.
+| Phase space: wood
+| Beam structure: lhapdf, none => none, lhapdf
+| Beam structure: 1 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Using user-defined general scale.
+| Starting integration for process 'pptt_as0a2' part 'born'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as0a2.m1.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as0a2.m1.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        810  1.3139089E+03  4.81E+02   36.65   10.43*   0.96
+|-----------------------------------------------------------------------------|
+   1        810  1.3139089E+03  4.81E+02   36.65   10.43    0.96
+|=============================================================================|
+| Starting integration for process 'pptt_as0a2' part 'real'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 7 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as0a2.m2.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as0a2.m2.vg2'.
+| VAMP2: set chain: use chained weights.
+   1       1002 -1.2574021E+01  8.18E+00   65.07   20.60*   0.81
+|-----------------------------------------------------------------------------|
+   1       1002 -1.2574021E+01  8.18E+00   65.07   20.60    0.81
+|=============================================================================|
+| Starting integration for process 'pptt_as0a2' part 'virtual'
+| Integrate: iterations = 1:100:"gw"
+| Integrator: 2 chains, 5 channels, 4 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as0a2.m3.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 100 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as0a2.m3.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        100 -3.2378830E+01  2.45E+01   75.71    7.57*   6.55
+|-----------------------------------------------------------------------------|
+   1        100 -3.2378830E+01  2.45E+01   75.71    7.57    6.55
+|=============================================================================|
+| Starting integration for process 'pptt_as0a2' part 'dglap'
+| Integrate: iterations = 1:1000:"gw"
+| Integrator: 2 chains, 5 channels, 5 dimensions
+| Integrator: Using VAMP2 channel equivalences
+| Integrator: Write grid header and grids to 'pptt_as0a2.m4.vg2'
+| Integrator: Grid checkpoint after each iteration
+| Integrator: 1000 initial calls, 20 max. bins, stratified = T
+| Integrator: VAMP2
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+| VAMP2: Initialize new grids and write to file 'pptt_as0a2.m4.vg2'.
+| VAMP2: set chain: use chained weights.
+   1        928  2.5348357E+00  9.91E-01   39.09   11.91*   0.91
+|-----------------------------------------------------------------------------|
+   1        928  2.5348357E+00  9.91E-01   39.09   11.91    0.91
+|=============================================================================|
+| Integrate: sum of all components
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1          0  1.2714909E+03  4.82E+02   37.92    0.00*   0.93
+| NLO Correction: [O(alpha_s+1)/O(alpha_s)]
+|  (  -3.23 +-   2.30 ) %
+|=============================================================================|
+| There were no errors and    3 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

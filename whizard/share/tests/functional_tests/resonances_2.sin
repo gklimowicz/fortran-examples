@@ -1,0 +1,34 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> n1, N1, H
+# with resonance insertion (Z)
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+! choose seed such that first event generated below is on-shell
+seed = 2
+
+?resonance_history = true
+resonance_on_shell_limit = 4
+
+process resonances_2_p = e1, E1 => n1, N1, H
+
+mH = 125 GeV
+
+sqrts = 250 GeV
+
+beams = e1, E1 => isr
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+iterations = 3:5000, 1:5000
+
+integrate (resonances_2_p)
+
+n_events = 100
+sample_format = lhef
+simulate (resonances_2_p)
+

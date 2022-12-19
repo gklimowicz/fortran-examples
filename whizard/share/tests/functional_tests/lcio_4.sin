@@ -1,0 +1,27 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+
+seed = 0
+
+process lcio_4_p = e1, E1 => e2, E2
+
+sqrts = 500
+
+beams = e1, E1 => circe2  
+$circe2_file = "ilc500.circe"
+$circe2_design = "ILC"
+?circe2_polarized = false
+
+iterations = 1:100
+integrate (lcio_4_p)
+
+n_events = 1
+sample_format = lcio
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+simulate (lcio_4_p)

@@ -1,0 +1,1209 @@
+! WHIZARD 3.1.0 Dec 14 2022
+!
+! Copyright (C) 1999-2022 by
+!     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+!     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+!     Juergen Reuter <juergen.reuter@desy.de>
+!
+!     with contributions from
+!     cf. main AUTHORS file
+!
+! WHIZARD is free software; you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by
+! the Free Software Foundation; either version 2, or (at your option)
+! any later version.
+!
+! WHIZARD is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program; if not, write to the Free Software
+! Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file has been stripped of most comments.  For documentation, refer
+! to the source 'whizard.nw'
+
+submodule (blha_config) blha_config_s
+
+
+  use io_units
+  use constants
+  use string_utils
+  use physics_defs, only: PHOTON, PHOTON_OFFSHELL
+  use diagnostics
+  use flavors
+  use pdg_arrays
+
+  implicit none
+
+contains
+
+  subroutine check_extra_cmd (extra_cmd)
+    type(string_t), intent(in) :: extra_cmd
+    type(string_t), dimension(N_KNOWN_SPECIAL_OL_METHODS) :: known_methods
+    integer :: i
+    logical :: found
+    known_methods(1) = 'top'
+    known_methods(2) = 'not'
+    known_methods(3) = 'stop'
+    if (extra_cmd == var_str ("")) return
+    found = .false.
+    do i = 1, N_KNOWN_SPECIAL_OL_METHODS
+       found = found .or. &
+            (extra_cmd == var_str ('extra approx ') // known_methods(i))
+    end do
+    if (.not. found) &
+         call msg_fatal ("The given extra OpenLoops method is not kown ", &
+         [var_str ("Available commands are: "), &
+         var_str ("extra approx top (only WbWb signal),"), &
+         var_str ("extra approx stop (only WbWb singletop),"), &
+         var_str ("extra approx not (no top in WbWb).")])
+  end subroutine check_extra_cmd
+
+  module subroutine blha_particle_string_element_init_default (blha_p, id)
+    class(blha_particle_string_element_t), intent(out) :: blha_p
+    integer, intent(in) :: id
+    blha_p%pdg = id
+  end subroutine blha_particle_string_element_init_default
+
+  module subroutine blha_particle_string_element_init_polarized (blha_p, id, hel)
+    class(blha_particle_string_element_t), intent(out) :: blha_p
+    integer, intent(in) :: id, hel
+    blha_p%polarized = .true.
+    blha_p%pdg = id
+    blha_p%hel = hel
+  end subroutine blha_particle_string_element_init_polarized
+
+  module subroutine blha_particle_string_element_write_pdg_unit (blha_p, unit)
+    class(blha_particle_string_element_t), intent(in) :: blha_p
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit)
+    write (u, '(I3)') blha_p%pdg
+  end subroutine blha_particle_string_element_write_pdg_unit
+
+  module subroutine blha_particle_string_element_write_pdg_character (blha_p, c)
+    class(blha_particle_string_element_t), intent(in) :: blha_p
+    character(3), intent(inout) :: c
+    write (c, '(I3)') blha_p%pdg
+  end subroutine blha_particle_string_element_write_pdg_character
+
+  module subroutine blha_particle_string_element_write_helicity_unit (blha_p, unit)
+    class(blha_particle_string_element_t), intent(in) :: blha_p
+    integer, intent(in), optional :: unit
+    integer :: u
+    u = given_output_unit (unit)
+    write (u, '(A1,I0,A1)') '(', blha_p%hel, ')'
+  end subroutine blha_particle_string_element_write_helicity_unit
+
+  module subroutine blha_particle_string_element_write_helicity_character (blha_p, c)
+    class(blha_particle_string_element_t), intent(in) :: blha_p
+    character(4), intent(inout) :: c
+    write (c, '(A1,I0,A1)') '(', blha_p%hel, ')'
+  end subroutine blha_particle_string_element_write_helicity_character
+
+  module function ew_scheme_string_to_int (ew_scheme_str) result (ew_scheme_int)
+    integer :: ew_scheme_int
+    type(string_t), intent(in) :: ew_scheme_str
+    select case (char (ew_scheme_str))
+    case ('GF', 'Gmu')
+       ew_scheme_int = BLHA_EW_GF
+    case ('alpha_qed', 'alpha_internal')
+       ew_scheme_int = BLHA_EW_INTERNAL
+    case ('alpha_mz')
+       ew_scheme_int = BLHA_EW_MZ
+    case ('alpha_0', 'alpha_thompson')
+       ew_scheme_int = BLHA_EW_0
+    case default
+       call msg_fatal ("ew_scheme: " // char (ew_scheme_str) // &
+            " not supported. Try 'Gmu', 'alpha_internal', 'alpha_mz' or 'alpha_0'.")
+    end select
+  end function ew_scheme_string_to_int
+
+  module function correction_type_string_to_int &
+       (correction_type_str) result (correction_type_int)
+    integer :: correction_type_int
+    type(string_t), intent(in) :: correction_type_str
+    select case (char (correction_type_str))
+    case ('QCD')
+       correction_type_int = BLHA_CT_QCD
+    case ('EW')
+       correction_type_int = BLHA_CT_EW
+    case default
+       call msg_warning ("nlo_correction_type: " // char (correction_type_str) // &
+            " not supported. Try setting it to 'QCD', 'EW'.")
+    end select
+  end function correction_type_string_to_int
+
+  module subroutine blha_master_set_methods (master, is_nlo, var_list)
+    class(blha_master_t), intent(inout) :: master
+    logical, intent(in) :: is_nlo
+    type(var_list_t), intent(in) :: var_list
+    type(string_t) :: method, born_me_method, real_tree_me_method
+    type(string_t) :: loop_me_method, correlation_me_method
+    type(string_t) :: dglap_me_method
+    type(string_t) :: default_method
+    logical :: cmp_born, cmp_real
+    logical :: cmp_loop, cmp_corr
+    logical :: cmp_dglap
+    if (is_nlo) then
+       method = var_list%get_sval (var_str ("$method"))
+       born_me_method = var_list%get_sval (var_str ("$born_me_method"))
+       if (born_me_method == "")  born_me_method = method
+       real_tree_me_method = var_list%get_sval (var_str ("$real_tree_me_method"))
+       if (real_tree_me_method == "")  real_tree_me_method = method
+       loop_me_method = var_list%get_sval (var_str ("$loop_me_method"))
+       if (loop_me_method == "")  loop_me_method = method
+       correlation_me_method = var_list%get_sval (var_str ("$correlation_me_method"))
+       if (correlation_me_method == "")  correlation_me_method = method
+       dglap_me_method = var_list%get_sval (var_str ("$dglap_me_method"))
+       if (dglap_me_method == "")  dglap_me_method = method
+       cmp_born = born_me_method /= 'omega'
+       cmp_real = is_nlo .and. (real_tree_me_method /= 'omega')
+       cmp_loop = is_nlo .and. (loop_me_method /= 'omega')
+       cmp_corr = is_nlo .and. (correlation_me_method /= 'omega')
+       cmp_dglap = is_nlo .and. (dglap_me_method /= 'omega')
+       call set_me_method (1, loop_me_method)
+       call set_me_method (2, correlation_me_method)
+       call set_me_method (3, real_tree_me_method)
+       call set_me_method (4, born_me_method)
+       call set_me_method (5, dglap_me_method)
+    else
+       default_method = var_list%get_sval (var_str ("$method"))
+       cmp_born = default_method /= 'omega'
+       cmp_real = .false.; cmp_loop = .false.; cmp_corr = .false.
+       call set_me_method (4, default_method)
+    end if
+    master%n_files = count ([cmp_born, cmp_real, cmp_loop, cmp_corr, cmp_dglap])
+    call set_nlo_indices ()
+    master%compute_borns = cmp_born
+    master%compute_real_trees = cmp_real
+    master%compute_loops = cmp_loop
+    master%compute_correlations = cmp_corr
+    master%compute_dglap = cmp_dglap
+  contains
+    subroutine set_nlo_indices ()
+      integer :: i_file
+      allocate (master%i_file_to_nlo_index (master%n_files))
+      master%i_file_to_nlo_index = 0
+      i_file = 0
+      if (cmp_loop) then
+         i_file = i_file + 1
+         master%i_file_to_nlo_index(i_file) = 1
+      end if
+      if (cmp_corr) then
+         i_file = i_file + 1
+         master%i_file_to_nlo_index(i_file) = 2
+      end if
+      if (cmp_real) then
+         i_file = i_file + 1
+         master%i_file_to_nlo_index(i_file) = 3
+      end if
+      if (cmp_born) then
+         i_file = i_file + 1
+         master%i_file_to_nlo_index(i_file) = 4
+      end if
+      if (cmp_dglap) then
+         i_file = i_file + 1
+         master%i_file_to_nlo_index(i_file) = 5
+      end if
+    end subroutine set_nlo_indices
+
+    subroutine set_me_method (i, me_method)
+      integer, intent(in) :: i
+      type(string_t) :: me_method
+      select case (char (me_method))
+      case ('gosam')
+         call master%set_gosam (i)
+      case ('openloops')
+         call master%set_openloops (i)
+      end select
+    end subroutine set_me_method
+  end subroutine blha_master_set_methods
+
+  module subroutine blha_master_allocate_config_files (master)
+    class(blha_master_t), intent(inout) :: master
+    allocate (master%blha_cfg (master%n_files))
+    allocate (master%suffix (master%n_files))
+  end subroutine blha_master_allocate_config_files
+
+  module subroutine blha_master_set_ew_scheme (master, ew_scheme)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: ew_scheme
+    master%ew_scheme = ew_scheme_string_to_int (ew_scheme)
+  end subroutine blha_master_set_ew_scheme
+
+  module subroutine blha_master_set_correction_type (master, correction_type_str)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: correction_type_str
+    master%blha_cfg(:)%correction_type = &
+         correction_type_string_to_int (correction_type_str)
+  end subroutine blha_master_set_correction_type
+
+  module subroutine blha_master_set_photon_characteristics (master, flv_born, n_in)
+    class(blha_master_t), intent(inout) :: master
+    integer, dimension(:,:), intent(in) :: flv_born
+    integer, intent(in) :: n_in
+    integer :: i_file, i, i_flv 
+    integer :: noff_is, noff_fs, noff_is_max, noff_fs_max
+    do i_file = 1, master%n_files
+       noff_is_max = 0; noff_fs_max = 0
+       do i_flv = 1, size (flv_born, 2)
+          noff_is = 0; noff_fs = 0
+          do i = 1, n_in
+             if (flv_born (i, i_flv) == PHOTON) noff_is = noff_is + 1
+          end do
+          noff_is_max = max (noff_is, noff_is_max)
+          do i = n_in + 1, size (flv_born(:, i_flv))
+             if (flv_born (i, i_flv) == PHOTON) noff_fs = noff_fs + 1
+          end do
+          noff_fs_max = max (noff_fs, noff_fs_max)
+       end do
+       if (master%blha_cfg(i_file)%correction_type == BLHA_CT_EW &
+          .and. master%ew_scheme == BLHA_EW_0 &
+          .and. (noff_is_max > 0 .or. noff_fs_max > 0)) then
+          call msg_fatal ("For NLO EW/mixed corrections, 'alpha_0'/" &
+          // "'alpha_thompson' are ",  [ var_str ("inconsistent EW input " &
+          // "schemes. Please use 'alpha_mz' or 'Gmu'")])
+       end if
+       master%blha_cfg(i_file)%n_off_photons_is = noff_is_max
+       master%blha_cfg(i_file)%n_off_photons_fs = noff_fs_max
+    end do
+  end subroutine blha_master_set_photon_characteristics
+
+  module subroutine blha_master_generate (master, basename, model, &
+       n_in, alpha_power, alphas_power, flv_born, flv_real)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: basename
+    class(model_data_t), intent(in), target :: model
+    integer, intent(in) :: n_in
+    integer, intent(in) :: alpha_power, alphas_power
+    integer, intent(in), dimension(:,:), allocatable :: flv_born, flv_real
+    integer :: i_file
+    if (master%n_files < 1) &
+         call msg_fatal ("Attempting to generate OLP-files, but none are specified!")
+    i_file = 1
+    call master%generate_loop (basename, model, n_in, alpha_power, &
+         alphas_power, flv_born, i_file)
+    call master%generate_correlation (basename, model, n_in, alpha_power, &
+         alphas_power, flv_born, i_file)
+    call master%generate_real_tree (basename, model, n_in, alpha_power, &
+         alphas_power, flv_real, i_file)
+    call master%generate_born (basename, model, n_in, alpha_power, &
+         alphas_power, flv_born, i_file)
+    call master%generate_dglap (basename, model, n_in, alpha_power, &
+         alphas_power, flv_born, i_file)
+  end subroutine blha_master_generate
+
+  module subroutine blha_master_generate_loop (master, basename, model, n_in, &
+       alpha_power, alphas_power, flv_born, i_file)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: basename
+    class(model_data_t), intent(in), target :: model
+    integer, intent(in) :: n_in
+    integer, intent(in) :: alpha_power, alphas_power
+    integer, dimension(:,:), allocatable, intent(in) :: flv_born
+    integer, intent(inout) :: i_file
+    type(blha_flv_state_t), dimension(:), allocatable :: blha_flavor
+    integer :: i_flv
+    if (master%compute_loops) then
+       if (allocated (flv_born)) then
+          allocate (blha_flavor (size (flv_born, 2)))
+          do i_flv = 1, size (flv_born, 2)
+             allocate (blha_flavor(i_flv)%flavors (size (flv_born(:,i_flv))))
+             blha_flavor(i_flv)%flavors = flv_born(:,i_flv)
+             blha_flavor(i_flv)%flv_mult = 2
+          end do
+          master%suffix(i_file) = blha_get_additional_suffix (var_str ("_LOOP"))
+          call blha_init_virtual (master%blha_cfg(i_file), blha_flavor, &
+               n_in, alpha_power, alphas_power, master%ew_scheme, &
+               basename, model, master%blha_mode(1), master%suffix(i_file))
+          i_file = i_file + 1
+        else
+          call msg_fatal ("BLHA Loops requested but " &
+               // "Born flavor not existing")
+        end if
+    end if
+  end subroutine blha_master_generate_loop
+
+  module subroutine blha_master_generate_correlation (master, basename, model, n_in, &
+       alpha_power, alphas_power, flv_born, i_file)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: basename
+    class(model_data_t), intent(in), target :: model
+    integer, intent(in) :: n_in
+    integer, intent(in) :: alpha_power, alphas_power
+    integer, dimension(:,:), allocatable, intent(in) :: flv_born
+    integer, intent(inout) :: i_file
+    type(blha_flv_state_t), dimension(:), allocatable :: blha_flavor
+    integer :: i_flv
+    if (master%compute_correlations) then
+       if (allocated (flv_born)) then
+          allocate (blha_flavor (size (flv_born, 2)))
+          do i_flv = 1, size (flv_born, 2)
+             allocate (blha_flavor(i_flv)%flavors (size (flv_born(:,i_flv))))
+             blha_flavor(i_flv)%flavors = flv_born(:,i_flv)
+             blha_flavor(i_flv)%flv_mult = 3
+          end do
+          master%suffix(i_file) = blha_get_additional_suffix (var_str ("_SUB"))
+          call blha_init_subtraction (master%blha_cfg(i_file), blha_flavor, &
+               n_in, alpha_power, alphas_power, master%ew_scheme, &
+               basename, model, master%blha_mode(2), master%suffix(i_file))
+          i_file = i_file + 1
+       else
+          call msg_fatal ("BLHA Correlations requested but "&
+               // "Born flavor not existing")
+       end if
+    end if
+  end subroutine blha_master_generate_correlation
+
+  module subroutine blha_master_generate_real_tree (master, basename, model, n_in, &
+       alpha_power, alphas_power, flv_real, i_file)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: basename
+    class(model_data_t), intent(in), target :: model
+    integer, intent(in) :: n_in
+    integer, intent(in) :: alpha_power, alphas_power
+    integer, dimension(:,:), allocatable, intent(in) :: flv_real
+    integer, intent(inout) :: i_file
+    type(blha_flv_state_t), dimension(:), allocatable :: blha_flavor
+    integer :: i_flv
+    if (master%compute_real_trees) then
+       if (allocated (flv_real)) then
+          allocate (blha_flavor (size (flv_real, 2)))
+          do i_flv = 1, size (flv_real, 2)
+             allocate (blha_flavor(i_flv)%flavors (size (flv_real(:,i_flv))))
+             blha_flavor(i_flv)%flavors = flv_real(:,i_flv)
+             blha_flavor(i_flv)%flv_mult = 1
+          end do
+          master%suffix(i_file) = blha_get_additional_suffix (var_str ("_REAL"))
+          call blha_init_real (master%blha_cfg(i_file), blha_flavor, &
+               n_in, alpha_power, alphas_power, master%ew_scheme, &
+               basename, model, master%blha_mode(3), master%suffix(i_file))
+          i_file = i_file + 1
+       else
+          call msg_fatal ("BLHA Trees requested but "&
+               // "Real flavor not existing")
+       end if
+    end if
+  end subroutine blha_master_generate_real_tree
+
+  module subroutine blha_master_generate_born (master, basename, model, n_in, &
+       alpha_power, alphas_power, flv_born, i_file)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: basename
+    class(model_data_t), intent(in), target :: model
+    integer, intent(in) :: n_in
+    integer, intent(in) :: alpha_power, alphas_power
+    integer, dimension(:,:), allocatable, intent(in) :: flv_born
+    integer, intent(inout) :: i_file
+    type(blha_flv_state_t), dimension(:), allocatable :: blha_flavor
+    integer :: i_flv
+    if (master%compute_borns) then
+       if (allocated (flv_born)) then
+          allocate (blha_flavor (size (flv_born, 2)))
+          do i_flv = 1, size (flv_born, 2)
+             allocate (blha_flavor(i_flv)%flavors (size (flv_born(:,i_flv))))
+             blha_flavor(i_flv)%flavors = flv_born(:,i_flv)
+             blha_flavor(i_flv)%flv_mult = 1
+          end do
+          master%suffix(i_file) = blha_get_additional_suffix (var_str ("_BORN"))
+          call blha_init_born (master%blha_cfg(i_file), blha_flavor, &
+               n_in, alpha_power, alphas_power, master%ew_scheme, &
+               basename, model, master%blha_mode(4), master%suffix(i_file))
+          i_file = i_file + 1
+       end if
+    end if
+  end subroutine blha_master_generate_born
+
+  module subroutine blha_master_generate_dglap (master, basename, model, n_in, &
+       alpha_power, alphas_power, flv_born, i_file)
+    class(blha_master_t), intent(inout) :: master
+    type(string_t), intent(in) :: basename
+    class(model_data_t), intent(in), target :: model
+    integer, intent(in) :: n_in
+    integer, intent(in) :: alpha_power, alphas_power
+    integer, dimension(:,:), allocatable, intent(in) :: flv_born
+    integer, intent(inout) :: i_file
+    type(blha_flv_state_t), dimension(:), allocatable :: blha_flavor
+    integer :: i_flv
+    if (master%compute_dglap) then
+       if (allocated (flv_born)) then
+          allocate (blha_flavor (size (flv_born, 2)))
+          do i_flv = 1, size (flv_born, 2)
+             allocate (blha_flavor(i_flv)%flavors (size (flv_born(:,i_flv))))
+             blha_flavor(i_flv)%flavors = flv_born(:,i_flv)
+             blha_flavor(i_flv)%flv_mult = 2
+          end do
+          master%suffix(i_file) = blha_get_additional_suffix (var_str ("_DGLAP"))
+          call blha_init_dglap (master%blha_cfg(i_file), blha_flavor, &
+               n_in, alpha_power, alphas_power, master%ew_scheme, &
+               basename, model, master%blha_mode(5), master%suffix(i_file))
+          i_file = i_file + 1
+       end if
+    end if
+  end subroutine blha_master_generate_dglap
+
+  module subroutine blha_master_setup_additional_features (master, &
+         phs_tolerance, use_cms, stability_log, extra_cmd, &
+         allowed_libs, beam_structure)
+    class(blha_master_t), intent(inout) :: master
+    integer, intent(in) :: phs_tolerance
+    logical, intent(in) :: use_cms
+    type(string_t), intent(in), optional :: extra_cmd, allowed_libs
+    integer, intent(in) :: stability_log
+    type(beam_structure_t), intent(in), optional :: beam_structure
+    integer :: i_file
+    logical :: polarized, throw_warning
+    
+    polarized = .false.
+    if (present (beam_structure)) polarized = beam_structure%has_polarized_beams ()
+    
+    throw_warning = .false.
+    if (use_cms) then
+       throw_warning = throw_warning .or. (master%compute_loops &
+            .and. master%blha_mode(1) /= BLHA_MODE_OPENLOOPS)
+       throw_warning = throw_warning .or. (master%compute_correlations &
+            .and. master%blha_mode(2) /= BLHA_MODE_OPENLOOPS)
+       throw_warning = throw_warning .or. (master%compute_real_trees &
+            .and. master%blha_mode(3) /= BLHA_MODE_OPENLOOPS)
+       throw_warning = throw_warning .or. (master%compute_borns &
+            .and. master%blha_mode(4) /= BLHA_MODE_OPENLOOPS)
+       throw_warning = throw_warning .or. (master%compute_dglap &
+            .and. master%blha_mode(5) /= BLHA_MODE_OPENLOOPS)
+       if (throw_warning)  call cms_warning ()
+    end if
+    
+    do i_file = 1, master%n_files
+       if (phs_tolerance > 0) then
+          select case (master%blha_mode (master%i_file_to_nlo_index(i_file)))
+          case (BLHA_MODE_GOSAM)
+             if (polarized)  call gosam_error_message ()
+          case (BLHA_MODE_OPENLOOPS)
+             master%blha_cfg(i_file)%openloops_use_cms = use_cms
+             master%blha_cfg(i_file)%openloops_phs_tolerance = phs_tolerance
+             master%blha_cfg(i_file)%polarized = polarized
+             if (present (extra_cmd)) then
+                master%blha_cfg(i_file)%openloops_extra_cmd = extra_cmd
+             else
+                master%blha_cfg(i_file)%openloops_extra_cmd = var_str ('')
+             end if
+             if (present (allowed_libs)) then
+                master%blha_cfg(i_file)%openloops_allowed_libs = allowed_libs
+             else
+                master%blha_cfg(i_file)%openloops_allowed_libs = var_str ('')
+             end if
+             master%blha_cfg(i_file)%openloops_stability_log = stability_log
+          end select
+       end if
+    end do
+  contains
+    subroutine cms_warning ()
+      call msg_warning ("You have set ?openloops_use_cms = true, but not all active matrix ", &
+           [var_str ("element methods are set to OpenLoops. Note that other "), &
+           var_str ("methods might not necessarily support the complex mass "), &
+           var_str ("scheme. This can yield inconsistencies in your NLO results!")])
+    end subroutine cms_warning
+    
+    subroutine gosam_error_message ()
+      call msg_fatal ("You are trying to evaluate a process at NLO ", &
+           [var_str ("which involves polarized beams using GoSam. "), &
+           var_str ("This feature is not supported yet. "), &
+           var_str ("Please use OpenLoops instead")])
+    end subroutine gosam_error_message
+  end subroutine blha_master_setup_additional_features
+  
+  module subroutine blha_master_set_gosam (master, i)
+    class(blha_master_t), intent(inout) :: master
+    integer, intent(in) :: i
+    master%blha_mode(i) = BLHA_MODE_GOSAM
+  end subroutine blha_master_set_gosam
+
+  module subroutine blha_master_set_openloops (master, i)
+    class(blha_master_t), intent(inout) :: master
+    integer, intent(in) :: i
+    master%blha_mode(i) = BLHA_MODE_OPENLOOPS
+  end subroutine blha_master_set_openloops
+
+  module subroutine blha_master_set_polarization (master, i)
+    class(blha_master_t), intent(inout) :: master
+    integer, intent(in) :: i
+    master%blha_cfg(i)%polarized = .true.
+  end subroutine blha_master_set_polarization
+
+  subroutine blha_init_born (blha_cfg, blha_flavor, n_in, &
+         ap, asp, ew_scheme, basename, model, blha_mode, suffix)
+    type(blha_configuration_t), intent(inout) :: blha_cfg
+    type(blha_flv_state_t), intent(in), dimension(:) :: blha_flavor
+    integer, intent(in) :: n_in
+    integer, intent(in) :: ap, asp
+    integer, intent(in) :: ew_scheme
+    type(string_t), intent(in) :: basename
+    type(model_data_t), intent(in), target :: model
+    integer, intent(in) :: blha_mode
+    type(string_t), intent(in) :: suffix
+    integer, dimension(:), allocatable :: amp_type
+    integer :: i
+
+    allocate (amp_type (size (blha_flavor)))
+    do i = 1, size (blha_flavor)
+       amp_type(i) = BLHA_AMP_TREE
+    end do
+    call blha_configuration_init (blha_cfg, basename // suffix , &
+         model, blha_mode)
+    call blha_configuration_append_processes (blha_cfg, n_in, &
+         blha_flavor, amp_type)
+    call blha_configuration_set (blha_cfg, BLHA_VERSION_2, &
+         irreg = BLHA_IRREG_CDR, alphas_power = asp, &
+         alpha_power = ap, ew_scheme = ew_scheme, &
+         debug = blha_mode == BLHA_MODE_GOSAM)
+  end subroutine blha_init_born
+
+  subroutine blha_init_virtual (blha_cfg, blha_flavor, n_in, &
+         ap, asp, ew_scheme, basename, model, blha_mode, suffix)
+    type(blha_configuration_t), intent(inout) :: blha_cfg
+    type(blha_flv_state_t), intent(in), dimension(:) :: blha_flavor
+    integer, intent(in) :: n_in
+    integer, intent(in) :: ap, asp
+    integer, intent(in) :: ew_scheme
+    type(string_t), intent(in) :: basename
+    type(model_data_t), intent(in), target :: model
+    integer, intent(in) :: blha_mode
+    type(string_t), intent(in) :: suffix
+    integer, dimension(:), allocatable :: amp_type
+    integer :: i
+
+    allocate (amp_type (size (blha_flavor) * 2))
+    do i = 1, size (blha_flavor)
+       amp_type(2 * i - 1) = BLHA_AMP_LOOP
+       amp_type(2 * i) = BLHA_AMP_COLOR_C
+    end do
+    call blha_configuration_init (blha_cfg, basename // suffix , &
+         model, blha_mode)
+    call blha_configuration_append_processes (blha_cfg, n_in, &
+         blha_flavor, amp_type)
+    call blha_configuration_set (blha_cfg, BLHA_VERSION_2, &
+         irreg = BLHA_IRREG_CDR, &
+         alphas_power = asp, &
+         alpha_power = ap, &
+         ew_scheme = ew_scheme, &
+         debug = blha_mode == BLHA_MODE_GOSAM)
+  end subroutine blha_init_virtual
+
+  subroutine blha_init_dglap (blha_cfg, blha_flavor, n_in, &
+         ap, asp, ew_scheme, basename, model, blha_mode, suffix)
+    type(blha_configuration_t), intent(inout) :: blha_cfg
+    type(blha_flv_state_t), intent(in), dimension(:) :: blha_flavor
+    integer, intent(in) :: n_in
+    integer, intent(in) :: ap, asp
+    integer, intent(in) :: ew_scheme
+    type(string_t), intent(in) :: basename
+    type(model_data_t), intent(in), target :: model
+    integer, intent(in) :: blha_mode
+    type(string_t), intent(in) :: suffix
+    integer, dimension(:), allocatable :: amp_type
+    integer :: i
+
+    allocate (amp_type (size (blha_flavor) * 2))
+    do i = 1, size (blha_flavor)
+       amp_type(2 * i - 1) = BLHA_AMP_TREE
+       amp_type(2 * i) = BLHA_AMP_COLOR_C
+    end do
+    call blha_configuration_init (blha_cfg, basename // suffix , &
+         model, blha_mode)
+    call blha_configuration_append_processes (blha_cfg, n_in, &
+         blha_flavor, amp_type)
+    call blha_configuration_set (blha_cfg, BLHA_VERSION_2, &
+         irreg = BLHA_IRREG_CDR, &
+         alphas_power = asp, &
+         alpha_power = ap, &
+         ew_scheme = ew_scheme, &
+         debug = blha_mode == BLHA_MODE_GOSAM)
+  end subroutine blha_init_dglap
+
+  subroutine blha_init_subtraction (blha_cfg, blha_flavor, n_in, &
+         ap, asp, ew_scheme, basename, model, blha_mode, suffix)
+    type(blha_configuration_t), intent(inout) :: blha_cfg
+    type(blha_flv_state_t), intent(in), dimension(:) :: blha_flavor
+    integer, intent(in) :: n_in
+    integer, intent(in) :: ap, asp
+    integer, intent(in) :: ew_scheme
+    type(string_t), intent(in) :: basename
+    type(model_data_t), intent(in), target :: model
+    integer, intent(in) :: blha_mode
+    type(string_t), intent(in) :: suffix
+    integer, dimension(:), allocatable :: amp_type
+    integer :: i
+
+    allocate (amp_type (size (blha_flavor) * 3))
+    do i = 1, size (blha_flavor)
+       amp_type(3 * i - 2) = BLHA_AMP_TREE
+       amp_type(3 * i - 1) = BLHA_AMP_COLOR_C
+       amp_type(3 * i) = BLHA_AMP_SPIN_C
+    end do
+    call blha_configuration_init (blha_cfg, basename // suffix , &
+         model, blha_mode)
+    call blha_configuration_append_processes (blha_cfg, n_in, &
+         blha_flavor, amp_type)
+    call blha_configuration_set (blha_cfg, BLHA_VERSION_2, &
+         irreg = BLHA_IRREG_CDR, &
+         alphas_power = asp, &
+         alpha_power = ap, &
+         ew_scheme = ew_scheme, &
+         debug = blha_mode == BLHA_MODE_GOSAM)
+  end subroutine blha_init_subtraction
+
+  subroutine blha_init_real (blha_cfg, blha_flavor, n_in, &
+         ap, asp, ew_scheme, basename, model, blha_mode, suffix)
+    type(blha_configuration_t), intent(inout) :: blha_cfg
+    type(blha_flv_state_t), intent(in), dimension(:) :: blha_flavor
+    integer, intent(in) :: n_in
+    integer, intent(in) :: ap, asp
+    integer :: ap_ew, ap_qcd
+    integer, intent(in) :: ew_scheme
+    type(string_t), intent(in) :: basename
+    type(model_data_t), intent(in), target :: model
+    integer, intent(in) :: blha_mode
+    type(string_t), intent(in) :: suffix
+    integer, dimension(:), allocatable :: amp_type
+    integer :: i
+
+    allocate (amp_type (size (blha_flavor)))
+    do i = 1, size (blha_flavor)
+       amp_type(i) = BLHA_AMP_TREE
+    end do
+    select case (blha_cfg%correction_type)
+    case (BLHA_CT_QCD)
+       ap_ew = ap
+       ap_qcd = asp + 1
+    case (BLHA_CT_EW)
+       ap_ew = ap + 1
+       ap_qcd = asp
+    end select
+    call blha_configuration_init (blha_cfg, basename // suffix , &
+         model, blha_mode)
+    call blha_configuration_append_processes (blha_cfg, n_in, &
+         blha_flavor, amp_type)
+
+    call blha_configuration_set (blha_cfg, BLHA_VERSION_2, &
+         irreg = BLHA_IRREG_CDR, &
+         alphas_power = ap_qcd, &
+         alpha_power = ap_ew, &
+         ew_scheme = ew_scheme, &
+         debug = blha_mode == BLHA_MODE_GOSAM)
+  end subroutine blha_init_real
+
+  module function blha_get_additional_suffix (base_suffix) result (suffix)
+    type(string_t) :: suffix
+    type(string_t), intent(in) :: base_suffix
+  
+    suffix = base_suffix
+  
+  end function blha_get_additional_suffix
+
+  module subroutine blha_master_write_olp (master, basename)
+    class(blha_master_t), intent(in) :: master
+    type(string_t), intent(in) :: basename
+    integer :: unit
+    type(string_t) :: filename
+    integer :: i_file
+    do i_file = 1, master%n_files
+       filename = basename // master%suffix(i_file) // ".olp"
+       unit = free_unit ()
+       open (unit, file = char (filename), status = 'replace', action = 'write')
+       call blha_configuration_write &
+            (master%blha_cfg(i_file), master%suffix(i_file), unit)
+       close (unit)
+    end do
+  end subroutine blha_master_write_olp
+
+  module subroutine blha_master_final (master)
+    class(blha_master_t), intent(inout) :: master
+    master%n_files = 0
+    deallocate (master%suffix)
+    deallocate (master%blha_cfg)
+    deallocate (master%i_file_to_nlo_index)
+  end subroutine blha_master_final
+
+  module subroutine blha_configuration_init (cfg, name, model, mode)
+    type(blha_configuration_t), intent(inout) :: cfg
+    type(string_t), intent(in) :: name
+    class(model_data_t), target, intent(in) :: model
+    integer, intent(in), optional :: mode
+    if (.not. associated (cfg%model)) then
+       cfg%name = name
+       cfg%model => model
+    end if
+    if (present (mode))  cfg%mode = mode
+  end subroutine blha_configuration_init
+
+  subroutine blha_configuration_get_massive_particles &
+         (cfg, massive, i_massive)
+    type(blha_configuration_t), intent(in) :: cfg
+    logical, intent(out) :: massive
+    integer, intent(out), dimension(:), allocatable :: i_massive
+    integer, parameter :: max_particles = 10
+    integer, dimension(max_particles) :: i_massive_tmp
+    integer, dimension(max_particles) :: checked
+    type(blha_cfg_process_node_t), pointer :: current_process
+    integer :: k
+    integer :: n_massive
+    n_massive = 0; k = 1
+    checked = 0
+    if (associated (cfg%processes)) then
+       current_process => cfg%processes
+    else
+       call msg_fatal ("BLHA, massive particles: " // &
+            "No processes allocated!")
+    end if
+    do
+       call check_pdg_list (current_process%pdg_in%pdg)
+       call check_pdg_list (current_process%pdg_out%pdg)
+       if (k > max_particles) &
+            call msg_fatal ("BLHA, massive particles: " // &
+            "Max. number of particles exceeded!")
+       if (associated (current_process%next)) then
+          current_process => current_process%next
+       else
+          exit
+       end if
+    end do
+    if (n_massive > 0) then
+       allocate (i_massive (n_massive))
+       i_massive = i_massive_tmp (1:n_massive)
+       massive = .true.
+    else
+       massive = .false.
+    end if
+  contains
+    subroutine check_pdg_list (pdg_list)
+       integer, dimension(:), intent(in) :: pdg_list
+       integer :: i, i_pdg
+       type(flavor_t) :: flv
+       do i = 1, size (pdg_list)
+          i_pdg = abs (pdg_list(i))
+          call flv%init (i_pdg, cfg%model)
+          if (flv%get_mass () > 0._default) then
+             !!! Avoid duplicates in output
+             if (.not. any (checked == i_pdg)) then
+                i_massive_tmp(k) = i_pdg
+                checked(k) = i_pdg
+                k = k + 1
+                n_massive = n_massive + 1
+             end if
+          end if
+       end do
+    end subroutine check_pdg_list
+  end subroutine blha_configuration_get_massive_particles
+
+  module subroutine blha_configuration_append_processes (cfg, n_in, flavor, amp_type)
+    type(blha_configuration_t), intent(inout) :: cfg
+    integer, intent(in) :: n_in
+    type(blha_flv_state_t), dimension(:), intent(in) :: flavor
+    integer, dimension(:), intent(in), optional :: amp_type
+    integer :: n_tot
+    type(blha_cfg_process_node_t), pointer :: current_node
+    integer :: i_process, i_flv
+    integer, dimension(:), allocatable :: pdg_in, pdg_out
+    integer, dimension(:), allocatable :: flavor_state
+    integer :: proc_offset, n_proc_tot
+    proc_offset = 0; n_proc_tot = 0
+    do i_flv = 1, size (flavor)
+       n_proc_tot = n_proc_tot + flavor(i_flv)%flv_mult
+    end do
+    if (.not. associated (cfg%processes)) &
+         allocate (cfg%processes)
+    current_node => cfg%processes
+    do i_flv = 1, size (flavor)
+       n_tot = size (flavor(i_flv)%flavors)
+       allocate (pdg_in (n_in), pdg_out (n_tot - n_in))
+       allocate (flavor_state (n_tot))
+       flavor_state = flavor(i_flv)%flavors
+       do i_process = 1, flavor(i_flv)%flv_mult
+          pdg_in = flavor_state (1 : n_in)
+          pdg_out = flavor_state (n_in + 1 : )
+          if (cfg%polarized) then
+             select case (cfg%mode)
+             case (BLHA_MODE_OPENLOOPS)
+                call allocate_and_init_pdg_and_helicities (current_node, &
+                     pdg_in, pdg_out, amp_type (proc_offset + i_process))
+             case (BLHA_MODE_GOSAM)
+                !!! Nothing special for GoSam yet. This exception is already caught
+                !!! in blha_master_setup_additional_features
+             end select
+          else
+             call allocate_and_init_pdg (current_node, pdg_in, pdg_out, &
+                  amp_type (proc_offset + i_process))
+          end if
+          if (proc_offset + i_process /= n_proc_tot) then
+            allocate (current_node%next)
+            current_node => current_node%next
+          end if
+          if (i_process == flavor(i_flv)%flv_mult) &
+               proc_offset = proc_offset + flavor(i_flv)%flv_mult
+       end do
+       deallocate (pdg_in, pdg_out)
+       deallocate (flavor_state)
+    end do
+
+  contains
+
+    subroutine allocate_and_init_pdg (node, pdg_in, pdg_out, amp_type)
+      type(blha_cfg_process_node_t), intent(inout), pointer :: node
+      integer, intent(in), dimension(:), allocatable :: pdg_in, pdg_out
+      integer, intent(in) :: amp_type
+      allocate (node%pdg_in (size (pdg_in)))
+      allocate (node%pdg_out (size (pdg_out)))
+      node%pdg_in%pdg = pdg_in
+      node%pdg_out%pdg = pdg_out
+      node%amplitude_type = amp_type
+    end subroutine allocate_and_init_pdg
+
+    subroutine allocate_and_init_pdg_and_helicities (node, pdg_in, pdg_out, amp_type)
+      type(blha_cfg_process_node_t), intent(inout), pointer :: node
+      integer, intent(in), dimension(:), allocatable :: pdg_in, pdg_out
+      integer, intent(in) :: amp_type
+      integer :: h1, h2
+      if (size (pdg_in) == 2) then
+         do h1 = -1, 1, 2
+            do h2 = -1, 1, 2
+               call allocate_and_init_pdg (current_node, pdg_in, pdg_out, amp_type)
+               current_node%pdg_in(1)%polarized = .true.
+               current_node%pdg_in(2)%polarized = .true.
+               current_node%pdg_in(1)%hel = h1
+               current_node%pdg_in(2)%hel = h2
+               if (h1 + h2 /= 2) then !!! not end of loop
+                  allocate (current_node%next)
+                  current_node => current_node%next
+               end if
+            end do
+         end do
+      else
+         do h1 = -1, 1, 2
+            call allocate_and_init_pdg (current_node, pdg_in, pdg_out, amp_type)
+            current_node%pdg_in(1)%polarized = .true.
+            current_node%pdg_in(1)%hel = h1
+            if (h1 /= 1) then !!! not end of loop
+               allocate (current_node%next)
+               current_node => current_node%next
+            end if
+         end do
+      end if
+    end subroutine allocate_and_init_pdg_and_helicities
+
+  end subroutine blha_configuration_append_processes
+
+  module subroutine blha_configuration_set (cfg, &
+       version, irreg, massive_particle_scheme, &
+       model_file, alphas_power, alpha_power, ew_scheme, width_scheme, &
+       accuracy, debug)
+    type(blha_configuration_t), intent(inout) :: cfg
+    integer, optional, intent(in) :: version
+    integer, optional, intent(in) :: irreg
+    integer, optional, intent(in) :: massive_particle_scheme
+    type(string_t), optional, intent(in) :: model_file
+    integer, optional, intent(in) :: alphas_power, alpha_power
+    integer, optional, intent(in) :: ew_scheme
+    integer, optional, intent(in) :: width_scheme
+    real(default), optional, intent(in) :: accuracy
+    logical, optional, intent(in) :: debug
+    if (present (version)) &
+         cfg%version = version
+    if (present (irreg)) &
+         cfg%irreg = irreg
+    if (present (massive_particle_scheme)) &
+         cfg%massive_particle_scheme = massive_particle_scheme
+    if (present (model_file)) &
+         cfg%model_file = model_file
+    if (present (alphas_power)) &
+         cfg%alphas_power = alphas_power
+    if (present (alpha_power)) &
+         cfg%alpha_power = alpha_power
+    if (present (ew_scheme)) &
+         cfg%ew_scheme = ew_scheme
+    if (present (width_scheme)) &
+         cfg%width_scheme = width_scheme
+    if (present (accuracy)) &
+         cfg%accuracy_target = accuracy
+    if (present (debug)) &
+         cfg%debug_unstable = debug
+    cfg%dirty = .false.
+  end subroutine blha_configuration_set
+
+  module function blha_configuration_get_n_proc (cfg) result (n_proc)
+    type(blha_configuration_t), intent(in) :: cfg
+    integer :: n_proc
+    n_proc = cfg%n_proc
+  end function blha_configuration_get_n_proc
+
+  module subroutine blha_configuration_write (cfg, suffix, unit, internal, no_version)
+    type(blha_configuration_t), intent(in) :: cfg
+    integer, intent(in), optional :: unit
+    logical, intent(in), optional :: internal, no_version
+    type(string_t), intent(in) :: suffix
+    integer, dimension(:), allocatable :: pdg_flv
+    integer :: u
+    logical :: full, nlo3
+    type(string_t) :: buf
+    type(blha_cfg_process_node_t), pointer :: node
+    integer :: i
+    character(3) :: pdg_char
+    character(5) :: pdg_char_extra
+    character(4) :: hel_char
+    character(6) :: suffix_char
+    character(len=25), parameter :: pad = ""
+    logical :: write_process, no_v
+    no_v = .false. ; if (present (no_version))  no_v = no_version
+    u = given_output_unit (unit); if (u < 0) return
+    full = .true.; if (present (internal)) full = .not. internal
+    if (full .and. cfg%dirty) call msg_bug ( &
+         "BUG: attempted to write out a dirty BLHA configuration")
+    if (full) then
+       if (no_v) then
+          write (u, "(A)") "# BLHA order written by WHIZARD [version]"
+       else
+          write (u, "(A)") "# BLHA order written by WHIZARD 3.1.0"
+       end if
+       write (u, "(A)")
+    end if
+    select case (cfg%mode)
+       case (BLHA_MODE_GOSAM); buf = "GoSam"
+       case (BLHA_MODE_OPENLOOPS); buf = "OpenLoops"
+       case default; buf = "vanilla"
+    end select
+    write (u, "(A)") "# BLHA interface mode: " // char (buf)
+    write (u, "(A)") "# process: " // char (cfg%name)
+    write (u, "(A)") "# model: " // char (cfg%model%get_name ())
+    select case (cfg%version)
+       case (1); buf = "BLHA1"
+       case (2); buf = "BLHA2"
+    end select
+    write (u, '(A25,A)') "InterfaceVersion " // pad, char (buf)
+    select case (cfg%correction_type)
+       case (BLHA_CT_QCD); buf = "QCD"
+       case (BLHA_CT_EW); buf = "EW"
+       case default; buf = cfg%correction_type_other
+    end select
+    write (u,'(A25,A)') "CorrectionType" // pad, char (buf)
+
+    select case (cfg%mode)
+    case (BLHA_MODE_OPENLOOPS)
+       buf = cfg%name // '.olc'
+       write (u, '(A25,A)') "Extra AnswerFile" // pad, char (buf)
+    end select
+
+    select case (cfg%irreg)
+       case (BLHA_IRREG_CDR); buf = "CDR"
+       case (BLHA_IRREG_DRED); buf = "DRED"
+       case (BLHA_IRREG_THV); buf = "tHV"
+       case (BLHA_IRREG_MREG); buf = "MassReg"
+       case default; buf = cfg%irreg_other
+    end select
+    write (u,'(A25,A)') "IRregularisation" // pad, char (buf)
+    select case (cfg%massive_particle_scheme)
+       case (BLHA_MPS_ONSHELL); buf = "OnShell"
+       case default; buf = cfg%massive_particle_scheme_other
+    end select
+    if (cfg%mode == BLHA_MODE_GOSAM) &
+         write (u,'(A25,A)') "MassiveParticleScheme" // pad, char (buf)
+    select case (cfg%version)
+    case (1)
+      if (cfg%alphas_power >= 0) write (u,'(A25,A)') &
+           "AlphasPower" // pad, int2char (cfg%alphas_power)
+      if (cfg%alpha_power >= 0) write (u,'(A25,A)') &
+           "AlphaPower " // pad, int2char (cfg%alpha_power)
+    case (2)
+      if (cfg%alphas_power >= 0) write (u,'(A25,A)') &
+           "CouplingPower QCD " // pad, int2char (cfg%alphas_power)
+      if (cfg%alpha_power >= 0) write (u, '(A25,A)') &
+           "CouplingPower QED " // pad, int2char (cfg%alpha_power)
+    end select
+    select case (cfg%mode)
+    case (BLHA_MODE_GOSAM)
+       select case (cfg%ew_scheme)
+          case (BLHA_EW_GF, BLHA_EW_INTERNAL); buf = "alphaGF"
+          case (BLHA_EW_MZ); buf = "alphaMZ"
+          case (BLHA_EW_MSBAR); buf = "alphaMSbar"
+          case (BLHA_EW_0); buf = "alpha0"
+          case (BLHA_EW_RUN); buf = "alphaRUN"
+       end select
+       write (u, '(A25, A)') "EWScheme " // pad, char (buf)
+    case (BLHA_MODE_OPENLOOPS)
+       select case (cfg%ew_scheme)
+          case (BLHA_EW_0); buf = "alpha0"
+          case (BLHA_EW_GF); buf = "Gmu"
+          case (BLHA_EW_MZ, BLHA_EW_INTERNAL); buf = "alphaMZ"
+          case default
+             call msg_fatal ("OpenLoops input: Only supported EW schemes &
+                  & are 'alpha0', 'Gmu', and 'alphaMZ'")
+          end select
+       write (u, '(A25, A)') "ewscheme " // pad, char (buf)
+    end select
+    select case (cfg%mode)
+    case (BLHA_MODE_GOSAM)
+       write (u, '(A25)', advance='no') "MassiveParticles " // pad
+       do i = 1, size (OLP_MASSIVE_PARTICLES)
+          if (OLP_MASSIVE_PARTICLES(i) > 0) &
+               write (u, '(I2,1X)', advance='no') OLP_MASSIVE_PARTICLES(i)
+       end do
+       write (u,*)
+    case (BLHA_MODE_OPENLOOPS)
+       if (cfg%openloops_use_cms) then
+          write (u, '(A25,I1)') "extra use_cms " // pad, 1
+       else
+          write (u, '(A25,I1)') "extra use_cms " // pad, 0
+       end if
+       write (u, '(A25,I1)') "extra me_cache " // pad, 0
+       !!! Turn off calculation of 1/eps & 1/eps^2 poles in one-loop calculation
+       !!! Not needed in FKS (or any numerical NLO subtraction scheme)
+       write (u, '(A25,I1)') "extra IR_on " // pad, 0
+       if (cfg%openloops_phs_tolerance > 0) then
+          write (u, '(A25,A4,I0)') "extra psp_tolerance " // pad, "10e-", &
+               cfg%openloops_phs_tolerance
+       end if
+       call check_extra_cmd (cfg%openloops_extra_cmd)
+       write (u, '(A)') char (cfg%openloops_extra_cmd)
+       if (cfg%openloops_allowed_libs /= '') then
+          write (u, '(A25,A)') "extra allowed_libs" // pad, &
+               char (cfg%openloops_allowed_libs)
+       end if
+       if (cfg%openloops_stability_log > 0) &
+            write (u, '(A25,I1)') "extra stability_log " // pad, &
+            cfg%openloops_stability_log
+    end select
+    if (full) then
+       write (u, "(A)")
+       write (u, "(A)") "# Process definitions"
+       write (u, "(A)")
+    end if
+    if (cfg%debug_unstable) &
+         write (u, '(A25,A)') "DebugUnstable " // pad, "True"
+    write (u, *)
+    node => cfg%processes
+    do while (associated (node))
+       write_process = .true.
+       allocate (pdg_flv (size (node%pdg_in) + size (node%pdg_out)))
+       do i = 1, size (node%pdg_in)
+          pdg_flv (i) = node%pdg_in(i)%pdg
+       end do
+       do i = 1, size (node%pdg_out)
+          pdg_flv (i + size (node%pdg_in)) = node%pdg_out(i)%pdg
+       end do
+       suffix_char = char (suffix)
+       if (cfg%correction_type == BLHA_CT_EW .and. cfg%alphas_power > 0) then
+          if ((suffix_char (1:5) == "_BORN" .and. .not. query_coupling_powers &
+             (pdg_flv, cfg%alpha_power, cfg%alphas_power)) .or. &
+             ((suffix_char (1:4) == "_SUB" .or. suffix_char (1:5) == "_LOOP" .or. &
+             suffix_char (1:6) == "_DGLAP") .and. (.not. (query_coupling_powers &
+             (pdg_flv, cfg%alpha_power, cfg%alphas_power) .or. query_coupling_powers &
+             (pdg_flv, cfg%alpha_power + 1, cfg%alphas_power - 1)) .or. &
+             all (is_gluon (pdg_flv))))) then
+             deallocate (pdg_flv)
+             node => node%next
+             cycle
+          end if
+       end if
+       select case (node%amplitude_type)
+         case (BLHA_AMP_LOOP); buf = "Loop"
+         case (BLHA_AMP_COLOR_C); buf = "ccTree"
+         case (BLHA_AMP_SPIN_C)
+            if (cfg%mode == BLHA_MODE_OPENLOOPS) then
+               buf = "sctree_polvect"
+            else
+               buf = "scTree"
+            end if
+         case (BLHA_AMP_TREE); buf = "Tree"
+         case (BLHA_AMP_LOOPINDUCED); buf = "LoopInduced"
+       end select
+       nlo3 = qcd_ew_interferences (pdg_flv) .and. &
+             (node%amplitude_type == BLHA_AMP_COLOR_C .or. &
+             node%amplitude_type == BLHA_AMP_SPIN_C) .and. &
+             .not. query_coupling_powers (pdg_flv, cfg%alpha_power+2, cfg%alphas_power-2)
+       if (write_process) then
+          write (u, '(A25, A)') "AmplitudeType " // pad, char (buf)
+          buf = ""
+          if (cfg%correction_type == BLHA_CT_EW .and. cfg%alphas_power > 0 .and. &
+             (suffix_char (1:4) == "_SUB" .or. suffix_char (1:5) == "_LOOP" &
+             .or. suffix_char (1:6) == "_DGLAP")) then
+             if (query_coupling_powers (pdg_flv, cfg%alpha_power, cfg%alphas_power) &
+                .and. .not. nlo3) then
+                write (u,'(A25,A)') "CorrectionType" // pad, "EW"
+                select case (cfg%version)
+                   case (1)
+                      if (cfg%alphas_power >= 0) write (u,'(A25,A)') &
+                           "AlphasPower" // pad, int2char (cfg%alphas_power)
+                      if (cfg%alpha_power >= 0) write (u,'(A25,A)') &
+                           "AlphaPower " // pad, int2char (cfg%alpha_power)
+                   case (2)
+                      if (cfg%alphas_power >= 0) write (u,'(A25,A)') &
+                           "CouplingPower QCD " // pad, int2char (cfg%alphas_power)
+                      if (cfg%alpha_power >= 0) write (u, '(A25,A)') &
+                           "CouplingPower QED " // pad, int2char (cfg%alpha_power)
+                end select
+             else if (query_coupling_powers &
+                  (pdg_flv, cfg%alpha_power + 1, cfg%alphas_power - 1)) then
+                write (u,'(A25,A)') "CorrectionType" // pad, "QCD"
+                select case (cfg%version)
+                   case (1)
+                      if (cfg%alphas_power >= 0) write (u,'(A25,A)') &
+                           "AlphasPower" // pad, int2char (cfg%alphas_power - 1)
+                      if (cfg%alpha_power >= 0) write (u,'(A25,A)') &
+                           "AlphaPower " // pad, int2char (cfg%alpha_power + 1)
+                   case (2)
+                      if (cfg%alphas_power >= 0) write (u,'(A25,A)') &
+                           "CouplingPower QCD " // pad, int2char (cfg%alphas_power - 1)
+                      if (cfg%alpha_power >= 0) write (u, '(A25,A)') &
+                           "CouplingPower QED " // pad, int2char (cfg%alpha_power + 1)
+                end select
+             end if
+          end if
+          do i = 1, size (node%pdg_in)
+             if (cfg%correction_type == BLHA_CT_EW .and. node%pdg_in(i)%pdg == PHOTON &
+                .and. cfg%n_off_photons_is > 0) then
+                if (cfg%ew_scheme == BLHA_EW_0) then
+                   call msg_fatal ("ew_scheme: 'alpha_0' or 'alpha_thompson' " &
+                        // "in combination",  [ var_str ("with off-shell external photons " &
+                        // "is not consistent with FKS.")])
+                end if
+                write (pdg_char_extra, '(I5)') PHOTON_OFFSHELL
+                buf = (buf // pdg_char_extra) // " "
+             else
+                call node%pdg_in(i)%write_pdg (pdg_char)
+                if (node%pdg_in(i)%polarized) then
+                   call node%pdg_in(i)%write_helicity (hel_char)
+                   buf = (buf // pdg_char // hel_char) // " "
+                else
+                   buf = (buf // pdg_char) // " "
+                end if
+             end if
+          end do
+          buf = buf // "-> "
+          do i = 1, size (node%pdg_out)
+             if (cfg%correction_type == BLHA_CT_EW .and. node%pdg_out(i)%pdg == PHOTON &
+                .and. cfg%n_off_photons_fs > 0) then
+                if (cfg%ew_scheme == BLHA_EW_0) then
+                   call msg_fatal ("ew_scheme: 'alpha_0' or 'alpha_thompson' " &
+                        // "in combination with off-shell external photons " &
+                        // "is not consistent with FKS. Try a different one.")
+                end if
+                write (pdg_char_extra, '(I5)') PHOTON_OFFSHELL
+                buf = (buf // pdg_char_extra) // " "
+             else
+                call node%pdg_out(i)%write_pdg (pdg_char)
+                buf = (buf // pdg_char) // " "
+             end if
+          end do
+          write (u, "(A)") char (trim (buf))
+          write (u, *)
+       end if
+       deallocate (pdg_flv)
+       node => node%next
+    end do
+  end subroutine blha_configuration_write
+
+
+end submodule blha_config_s
+

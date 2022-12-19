@@ -1,0 +1,35 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+ee = 0.30286
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+library = "static_1_lib"
+
+show (library)
+
+seed = 0
+
+$method = "omega"
+process static_1_p1 = "e-", "e+" => "mu-", "mu+"
+
+compile
+
+show (library)
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+iterations = 3:1000:"g", 3:1000 
+sqrts = 1000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (static_1_p1)

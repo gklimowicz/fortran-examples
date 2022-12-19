@@ -1,0 +1,77 @@
+!!! Process: ttbar production at ILC
+!!! Reported by: BACN on 2015-09-23
+!!! Purpose: tests sudakov of massive FSR Powheg
+!!!
+model = SM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+seed = 0
+
+mW = 80.376
+mZ = 91.1876
+GF = 1.16637E-005
+wZ = 2.4952
+wW = 2.124
+
+# => alpha = 132.16066
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+wtop = 0
+mtop = 175 GeV
+
+?use_vamp_equivalences = false
+$loop_me_method = "openloops"
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+alpha_power = 2
+alphas_power = 0
+?combined_nlo_integration = true
+
+?powheg_matching = true
+powheg_grid_size_xi = 5
+powheg_grid_size_y = 5
+powheg_pt_min = 1
+?powheg_use_singular_jacobian = false
+
+?powheg_test_sudakov = true
+
+scale = 2 * mtop
+
+# Needs OpenLoops library eett
+process nlo_tt_powheg_sudakov = E1, e1 => t, T { nlo_calculation = full }
+
+sqrts = 500 GeV
+
+iterations = 5:20000:"gw", 5:20000:""
+integrate (nlo_tt_powheg_sudakov)
+show (integral(nlo_tt_powheg_sudakov))
+show (error(nlo_tt_powheg_sudakov))
+
+n_events = 200
+sample_format = hepmc
+?hepmc_output_cross_section = true
+
+$x_label = "$M_{ll}$/GeV"
+$y_label = "$N_{\textrm{events}}$"
+?x_log = false
+?y_log = false
+y_min = 1
+y_max = n_events
+histogram pt_dist (0 GeV, 500 GeV, 20 GeV)
+analysis = record pt_dist (eval Pt [collect [t:T:g]])
+$sample = "nlo_tt_powheg_sudakov"
+
+simulate (nlo_tt_powheg_sudakov)
+
+compile_analysis { $out_file = "nlo_tt_powheg_hist.dat" }

@@ -1,0 +1,43 @@
+include("nlo_settings_ew.sin")
+
+?pacify = true
+
+alias jet = e1:E1:e2:E2:A:u:U:d:D:s:S:c:C:b:B
+
+wtop = 1.36918
+
+mZ=91.15347
+mW=80.35785
+wZ=2.494566
+wW=2.088994
+
+alpha_power = 4
+alphas_power = 0
+
+cuts = 
+        let subevt @recleptons = photon_recombination [A:leptons] in
+        let subevt @eeleptons = select if abs(real(PDG)) == 11. [@recleptons] in
+        let subevt @muleptons = select if abs(real(PDG)) == 13. [@recleptons] in
+        let subevt @firste = extract index 1 [@eeleptons] in
+        let subevt @seconde = extract index 2 [@eeleptons] in
+        let subevt @firstmu = extract index 1 [@muleptons] in
+        let subevt @secondmu = extract index 2 [@muleptons] in
+
+           all M > 30 [@firste,@seconde]
+           and all M > 30 [@firstmu,@secondmu]
+           and all Dist >0.4 [@firste,@seconde]
+           and all Dist >0.4 [@firstmu,@secondmu]
+           and all Pt > 10. [@eeleptons]
+           and all Pt > 10. [@muleptons]
+           and all abs(Eta)<2.5 [@eeleptons]
+           and all abs(Eta)<2.5 [@muleptons]
+
+
+scale = sum (Pt/2) [jet]
+
+$nlo_correction_type = "EW"
+
+seed=1
+process ppllll_ew = pr, pr => e1, E1, e2, E2 {nlo_calculation = full}
+
+integrate (ppllll_ew) { iterations = 1:1500:"gw"}

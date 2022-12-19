@@ -1,0 +1,111 @@
+!!! Process: 4-jet production at linear collider
+!!! Reported by: CW on 2017-01-26
+!!! Purpose: The automatic process selection with OpenLoops
+!!!          if there are sub-processes which do not match
+!!!          the chosen coupling structure.
+
+model = SM("GF_MW_MZ")
+$blha_ew_scheme = "alpha_qed"
+
+mZ = 91.188
+mW = 80.419002
+mH = 125.0
+GF = 1.16639E-5
+wZ = 0.0
+wtop = 0.0
+wW = 0.0
+wH = 0.0
+
+ms = 0
+mc = 0
+mb = 0
+mtop = 173.2
+
+me = 0
+mmu = 0
+mtau = 1.777
+
+alphas = 0.118
+
+?alphas_is_fixed = false
+?alphas_from_mz = true
+?alphas_from_lambda_qcd = false
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+
+!!! We check the process ee -> jet, jet, jet, jet.
+!!! To reduce the combinatoric complexity, we only
+!!! use four flavors and no gluons. This is the minimally
+!!! required setting to have a purely electroweak
+!!! subprocess, e.g. ee -> u, d, s, c.
+
+alias jet = u:U:d:D:s:S:c:C
+
+alpha_power  = 2
+alphas_power = 2
+
+$born_me_method = "openloops"
+$real_tree_me_method = "openloops"
+$correlation_me_method = "openloops"
+$loop_me_method = "openloops"
+
+sqrts = 1 TeV
+scale = sqrts
+
+!!! Unfortunately, this process requires clustering to
+!!! converge, so FastJet has to be enabled.
+jet_algorithm = antikt_algorithm
+jet_r = 0.5
+cuts = all Pt > 30 GeV [jet] and all abs(Eta) < 4 [jet]
+        and count [cluster if E > 0 GeV [jet]] > 3
+
+iterations = 5:20000
+seed = 1234
+
+!!!The subprocesses
+process fourj_p1 = e1, E1 => C, C, c, c { nlo_calculation = born }
+integrate (fourj_p1)
+real res_1 = integral (fourj_p1)
+process fourj_p2 = e1, E1 => C, U, u, c { nlo_calculation = born }
+integrate (fourj_p2)
+real res_2 = integral (fourj_p2)
+process fourj_p3 = e1, E1 => C, S, c, s { nlo_calculation = born }
+integrate (fourj_p3)
+real res_3 = integral (fourj_p3)
+process fourj_p4 = e1, E1 => C, D, c, d { nlo_calculation = born }
+integrate (fourj_p4)
+real res_4 = integral (fourj_p4)
+process fourj_p5 = e1, E1 => U, U, u, u { nlo_calculation = born }
+integrate (fourj_p5)
+real res_5 = integral (fourj_p5)
+process fourj_p6 = e1, E1 => U, S, u, s { nlo_calculation = born }
+integrate (fourj_p6)
+real res_6 = integral (fourj_p6)
+process fourj_p7 = e1, E1 => U, D, u, d { nlo_calculation = born }
+integrate (fourj_p7)
+real res_7 = integral (fourj_p7)
+process fourj_p8 = e1, E1 => S, S, s, s { nlo_calculation = born }
+integrate (fourj_p8)
+real res_8 = integral (fourj_p8)
+process fourj_p9 = e1, E1 => S, D, d, s { nlo_calculation = born }
+integrate (fourj_p9)
+real res_9 = integral (fourj_p9)
+process fourj_p10 = e1, E1 => D, D, d, d { nlo_calculation = born }
+integrate (fourj_p10)
+real res_10 = integral (fourj_p10)
+real int_tot = res_1 + res_2 + res_3 + res_4 + res_5
+             + res_6 + res_7 + res_8 + res_9 + res_10
+
+!!! The full process
+process fourj_p11 = e1, E1 => jet, jet, jet, jet { nlo_calculation = born }
+integrate (fourj_p11)
+expect (integral (fourj_p11) == int_tot) {tolerance = 0.1}

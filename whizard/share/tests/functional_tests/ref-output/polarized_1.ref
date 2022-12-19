@@ -1,0 +1,128 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+| Switching to model 'SM', scheme 'default'
+| Process library 'polarized_1_lib': recorded process 'polarized_1_p1'
+| Process library 'polarized_1_lib': compiling ...
+| Process library 'polarized_1_lib': writing makefile
+| Process library 'polarized_1_lib': removing old files
+| Process library 'polarized_1_lib': writing driver
+| Process library 'polarized_1_lib': creating source code
+| Process library 'polarized_1_lib': compiling sources
+| Process library 'polarized_1_lib': linking
+| Process library 'polarized_1_lib': loading
+| Process library 'polarized_1_lib': ... success.
+sqrts =  5.00000E+02
+openmp_num_threads = 1
+seed = 0
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process polarized_1_p1:
+| Beam structure: e-, e+
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 5.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'polarized_1_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'polarized_1_p1'
+|   Library name  = 'polarized_1_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'polarized_1_p1_i1':   e-, e+ => tau-, tau+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'polarized_1_p1'
+| Integrate: iterations = 1:100
+| Integrator: 2 chains, 2 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     4.195E+02   2.51E+01    5.99    0.60    40.4
+|-----------------------------------------------------------------------------|
+   1        100     4.195E+02   2.51E+01    5.99    0.60    40.4
+|=============================================================================|
+?polarized_events = true
+| Particle tau- declared as polarized
+| Particle tau+ declared as polarized
+n_events = 1
+| Starting simulation for process 'polarized_1_p1'
+| Simulate: using integration grids from file 'polarized_1_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Simulation: requested number of events = 1
+|             corr. to luminosity [fb-1] =   2.3839E-03
+| Events: writing to ASCII file 'polarized_1_p1.hepevt'
+| Events: writing to STDHEP file 'polarized_1_p1.ev4.hep'
+| Events: writing to raw file 'polarized_1_p1.evx'
+| Events: generating 1 unweighted, polarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency = 100.00 %
+| Events: closing ASCII file 'polarized_1_p1.hepevt'
+| Events: closing STDHEP file 'polarized_1_p1.ev4.hep'
+| Events: closing raw file 'polarized_1_p1.evx'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of polarized_1_p1.hepevt:
+ 4 2 0  1.0000000000E+00
+ 2 11 0 0 3 4 0
+  0.0000000000E+00  0.0000000000E+00  2.5000000000E+02  2.5000000000E+02  5.1099700000E-04
+  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+ 2 -11 0 0 3 4 0
+  0.0000000000E+00  0.0000000000E+00 -2.5000000000E+02  2.5000000000E+02  5.1099700000E-04
+  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+ 1 15 1 2 0 0 1
+  1.4229666640E+02  1.9880355483E+02 -5.2207733270E+01  2.5000000000E+02  1.7770500000E+00
+  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+ 1 -15 1 2 0 0 -1
+ -1.4229666640E+02 -1.9880355483E+02  5.2207733270E+01  2.5000000000E+02  1.7770500000E+00
+  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+STDHEP EV4 version:
+==================================================== 
+ WHIZARD StdHep Reader : 
+ opened file : polarized_1_p1.ev4.hep
+====== File Header ===========
+    total blocks: [...]
+         version: 2.01
+           title: WHIZARD [version]
+         comment: No comment
+            date: [...]
+    closing date: [...]
+ expected events: 1
+          events: 3
+      firstTable: -1
+        dimTable: 100
+        nNTuples: 0
+         nBlocks: 8
+     block names:
+                :  Standard HEP COMMON block, see STDHEP Product
+                :  Standard HEP COMMON block with multiple interaction, see STDHEP Product
+                :  Stdhep begin run record, see STDHEP Product
+                :  Stdhep end run record, see STDHEP Product
+                :  Standard HEP COMMON block with Les Houches, see STDHEP Product
+                :  Standard HEP COMMON block with Les Houches and multiple interaction
+                :  Les Houches HEPEUP common block
+                :  Les Houches HEPRUP common block
+=============================
+Process ID = 1   Weight = 1     Scale = 500     aQED = -1     aQCD = 0.1178
+ Event #0
+[   id   ]index|      PDG |q(el)|    px,      py,        pz    | energy  |   mass  |sta| vertex x,     y   ,   z     |              spin           | colorflow | [daughters]
+[00000000]    0|        11|-1.00| 0.00e+00, 0.00e+00,  2.50e+02| 2.50e+02| 5.11e-04| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 2, 3 ]
+[00000001]    1|       -11| 1.00| 0.00e+00, 0.00e+00, -2.50e+02| 2.50e+02| 5.11e-04| 2 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 0.00e+00|  (0, 0)   | [ 2, 3 ]
+[00000002]    2|        15|-1.00| 1.42e+02, 1.99e+02, -5.22e+01| 2.50e+02| 1.78e+00| 1 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00, 1.00e+00|  (0, 0)   | [ 0, 0 ]
+[00000003]    3|       -15| 1.00|-1.42e+02,-1.99e+02,  5.22e+01| 2.50e+02| 1.78e+00| 1 | 0.00e+00, 0.00e+00, 0.00e+00| 0.00e+00, 0.00e+00,-1.00e+00|  (0, 0)   | [ 0, 0 ]
+  converted 1 events - written to stdout
+==================================================== 
+

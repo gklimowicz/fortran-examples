@@ -1,0 +1,46 @@
+* Test output: resonances_6
+*   Purpose: retrieve resonance histories as trees
+
+* Read model file
+
+* Empty resonance history
+
+Resonance history with 0 resonances:
+
+Resonance tree: [empty]
+
+* Single resonance
+
+Resonance history with 1 resonances:
+  Resonance contributors: 1 2 f(-24)
+
+Resonance tree:
+  r1: f(-24) => 1 2
+
+* Nested resonances
+
+Resonance history with 2 resonances:
+  Resonance contributors: 1 2 f(-24)
+  Resonance contributors: 1 2 3 f(23)
+
+Resonance tree:
+  r1: f(23) => r2 3
+  r2: f(-24) => 1 2
+
+* Disjunct resonances
+
+Resonance history with 4 resonances:
+  Resonance contributors: 1 3 f(24)
+  Resonance contributors: 1 2 3 f(6)
+  Resonance contributors: 5 7 f(-24)
+  Resonance contributors: 5 6 7 f(-6)
+
+Resonance tree:
+  r1: f(6) => r3 2
+  r2: f(-6) => r4 6
+  r3: f(24) => 1 3
+  r4: f(-24) => 5 7
+
+* Cleanup
+
+* Test output end: resonances_6

@@ -1,0 +1,124 @@
+* Test output: prc_omega_1
+*   Purpose: create a simple process with OMega
+*            build a library, link, load, and access the matrix element
+
+* Initialize a process library with one entry
+
+* Configure library
+
+* Write makefile
+
+* Clean any left-over files
+
+* Write driver
+
+* Write process source code, compile, link, load
+
+ Process library: omega1
+   external        = T
+   makefile exists = T
+   driver exists   = T
+   code status     = a
+
+ Process library entries: 1
+ Entry #1: [a] omega1_a.1 = ext:1 (omega)
+
+ External matrix-element code library: omega1
+   static    = F
+   loaded    = T
+   MD5 sum   = '                                '
+
+ DL access info:
+   is open   = T
+   error     = [none]
+
+ Matrix-element code entries:
+   omega1_a_i1  [QED]
+     omega: init update_alpha_s reset_helicity_selection is_allowed new_event get_amplitude
+
+ Process #1:
+ ID = 'omega1_a'
+ Scattering
+ Model = QED
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = omega1_a_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 2 4
+   Particle content    = e+, e- => m+, m-
+   Method              = omega
+   Process variant     = omega
+     Model name        = "QED"
+     Mode string       = " -scatter"
+     Process string    = " 'e+ e- -> m+ m-'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = F
+     Extra options     = ""
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+
+* Probe library API:
+
+ is active                 = T
+ n_processes               = 1
+
+* Constants of omega1_a_i1:
+
+ component ID     = omega1_a_i1
+ model name       = QED
+ md5sum           = '                                '
+ openmp supported = F
+ n_in  = 2
+ n_out = 2
+ n_flv = 1
+ n_hel = 16
+ n_col = 1
+ n_cin = 2
+ n_cf  = 1
+ flv state = -11 11 -13 13
+ hel state = -1 -1 -1 -1
+             -1 -1 -1  1
+             -1 -1  1 -1
+             -1 -1  1  1
+             -1  1 -1 -1
+             -1  1 -1  1
+             -1  1  1 -1
+             -1  1  1  1
+              1 -1 -1 -1
+              1 -1 -1  1
+              1 -1  1 -1
+              1 -1  1  1
+              1  1 -1 -1
+              1  1 -1  1
+              1  1  1 -1
+              1  1  1  1
+ col state = 0 0 0 0 0 0 0 0
+ ghost flag = F F F F
+ color factors = 1.000 0.000
+ cf index = 1 1
+
+* Set parameters for omega1_a and initialize:
+
+  ee   = 0.3000
+  me   = 0.0000
+  mmu  = 0.0000
+  mtau = 0.0000
+
+* Set kinematics:
+
+  p1 =  1.0000  0.0000  0.0000  1.0000
+  p2 =  1.0000  0.0000  0.0000 -1.0000
+  p3 =  1.0000  1.0000  0.0000  0.0000
+  p4 =  1.0000 -1.0000  0.0000  0.0000
+
+* Compute matrix element:
+
+ is_allowed (1, 6, 1) = T
+ |amp (1, 6, 1)| =  0.9000E-01
+
+* Test output end: prc_omega_1

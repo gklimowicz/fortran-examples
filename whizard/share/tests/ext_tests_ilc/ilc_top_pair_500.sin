@@ -1,0 +1,57 @@
+include("ilc_settings.sin")
+
+!! Table 1. The cross sections for possible signal and backgrounds of top quark pair production in e+ e- annihilation.
+!! Expected runtime: ~1 d
+
+process top_prod_hadronic_500_1_noqcd   = e1, E1 => b, B, u, D, d, U { $restrictions   = "^gs && ^ghgg:ghgaga:ghgaz" }
+process top_prod_hadronic_500_1_qcd     = e1, E1 => b, B, u, D, d, U
+process top_prod_hadronic_500_2         = e1, E1 => b, B, u, U, g, g
+process top_prod_hadronic_500_3         = e1, E1 => b, B, g, g, g, g
+process top_prod_semileptonic_500_noqcd = e1, E1 => b, B, u, D, e1, N1 { $restrictions = "^gs && ^ghgg:ghgaga:ghgaz" }
+process top_prod_semileptonic_500_qcd   = e1, E1 => b, B, u, D, e1, N1
+process top_prod_leptonic_500_1         = e1, E1 => b, B, E1, n1, e1, N1
+process top_prod_leptonic_500_2         = e1, E1 => b, B, E1, n1, e2, N2
+process top_prod_leptonic_500_3         = e1, E1 => b, B, E2, n2, e2, N2
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 500 GeV
+alphas = 0.0891
+
+sqrts = 500 GeV
+beams = e1, E1
+
+$run_id = "500"
+
+integrate (top_prod_hadronic_500_1_noqcd,
+           top_prod_hadronic_500_1_qcd,
+           top_prod_hadronic_500_2,
+           top_prod_hadronic_500_3,
+           top_prod_semileptonic_500_noqcd,
+           top_prod_semileptonic_500_qcd,
+           top_prod_leptonic_500_1,
+           top_prod_leptonic_500_2,
+           top_prod_leptonic_500_3)
+
+tolerance = 2 * sqrt( error(top_prod_hadronic_500_1_noqcd)**2 + 0.08**2 )
+expect(integral(top_prod_hadronic_500_1_noqcd) == 49.73)
+tolerance = 2 * sqrt( error(top_prod_hadronic_500_1_qcd)**2 + 0.09**2 )
+expect(integral(top_prod_hadronic_500_1_qcd) == 50.37)
+tolerance = 2 * sqrt( error(top_prod_hadronic_500_2)**2 + 0.018**2 )
+expect(integral(top_prod_hadronic_500_2) == 8.999)
+tolerance = 2 * sqrt( error(top_prod_hadronic_500_3)**2 + 0.07**2 )
+expect(integral(top_prod_hadronic_500_3) == 24.32)
+tolerance = 2 * sqrt( error(top_prod_semileptonic_500_noqcd)**2 + 0.03**2 )
+expect(integral(top_prod_semileptonic_500_noqcd) == 17.353)
+tolerance = 2 * sqrt( error(top_prod_semileptonic_500_qcd)**2 + 0.032**2 )
+expect(integral(top_prod_semileptonic_500_qcd) == 17.509)
+tolerance = 2 * sqrt( error(top_prod_leptonic_500_1)**2 + 0.012**2 )
+expect(integral(top_prod_leptonic_500_1) == 5.927)
+tolerance = 2 * sqrt( error(top_prod_leptonic_500_2)**2 + 0.01**2 )
+expect(integral(top_prod_leptonic_500_2) == 5.852)
+tolerance = 2 * sqrt( error(top_prod_leptonic_500_3)**2 + 0.01**2 )
+expect(integral(top_prod_leptonic_500_3) == 5.84)
+
+show(results)

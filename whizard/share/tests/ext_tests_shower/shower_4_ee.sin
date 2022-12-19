@@ -1,0 +1,75 @@
+!!! Process: Generic tests of Whizard+Shower at LHC 7 TeV
+!!! Reported by: BACN on 2015-07-02
+!!! Purpose: Try to catch all possible misbehaviors in the matrix of options
+!!!          Analogue to shower_3_* but for hadron colliders
+
+model = SM_CKM
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+openmp_num_threads = 1
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?write_raw = false
+seed = 0
+
+alias bq = b:B
+alias electrons = e1:E1
+alias mus = e2:E2
+alias taus = e3:E3
+alias nu_es = n1:N1
+alias nu_mus = n2:N2
+alias nu_taus = n3:N3
+alias quark = u:d:s:c:b:U:D:S:C:B
+alias quark_notb = u:d:s:c:U:D:S:C
+alias up_type_q = u:c:U:C
+alias down_type_q = d:s:b:D:S:B
+alias down_type_q_notb = d:s:D:S
+alias lepton = e1:e2:e3:E1:E2:E3
+alias not_electron = e2:e3:E2:E3
+alias neutrino = n1:n2:n3:N1:N2:N3
+
+ms = 0
+mc = 0
+me = 0
+alphas = 1.e-6
+$omega_flags =  "-model:constant_width"
+sqrts = 7000 GeV
+iterations = 5:50000:"gw", 5:50000
+cuts = all Pt > 50 GeV  and abs(Eta) < 3 [quark] and
+       all M > 50 GeV [quark:lepton, quark:lepton]
+?keep_remnants = true
+?keep_beams = true
+?hadronization_active = true
+?ps_isr_active = true
+?ps_fsr_active = true
+?ps_isr_only_onshell_emitted_partons = true
+ps_max_n_flavors = 5
+ps_mass_cutoff = 1
+ps_fsr_lambda = 0.29
+! OPAL tune:
+$ps_PYTHIA_PYGIVE = "MSTP(5)=108;MSTP(81)=0"
+
+!!>>   MSTP(125)=2 mean full pythia output, default means reduced output. Check both
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+beams = p, p => lhapdf
+process shower_4_ee = quark_notb, quark_notb => e1, E1
+
+integrate (shower_4_ee)
+scan string $meth = ("PYTHIA6", "WHIZARD") {
+  $shower_method = $meth
+  if ($meth == "WHIZARD") then
+    n_events = 1000
+  else
+    n_events = 10000
+  endif
+  $sample = "shower_4_ee_" & $shower_method
+  simulate (shower_4_ee)
+}
+show (integral(shower_4_ee))
+show (error(shower_4_ee))

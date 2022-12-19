@@ -1,0 +1,52 @@
+# Sindarin input for WHIZARD self-test
+# Process p p => W+ W- => 4f including ISR + FSR QCD shower
+
+model = "SM"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 2
+
+process lhef_8_p1 = "u", "ubar" => "W+", "W-"
+process lhef_8_d1 = "W+" => u, dbar
+process lhef_8_d2 = "W-" => e1, N1
+
+integrate (lhef_8_d1) { error_threshold = 1E-8 }
+integrate (lhef_8_d2) { error_threshold = 1E-8 }
+
+unstable "W+" (lhef_8_d1)
+unstable "W-" (lhef_8_d2)
+
+sqrts = 8000
+beams = p, p => pdf_builtin
+
+cuts = sqrts_hat > 500 and all Pt > 50 [Wp:Wm:Z]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+?unweighted = false
+?read_raw = false
+?write_raw = false
+
+?allow_shower = true
+?ps_isr_active = true
+?ps_fsr_active = true
+?ps_isr_only_onshell_emitted_partons = true
+$shower_method = "WHIZARD"
+
+?sample_pacify = true
+?keep_beams = false
+
+simulate (lhef_8_p1) {
+  sample_format = lhef, mokka
+  $sample = "lhef_8"
+  iterations = 5:1000, 1:1000
+}

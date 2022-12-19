@@ -1,0 +1,40 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "QED"
+ee = 0.30286
+me = 0
+mmu = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process job_id_2_x = "e-", "e+" => "mu-", "mu+"
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+?pacify = true
+?sample_pacify = true
+
+sqrts = 100
+
+integrate (job_id_2_x) { 
+  $run_id = $job_id & ".1"
+  iterations = 1:1000
+}
+
+observable o1
+
+simulate (job_id_2_x) { 
+  $sample = "job_id_2_x." & $job_id & ".2"
+  sample_format = dump
+  analysis = record o1 (1)
+  n_events = 1
+}
+
+write_analysis {
+  $out_file = "job_id_2_x." & $job_id & ".3.dat"
+}

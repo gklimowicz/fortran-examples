@@ -1,0 +1,115 @@
+!!! Tests functionality of NLO-setups using all possible combinations of
+!!! omega and openloops for Born-, Real- and correlation-matrix-elements.
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+openmp_num_threads = 1
+?use_vamp_equivalences = false
+
+### We compare with standard Omega, so the CMS is disabled
+?openloops_use_cms = false
+
+!!! Use non default values to easily spot differences
+mW = 70
+mZ = 90
+GF = 1.5E-005
+wZ = 1.0
+wW = 3.0
+printf " alpha_em %g" (1/alpha_em_i)
+real alpha_em_inverse = alpha_em_i
+
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+
+!!! The expected value for (NLO-LO)/LO is alpha_s / pi
+?alphas_is_fixed = true
+?alphas_from_mz = false
+?alphas_from_lambda_qcd = false
+alphas = 0.2
+alpha_power = 2
+alphas_power = 0
+scale = 200 GeV
+
+$loop_me_method = "openloops"         !!! Needs OpenLoops library ppllj
+
+sqrts = 500 GeV
+iterations = 1:100:"gw"
+tolerance = 0.001
+
+$born_me_method        = "omega"
+$real_tree_me_method   = "omega"
+$correlation_me_method = "omega"
+process openloops_4_omomom = E1, e1 => u, U { nlo_calculation = full }
+integrate (openloops_4_omomom) { seed = 0 }
+show (integral(openloops_4_omomom))
+show (error(openloops_4_omomom))
+real reference_integral = integral(openloops_4_omomom)
+
+$born_me_method        = "openloops"
+$real_tree_me_method   = "omega"
+$correlation_me_method = "omega"
+process openloops_4_olomom = E1, e1 => u, U { nlo_calculation = full }
+integrate (openloops_4_olomom) { seed = 0 }
+show (integral(openloops_4_olomom))
+show (error(openloops_4_olomom))
+expect (integral (openloops_4_olomom) == reference_integral)
+
+$born_me_method        = "omega"
+$real_tree_me_method   = "openloops"
+$correlation_me_method = "omega"
+process openloops_4_omolom = E1, e1 => u, U { nlo_calculation = full }
+integrate (openloops_4_omolom) { seed = 0 }
+show (integral(openloops_4_omolom))
+show (error(openloops_4_omolom))
+expect (integral (openloops_4_omolom) == reference_integral)
+
+$born_me_method        = "omega"
+$real_tree_me_method   = "omega"
+$correlation_me_method = "openloops"
+process openloops_4_omomol = E1, e1 => u, U { nlo_calculation = full }
+integrate (openloops_4_omomol) { seed = 0 }
+show (integral(openloops_4_omomol))
+show (error(openloops_4_omomol))
+expect (integral (openloops_4_omomol) == reference_integral)
+
+$born_me_method = "openloops"
+$real_tree_me_method = "openloops"
+$correlation_me_method = "openloops"
+process openloops_4_ololol = E1, e1 => u, U { nlo_calculation = full }
+integrate (openloops_4_ololol) { seed = 0 }
+show (integral(openloops_4_ololol))
+show (error(openloops_4_ololol))
+expect (integral (openloops_4_ololol) == reference_integral)
+
+model = SM_tt_threshold
+sqrtsstepsize = 0.1 GeV
+sqrtsmin = sqrts - sqrtsstepsize
+sqrtsmax = sqrts + sqrtsstepsize
+mW = 70
+mZ = 90
+wZ = 1.0
+wW = 3.0
+alpha_em_i = alpha_em_inverse
+mmu = 0
+me = 0
+mc = 0
+ms = 0
+?alphas_is_fixed = true
+?alphas_from_mz = false
+?alphas_from_lambda_qcd = false
+alphas = 0.2
+scale = 200 GeV
+
+process openloops_4_threshold = E1, e1 => u, U { nlo_calculation = full }
+integrate (openloops_4_threshold) { seed = 0 }
+show (integral(openloops_4_threshold))
+show (error(openloops_4_threshold))
+expect (integral (openloops_4_threshold) == reference_integral)

@@ -1,0 +1,39 @@
+# SINDARIN input for WHIZARD self test
+
+model = SM
+me = 0
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "omega"
+process beam_setup_2p = Z => e1, E1
+
+compile ()
+
+$phs_method = "wood"
+$integration_method = "vamp"
+
+cuts = all Pt > 5 [e1:E1]
+
+iterations = 1:12
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+beams = Z
+
+! 0
+seed = 0
+integrate (beam_setup_2p)
+
+! L
+beams_pol_density = @(0)
+seed = 0
+integrate (beam_setup_2p)
+
+! T
+seed = 0
+integrate (beam_setup_2p) { beams_pol_density = @(1) }

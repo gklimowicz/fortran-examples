@@ -1,0 +1,118 @@
+Here's an overview of the tests of O'Mega that are performed by 'make check'
+
+########################################################################
+
+Essential tests:
+
+  omega_unit
+
+    unit tests of the O'Mega library modules
+
+  ects (Extended Colorflow Test-Suite)
+
+    despite the name, this just checks some very simple color
+    flows against reference results in *.ects files
+
+  cascade
+
+    test the '-cascade' option in simple cases against reference
+    results in *.cascades files
+  
+  phase_space
+
+    test the '-phase_space' option used by WHIZARD's new phase
+    space generator simple cases against reference results in
+    *.phs files
+  
+  test_qed_eemm
+
+    compare the amplitude for e+ e- -> mu+ mu- at one phase
+    space point against a reference value
+
+  compare_split_function
+  compare_split_module
+
+    check that splitting the amplitude into smaller subroutines
+    or modules does not change the result
+
+  test_omega95
+  test_omega95_bispinors
+
+    check properties of wave functions and hardcoded couplings
+    form the omegalib: equations of motion, current conservation,
+    etc.
+
+  keystones_omegalib
+  keystones_omegalib_bispinors
+
+    check that splitting a vertex into a wavefunction for one
+    leg and a hardcoded current for the remaining legs gives
+    the same result for each leg
+
+  keystones_UFO
+  keystones_UFO_bispinors
+
+    check that splitting a vertex into wavefunction for one leg
+    and current for the remaining legs gives the same result
+    for each leg.  In addition, test Fierz identities and
+    different UFO expressions for the same vertex.  If available,
+    also compare to the currents from omegalib.
+
+  fermi
+  fermi_UFO
+
+    test the (anti-)symmetry of amplitudes under exchange of
+    external particles
+
+  ward
+  ward_UFO
+
+    test Ward identities for one external gauge boson
+
+  compare_amplitude_VM
+
+    check that the amplitudes computed by the virtual machine
+    agree with the amplitudes computed by the compiled code
+
+  compare_amplitude_UFO
+
+    check that the amplitudes computed for a hardcoded model
+    agree with the amplitudes computed for the equivalent
+    UFO model
+
+
+  compare_majorana_legacy
+
+    check that amplitudes in hardcoded models computed with
+    the default implementation of Fermi statistics for Dirac
+    spinors agree with JRR's implementation of Fermi statistics
+    for Majorana spinors
+
+  compare_majorana
+
+    check that amplitudes in hardcoded models computed with
+    the default implementation of Fermi statistics for Dirac
+    spinors agree with the new, UFO friendly, implementation
+    of Fermi statistics for Majorana spinors
+
+  compare_majorana_UFO
+
+    check that amplitudes in UFO models computed with the
+    implementation of Fermi statistics for Dirac spinors agree
+    with the implementation of Fermi statistics for Majorana spinors
+
+
+########################################################################
+
+The remaining tests could be removed from TESTS:
+
+  ufo_unit
+
+    despite the name, this is for interactive testing and will
+    not perform meaningful tests if called without arguments
+
+  vertex_unit
+
+    partially test an incomplete implementation of an alternative
+    model file format, that is not used in production
+

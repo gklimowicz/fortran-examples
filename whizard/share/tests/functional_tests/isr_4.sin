@@ -1,0 +1,48 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+process isr_4a = e1, E1 => e2, E2
+process isr_4b = e1, E1 => e2, E2
+
+compile
+
+sqrts = 100 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+iterations = 1:1000
+
+!!! Keep me nonzero for this test
+!!! me = 0
+
+isr_mass = 511 keV
+?isr_recoil = false
+
+beams = e1, E1 => isr
+
+seed = 0
+integrate (isr_4a)
+seed = 0
+integrate (isr_4b)
+
+?keep_beams = true
+?keep_remnants = true
+
+?isr_handler = false
+
+$sample = "isr_4a"
+sample_format = lhef
+simulate (isr_4a) { n_events = 1 }
+
+?isr_handler = true
+$isr_handler_mode = "recoil"
+
+$sample = "isr_4b"
+sample_format = lhef
+simulate (isr_4b) { n_events = 1 }

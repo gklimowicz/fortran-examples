@@ -1,0 +1,22 @@
+# SINDARIN input for WHIZARD self-test
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process restrictions_sm_eemm   =
+  e1, E1	=>  e2, E2
+process restrictions_sm_eemm_z = 
+  e1, E1	=>  e2, E2 { $restrictions = "1+2 ~ Z" }
+compile
+sqrts = 200 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (restrictions_sm_eemm, restrictions_sm_eemm_z) { iterations = 1:1000 }
+show (results)
+

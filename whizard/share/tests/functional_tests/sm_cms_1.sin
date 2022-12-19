@@ -1,0 +1,44 @@
+# SINDARIN input for WHIZARD self-test
+# Process e- e+ -> W+ W-
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+model = SM
+
+# Artificially set wZ to a large value to generate a difference between
+# GF-MW-MZ and Complex Mass Scheme
+
+wZ = 10 GeV
+
+seed = 0
+
+phs_off_shell = 1
+phs_t_channel = 2
+
+process sm_cms_1_ww = e1, E1 => Wp, Wm
+
+me = 0
+mH = 125 GeV
+
+sqrts = 165 GeV
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (sm_cms_1_ww) { iterations = 4:5000 } 
+
+model = SM (Complex_Mass_Scheme)
+
+# Artificially set wZ to a large value to generate a difference between
+# GF-MW-MZ and Complex Mass Scheme
+
+wZ = 10 GeV
+
+process sm_cms_2_ww = e1, E1 => Wp, Wm
+
+seed = 0
+
+integrate (sm_cms_2_ww) { iterations = 4:5000 }

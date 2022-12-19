@@ -1,0 +1,179 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+| Switching to model 'SM', scheme 'default'
+| Process library 'show_2_lib': recorded process 'show_2_p1'
+error_threshold =  1.000000000000E-08
+| Integrate: current process library needs compilation
+| Process library 'show_2_lib': compiling ...
+| Process library 'show_2_lib': writing makefile
+| Process library 'show_2_lib': removing old files
+| Process library 'show_2_lib': writing driver
+| Process library 'show_2_lib': creating source code
+| Process library 'show_2_lib': compiling sources
+| Process library 'show_2_lib': linking
+| Process library 'show_2_lib': loading
+| Process library 'show_2_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process show_2_p1:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   H  (mass = 1.2500000E+02 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'show_2_p1.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'show_2_p1'
+|   Library name  = 'show_2_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'show_2_p1_i1':   H => b, bbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'show_2_p1'
+| Integrate: iterations not specified, using default
+| Integrate: iterations = 1:100:""
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  4.3122140E-03  0.00E+00    0.00    0.00* 100.00
+|-----------------------------------------------------------------------------|
+   1        100  4.3122140E-03  0.00E+00    0.00    0.00  100.00
+|=============================================================================|
+| Unstable particle H: computed branching ratios:
+|   show_2_p1: 1.0000000E+00   b, bbar
+|   Total width = 4.3122140E-03 GeV (computed)
+|               = 4.1430000E-03 GeV (preset)
+|   Decay options: helicity treated exactly
+| Particle b declared as polarized
+| Particle bbar declared as polarized
+sqrts =  1.400000000000E+04
+$lhapdf_dir = "/lhapdf/dir"
+$lhapdf_file = "datafile.lhapdf"
+$lhapdf_photon_file = "photonfile.lhapdf"
+lhapdf_member = 4
+lhapdf_photon_scheme = 1
+[user variable] foo = 42
+ Beam structure: p, p => pdf_builtin
+  sqrts = 1.400000000000E+04 GeV
+  PDF set = "CTEQ6L"
+| cleared: beams
+ Beam structure: [any particles]
+iterations = 1:1000:"gw", 3:5000:"gw"
+| cleared: iterations
+iterations = [undefined]
+Polarized particles:  b bbar
+| cleared: polarized
+Polarized particles:
+Unstable particles:  H
+Unstable particle H: computed branching ratios:
+  show_2_p1: 1.0000000E+00   b, bbar
+  Total width = 4.3122140E-03 GeV (computed)
+              = 4.1430000E-03 GeV (preset)
+  Decay options: helicity treated exactly
+| cleared: unstable
+Unstable particles:
+Expression: cuts (parse tree):
++  SEQUENCE    <lexpr>  =  <lsinglet>
++  SEQUENCE    <lsinglet>  =  <lterm>
+|  +  SEQUENCE    <lterm>  =  true
+|  |  +  KEYWORD     true  = [keyword] true
+Expression: scale (parse tree):
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  +  INTEGER     <integer_literal>  = 1
+Expression: factorization_scale (parse tree):
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  +  INTEGER     <integer_literal>  = 2
+Expression: renormalization_scale (parse tree):
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  +  INTEGER     <integer_literal>  = 3
+Expression: weight (parse tree):
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  +  INTEGER     <integer_literal>  = 4
+Expression: selection (parse tree):
++  SEQUENCE    <lexpr>  =  <lsinglet>
++  SEQUENCE    <lsinglet>  =  <lterm>
+|  +  SEQUENCE    <lterm>  =  false
+|  |  +  KEYWORD     false  = [keyword] false
+Expression: reweight (parse tree):
++  SEQUENCE    <expr>  =  <term>
++  SEQUENCE    <term>  =  <factor>
+|  +  SEQUENCE    <factor>  =  <integer_value>
+|  |  +  SEQUENCE    <integer_value>  =  <integer_literal>
+|  |  |  +  INTEGER     <integer_literal>  = 5
+Expression: analysis (parse tree):
++  SEQUENCE    <lexpr>  =  <lsinglet>
++  SEQUENCE    <lsinglet>  =  <lterm>
+|  +  SEQUENCE    <lterm>  =  true
+|  |  +  KEYWORD     true  = [keyword] true
+| cleared: cuts
+| cleared: scale
+| cleared: factorization_scale
+| cleared: renormalization_scale
+| cleared: weight
+| cleared: selection
+| cleared: reweight
+| cleared: analysis
+Expression: cuts: [undefined]
+Expression: scale: [undefined]
+Expression: factorization_scale: [undefined]
+Expression: renormalization_scale: [undefined]
+Expression: weight: [undefined]
+Expression: selection: [undefined]
+Expression: reweight: [undefined]
+Expression: analysis: [undefined]
+sqrts =  1.400000000000E+04
+$lhapdf_dir = "/lhapdf/dir"
+?unweighted = true
+SM.me =>  5.109970000000E-04
+[user variable] foo = 42
+| cleared: sqrts
+| cleared: $lhapdf_dir
+| cleared: ?unweighted
+******************************************************************************
+*** ERROR: clear: variable 'real_precision' is locked and can't be cleared
+******************************************************************************
+|             (WHIZARD run continues)
+******************************************************************************
+*** ERROR: clear: variable 'me' is a model variable and can't be cleared
+******************************************************************************
+|             (WHIZARD run continues)
+| cleared: foo
+sqrts = [unknown real]
+$lhapdf_dir = [unknown string]
+?unweighted = [unknown logical]
+SM.e1* = PDG(11)
+SM.me =>  5.109970000000E-04
+[user variable] foo = [unknown integer]
+[user variable] i = 2
+| expect: success
+| Summary of value checks:
+|   Failures: 0 / Total: 1
+| cleared: expect
+| Summary of value checks:
+|   Failures: 0 / Total: 0
+| There were  2 error(s) and   1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|

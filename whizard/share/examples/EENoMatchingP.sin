@@ -1,0 +1,63 @@
+# $Id: EENoMatchingP.sin 2293 2010-04-11 23:57:50Z jr_reuter $
+# Simple complete physics example: e+e- to jets with PYTHIA shower
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     Sebastian Schmidt 
+#     Christian Speckner <cnspeckn@googlemail.com>
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = SM
+process eeuu = e1, E1 => u, U
+
+compile
+
+sqrts = 91 GeV
+beams = e1, E1
+
+?ps_fsr_active = true
+?hadronization_active = false
+$shower_method = "PYTHIA6"
+
+ps_max_n_flavors = 5
+ps_mass_cutoff = 1
+
+?mlm_matching = false
+
+cuts = all M > 80 GeV [combine [u,U]]
+       and all M < 100 GeV [combine [u,U]]
+
+seed = 1
+
+integrate (eeuu) { iterations = 2:2000 }
+
+n_events = 25000
+
+?rebuild_events = true
+$sample = "EENoMatching"
+sample_format = lhef
+
+checkpoint = 2500
+
+simulate (eeuu)
+
+show (results)

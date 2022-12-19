@@ -1,0 +1,50 @@
+include("ilc_settings.sin")
+
+!! Table 4. Background contributios to the Higgs-strahlungs signal for various 6f final states. All diagrams with intermediate Higgs Bosons have been neglected.
+!! Expected runtime: ~1 d
+
+!! 5. Background for Higgs-strahlung
+process higgs_background_360_1       = e1, E1 => e2, E2, e2, N2, E1, n1 { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_background_360_2       = e1, E1 => e2, E2, u, D, e1, N1 { $restrictions   = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_background_360_3       = e1, E1 => e2, E2, e2, E2, e1, E1 { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_background_360_4_noqcd = e1, E1 => e2, E2, u, U, d, D { $restrictions     = "^gs && !H && ^ghgg:ghgaga:ghgaz" }
+process higgs_background_360_4_qcd   = e1, E1 => e2, E2, u, U, d, D { $restrictions     = "!H && ^ghgg:ghgaga:ghgaz" }
+process higgs_background_360_5_noqcd = e1, E1 => e2, E2, u, U, u, U { $restrictions = "^gs && !H && ^ghgg:ghgaga:ghgaz" }
+process higgs_background_360_5_qcd   = e1, E1 => e2, E2, u, U, u, U { $restrictions = "!H && ^ghgg:ghgaga:ghgaz" }
+
+compile
+
+!! ----------------------------------------------------------------------
+
+!!! 360 GeV
+alphas = 0.0925
+
+sqrts = 360 GeV
+beams = e1, E1
+
+$run_id = "360"
+
+integrate(higgs_background_360_1,
+          higgs_background_360_2,
+          higgs_background_360_3,
+          higgs_background_360_4_noqcd,
+          higgs_background_360_4_qcd,
+          higgs_background_360_5_noqcd,
+          higgs_background_360_5_qcd)
+
+tolerance = 2 * sqrt( error(higgs_background_360_1)**2 + 4e-05**2 )
+expect(integral(higgs_background_360_1) == 0.01841)
+tolerance = 2 * sqrt( error(higgs_background_360_2)**2 + 0.0001**2 )
+expect(integral(higgs_background_360_2) == 0.05252)
+tolerance = 2 * sqrt( error(higgs_background_360_3)**2 + 9e-06**2 )
+expect(integral(higgs_background_360_3) == 0.002339)
+tolerance = 2 * sqrt( error(higgs_background_360_4_noqcd)**2 + 0.00026**2 )
+expect(integral(higgs_background_360_4_noqcd) == 0.1325)
+tolerance = 2 * sqrt( error(higgs_background_360_4_qcd)**2 + 0.00028**2 )
+expect(integral(higgs_background_360_4_qcd) == 0.14032)
+tolerance = 2 * sqrt( error(higgs_background_360_5_noqcd)**2 + 6e-06**2 )
+expect(integral(higgs_background_360_5_noqcd) == 0.002729)
+tolerance = 2 * sqrt( error(higgs_background_360_5_qcd)**2 + 1.3e-05**2 )
+expect(integral(higgs_background_360_5_qcd) == 0.005923)
+
+show(results)

@@ -1,0 +1,29 @@
+# Sindarin input for WHIZARD self-test
+# Process e- e+ -> mu+ mu-
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?write_raw = false
+
+model      = SM
+me         = 0
+mmu        = 0
+alphas     = 0.123456
+scale      = 98.76543
+
+process hepmc_6_p = e1, E1 => e2, E2
+
+compile
+
+sqrts = 500 GeV
+
+openmp_num_threads = 1
+
+integrate (hepmc_6_p) { iterations = 1:1000 }
+
+n_events = 2   
+sample_format = hepmc
+
+simulate (hepmc_6_p)

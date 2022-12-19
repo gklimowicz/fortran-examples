@@ -1,0 +1,466 @@
+% -*- ess-noweb-default-code-mode: f90-mode; noweb-default-code-mode: f90-mode; -*- 
+% VAMP linalg code as NOWEB source
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Linear Algebra}
+<<[[linalg.f90]]>>=
+! linalg.f90 --
+<<Copyleft notice>>
+module linalg
+  use kinds
+  use utils
+  implicit none
+  private
+  <<Declaration of [[linalg]] procedures>>
+contains
+  <<Implementation of [[linalg]] procedures>>
+end module linalg
+@ %def linalg
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{LU Decomposition}
+<<Declaration of [[linalg]] procedures>>=
+public :: lu_decompose
+@
+\begin{subequations}
+\label{eq:LU}
+\begin{equation}
+  A = LU
+\end{equation}
+In more detail
+\begin{equation}
+  \begin{pmatrix}
+    a_{11} & a_{12} & \ldots & a_{1n} \\
+    a_{21} & a_{22} & \ldots & a_{2n} \\
+    \vdots & \vdots & \vdots & \vdots \\
+    a_{n1} & a_{n2} & \ldots & a_{nn}
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    1      & 0      & \ldots & 0      \\
+    l_{21} & 1      & \ldots & 0      \\
+    \vdots & \vdots & \vdots & \vdots \\
+    l_{n1} & l_{n2} & \ldots & 1
+  \end{pmatrix}
+  \begin{pmatrix}
+    u_{11} & u_{12} & \ldots & u_{1n} \\
+    0      & u_{22} & \ldots & u_{2n} \\
+    \vdots & \vdots & \vdots & \vdots \\
+    0      & 0      & \ldots & u_{nn}
+  \end{pmatrix}
+\end{equation}
+\end{subequations}
+Rewriting~(\ref{eq:LU}) in block matrix notation
+\begin{equation}
+  \begin{pmatrix}
+    a_{11}     & a_{1\cdot} \\
+    a_{\cdot1} & A
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    1          & 0 \\
+    l_{\cdot1} & L
+  \end{pmatrix}
+  \begin{pmatrix}
+    u_{11} & u_{1\cdot} \\
+    0      & U
+  \end{pmatrix}
+   =
+  \begin{pmatrix}
+    u_{11}            & u_{1\cdot} \\
+    l_{\cdot1} u_{11} & l_{\cdot1} \otimes u_{1\cdot} + LU
+  \end{pmatrix}
+\end{equation}
+we can solve it easily
+\begin{subequations}
+\begin{align}
+  u_{11}     &= a_{11} \\
+  u_{1\cdot} &= a_{1\cdot} \\
+\label{eq:LU1}
+  l_{\cdot1} &= \frac{a_{\cdot1}}{a_{11}} \\
+\label{eq:LU2}
+  LU         &= A - \frac{a_{\cdot1} \otimes a_{1\cdot}}{a_{11}}
+\end{align}
+\end{subequations}
+and~(\ref{eq:LU1}) and~(\ref{eq:LU2}) define a simple iterative
+algorithm if we work from the outside in.  It just remains to add
+pivoting.
+<<Implementation of [[linalg]] procedures>>=
+pure subroutine lu_decompose (a, pivots, eps, l, u)
+  real(kind=default), dimension(:,:), intent(inout) :: a
+  integer, dimension(:), intent(out), optional :: pivots
+  real(kind=default), intent(out), optional :: eps
+  real(kind=default), dimension(:,:), intent(out), optional :: l, u
+  real(kind=default), dimension(size(a,dim=1)) :: vv
+  integer, dimension(size(a,dim=1)) :: p
+  integer :: j, pivot
+  <<[[eps = 1]]>>
+  vv = maxval (abs (a), dim=2)
+  if (any (vv == 0.0)) then
+     a = 0.0
+     <<[[pivots = 0]] and [[eps = 0]]>>
+     return
+  end if
+  vv = 1.0 / vv
+  do j = 1, size (a, dim=1)
+     pivot = j - 1 + sum (maxloc (vv(j:) * abs (a(j:,j))))
+     if (j /= pivot) then
+        call swap (a(pivot,:), a(j,:))
+        <<[[eps = - eps]]>>
+        vv(pivot) = vv(j)
+     end if
+     p(j) = pivot
+     if (a(j,j) == 0.0) then
+        a(j,j) = tiny (a(j,j))
+     end if
+     a(j+1:,j) = a(j+1:,j) / a(j,j)
+     a(j+1:,j+1:) &
+          = a(j+1:,j+1:) - outer_product (a(j+1:,j), a(j,j+1:))
+  end do
+  <<Return optional arguments in [[lu_decompose]]>>
+end subroutine lu_decompose
+@ %def lu_decompose
+@ 
+<<[[eps = 1]]>>=
+if (present (eps)) then
+   eps = 1.0
+end if
+@
+<<[[eps = - eps]]>>=
+if (present (eps)) then
+   eps = - eps
+end if
+@ 
+<<[[pivots = 0]] and [[eps = 0]]>>=
+if (present (pivots)) then
+   pivots = 0
+end if
+if (present (eps)) then
+   eps = 0
+end if
+@ 
+<<Return optional arguments in [[lu_decompose]]>>=
+if (present (pivots)) then
+   pivots = p
+end if
+if (present (l)) then
+   do j = 1, size (a, dim=1)
+      l(1:j-1,j) = 0.0
+      l(j,j) = 1.0
+      l(j+1:,j) = a(j+1:,j)
+   end do
+   do j = size (a, dim=1), 1, -1
+      call swap (l(j,:), l(p(j),:))
+   end do
+end if
+if (present (u)) then
+   do j = 1, size (a, dim=1)
+      u(1:j,j) = a(1:j,j)
+      u(j+1:,j) = 0.0
+   end do
+end if
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Determinant}
+<<Declaration of [[linalg]] procedures>>=
+public :: determinant
+@ This is a subroutine to comply with F's rules, otherwise, we would
+code it as a function.
+\index{inconvenient F constraints}
+<<Implementation of [[linalg]] procedures>>=
+pure subroutine determinant (a, det)
+  real(kind=default), dimension(:,:), intent(in) :: a
+  real(kind=default), intent(out) :: det
+  real(kind=default), dimension(size(a,dim=1),size(a,dim=2)) :: lu
+  integer :: i
+  lu = a
+  call lu_decompose (lu, eps = det)
+  do i = 1, size (a, dim = 1)
+     det = det * lu(i,i)
+  end do
+end subroutine determinant
+@ %def determinant
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Diagonalization}
+The code is an implementation of the algorithm presented
+in~\cite{Press/etal:1992:NumRecC,Press/etal:1992:NumRec77}, but
+independent from the code presented in~\cite{Press/etal:1996:NumRec90}
+to avoid legal problems.\par
+A Jacobi rotation around the angle~$\phi$ in row~$p$ and column~$q$
+\begin{equation}
+  P(\phi;p,q) =
+    \begin{pmatrix}
+       1 &        &           &        &          &            \\
+         & \ddots &           &        &          &            \\
+         &        & \cos\phi  & \cdots & \sin\phi &            \\
+         &        & \vdots    &  1     & \vdots   &            \\
+         &        & -\sin\phi & \cdots & \cos\phi &            \\
+         &        &           &        &          & \ddots     \\
+         &        &           &        &          &        & 1
+    \end{pmatrix}
+\end{equation}
+results in
+\begin{equation}
+  A' = P^T(\phi;p,q)\cdot A\cdot P(\phi;p,q) = 
+    \begin{pmatrix}
+              &        & A'_{1p} &        & A'_{1q} &                  \\
+              &        & \vdots  &        & \vdots  &                  \\
+      A'_{p1} & \cdots & A'_{pq} & \cdots & A'_{pq} & \cdots & A'_{pn} \\
+              &        & \vdots  &        & \vdots  &                  \\
+      A'_{q1} & \cdots & A'_{qp} & \cdots & A'_{qq} & \cdots & A'_{qn} \\
+              &        & \vdots  &        & \vdots  &                  \\
+              &        & A'_{np} &        & A'_{nq} &
+    \end{pmatrix}
+\end{equation}
+<<Declaration of [[linalg]] procedures>>=
+public :: diagonalize_real_symmetric
+@
+<<Implementation of [[linalg]] procedures>>=
+pure subroutine diagonalize_real_symmetric (a, eval, evec, num_rot)
+  real(kind=default), dimension(:,:), intent(in) :: a
+  real(kind=default), dimension(:), intent(out) :: eval
+  real(kind=default), dimension(:,:), intent(out) :: evec
+  integer, intent(out), optional :: num_rot
+  real(kind=default), dimension(size(a,dim=1),size(a,dim=2)) :: aa
+  real(kind=default) :: off_diagonal_norm, threshold, &
+       c, g, h, s, t, tau, cot_2phi
+  logical, dimension(size(eval),size(eval)) :: upper_triangle
+  integer, dimension(size(eval)) :: one_to_ndim
+  integer :: p, q, ndim, j, sweep
+  integer, parameter :: MAX_SWEEPS = 50
+  ndim = size (eval)
+  one_to_ndim = (/ (j, j=1,ndim) /)
+  upper_triangle = &
+       spread (one_to_ndim, dim=1, ncopies=ndim) &
+         > spread (one_to_ndim, dim=2, ncopies=ndim)
+  aa = a
+  call unit (evec)
+  <<Initialize [[num_rot]]>>
+  sweeps: do sweep = 1, MAX_SWEEPS
+     off_diagonal_norm = sum (abs (aa), mask=upper_triangle)
+     if (off_diagonal_norm == 0.0) then
+        eval = diag (aa)
+        return
+     end if
+     if (sweep < 4) then
+        threshold = 0.2 * off_diagonal_norm / ndim**2
+     else
+        threshold = 0.0
+     end if
+     do p = 1, ndim - 1
+        do q = p + 1, ndim
+           <<Perform the Jacobi rotation resulting in $A^\prime_{pq}=0$>>
+        end do
+     end do
+  end do sweeps
+  if (present (num_rot)) then
+     num_rot = -1
+  end if
+!!! print *, "linalg::diagonalize_real_symmetric: exceeded sweep count"
+end subroutine diagonalize_real_symmetric
+@ %def diagonalize_real_symmetric
+@
+<<Perform the Jacobi rotation resulting in $A^\prime_{pq}=0$>>=
+g = 100 * abs (aa (p,q))
+if ((sweep > 4) &
+     .and. (g <= min (spacing (aa(p,p)), spacing (aa(q,q))))) then
+   aa(p,q) = 0.0
+else if (abs (aa(p,q)) > threshold) then
+   <<Determine $\phi$ for the Jacobi rotation $P(\phi;p,q)$ with $A^\prime_{pq}=0$>>
+   <<$A^\prime = P^T(\phi;p,q)\cdot A\cdot P(\phi;p,q)$>>
+   <<$V^\prime = V\cdot P(\phi;p,q)$>>
+   <<Update [[num_rot]]>>
+end if
+@ We want
+\begin{equation}
+  A^\prime_{pq} = (c^2-s^2)A_{pq}+ sc(A_{pp}-A_{qq}) = 0
+\end{equation}
+and therefore
+\begin{equation}
+   \cot 2\phi
+      = \frac{1-\tan^2\phi}{2\tan\phi}
+      = \frac{\cos^2\phi-\sin^2\phi}{2\sin\phi\cos\phi}
+      = \frac{A_{pp}-A_{qq}}{2A_{pq}}
+\end{equation}
+i.e.~with $t = \tan\phi = s/c$
+\begin{equation}
+   t^2 + 2t\cot 2\phi - 1 = 0
+\end{equation}
+This quadratic equation has the roots
+\begin{equation}
+   t = - \cot 2\phi \pm \sqrt{1 + \cot^2 2\phi}
+     = \frac{\epsilon(\cot 2\phi)}%
+            {|\cot 2\phi| \pm \epsilon(\cot 2\phi) \sqrt{1 + \cot^2 2\phi}}
+\end{equation}
+and the smaller in magnitude of these is
+\begin{equation}
+   t = \frac{\epsilon(\cot 2\phi)}{|\cot 2\phi| + \sqrt{1 + \cot^2 2\phi}}
+\end{equation}
+and since~$|t|\le1$, it corresponds to~$|\phi|\le\pi/4$.
+For very large~$\cot 2\phi$ we will use
+\begin{equation}
+   t = \frac{1}{2\cot 2\phi} = \frac{A_{pq}}{A_{pp}-A_{qq}}
+\end{equation}
+\begin{equation}
+  h = A_{qq} - A_{pp}
+\end{equation}
+<<Determine $\phi$ for the Jacobi rotation $P(\phi;p,q)$ with $A^\prime_{pq}=0$>>=
+h = aa(q,q) - aa(p,p)
+if (g <= spacing (h)) then
+   t = aa(p,q) / h
+else
+   cot_2phi = 0.5 * h / aa(p,q)
+   t = sign (1.0_default, cot_2phi) &
+         / (abs (cot_2phi) + sqrt (1.0 + cot_2phi**2))
+end if
+@ Trivia
+\begin{subequations}
+\begin{align}
+  \cos^2\phi
+    &= \frac{\cos^2\phi}{\cos^2\phi+\sin^2\phi} = \frac{1}{1+\tan^2\phi} \\
+  \sin\phi
+    &= \tan\phi \cos\phi \\
+\label{eq:tau}
+  \tau\sin\phi
+    &= \frac{\sin^2}{1+\cos\phi} = \frac{1-\cos^2}{1+\cos\phi} = 1 - \cos\phi
+\end{align}
+\end{subequations}
+<<Determine $\phi$ for the Jacobi rotation $P(\phi;p,q)$ with $A^\prime_{pq}=0$>>=
+c = 1.0 / sqrt (1.0 + t**2)
+s = t * c
+tau = s / (1.0 + c)
+@ 
+\begin{equation}
+\begin{aligned}
+   A'_{pp} &= c^2A_{pp}+s^2A_{qq}-2scA_{pq} = A_{pp} - tA_{pq} \\
+   A'_{qq} &= s^2A_{pp}+c^2A_{qq}+2scA_{pq} = A_{qq} + tA_{pq} \\
+   A'_{pq} &= (c^2-s^2)A_{pq} + sc(A_{pp}-A_{qq})
+\end{aligned}
+\end{equation}
+<<$A^\prime = P^T(\phi;p,q)\cdot A\cdot P(\phi;p,q)$>>=
+aa(p,p) = aa(p,p) - t * aa(p,q)
+aa(q,q) = aa(q,q) + t * aa(p,q)
+aa(p,q) = 0.0
+@ 
+\begin{equation}
+\begin{aligned}
+  r \not= p < q \not= r: 
+    A'_{rp} &= cA_{rp} - sA_{rq} \\
+    A'_{rq} &= sA_{rp} + cA_{rq}
+\end{aligned}
+\end{equation}
+Here's how we cover the upper triangular region using array notation:
+\begin{equation}
+  \begin{pmatrix}
+           & \text{[[a(1:p-1,p)]]}
+                    &        & \text{[[a(1:p-1,q)]]}
+                                      &                    \\
+   \cdots  & A_{pq} & \text{[[a(p,p+1:q-1)]]}
+                             & A_{pq} & \text{[[a(p,q+1:ndim)]]} \\
+           & \vdots &        & \text{[[a(p+1:q-1,q)]]}
+                                      &                    \\
+   \cdots  & A_{qp} & \cdots & A_{qq} & \text{[[a(q,q+1:ndim)]]} \\
+           & \vdots &        & \vdots &         
+  \end{pmatrix}
+\end{equation}
+<<$A^\prime = P^T(\phi;p,q)\cdot A\cdot P(\phi;p,q)$>>=
+call jacobi_rotation (s, tau, aa(1:p-1,p), aa(1:p-1,q))
+call jacobi_rotation (s, tau, aa(p,p+1:q-1), aa(p+1:q-1,q))
+call jacobi_rotation (s, tau, aa(p,q+1:ndim), aa(q,q+1:ndim))
+@ Using~(\ref{eq:tau}), we can write the rotation as a perturbation:
+\begin{equation}
+\begin{aligned}
+   V'_p &= cV_p - sV_q = V_p - s(V_q + \tau V_p) \\
+   V'_q &= sV_p + cV_q = V_q + s(V_p - \tau V_q) 
+\end{aligned}
+\end{equation}
+<<Implementation of [[linalg]] procedures>>=
+pure subroutine jacobi_rotation (s, tau, vp, vq)
+  real(kind=default), intent(in) :: s, tau
+  real(kind=default), dimension(:), intent(inout) :: vp, vq
+  real(kind=default), dimension(size(vp)) :: vp_tmp
+  vp_tmp = vp
+  vp = vp - s * (vq     + tau * vp)
+  vq = vq + s * (vp_tmp - tau * vq)
+end subroutine jacobi_rotation
+@ %def jacobi_rotation
+@
+<<Declaration of [[linalg]] procedures>>=
+private :: jacobi_rotation
+@
+<<$V^\prime = V\cdot P(\phi;p,q)$>>=
+call jacobi_rotation (s, tau, evec(:,p), evec(:,q))
+@ 
+<<Initialize [[num_rot]]>>=
+if (present (num_rot)) then
+   num_rot = 0
+end if
+@ 
+<<Update [[num_rot]]>>=
+if (present (num_rot)) then
+   num_rot = num_rot + 1
+end if
+@
+<<Implementation of [[linalg]] procedures>>=
+pure subroutine unit (u)
+  real(kind=default), dimension(:,:), intent(out) :: u
+  integer :: i
+  u = 0.0
+  do i = 1, min (size (u, dim = 1), size (u, dim = 2))
+     u(i,i) = 1.0
+  end do
+end subroutine unit
+@ %def unit
+@
+<<Implementation of [[linalg]] procedures>>=
+pure function diag (a) result (d)
+  real(kind=default), dimension(:,:), intent(in) :: a
+  real(kind=default), dimension(min(size(a,dim=1),size(a,dim=2))) :: d
+  integer :: i
+  do i = 1, min (size (a, dim = 1), size (a, dim = 2))
+     d(i) = a(i,i)
+  end do
+end function diag
+@ %def diag
+@
+<<Declaration of [[linalg]] procedures>>=
+public :: unit, diag
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Test}
+<<[[la_sample.f90]]>>=
+! la_sample.f90 --
+<<Copyleft notice>>
+program la_sample
+  use kinds
+  use utils
+  use tao_random_numbers
+  use linalg
+  implicit none
+  integer, parameter :: N = 200
+  real(kind=default), dimension(N,N) :: a, evec, a0, l, u, NAG_bug
+  real(kind=default), dimension(N) :: b, eval
+  real(kind=default) :: d
+  integer :: i
+  call system_clock (i)
+  call tao_random_seed (i)
+  print *, i
+  do i = 1, N
+     call tao_random_number (a(:,i))
+  end do
+  NAG_bug = (a + transpose (a)) / 2
+  a = NAG_bug
+  a0 = a
+  call lu_decompose (a, l=l, u=u)
+  a = matmul (l, u)
+  print *, maxval (abs(a-a0))
+  call determinant (a, d)
+  print *, d
+  call diagonalize_real_symmetric (a, eval, evec)
+  print *, product (eval)
+  stop
+  call sort (eval, evec)
+  do i = 1, N
+     b = matmul (a, evec(:,i)) - eval(i) * evec(:,i)
+     write (unit = *, fmt = "(A,I3, 2(A,E11.4))") &
+          "eval #", i, " = ", eval(i), ", |(A-lambda)V|_infty = ", &
+          maxval (abs(b)) / maxval (abs(evec(:,i)))
+  end do
+end program la_sample
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

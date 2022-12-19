@@ -1,0 +1,48 @@
+# Sindarin input for WHIZARD self-test
+# Process g g -> u ubar
+
+model = "QCD"
+$method = "omega"
+$phs_method = "wood"
+$integration_method = "vamp"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+seed = 0
+
+process hepmc_7_p = "g", "g" => "u", "ubar"
+
+sqrts = 8000
+beams = p, p => pdf_builtin
+
+cuts = all Pt > 50 [u:ubar]
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+n_events = 1
+safety_factor = 2
+
+?read_raw = false
+?write_raw = false
+
+simulate (hepmc_7_p) {
+  iterations = 1:1000
+  ?keep_beams = true
+  sample_format = hepmc, weight_stream
+  $sample = "hepmc_7a"
+}
+
+rescan "hepmc_7a" (hepmc_7_p) {
+  $rescan_input_format = "hepmc"
+  sample_format = weight_stream
+  $sample = "hepmc_7b"
+  ?update_sqme = true
+  ?recover_beams = false
+  alt_setup = 
+    { alphas = 2 * alphas },
+    { alphas = 3 * alphas }
+}

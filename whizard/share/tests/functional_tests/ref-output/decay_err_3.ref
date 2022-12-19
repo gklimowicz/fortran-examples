@@ -1,0 +1,120 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+seed = 0
+n_events = 1
+error_threshold =  1.000000000000E-08
+| Process library 'decay_err_3_lib': recorded process 'decay_err_3_d'
+| Integrate: current process library needs compilation
+| Process library 'decay_err_3_lib': compiling ...
+| Process library 'decay_err_3_lib': writing makefile
+| Process library 'decay_err_3_lib': removing old files
+| Process library 'decay_err_3_lib': writing driver
+| Process library 'decay_err_3_lib': creating source code
+| Process library 'decay_err_3_lib': compiling sources
+| Process library 'decay_err_3_lib': linking
+| Process library 'decay_err_3_lib': loading
+| Process library 'decay_err_3_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 0
+| Initializing integration for process decay_err_3_d:
+| Beam structure: [any particles]
+| Beam data (decay):
+|   t  (mass = 1.7500000E+02 GeV)
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'decay_err_3_d.i1.phs'
+| ------------------------------------------------------------------------
+| Process [decay]: 'decay_err_3_d'
+|   Library name  = 'decay_err_3_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'decay_err_3_d_i1':   t => b, W+ [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'decay_err_3_d'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[GeV] Error[GeV]  Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  1.5534059E+00  0.00E+00    0.00    0.00* 100.00
+|-----------------------------------------------------------------------------|
+   1        100  1.5534059E+00  0.00E+00    0.00    0.00  100.00
+|=============================================================================|
+| Process library 'decay_err_3_lib': unloading
+| Process library 'decay_err_3_lib': open
+| Process library 'decay_err_3_lib': recorded process 'decay_err_3_p'
+| Unstable particle t: computed branching ratios:
+|   decay_err_3_d: 1.0000000E+00   b, W+
+|   Total width = 1.5534059E+00 GeV (computed)
+|               = 1.5230000E+00 GeV (preset)
+|   Decay options: helicity treated exactly
+sqrts =  4.500000000000E+02
+| Starting simulation for process 'decay_err_3_p'
+| Simulate: process 'decay_err_3_p' needs integration
+| Integrate: current process library needs compilation
+| Process library 'decay_err_3_lib': compiling ...
+| Process library 'decay_err_3_lib': writing makefile
+| Process library 'decay_err_3_lib': removing old files
+| Process library 'decay_err_3_lib': writing driver
+| Process library 'decay_err_3_lib': creating source code
+| Process library 'decay_err_3_lib': compiling sources
+| Process library 'decay_err_3_lib': linking
+| Process library 'decay_err_3_lib': loading
+| Process library 'decay_err_3_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 1
+| Initializing integration for process decay_err_3_p:
+| Beam structure: [any particles]
+| Beam data (collision):
+|   e-  (mass = 0.0000000E+00 GeV)
+|   e+  (mass = 0.0000000E+00 GeV)
+|   sqrts = 4.500000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'decay_err_3_p.i1.phs'
+| ------------------------------------------------------------------------
+| Process [scattering]: 'decay_err_3_p'
+|   Library name  = 'decay_err_3_lib'
+|   Process index = 2
+|   Process components:
+|     1: 'decay_err_3_p_i1':   e-, e+ => t, tbar [omega]
+| ------------------------------------------------------------------------
+| Phase space: 1 channels, 2 dimensions
+| Phase space: found 1 channel, collected in 1 grove.
+| Phase space: Using 1 equivalence between channels.
+| Phase space: wood
+Warning: No cuts have been defined.
+| Starting integration for process 'decay_err_3_p'
+| Integrate: iterations = 1:100
+| Integrator: 1 chains, 1 channels, 2 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100  6.3640789E+02  2.58E+01    4.05    0.40*  56.36
+|-----------------------------------------------------------------------------|
+   1        100  6.3640789E+02  2.58E+01    4.05    0.40   56.36
+|=============================================================================|
+| Simulate: integration done
+| Simulate: using integration grids from file 'decay_err_3_p.m1.vg'
+| Simulate: activating decays
+******************************************************************************
+******************************************************************************
+*** FATAL ERROR: Process 'decay_err_3_d': library has been recompiled after integration
+******************************************************************************
+******************************************************************************
+| There were no errors and    2 warning(s).
+WHIZARD run aborted.

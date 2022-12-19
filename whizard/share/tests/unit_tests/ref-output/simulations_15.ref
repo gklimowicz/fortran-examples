@@ -1,0 +1,80 @@
+* Test output: simulations_15
+*   Purpose: generate event with resonant subprocess
+
+* Build and load a test library with one process
+
+* Initialize process library and process
+
+ ID = 'simulations_15_p'
+ Scattering
+ Model = SM
+ Initially defined component(s) = 1
+ Extra generated component(s)   = 0
+ Resonant subprocesses required
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = simulations_15_p_i1
+   Initial component   = T
+   N (in, out, tot)    = 2 3 5
+   Particle content    = e+, e- => d, ubar, W+
+   Method              = omega
+   Process variant     = omega
+     Model name        = "SM"
+     Mode string       = " -scatter"
+     Process string    = " 'e+ e- -> d ubar W+'"
+     Restrictions      = ""
+     OpenMP support    = F
+     Report progress   = F
+     Extra options     = ""
+     Write diagrams    = F
+     Write color diag. = F
+     Complex Mass S.   = F
+   MD5 sum (def)       = '                                '
+
+* Initialize simulation object with resonant subprocesses
+
+ Resonant subprocess set:
+ Component #1
+   Resonance history set:
+ 1    Resonance history with 1 resonances:
+      1 2 f(-24)
+      contained in ()
+ 2    Resonance history with 1 resonances:
+      1 2 3 f(23)
+      contained in ()
+   Process library = 'simulations_15_p_R'
+   Process sqme =  0.000000000000E+00
+   Event transform: associated
+   Selector: [inactive]
+ Resonant subprocesses refer to process component #1
+
+* Generate event
+
+========================================================================
+ Event #1
+========================================================================
+ count  = 1
+ passed = [N/A]
+ prc id = 1
+------------------------------------------------------------------------
+ sqme (ref)   =  5.165388301140E-01
+ sqme (prc)   =  5.165388301140E-01
+ weight (ref) =  1.000000000000E+00
+ weight (prc) =  1.000000000000E+00
+ excess (prc) =  0.000000000000E+00
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+  Nr Status  Flavor  Col ACol              Parents             Children         P(0)         P(1)         P(2)         P(3)          P^2
+   1    [i]      e+    0    0               [none]                  3,6      500.000        0.000        0.000      500.000        0.000
+   2    [i]      e-    0    0               [none]                  3,6      500.000        0.000        0.000     -500.000        0.000
+   3    [r]      W-    0    0                  1-2                  4-5      499.988      -37.329     -132.011     -474.051     6443.575
+   4    [o]       d    1    0                    3               [none]      434.716      -16.065      -96.532     -423.558        0.000
+   5    [o]    ubar    0    1                    3               [none]       65.272      -21.264      -35.480      -50.493        0.000
+   6    [o]      W+    0    0                  1-2               [none]      500.012       37.329      132.011      474.051     6467.216
+
+* Write event to separate file 'simulations_15_event_verbose.log'
+
+* Cleanup
+
+* Test output end: simulations_15

@@ -1,0 +1,29 @@
+# SINDARIN input for WHIZARD self-test
+
+model = "Test"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+
+$method = "unit_test"
+process_num_id = 42
+process testproc_1_p1 = s, s => s, s
+
+seed = 0
+
+compile ()
+
+$phs_method = "single"
+$integration_method = "midpoint"
+iterations = 1:1000
+sqrts = 1000
+
+integrate (testproc_1_p1)
+int n = num_id (testproc_1_p1)
+real res = integral (testproc_1_p1)
+
+n_events = 5
+?read_raw = false
+simulate (testproc_1_p1)

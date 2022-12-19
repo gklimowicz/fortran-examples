@@ -1,0 +1,48 @@
+# SINDARIN input for WHIZARD self-test
+# Tests the integration of an NLO process with multiple flavors in the final state.
+# without cuts and producing an NLO event
+
+model = SM ("GF_MW_MZ")
+$blha_ew_scheme = "alpha_internal"
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+$loop_me_method = "dummy"
+
+!!! Tests should be run single-threaded
+openmp_num_threads = 1
+
+?use_vamp_equivalences = false
+?alphas_is_fixed = true
+?alphas_from_mz = false
+alphas = 0.1178
+
+ms = 0
+mc = 0
+mb = 0
+
+?negative_weights = true
+?fixed_order_nlo_events = true
+?unweighted = false
+
+alias jet = u:U:d:D:s:S:c:C:b:B
+
+process nlo_5_p1 = E1, e1 => jet, jet { nlo_calculation = real }
+
+sqrts = 500 GeV
+seed = 0
+integrate (nlo_5_p1) { iterations = 1:100:"gw"}
+
+n_events = 5
+sample_format = debug
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+
+simulate (nlo_5_p1)

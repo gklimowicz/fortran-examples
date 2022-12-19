@@ -1,0 +1,13 @@
+! fc_s.ects --
+!ects:model SM
+!ects:scatter
+!ects:process u ubar -> A
+integer, parameter :: NP = 3, NCF = 1
+real(kind=default), parameter :: NC = 3
+integer, dimension(2,NP,NCF), parameter :: cflows = reshape ( &
+  (/  1,  0 ,  0, -1 ,  0,  0   /), (/ 2, NP, NCF /) )
+logical, dimension(NP,NCF), parameter :: gflags = reshape ( &
+  (/ .false., .false., .false.  /), (/ NP, NCF /))
+type(OCF), dimension(1), parameter :: cfactors = &
+  (/ OCF (1, 1, NC)  /)
+

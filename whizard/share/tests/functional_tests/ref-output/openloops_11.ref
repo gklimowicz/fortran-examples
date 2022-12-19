@@ -1,0 +1,288 @@
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+alpha_power = 2
+alphas_power = 0
+[user variable] jet = PDG(2, 1, -2, -1)
+?openloops_use_cms = false
+$method = "openloops"
+openmp_num_threads = 1
+| Process library 'openloops_11_lib': recorded process 'openloops_11_p1'
+seed = 42
+sqrts =  2.00000E+02
+| Integrate: current process library needs compilation
+| Process library 'openloops_11_lib': compiling ...
+| Process library 'openloops_11_lib': writing makefile
+| Process library 'openloops_11_lib': removing old files
+| Process library 'openloops_11_lib': writing driver
+| Process library 'openloops_11_lib': creating source code
+| Process library 'openloops_11_lib': compiling sources
+| Process library 'openloops_11_lib': linking
+| Process library 'openloops_11_lib': loading
+| Process library 'openloops_11_lib': ... success.
+| Integrate: compilation done
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 42
+| Initializing integration for process openloops_11_p1:
+| Beam structure: e-, e+ => isr
+| Beam data (collision):
+|   e-  (mass = 5.1099700E-04 GeV)
+|   e+  (mass = 5.1099700E-04 GeV)
+|   sqrts = 2.000000000000E+02 GeV
+| Phase space: generating configuration ...
+| Phase space: ... success.
+| Phase space: writing configuration file 'openloops_11_p1.i1.phs'
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| One-Loop-Provider: Using OpenLoops
+| Loading library: [...]
+| ------------------------------------------------------------------------
+| Process [scattering]: 'openloops_11_p1'
+|   Library name  = 'openloops_11_lib'
+|   Process index = 1
+|   Process components:
+|     1: 'openloops_11_p1_i1':   e-, e+ => u:d:ubar:dbar, u:d:ubar:dbar [openloops]
+| ------------------------------------------------------------------------
+| Phase space: 2 channels, 2 dimensions
+| Phase space: found 2 channels, collected in 2 groves.
+| Phase space: Using 2 equivalences between channels.
+| Phase space: wood
+| Beam structure: isr, none => none, isr
+| Beam structure: 2 channels, 2 dimensions
+Warning: No cuts have been defined.
+| Starting integration for process 'openloops_11_p1'
+| Integrate: iterations = 1:100:"gw"
+| Integrator: 2 chains, 2 channels, 4 dimensions
+| Integrator: Using VAMP channel equivalences
+| Integrator: 100 initial calls, 20 bins, stratified = T
+| Integrator: VAMP
+|=============================================================================|
+| It      Calls  Integral[fb]  Error[fb]   Err[%]    Acc  Eff[%]   Chi2 N[It] |
+|=============================================================================|
+   1        100     3.422E+04   2.10E+03    6.14    0.61    32.6
+|-----------------------------------------------------------------------------|
+   1        100     3.422E+04   2.10E+03    6.14    0.61    32.6
+|=============================================================================|
+n_events = 2
+?debug_decay = false
+?debug_process = false
+?debug_verbose = false
+?sample_pacify = true
+?write_raw = false
+| Starting simulation for process 'openloops_11_p1'
+| Simulate: using integration grids from file 'openloops_11_p1.m1.vg'
+| RNG: Initializing TAO random-number generator
+| RNG: Setting seed for random-number generator to 43
+| Simulation: requested number of events = 2
+|             corr. to luminosity [fb-1] =   5.8452E-05
+| Events: writing to ASCII file 'openloops_11_p1.debug'
+| Events: generating 2 unweighted, unpolarized events ...
+| Events: event normalization mode '1'
+|         ... event sample complete.
+| Events: actual unweighting efficiency =  33.33 %
+| Events: closing ASCII file 'openloops_11_p1.debug'
+| There were no errors and    1 warning(s).
+| WHIZARD run finished.
+|=============================================================================|
+Contents of openloops_11_p1.debug:
+========================================================================
+ Event #1
+------------------------------------------------------------------------
+   Unweighted         = T
+   Normalization      = '1'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  5.60819E+05
+   Squared matrix el. (prc) =  5.60819E+05
+   Event weight (ref)       =  1.00000E+00
+   Event weight (prc)       =  1.00000E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 2
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'openloops_11_p1'
+   TAO random-number generator:
+     seed  = 2752514
+     calls = 3
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(11)
+ E =   1.000000E+02
+ P =   0.000000E+00  0.000000E+00  1.000000E+02
+ T =   2.611179340E-07
+ Children: 3 5
+ Particle 2 [b] f(-11)
+ E =   1.000000E+02
+ P =   0.000000E+00  0.000000E+00 -1.000000E+02
+ T =   2.611179340E-07
+ Children: 4 6
+ Particle 3 [i] f(11)
+ E =   2.270555E+01
+ P =   0.000000E+00  0.000000E+00  2.270555E+01
+ T =   2.611179340E-07
+ Parents:  1
+ Children: 7 8
+ Particle 4 [i] f(-11)
+ E =   1.000000E+02
+ P =   0.000000E+00  0.000000E+00 -1.000000E+02
+ T =   2.611179340E-07
+ Parents:  2
+ Children: 7 8
+ Particle 5 [x] f(22*)
+ E =   7.729445E+01
+ P =   0.000000E+00  0.000000E+00  7.729445E+01
+ T =   0.000000000E+00
+ Parents:  1
+ Particle 6 [x] f(22*)
+ E =   1.798613E-07
+ P =   0.000000E+00  0.000000E+00 -1.798613E-07
+ T =   0.000000000E+00
+ Parents:  2
+ Particle 7 [o] f(-2)
+ E =   6.416907E+01
+ P =  -3.536678E+01  3.174411E+01 -4.311812E+01
+ T =   0.000000000E+00
+ Parents:  3 4
+ Particle 8 [o] f(2)
+ E =   5.853648E+01
+ P =   3.536678E+01 -3.174411E+01 -3.417633E+01
+ T =   0.000000000E+00
+ Parents:  3 4
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  2.00000E+02
+sqrts_hat* =>  9.53007E+01
+n_in* => 2
+n_out* => 4
+n_tot* => 6
+$process_id* => "openloops_11_p1"
+process_num_id* => [unknown integer]
+sqme* =>  5.60819E+05
+sqme_ref* =>  5.60819E+05
+event_index* => 1
+event_weight* =>  1.00000E+00
+event_weight_ref* =>  1.00000E+00
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:11|-1.0000000E+02; 0.0000000E+00, 0.0000000E+00,-1.0000000E+02| 2.6111793E-07| 1)
+ 2 prt(b:-11|-1.0000000E+02; 0.0000000E+00, 0.0000000E+00, 1.0000000E+02| 2.6111793E-07| 2)
+ 3 prt(i:11|-2.2705548E+01; 0.0000000E+00, 0.0000000E+00,-2.2705548E+01| 2.6111793E-07| 3)
+ 4 prt(i:-11|-1.0000000E+02; 0.0000000E+00, 0.0000000E+00, 1.0000000E+02| 2.6111793E-07| 4)
+ 5 prt(o:22| 7.7294452E+01; 0.0000000E+00, 0.0000000E+00, 7.7294452E+01| 0.0000000E+00| 5)
+ 6 prt(o:22| 1.7986125E-07; 0.0000000E+00, 0.0000000E+00,-1.7986125E-07| 0.0000000E+00| 6)
+ 7 prt(o:-2| 6.4169072E+01;-3.5366776E+01, 3.1744111E+01,-4.3118121E+01| 0.0000000E+00| 7)
+ 8 prt(o:2| 5.8536476E+01; 3.5366776E+01,-3.1744111E+01,-3.4176331E+01| 0.0000000E+00| 8)
+========================================================================
+========================================================================
+ Event #2
+------------------------------------------------------------------------
+   Unweighted         = T
+   Normalization      = '1'
+   Helicity handling  = drop
+   Keep correlations  = F
+------------------------------------------------------------------------
+   Squared matrix el. (ref) =  1.13248E+02
+   Squared matrix el. (prc) =  1.13248E+02
+   Event weight (ref)       =  1.00000E+00
+   Event weight (prc)       =  1.00000E+00
+------------------------------------------------------------------------
+   Selected MCI group = 1
+   Selected term      = 1
+   Selected channel   = 2
+------------------------------------------------------------------------
+   Passed selection   = T
+   Reweighting factor =  1.00000E+00
+   Analysis flag      = T
+========================================================================
+ Event transform: trivial (hard process)
+------------------------------------------------------------------------
+   Associated process: 'openloops_11_p1'
+   TAO random-number generator:
+     seed  = 2752514
+     calls = 6
+   Number of tries = 1
+------------------------------------------------------------------------
+ Particle set:
+------------------------------------------------------------------------
+ Particle 1 [b] f(11)
+ E =   1.000000E+02
+ P =   0.000000E+00  0.000000E+00  1.000000E+02
+ T =   2.611179340E-07
+ Children: 3 5
+ Particle 2 [b] f(-11)
+ E =   1.000000E+02
+ P =   0.000000E+00  0.000000E+00 -1.000000E+02
+ T =   2.611179340E-07
+ Children: 4 6
+ Particle 3 [i] f(11)
+ E =   2.118626E+01
+ P =   0.000000E+00  0.000000E+00  2.118626E+01
+ T =   2.611179340E-07
+ Parents:  1
+ Children: 7 8
+ Particle 4 [i] f(-11)
+ E =   9.998534E+01
+ P =   0.000000E+00  0.000000E+00 -9.998534E+01
+ T =   2.611179340E-07
+ Parents:  2
+ Children: 7 8
+ Particle 5 [x] f(22*)
+ E =   7.881374E+01
+ P =   0.000000E+00  0.000000E+00  7.881374E+01
+ T =   0.000000000E+00
+ Parents:  1
+ Particle 6 [x] f(22*)
+ E =   1.465807E-02
+ P =   0.000000E+00  0.000000E+00 -1.465807E-02
+ T =   0.000000000E+00
+ Parents:  2
+ Particle 7 [o] f(-1)
+ E =   3.059445E+01
+ P =  -2.982130E+01 -1.251369E+00  6.719002E+00
+ T =   0.000000000E+00
+ Parents:  3 4
+ Particle 8 [o] f(1)
+ E =   9.057714E+01
+ P =   2.982130E+01  1.251369E+00 -8.551809E+01
+ T =   0.000000000E+00
+ Parents:  3 4
+========================================================================
+ Local variables:
+------------------------------------------------------------------------
+sqrts* =  2.00000E+02
+sqrts_hat* =>  9.20503E+01
+n_in* => 2
+n_out* => 4
+n_tot* => 6
+$process_id* => "openloops_11_p1"
+process_num_id* => [unknown integer]
+sqme* =>  1.13248E+02
+sqme_ref* =>  1.13248E+02
+event_index* => 2
+event_weight* =>  1.00000E+00
+event_weight_ref* =>  1.00000E+00
+event_excess* =>  0.00000E+00
+------------------------------------------------------------------------
+ subevent:
+ 1 prt(b:11|-1.0000000E+02; 0.0000000E+00, 0.0000000E+00,-1.0000000E+02| 2.6111793E-07| 1)
+ 2 prt(b:-11|-1.0000000E+02; 0.0000000E+00, 0.0000000E+00, 1.0000000E+02| 2.6111793E-07| 2)
+ 3 prt(i:11|-2.1186255E+01; 0.0000000E+00, 0.0000000E+00,-2.1186255E+01| 2.6111793E-07| 3)
+ 4 prt(i:-11|-9.9985342E+01; 0.0000000E+00, 0.0000000E+00, 9.9985342E+01| 2.6111793E-07| 4)
+ 5 prt(o:22| 7.8813745E+01; 0.0000000E+00, 0.0000000E+00, 7.8813745E+01| 0.0000000E+00| 5)
+ 6 prt(o:22| 1.4658069E-02; 0.0000000E+00, 0.0000000E+00,-1.4658069E-02| 0.0000000E+00| 6)
+ 7 prt(o:-1| 3.0594453E+01;-2.9821295E+01,-1.2513692E+00, 6.7190019E+00| 0.0000000E+00| 7)
+ 8 prt(o:1| 9.0577144E+01; 2.9821295E+01, 1.2513692E+00,-8.5518089E+01| 0.0000000E+00| 8)
+========================================================================

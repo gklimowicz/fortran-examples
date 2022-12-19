@@ -1,0 +1,140 @@
+* Test output: process_libraries_7
+* Purpose: Construct a process definition list and check MD5 sums
+
+* Construct a process definition list
+*   Process: two components
+
+ ID = 'first'
+ Decay
+ Model = Test
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = '                                '
+ Component #1
+   Component ID        = first_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 3 4
+   Particle content    = a => b, c, e
+   Method              = test
+   Process variant     = test
+   Test data         = 31
+   MD5 sum (def)       = '                                '
+ Component #2
+   Component ID        = first_i2
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test
+   Test data         = 42
+   MD5 sum (def)       = '                                '
+
+* Compute MD5 sums
+
+ ID = 'first'
+ Decay
+ Model = Test
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = 'D39B467CCD5613403F60954618BA2C12'
+ Component #1
+   Component ID        = first_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 3 4
+   Particle content    = a => b, c, e
+   Method              = test
+   Process variant     = test
+   Test data         = 31
+   MD5 sum (def)       = '77F12B0DD4F3063262F06A494BF59C73'
+ Component #2
+   Component ID        = first_i2
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test
+   Test data         = 42
+   MD5 sum (def)       = 'DF07C8776BD510A9EF3B9DDE9FFC7342'
+
+* Recalculate MD5 sums (should be identical)
+
+ ID = 'first'
+ Decay
+ Model = Test
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = 'D39B467CCD5613403F60954618BA2C12'
+ Component #1
+   Component ID        = first_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 3 4
+   Particle content    = a => b, c, e
+   Method              = test
+   Process variant     = test
+   Test data         = 31
+   MD5 sum (def)       = '77F12B0DD4F3063262F06A494BF59C73'
+ Component #2
+   Component ID        = first_i2
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test
+   Test data         = 42
+   MD5 sum (def)       = 'DF07C8776BD510A9EF3B9DDE9FFC7342'
+
+* Modify a component and recalculate MD5 sums
+
+ ID = 'first'
+ Decay
+ Model = Test
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = '9A3FEB6E58DAC52D29E389174CA4F180'
+ Component #1
+   Component ID        = first_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 3 4
+   Particle content    = a => b, c, e
+   Method              = test
+   Process variant     = test
+   Test data         = 31
+   MD5 sum (def)       = '77F12B0DD4F3063262F06A494BF59C73'
+ Component #2
+   Component ID        = first_i2
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test
+   Test data         = 54
+   MD5 sum (def)       = '7BC72250283D8F8007C03ECD871D72A5'
+
+* Modify the model and recalculate MD5 sums
+
+ ID = 'first'
+ Decay
+ Model = foo
+ Initially defined component(s) = 2
+ Extra generated component(s)   = 0
+ MD5 sum   = 'B1BE061FCA8717E5B87B546044D0D8FD'
+ Component #1
+   Component ID        = first_i1
+   Initial component   = T
+   N (in, out, tot)    = 1 3 4
+   Particle content    = a => b, c, e
+   Method              = test
+   Process variant     = test
+   Test data         = 31
+   MD5 sum (def)       = '77F12B0DD4F3063262F06A494BF59C73'
+ Component #2
+   Component ID        = first_i2
+   Initial component   = T
+   N (in, out, tot)    = 1 2 3
+   Particle content    = a => b, c
+   Method              = test
+   Process variant     = test
+   Test data         = 54
+   MD5 sum (def)       = '7BC72250283D8F8007C03ECD871D72A5'
+
+* Test output end: process_libraries_7

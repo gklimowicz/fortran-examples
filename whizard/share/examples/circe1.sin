@@ -1,0 +1,111 @@
+# Simple Circe1 examples
+########################################################################
+#
+# Copyright (C) 1999-2022 by 
+#     Wolfgang Kilian <kilian@physik.uni-siegen.de>
+#     Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+#     Juergen Reuter <juergen.reuter@desy.de>
+#     with contributions from
+#     cf. main AUTHORS file
+#
+# WHIZARD is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# WHIZARD is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+########################################################################
+
+model = SM
+
+$description = "$e^+ e^- \to t\bar t$ w/beamstrahlung from CIRCE1"
+$x_label = "$\sqrt{s_{t\bar t}}$"
+
+process ttbar = "e-", "e+" => t, tbar
+compile
+
+sqrts = 350 GeV
+beams = "e-", "e+" => circe1
+
+iterations = 5:10000, 2:20000 
+n_events = 10000
+
+circe1_chat = 3
+circe1_rev = 0
+
+########################################################################
+
+circe1_sqrts = 350 GeV
+circe1_ver = 10
+$circe1_acc = "ILC"
+
+integrate (ttbar)
+
+$title = "ILC\,350"
+histogram ilc350 (346, 351, 0.1)
+
+simulate (ttbar) {
+  $sample = "ilc350"
+  analysis = record ilc350 (eval M / 1 GeV [combine[t,tbar]])
+}
+
+########################################################################
+
+circe1_sqrts = 500 GeV
+circe1_ver = 10
+$circe1_acc = "ILC"
+
+integrate (ttbar)
+
+$title = "ILC\,350 w/ILC\,500 beam spectra"
+histogram ilc500 (346, 351, 0.1)
+
+simulate (ttbar) {
+  $sample = "ilc500"
+  analysis = record ilc500 (eval M / 1 GeV [combine[t,tbar]])
+}
+
+########################################################################
+
+circe1_sqrts = 350 GeV
+circe1_ver = 7
+$circe1_acc = "TESLA"
+
+integrate (ttbar)
+
+$title = "TESLA\,350"
+histogram tesla350 (346, 351, 0.1)
+
+simulate (ttbar) {
+  $sample = "tesla350"
+  analysis = record tesla350 (eval M / 1 GeV [combine[t,tbar]])
+}
+
+########################################################################
+
+circe1_sqrts = 350 GeV
+circe1_ver = 7
+$circe1_acc = "XBAND"
+
+integrate (ttbar)
+
+$title = "X-Band\,350"
+histogram xband350 (346, 351, 0.1)
+
+simulate (ttbar) {
+  $sample = "xband350"
+  analysis = record xband350 (eval M / 1 GeV [combine[t,tbar]])
+}
+
+########################################################################
+
+write_analysis
+compile_analysis { $out_file = "circe.dat" }

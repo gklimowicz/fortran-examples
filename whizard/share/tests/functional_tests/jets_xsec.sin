@@ -1,0 +1,49 @@
+# SINDARIN input for WHIZARD self-test
+# Validating Jets
+
+?logging = true
+?openmp_logging = false
+?vis_history = false
+?integration_timer = false
+?pacify = true
+
+alias j = u:U:d:D:g
+process jets_jj = U, u => j, j
+process jets_uu = U, u => U, u
+process jets_dd = U, u => D, d
+process jets_gg = U, u => g, g
+
+compile ()
+
+seed = 0
+
+sqrts = 500 GeV
+beams = U, u
+
+cuts = all Pt >= 100 GeV [j]
+ 
+iterations = 1:1000
+
+!!! Tests should be run single-threaded 
+openmp_num_threads = 1
+
+integrate (jets_jj)
+integrate (jets_uu)
+integrate (jets_dd)
+integrate (jets_gg)
+
+real sigma_jj = integral (jets_jj)
+real error_jj = error (jets_jj)
+
+real sigma___ = integral (jets_uu) + integral (jets_dd) + integral (jets_gg)
+real error___ = sqrt (error(jets_uu)**2 + error(jets_dd)**2 + error(jets_gg)**2)
+
+real errorsum = sqrt (error_jj**2 + error___**2)
+
+real pull = (sigma_jj - sigma___) / errorsum
+
+tolerance = 5 * errorsum
+
+printf "Comparing results:"
+show (pull, sigma_jj, sigma___, errorsum, error_jj, error___, tolerance)
+expect (sigma_jj == sigma___)

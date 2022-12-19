@@ -1,0 +1,153 @@
+%%
+%% This is file `thophys.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% thophys.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 by Thorsten.Ohl@Physik.TH-Darmstadt.de
+%% 
+%% This file is NOT the source for thophys, because almost all comments
+%% have been stripped from it.  It is NOT the preferred form of thophys
+%% for making modifications to it.
+%% 
+%% Therefore you can NOT redistribute and/or modify THIS file.  You can
+%% however redistribute the complete source (thophys.dtx and thophys.ins)
+%% and/or modify it under the terms of the GNU General Public License as
+%% published by  the Free Software Foundation; either version 2, or (at
+%% your option) any later version.
+%% 
+%% Thophys is distributed in the hope that it will be useful, but
+%% WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program; if not, write to the Free Software
+%% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \CheckSum{268}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+{\def\RCS#1#2\endRCS{%
+  \ifx$#1%
+    \@RCS $#2 \endRCS
+  \else
+    \@RCS $*: #1#2$ \endRCS
+  \fi}%
+ \def\@RCS $#1: #2,v #3 #4 #5 #6$ \endRCS{%
+   \gdef\filename{#2}%
+   \gdef\fileversion{v#3}%
+   \gdef\filedate{#4}%
+   \gdef\docdate{#4}}%
+\RCS $Id: thophys.dtx,v 1.12 1995/01/07 14:58:13 ohl Exp $ \endRCS}%
+\ProvidesPackage{thophys}[\filedate\space Physics Support for LaTeX]
+\typeout{Package: `thophys'
+   \fileversion\space <\filedate> (tho) PRELIMINARY TEST RELEASE}
+\wlog{English documentation \@spaces<\docdate> (tho)}
+\ProcessOptions
+\def\bra#1{\mathinner{\langle\mathcode`\|"8000{#1|}}}
+\def\Bra#1{\left\langle\mathcode`\|"8000 {#1|}\right.}
+\def\ket#1{\mathinner{\mathcode`\|"8000{|#1}\rangle}}
+\def\Ket#1{\left.\mathcode`\|"8000 {|#1}\right\rangle}
+\def\braket#1{\mathinner{\langle{#1}\rangle}}
+\def\Braket#1{\left\langle \mathcode`\|"8000 {#1}\right\rangle}
+{\catcode`\|=\active \gdef|{\egroup\,\vrule\,\bgroup}}
+\newcommand{\vev}[1]{\braket{0|#1|0}}
+\newcommand{\Vev}[1]{\Braket{0|#1|0}}
+\newcommand{\Tprod}[1]{\mathop{\rm T}\left[#1\right]}
+\newcommand{\tprod}[1]{\mathop{\rm T}[#1]}
+\newcommand{\greensfunc}[1]{\vev{\tprod{#1}}}
+\newcommand{\Greensfunc}[1]{\Vev{\Tprod{#1}}}
+\newcommand{\f@rcerm}[1]{%
+  \ifmmode
+    \mathop{{\rm#1}}\nolimits
+  \else
+    \textrm{#1}%
+  \fi}
+\let\th@unit\f@rcerm
+\newcommand{\declareunit}[1]{%
+    \expandafter\newcommand\csname#1\endcsname{\th@unit{#1}}}
+\newcommand{\declareunits}[1]{%
+  \@for\@@@unit:=#1\do{%
+    \expandafter\declareunit\expandafter{\@@@unit}}}
+\newcommand{\redeclareunit}[1]{%
+    \expandafter\renewcommand\csname#1\endcsname{\th@unit{#1}}}
+\newcommand{\redeclareunits}[1]{%
+  \@for\@@@unit:=#1\do{%
+    \expandafter\redeclareunit\expandafter{\@@@unit}}}
+\newcommand{\th@group}[2]{\f@rcerm{#1}(#2)}
+\newcommand{\declaregroup}[1]{%
+    \expandafter\newcommand\csname#1\endcsname[1]{\th@group{#1}{##1}}}
+\newcommand{\declaregroups}[1]{%
+  \@for\@@@group:=#1\do{%
+    \expandafter\declaregroup\expandafter{\@@@group}}}
+\newcommand{\redeclaregroup}[1]{%
+    \expandafter\renewcommand\csname#1\endcsname[1]{\th@group{#1}{##1}}}
+\newcommand{\redeclaregroups}[1]{%
+  \@for\@@@group:=#1\do{%
+    \expandafter\redeclaregroup\expandafter{\@@@group}}}
+\newcommand{\contraction}[5][1ex]{%
+  \mathchoice
+    {\contraction@\displaystyle{#2}{#3}{#4}{#5}{#1}}%
+    {\contraction@\textstyle{#2}{#3}{#4}{#5}{#1}}%
+    {\contraction@\scriptstyle{#2}{#3}{#4}{#5}{#1}}%
+    {\contraction@\scriptscriptstyle{#2}{#3}{#4}{#5}{#1}}}%
+\newcommand{\contraction@}[6]{%
+  \setbox0=\hbox{$#1#2$}%
+  \setbox2=\hbox{$#1#3$}%
+  \setbox4=\hbox{$#1#4$}%
+  \setbox6=\hbox{$#1#5$}%
+  \dimen0=\wd2%
+  \advance\dimen0 by \wd6%
+  \divide\dimen0 by 2%
+  \advance\dimen0 by \wd4%
+  \vbox{%
+    \hbox to 0pt{%
+      \kern \wd0%
+      \kern 0.5\wd2%
+      \contraction@@{\dimen0}{#6}%
+      \hss}%
+    \vskip 0.2ex%
+    \vskip\ht2}}
+\newcommand{\contracted}[5][1ex]{%
+  \contraction[#1]{#2}{#3}{#4}{#5}\ensuremath{#2#3#4#5}}
+\newcommand{\contraction@@}[3][0.06em]{%
+  \hbox{%
+    \vrule width #1 height 0pt depth #3%
+    \vrule width #2 height 0pt depth #1%
+    \vrule width #1 height 0pt depth #3%
+    \relax}}
+\newcommand{\fmslash}[2][0mu]{%
+  \mathchoice
+    {\fmsl@sh\displaystyle{#1}{#2}}%
+    {\fmsl@sh\textstyle{#1}{#2}}%
+    {\fmsl@sh\scriptstyle{#1}{#2}}%
+    {\fmsl@sh\scriptscriptstyle{#1}{#2}}}
+\newcommand{\fmsl@sh}[3]{%
+  \m@th\ooalign{$\hfil#1\mkern#2/\hfil$\crcr$#1#3$}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput
+%%
+%% End of file `thophys.sty'.

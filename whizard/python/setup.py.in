@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+from setuptools import Extension, setup, find_packages
+from pathlib import Path
+from typing import List
+from itertools import chain
+
+from Cython.Build import cythonize
+
+def extract_ldflags(ldflag_str: str, mode: str) -> List[str]:
+    """Extract libraries, library directories and runtime library directories from string.
+
+    Providing the search mode: '-L', '-l' or '-Wl,-rpath'.
+    """
+    tokens = map(str.strip, ldflag_str.split(' '))
+    return list(map(lambda y: y.replace(mode, ''),
+                    filter(lambda x: x.startswith(mode), tokens)))
+
+ldflags_library_dirs = list(chain.from_iterable(map(lambda x: extract_ldflags(x, mode = "-L"),
+                                                    ["@LDFLAGS_LHAPDF@",
+                                                     "@LDFLAGS_HEPMC@",
+                                                     "@LDFLAGS_LCIO@",
+                                                     "@LDFLAGS_HOPPET@",
+                                                     "@FASTJET_LIBS@",
+                                                     "@LDFLAGS_LOOPTOOLS@"])))
+ldflags_libraries = list(chain.from_iterable(map(lambda x: extract_ldflags(x, mode = "-l"),
+                                                 ["@LDFLAGS_LHAPDF@",
+                                                  "@LDFLAGS_HEPMC@",
+                                                  "@LDFLAGS_LCIO@",
+                                                  "@LDFLAGS_HOPPET@",
+                                                  "@FASTJET_LIBS@",
+                                                  "@LDFLAGS_LOOPTOOLS@"])))
+ldflags_runtime_library_dirs = list(chain.from_iterable(map(lambda x: extract_ldflags(x, mode = "-Wl,-rpath"),
+                                                            ["@LDFLAGS_LHAPDF@",
+                                                             "@LDFLAGS_HEPMC@",
+                                                             "@LDFLAGS_LCIO@",
+                                                             "@LDFLAGS_HOPPET@",
+                                                             "@FASTJET_LIBS@",
+                                                             "@LDFLAGS_LOOPTOOLS@"])))
+
+
+setup(
+    name="PyWHIZARD",
+    version="@PACKAGE_VERSION@",
+    description="",
+    long_description="",
+    author="Wolfgang Kilian, Thorsten Ohl, Juergen Reuter",
+    author_email="whizard@desy.de",
+    maintainer="Simon Brass",
+    url="https://whizard.hepforge.org",
+    packages=find_packages(),
+    # Provide extensions as list.
+    # See distutils.extension for help.
+    ext_modules = cythonize([Extension("whizard", ["whizard_python.pyx"],
+                                       libraries=[
+                                           'whizard',
+                                           'whizard_prebuilt'] + ldflags_libraries,
+                                       library_dirs=[
+                                           str(Path('../src/.libs')),
+                                           str(Path('../src/prebuilt/.libs'))
+                                       ] + ldflags_library_dirs,
+                                       runtime_library_dirs=ldflags_runtime_library_dirs,
+                                       include_dirs=[
+                                           str(Path('@BUILDDIR@/src/api'))
+                                       ],
+                                       # Link with C++ language bindings
+                                       language='c++')],
+                            # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
+                            compiler_directives={
+                                'language_level': '2',
+                                'embedsignature': True,
+                            }
+                            ),
+    # https://cython.readthedocs.io/en/latest/src/quickstart/build.html#building-a-cython-module-using-setuptools
+    zip_safe=False
+)
