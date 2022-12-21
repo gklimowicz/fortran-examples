@@ -31,20 +31,27 @@ all-fortran-files-lc:	all-fortran-files Makefile
 # Word count each Fortran file
 all-projects-lc:	all-fortran-files Makefile
 	for P in `cat all-projects`; do \
-		echo "$$P\t$$(find $$P ${FIND_IS_FORTRAN} -print0 \
+		echo "$$(find $$P ${FIND_IS_FORTRAN} -print0 \
 			| xargs -0 cat \
-			| wc -l)"; \
+			| wc -l)\t$$P"; \
 	done >"$@"
 
 # Print some moderately interesting stats about the repositories.
 stats: FORCE
-	@printf "%'11d projects\n" $$(wc -l <all-projects)
-	@printf "%'11d files\n" $$(wc -l <all-files)
-	@printf "%'11d Fortran files\n" $$(wc -l <all-fortran-files)
-	@printf "%'11d Fortran lines\n" $$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc)
-	@printf "%'11d cpp directive lines\n" $$(cat all-fortran-files | tr '\n' '\0' | xargs -0 cat | grep '^#' | wc -l)
+	@printf "%'12d projects\n" $$(wc -l <all-projects)
+	@printf "%'12d files\n" $$(wc -l <all-files)
+	@printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files)
+	@printf "%'12d Fortran lines\n" $$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc)
+	@printf "%'12d cpp directive lines\n" \
+	        $$(tr '\n' '\0' <all-fortran-files | xargs -0 cat | grep '^#' | wc -l)
 	@echo "Largest projects:"; \
-	 sort -rn -k 2 all-projects-lc | head -10 | awk $$'{ printf "  %-18s %\'10d\\n", $$1, $$2}'
+	 sort -rn -k 1 all-projects-lc \
+	 | head -10 \
+	 | awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'
+	@echo "Largest Fortran files:"; \
+	 sort -rn -k 1 all-fortran-files-lc \
+	 | head -10 \
+	 | awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'
 
 
 # Add new projects we may find lying about.
