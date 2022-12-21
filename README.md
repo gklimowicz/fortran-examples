@@ -1,24 +1,28 @@
 # fortran-examples
-This repository contains submodule for many Fortran-related projects.
+This repository contains submodules for many Fortran-related projects.
 
 The goal is to have a wide variety of example Fortran codes, as found in the wild.
 
-I plan to use them as inputs into analyses on Fortran source, such as the investigation for the proposed Fortran 202y preprocessor.
+We plan to use them as inputs into analyses on Fortran source, such as the investigation for the proposed Fortran 202y preprocessor.
 
 
 # Usage
 To get all these example Fortran projects
 ```
 git clone git@github.com:gklimowicz/fortran-examples.git
-git submodule init
-git submodule update
+git submodule update --init
 ```
 
 After what seems like forever, you should have some 12GB or so of Fortran example projects.
 
 This works best on a case-sensitive file system.
 Some projects seem to have a few files with filenames that clash on case-insensitive file systems.
-I'm talking to you, `M_process` and `M_system`...
+
+To update after changes have been pushed to `fortran-examples`
+```
+git pull
+git submodule update
+```
 
 
 # So. Many. Directories.
