@@ -64,13 +64,18 @@ update-existing-projects:
 # Only look at Git projects (not sourceforge or whatever).
 fortran-lang-new-projects:	fortran-lang-projects
 	for P in `cat fortran-lang-projects`; do \
-		case "$$P" in git*) ;; *) continue;; esac; \
-		if [[ ! -d "$$(basename "$$P")" ]]; then \
-			: echo "$$P exists already"; \
+		case "$$P" in \
+			git*) ;; \
+			*) continue;; \
+		esac; \
+		D=$${P/*\/}; \
+		if [[ -d "$$D" ]]; then \
+			: echo "$$D exists already"; \
 		else \
-			echo "$$P new"; \
-			git submodule add ssh://git@$$P.git \
-			|| git submodule add https:$$P.git; \
+			echo "$$D new"; \
+			git submodule add ssh://git@$$P \
+			|| git submodule add https://$$P; \
+			git submodule update --init "$$D";
 		fi; \
 	done
 
