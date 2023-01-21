@@ -42,6 +42,7 @@ stats: FORCE
 	@printf "%'12d files\n" $$(wc -l <all-files)
 	@printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files)
 	@printf "%'12d Fortran lines\n" $$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc)
+	@printf "%'12d Fortran 77 lines\n" $$(awk '/\.[Ff]$$/ { sum += $$1} END { print sum}' <all-fortran-files-lc)
 	@printf "%'12d cpp directive lines\n" \
 	        $$(tr '\n' '\0' <all-fortran-files | xargs -0 cat | grep '^#' | wc -l)
 	@echo "Largest projects:"; \
