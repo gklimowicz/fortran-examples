@@ -45,10 +45,10 @@ File names that begin with "all-" contain aggregated lists and metrics for the s
 | all-projects-lc      | Get `wc -l` for Fortran files in each project       |
 
 
-# `provenance`
+# `origins`
 Originally, this was to contain the provenance of each of the repositories.
 Since this is already saved in `.gitmodules` for the git-based projects,
-this now only contains the provenance for sources for non-git projects.
+this now only contains the origin for sources for non-git projects.
 (Note that this may not be a direct link to a `.tgz` or `.zip` file, but
 may be the page where such a link can be found.)
 
