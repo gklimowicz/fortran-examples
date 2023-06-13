@@ -8,9 +8,9 @@ all:	all-projects all-projects-lc \
 
 # Create a list of all Fortran projects we have,
 # all files, and all Fortran files.
-all-projects:	Makefile provenance .gitmodules
+all-projects:	Makefile origins .gitmodules
 	(git submodule foreach -q 'echo $$sm_path'; \
-	 sed -n -e 's/#.*//' -e 's/:.*//p' <provenance) \
+	 sed -n -e 's/#.*//' -e 's/:.*//p' <origins) \
     | sort > "$@"
 
 all-files:	Makefile all-projects
@@ -37,7 +37,7 @@ all-projects-lc:	all-fortran-files Makefile
 	done >"$@"
 
 # Print some moderately interesting stats about the repositories.
-stats: FORCE
+stats:  all-projects all-projects-lc all-files all-fortran-files all-fortran-files-lc
 	@printf "%'12d projects\n" $$(wc -l <all-projects)
 	@printf "%'12d files\n" $$(wc -l <all-files)
 	@printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files)
@@ -52,7 +52,8 @@ stats: FORCE
 	@echo "Largest Fortran files:"; \
 	 sort -rn -k 1 all-fortran-files-lc \
 	 | head -10 \
-	 | awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'
+	 | awk $$'{ printf "%\'12d %s\\n", $$1, $$2}' \
+	 | tee "$@"
 
 
 # Add new projects we may find lying about.
