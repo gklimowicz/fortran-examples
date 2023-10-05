@@ -13,7 +13,7 @@ git clone git@github.com:gklimowicz/fortran-examples.git
 git submodule update --init
 ```
 
-After what seems like forever, you should have some 12GB or so of Fortran example projects.
+After what seems like forever, you should have some 45GB or so of Fortran example projects.
 
 This works best on a case-sensitive file system.
 Some projects seem to have a few files with filenames that clash on case-insensitive file systems.
@@ -29,23 +29,22 @@ git submodule update
 The numerous top-level directories each contain the source code for a single "project".
 For projects that come from a super-project (such as "GEOS-ESM"), all the directories begin with the super-project's name as a prefix (such as "GEOS-ESM-AeroApps).
 
-Although this can obscure the `Makefile` and `all-*` file lists in the top-level directory,
-it felt silly to create a `src` directory and put all the projects underneath that.
+Although this can obscure the `Makefile` and `all-*` file lists in the top-level directory, it felt silly to create a `src` directory and put all the projects underneath that.
 
 
 # Metrics
 File names that begin with "all-" contain aggregated lists and metrics for the sample projects.
 
-| File                 | Contents                                            |
-|:---------------------|:----------------------------------------------------|
-| all-files            | Every file in every project (including non-Fortran) |
-| all-fortran-files    | Every Fortran file in every project                 |
-| all-fortran-files-lc | Get `wc -l` output for every Fortran file           |
-| all-projects         | List of all projects                                |
-| all-projects-lc      | Get `wc -l` for Fortran files in each project       |
+| File                     | Contents                                            |
+|:-------------------------|:----------------------------------------------------|
+| all-files.txt            | Every file in every project (including non-Fortran) |
+| all-fortran-files.txt    | Every Fortran file in every project                 |
+| all-fortran-files-lc.txt | Get `wc -l` output for every Fortran file           |
+| all-projects.txt         | List of all projects                                |
+| all-projects-lc.txt      | Get `wc -l` for Fortran files in each project       |
 
 
-# `origins`
+# `origins.txt`
 Originally, this was to contain the provenance of each of the repositories.
 Since this is already saved in `.gitmodules` for the git-based projects,
 this now only contains the origin for sources for non-git projects.
@@ -56,10 +55,18 @@ This file is managed manually.
 
 
 # Makefile
-The Makefile drives the collection of these repositories. Most of them come from the projects listed on https://fortran-lang.org.
+The Makefile drives the collection of these repositories.
+Most of them come from the projects listed on https://fortran-lang.org.
+
 
 ## `make all`
-Create project lists and metrics as described above.
+Update Git submodules from remote repos, and create project lists and metrics as described above.
+
+
+## `make update`
+Update each Git project from its origin repository.
+Runs `git submodule update --remote`.
+
 
 ## `make add-new-projects`
 Search for new projects to add.
@@ -74,7 +81,7 @@ Do a `git pull` on each project directory here to bring it up to date
 with respect to its home repository.
 
 
-## `make stats`
+## `make stats.txt`
 Print a couple lines of interesting statistics about the repository as a whole.
 
 <!--  LocalWords:  GEOS ESM AeroApps
