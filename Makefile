@@ -1,9 +1,11 @@
 FORTRAN_LANG_URL = https://fortran-lang.org/en/packages
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" -o -iname "*.ftn" \)
 
-all:	update all-projects.txt all-files.txt all-fortran-files.txt \
+all:	all-projects.txt all-files.txt all-fortran-files.txt \
 			all-projects-lc.txt all-fortran-files-lc.txt \
 			stats.txt
+
+update-all: update all
 
 # Update projects from their remote repos
 update:
@@ -42,21 +44,24 @@ all-projects-lc.txt:	all-fortran-files.txt Makefile
 # Print some moderately interesting stats about the repositories.
 stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 			all-fortran-files.txt all-fortran-files-lc.txt
-	@printf "%'12d projects\n" $$(wc -l <all-projects.txt)
-	@printf "%'12d files\n" $$(wc -l <all-files.txt)
-	@printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files.txt)
-	@printf "%'12d Fortran lines\n" $$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc.txt)
-	@printf "%'12d Fortran 77 lines\n" $$(awk '/\.[Ff]$$/ { sum += $$1} END { print sum}' <all-fortran-files-lc.txt)
-	@printf "%'12d cpp directive lines\n" \
-	        $$(tr '\n' '\0' <all-fortran-files.txt | xargs -0 cat | grep '^#' | wc -l)
-	@echo "Largest projects:"; \
-	 sort -rn -k 1 all-projects-lc.txt \
-	 | head -10 \
-	 | awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'
-	@echo "Largest Fortran files:"; \
-	 sort -rn -k 1 all-fortran-files-lc.txt \
-	 | head -10 \
-	 | awk $$'{ printf "%\'12d %s\\n", $$1, $$2}' \
+	@(printf "%'12d projects\n" $$(wc -l <all-projects.txt); \
+	  printf "%'12d files\n" $$(wc -l <all-files.txt); \
+	  printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files.txt); \
+	  printf "%'12d Fortran lines\n" \
+			$$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc.txt); \
+	  printf "%'12d Fortran 77 lines\n" \
+			$$(awk '/\.[Ff]$$/ { sum += $$1} END { print sum}' \
+			<all-fortran-files-lc.txt); \
+	  printf "%'12d cpp directive lines\n" \
+	        $$(tr '\n' '\0' <all-fortran-files.txt | xargs -0 cat | grep '^#' | wc -l); \
+	  echo "Largest projects:"; \
+	  sort -rn -k 1 all-projects-lc.txt \
+		| head -10 \
+		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'; \
+	  echo "Largest Fortran files:"; \
+	  sort -rn -k 1 all-fortran-files-lc.txt \
+		| head -10 \
+		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}') \
 	 | tee "$@"
 
 
