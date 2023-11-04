@@ -22,7 +22,7 @@ all-files.txt:	Makefile all-projects.txt
 	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
-all-fortran-files.txt:	. Makefile
+all-fortran-files.txt:	all-projects.txt Makefile
 	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \
 	| sort >"$@"
 
