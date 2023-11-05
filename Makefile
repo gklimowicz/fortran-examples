@@ -70,8 +70,8 @@ add-new-projects:	fortran-lang-new-projects
 
 # Get new projects for fortran-lang.org.
 # Only look at Git projects (not sourceforge or whatever).
-fortran-lang-new-projects:	fortran-lang-projects
-	for P in `cat fortran-lang-projects`; do \
+fortran-lang-new-projects:	fortran-lang-projects.txt
+	for P in `cat fortran-lang-projects.txt`; do \
 		case "$$P" in \
 			git*) ;; \
 			*) continue;; \
@@ -90,7 +90,7 @@ fortran-lang-new-projects:	fortran-lang-projects
 fortran-lang-projects.txt:	fortran-lang-category-urls.txt
 	for P in `cat fortran-lang-category-urls.txt`; do \
 		curl -L --no-progress-meter "$$P" \
-		| sed -n -e '/^<p class="rubric"><span class="/s;.*href="https*://\([^"]*\).*;\1;p'; \
+		| sed -n -e '/^<h2 class="rubric".*<span class="/s;.*href="https*://\([^"]*\).*;\1;p'; \
 	done \
 	| sort -u >"$@"
 
