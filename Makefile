@@ -1,6 +1,6 @@
 all:	all-projects.txt all-files.txt all-fortran-files.txt \
 			all-projects-lc.txt all-fortran-files-lc.txt \
-			stats.txt
+			all-projects-fortran-file-count.txt stats.txt
 
 update-all: update all
 
@@ -13,14 +13,14 @@ update:
 all-projects.txt:	Makefile origins.txt .gitmodules
 	(git submodule foreach -q 'echo $$sm_path'; \
 	 sed -n -e 's/#.*//' -e 's/:.*//p' <origins.txt) \
-    | sort > "$@"
+    | sort >"$@"
 
 all-files.txt:	Makefile all-projects.txt
 	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" \
-	-o -iname "*.ftn" -o -iname "*.for" \)
+	-o -iname "*.ftn" -o -iname "*.for" -o -iname "*.fypp" \)
 
 all-fortran-files.txt:	all-projects.txt Makefile
 	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \
@@ -28,8 +28,7 @@ all-fortran-files.txt:	all-projects.txt Makefile
 
 # Word count each Fortran file
 all-fortran-files-lc.txt:	all-fortran-files.txt Makefile
-	cat all-fortran-files.txt \
-	| tr '\n' '\0' \
+	tr '\n' '\0' <all-fortran-files.txt \
 	| xargs -0 wc -l \
 	| grep -v 'total$$' >"$@"
 
@@ -50,7 +49,8 @@ all-projects-fortran-file-count.txt:	all-fortran-files.txt Makefile
 
 # Print some moderately interesting stats about the repositories.
 stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
-			all-fortran-files.txt all-fortran-files-lc.txt
+			all-fortran-files.txt all-fortran-files-lc.txt \
+			all-projects-fortran-file-count.txt
 	@(printf "%'12d projects\n" $$(wc -l <all-projects.txt); \
 	  printf "%'12d files\n" $$(wc -l <all-files.txt); \
 	  printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files.txt); \
@@ -60,7 +60,9 @@ stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 			$$(awk '/\.[Ff]$$/ { sum += $$1} END { print sum}' \
 			<all-fortran-files-lc.txt); \
 	  printf "%'12d cpp directive lines\n" \
-	        $$(tr '\n' '\0' <all-fortran-files.txt | xargs -0 cat | grep '^#' | wc -l); \
+	        $$(tr '\n' '\0' <all-fortran-files.txt \
+			   | xargs -0 cat \
+	           | egrep '^[[:space:]]*#' | wc -l); \
 	  echo "Largest projects:"; \
 	  sort -rn -k 1 all-projects-lc.txt \
 		| head -10 \
@@ -68,7 +70,10 @@ stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 	  echo "Largest Fortran files:"; \
 	  sort -rn -k 1 all-fortran-files-lc.txt \
 		| head -10 \
-		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}') \
+		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'; \
+	  echo "Projects with no Fortran files:"; \
+	  grep '[^0-9]0$$' all-projects-fortran-file-count.txt \
+	    | sed -e 's/^/  /') \
 	 | tee "$@"
 
 
