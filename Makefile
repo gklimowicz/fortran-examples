@@ -84,8 +84,8 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 			*) continue;; \
 		esac; \
 		D=$${P/*\/}; \
-	    if grep "^$$D$$" exceptions.txt >/dev/null; then
-			echo "$$D is on the exception list."
+	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
+			echo "$$D is on the exception list."; \
 		elif [[ -d "$$D" ]]; then \
 			: echo "$$D exists already"; \
 		else \
@@ -124,8 +124,8 @@ beliavsky-new-projects:	beliavsky-projects.txt
 			*) continue;; \
 		esac; \
 		D=$${P/*\/}; \
-	    if grep "^$$D$$" exceptions.txt >/dev/null; then
-			echo "$$D is on the exception list."
+	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
+			echo "$$D is on the exception list."; \
 		elif [[ -d "$$D" ]]; then \
 			: echo "$$D exists already"; \
 		else \
