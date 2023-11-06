@@ -1,0 +1,133 @@
+
+This directory contains Fortran 77 subprograms described in
+Appendix B. All subprograms use single precision (REAL*4 /
+COMPLEX*8) arithmetic. Double and quadruple precision versions
+of these subprograms can be found in f77/sub8 and f77/sub16
+respectively. 
+
+All these subprograms have been tested to some extent, but there
+may be some bugs. Users are welcome to use these subprograms at
+their own risk. Any bugs discovered in these routines may be
+notified to
+
+antia@tifr.res.in
+
+It may be noted that the single precision arithmetic uses 24
+bits to represent the fraction part of floating point number
+giving a machine accuracy of about 6.0E-08. It can handle
+normalised floating point numbers in the range of approximately
+1.17E-38 to 3.40E+38. 
+
+All constants in the subprograms have not been converted from
+double precision version and as a result some part of
+calculations may still be done in double precision. Although all
+subprograms have been converted to single precision, it may not
+be advisable to use them in single precision as it may be
+difficult to get the required accuracy. For example, SUBROUTINE
+REMES or GAUSWT are unlikely to succeed in single precision,
+except for problems requiring very small number of coefficients.
+On the other hand, in many problems, like interpolation, the
+inherent errors in input table may be so large that use of
+double precision may not improve the accuracy. Apart from 
+accuracy the use of double precision arithmetic also extends 
+the range of exponent. This extended range may be useful in 
+extending the range of applicability of some functions like
+the Gamma function or high order Bessel functions. In single 
+precision arithmetic these routines may give overflow in many 
+cases.
+
+On most machines, the difference in execution speed between
+single and double precision is not significant. Further, in many
+cases slight reduction in execution speed may be more than
+compensated by reduced number of iterations required when double
+precision arithmetic is used. In such cases, it is very likely
+that double precision version of program may execute faster than
+the single precision version. 
+
+
+
+
+
+During the revision, the names of the following two routines have changed
+
+GAMLN   to      GAMMAL  To calculate logarithm of Gamma function
+RAN     to      RAN1    To generate random numbers with uniform distribution
+
+Further the arguments of the following routines have changed
+
+BSPFIT  An additional argument to calculate the covariance matrix
+LLSQ    An additional argument to calculate the covariance matrix
+POLFIT  The 5th argument is now error in input data instead of weight (1/error**2) 
+RANGAU  The seed is now real instead of integer
+
+The random number generators RAN1 and RANGAU have been modified and hence
+the output of programs may not match the earlier version.
+
+The following new routines have been added
+
+betai.f, betap.f, betcon1.f, betcon.f, betser.f, fbeta.f, gammap.f,
+iranbin.f, iranpoi.f, linfitxy.f, pcor.f, shsort.f
+
+Apart from 235 Fortran subprograms this directory contains the
+following files:
+
+ier.lst	 	Subject wise list of subprograms with possible values of 
+		error parameter (IER)
+
+ier.lst	 	Numerically sorted list of possible values of error parameter (IER)
+
+readme	 	This file
+
+readme,htm 	HTML version of readme file
+
+sub.ier	 	Alphabetic list of subprograms with possible values of
+		error parameter (IER)
+
+sub.ind	 	Index of subprograms
+
+sub.lst	 	Subject wise list of subprograms
+
+sub.req	 	List of subprograms required by each subprograms
+
+sub.sor	 	Alphabetic list of subprograms
+
+sublst.htm	Subject wise list of subprograms with HTML links
+
+sublsta.htm	Alphabetic list of subprograms with HTML links
+
+The following 235 Fortran files are included in this directory
+
+adams.f     bspfit2.f   divdif0.f   gaucb1.f    lagure.f    polevn1.f   setmat_c.f
+adi.f       bspfit.f    divdif.f    gaucb2.f    lagurw.f    polevn2.f   setmat.f
+adm.f       bspfitn.f   drvt.f      gaucby.f    lapinv.f    polevn.f    shsort.f
+adpint.f    bspfitw2.f  elmhes.f    gauelm_c.f  lax.f       polfit1.f   simpl1.f
+balanc.f    bspfitwn.f  epsiln.f    gauelm.f    lines.f     polfit2.f   simplx.f
+balbak.f    bspint2.f   equids.f    gauher.f    linfitxy.f  polfit.f    simpx.f
+balbak_l.f  bspint.f    erfc.f      gaujac.f    linl1.f     polfitn.f   simson.f
+betai.f     bspintn.f   erf.f       gaulag.f    linmin.f    polort.f    smooth.f
+betap.f     bsplin.f    euler.f     gauleg.f    linmnf.f    poly2.f     sor.f
+betcon1.f   bspode.f    extp.f      gaulg2.f    linrn.f     polyc.f     sphbjn.f
+betcon.f    bspqd2.f    fbeta.f     gaulog.f    llsq.f      polyl1.f    sphnd.f
+betser.f    bspqd.f     fdm.f       gaus16.f    locate.f    polyr.f     splevl.f
+bfgs.f      bspqdn.f    ferm05.f    gausq2.f    matinv.f    ran1.f      spline.f
+bi0.f       by0.f       ferm15.f    gausq.f     mcarlo.f    ranf.f      splint.f
+bi1.f       by1.f       ferm25.f    gausrc.f    minmax.f    rangau.f    strint.f
+bin.f       byn.f       fermm05.f   gauss.f     mstep.f     ratnal.f    stroud.f
+bisect.f    cassum_a.f  fft.f       gauswt.f    muler2.f    remes.f     strt4.f
+bj0.f       cassum.f    fftn.f      gear.f      mulint.f    rk2.f       sturm.f
+bj1.f       cauchy.f    fftr.f      gevp_c.f    muller.f    rk4.f       svdevl.f
+bjn.f       chebap.f    filon.f     gevp.f      nearst.f    rkm_2.f     svd.f
+bjy0.f      chebcf.f    fln.f       golden.f    newrac.f    rkm.f       tinvit.f
+bjy1.f      chebex.f    flnm.f      herevp.f    newrap.f    rls.f       tql2.f
+bk0.f       cholsk.f    fm.f        hermit.f    newton.f    rmk1.f      trbak.f
+bk1.f       contur.f    forw.f      hqr.f       ngauss.f    rmkd1.f     tred2.f
+bkn.f       crank.f     fredco.f    invit_cc.f  nllsq.f     rmkd.f      tridia.f
+brackm.f    crout_c.f   fred.f      invit_c.f   nllsq_f.f   rmk.f       volt2.f
+brent.f     crout.f     funk.f      invit_cl.f  nminf.f     rombrg.f    volt.f
+brentm.f    crouth.f    gamma.f     invit.f     pade.f      round.f     ylm.f
+broydn.f    davidm.f    gammal.f    invit_l.f   pcor.f      search.f    ylm_x.f
+bspev2.f    davidn_b.f  gammap.f    iranbin.f   pleg.f      secan_2.f   zroot2.f
+bspevl.f    davidn.f    gaublk_c.f  iranpoi.f   plm.f       secanc_2.f  zroot.f
+bspevn1.f   dawson.f    gaublk.f    kronrd.f    pold.f      secanc.f
+bspevn2.f   delves.f    gaubnd_c.f  lagitc.f    polev2.f    secani.f
+bspevn.f    dft.f       gaubnd.f    lagitr.f    polevl.f    secant.f

@@ -1,0 +1,121 @@
+
+This directory contains C programs using various functions
+described in Appendix C. All programs use double precision (type
+double) floating point arithmetic. 
+
+All these programs have been tested to some extent, but there may
+be some bugs. Users are welcome to use these programs at their own
+risk. Any bugs discovered in these routines may be notified to
+
+antia@tifr.res.in
+
+For clarity most of the documents specify the name of functions 
+using upper case letters, but in actual program all function
+names use only lower case letters.
+
+The main purpose of the programs in this directory is to provide
+concrete examples of using the functions described in Appendix C.
+Most of these programs are based on either solved examples or
+exercises in the book. Sample output obtained from these programs
+is also included in files *.out. These output files may be useful
+to check if the program is running correctly (at least giving the
+same output!) on your computer. Because of differences in
+roundoff errors between different compilers and computers the
+output may not exactly match on two different machines. In most
+cases the output refers to output on 
+the terminal. This output has been redirected to a
+file which is included in the directory. In a few cases
+(anneal.c, bsplin.c, rls.c, smooth.c) the programs directly write to a file
+on the disk. Of these bsplin.c and smooth.c do not have any significant
+output on the screen and it is not included in the online material. While for
+anneal.c and rls.f the screen output is included in addition to
+the files directly written. 
+
+
+Most of the programs are straight translation from the
+corresponding Fortran programs, but in some cases a slightly
+different problem is solved and hence the corresponding outputs
+will be different. The differences may be seen in
+
+brentm.c, fredco.c, lines.c, muler2.c, recrt2.c, unsym.c, unsyml.c.
+ 
+In the last two since only real arithmetic is used the
+eigenvectors corresponding to complex eigenvalues are not
+determined correctly in the C program. The Fortran program
+nllsq.f has been split into two independent C programs nllsq.c
+and nllsq_f.c.  Apart from this 6 Fortran programs,
+
+cmat.f, delves.f, genevp.f, gevp_c.f, polyc.f, secanc.f
+
+have not been translated to C. 
+
+
+
+
+
+Apart from 118 C programs and the corresponding output files this
+directory contains the following files:
+
+
+readme	 	This file
+
+readme.htm	html version of readme
+
+xmp.ind	 	Index of subprograms used in different examples
+
+xmp.lst	 	Subject wise list of programs
+
+xmp.sor	 	Alphabetic list of programs
+
+xmplst.htm	html version of subject wise list of programs
+
+xmplsta.htm	html version of alphabetic list of programs
+
+
+The following 118 C programs are included in this directory
+
+adi.c      bspqdn.c  filon.c   gevp.c      minmax.c   polfit.c   root.c
+adm.c      cauchy.c  fred3.c   golden.c    mstep.c    polfitn.c  round.c
+adpint.c   chebap.c  fred.c    herevp.c    muler2.c   poly2.c    search.c
+anneal.c   chebcf.c  fredco.c  hermit.c    muller.c   polyl1.c   secan_2.c
+bessel.c   chebex.c  gamma.c   interp.c    multi.c    polyr.c    shoot.c
+betap.c    crank.c   gaubnd.c  invit.c     multisp.c  quad.c     simplx.c
+bfgs.c     davidm.c  gaucb1.c  lagurw.c    newrap.c   realrt.c   smooth.c
+binom.c    dawson.c  gaucb2.c  lapinv.c    newton.c   realsy.c   sor.c
+brentm.c   drvt.c    gaucby.c  lax.c       nllsq.c    recin2.c   splint.c
+broydn.c   erf.c     gauher.c  linear.c    nllsq_f.c  recin3.c   sum_a.c
+bspfit2.c  euler.c   gaujac.c  lines.c     nminf.c    recrt2.c   sum.c
+bspfit.c   extp.c    gaulag.c  linfitxy.c  pade.c     remes.c    unsym.c
+bspfitn.c  fdm.c     gauleg.c  linrn.c     pcor.c     rkm_2.c    unsyml.c
+bspintn.c  fermi.c   gaulog.c  llsq1.c     plm.c      rkm.c      volt2.c
+bsplin.c   fft.c     gausq.c   llsq.c      poisson.c  rls.c      volt.c
+bspode.c   fftn.c    gausrc.c  matinv.c    pold.c     rmk1.c     ylm.c
+bspqd2.c   fftr.c    gauswt.c  median.c    polfit2.c  rmk.c
+
+
+
+The 112 output files from these programs are as follows:
+
+adi.out      adm.out      adpint.out   anneal.out   bessel.out   bfgs.out
+brentm.out   broydn.out   bspfit.out   bspfit2.out  bspfitn.out  bspintn.out
+bspode.out   bspqd2.out   bspqdn.out   cauchy.out   chebap.out   chebcf.out
+chebex.out   crank.out    davidm.out   dawson.out   drvt.out     erf.out
+euler.out    extp.out     fdm.out      fermi.out    fft.out      fftn.out
+fftr.out     filon.out    fred.out     fred3.out    fredco.out   gamma.out
+gaubnd.out   gaucb1.out   gaucb2.out   gaucby.out   gauher.out   gaujac.out
+gaulag.out   gauleg.out   gaulog.out   gausq.out    gausrc.out   gauswt.out
+gevp.out     golden.out   herevp.out   hermit.out   interp.out   invers.out
+invit.out    lagurw.out   lapinv.out   lax.out      linear.out   lines.out
+linrn.out    llsq.out     llsq1.out    matinv.out   minmax.out   mstep.out
+muler2.out   muller.out   multi.out    multisp.out  newrap.out   newton.out
+nllsq.out    nllsq_f.out  nminf.out    pade.out     plm.out      pold.out
+polfit.out   polfit2.out  polfitn.out  poly2.out    polyl1.out   polyr.out
+quad.out     realrt.out   realsy.out   recin2.out   recin3.out   recrt2.out
+remes.out    rkm.out      rkm_2.out    rls.out      rmk.out      rmk1.out
+round.out    search.out   secan_2.out  shoot.out    simplx.out   smooth.out
+sor.out      splint.out   sum.out      sum_a.out    titan.out    unsym.out
+unsyml.out   volt.out     volt2.out    ylm.out
+
+The file invers.out is additional output from rls.f, while
+titan.out is additional output from anneal.f
+

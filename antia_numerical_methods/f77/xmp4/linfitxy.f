@@ -1,0 +1,152 @@
+!       Straight line fit to data when there are errors in both x and y
+
+      PROGRAM XYERR
+!      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION X(100),Y(100),XI(100),YI(100)
+
+51    FORMAT(10F10.5)
+52    FORMAT(' IER =',I5,'  SLOPE =',F10.5,'  INTERCEPT =',F10.5)
+53    FORMAT(/,'      X     FITTED-X      Y     FITTED-Y')
+
+      SEED=9
+      N=100
+!       Generate the data
+      DO I=1,N
+        R=RAN1(SEED)
+        X(I)=I*1D-2+1.D-3*(R-0.5)
+!       There is no correlation as independent random numbers are used
+        R=RAN1(SEED)
+        Y(I)=I*0.5D-2+1.D-2*(R-0.5)
+      ENDDO
+!       Set the error and correlation
+      SX=3.D-4
+      SY=3.D-3
+      RXY=0
+      CALL LINFITXY(N,X,Y,SX,SY,RXY,XI,YI,C,RM,CHI,IER)
+      WRITE(6,52) IER,RM,C
+      WRITE(6,53)
+      DO I=1,N
+        WRITE(6,51) X(I),XI(I),Y(I),YI(I)
+      ENDDO
+
+      END
+
+!       -----------------------------------------------------
+
+!       Least squares straight line fit when there is error in both x and y
+!       To fit equation of form y=a+b*x
+!
+!       N : (input) Number of data points
+!       X : (input) Real array of length N containing the x values
+!       Y : (input) Real array of length N containing the y values
+!       SIGX : (input) estimated error in x values, assumed to be the
+!               same for all points
+!       SIGY : (input) estimated error in y values, assumed to be the
+!               same for all points
+!       RHO : (input) estimated correlation between errors in x and y
+!               assumed to be the same for all points
+!       XI : (output) Reall array of length N which will give the fitted x values
+!       YI : (output) Reall array of length N which will give the fitted y values
+!       A : (output) fitted value of the intercept
+!       B : (output) fitted value of the slope
+!       CHI : (output) value of chi^2 at the minimum
+!       IER : (output) Error parameter, IER=0 implies successful execution
+!               IER=617 implies that discriminant of quadratic equation
+!                       is negative and calculations are aborted
+!
+!       Required routines : none
+
+
+      SUBROUTINE LINFITXY(N,X,Y,SIGX,SIGY,RHO,XI,YI,A,B,CHI,IER)
+!      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION X(N),Y(N),XI(N),YI(N)
+
+      R=RHO*SIGY/SIGX
+      S=(SIGY/SIGX)**2
+      SX=0.0
+      SY=0.0
+      SXY=0.0
+      SXX=0.0
+      SYY=0.0
+      DO I=1,N
+        SX=SX+X(I)
+        SY=SY+Y(I)
+        SXY=SXY+X(I)*Y(I)
+        SXX=SXX+X(I)*X(I)
+        SYY=SYY+Y(I)*Y(I)
+      enddo
+      SX=SX/N
+      SY=SY/N
+      SXY=SXY/N
+      SXX=SXX/N
+      SYY=SYY/N
+      IER=0
+      
+!       Find the quadratic in the slope and solve it
+      C2=SIGX*SIGX*(SXY-SX*SY)+RHO*SIGX*SIGY*(SX*SX-SXX)
+      C1=SIGX*SIGX*(SY*SY-SYY)+SIGY*SIGY*(SXX-SX*SX)
+      C0=-RHO*SIGX*SIGY*(SY*SY-SYY)-SIGY*SIGY*(SXY-SX*SY)
+      DEL=C1*C1-4*C0*C2
+      IF(DEL.LT.0.0) THEN
+        IER=617
+        RETURN
+      ENDIF
+      DEL=SQRT(DEL)
+      IF(C1.GT.0.0) THEN
+        B1=(-C1-DEL)/(2*C2)
+      ELSE
+        B1=(-C1+DEL)/(2*C2)
+      ENDIF
+      B=C0/(C2*B1)
+      A1=SY-B1*SX
+      A=SY-B*SX
+      T1=(B1*R-S)/(B1-R)
+      T=(B*R-S)/(B-R)
+
+!       Choose the solution with smaller chi^2
+      CHI1=0.0
+      CHI=0.0
+      DO I=1,N
+        X1=(T1*X(I)-Y(I)+A1)/(T1-B1)
+        X2=(T*X(I)-Y(I)+A)/(T-B)
+        Y1=A1+B1*X1
+        Y2=A+B*X2
+        CHI1=CHI1+((X(I)-X1)/SIGX)**2-2*RHO*(X(I)-X1)*(Y(I)-Y1)
+     1          /(SIGX*SIGY) + ((Y(I)-Y1)/SIGY)**2
+        CHI=CHI+((X(I)-X2)/SIGX)**2-2*RHO*(X(I)-X2)*(Y(I)-Y2)
+     1          /(SIGX*SIGY) + ((Y(I)-Y2)/SIGY)**2
+      ENDDO
+      
+      IF(CHI1.LT.CHI) THEN
+        CHI=CHI1
+        A=A1
+        B=B1
+        T=T1
+      ENDIF
+
+      DO I=1,N
+        XI(I)=(T*X(I)-Y(I)+A)/(T-B)
+        YI(I)=A+B*XI(I)
+      ENDDO
+      END
+
+!       -----------------------------------------------------
+
+!	To generate uniformly distributed random numbers in interval (0,1)
+!
+!	SEED : (input/output) is a real value used as the seed
+!		It should be positive during initial call and
+!		should not be modified between different calls.
+!
+!	Required routines : None
+
+      FUNCTION RAN1(SEED)
+!      IMPLICIT REAL*8(A-H,O-Z)
+!	Retain the following declaration even for REAL*4 version
+!	otherwise AM and AC will be rounded
+      REAL*8 AM,A,AC,AN
+      PARAMETER(AM=2147483648D0,A=45875,AC=453816693D0,AN=2147483647D0)
+
+      SEED=MOD(SEED*A+AC,AM)
+      RAN1=SEED/AN
+      END

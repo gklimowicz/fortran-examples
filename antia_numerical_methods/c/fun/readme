@@ -1,0 +1,117 @@
+
+This directory contains C Functions described in Appendix C. All
+functions use double precision (type double) floating point
+arithmetic. 
+
+All these functions have been tested to some extent, but there
+may be some bugs. Users are welcome to use these functions at
+their own risk. Any bugs discovered in these routines may be
+notified to
+
+antia@tifr.res.in
+
+For clarity most of the documents specify the name of functions 
+using upper case letters, but in actual program all function
+names use only lower case letters.
+
+These functions are simple translation of the corresponding
+Fortran subprograms. Since C does not permit use of complex
+arithmetic some functions to perform elementary operations on
+complex variables (CABS, CDIV, CSQRT) are also provided. The
+compiler may have an equivalent library routine to do these
+operations, though the arguments may be different. Further, the following
+Fortran subprograms requiring complex arithmetic have not been
+translated to C: 
+
+CONTUR,   CROUT_C,  DELVES,   GAUBLK_C, GAUBND_C, GAUELM_C, GEVP_C,
+INVIT_C,  INVIT_CC, INVIT_CL, LAGITC,   NEWRAC,   POLYC,    SECANC,
+SECANC_2, SETMAT_C. 
+
+Each of these functions includes a declaration of the functions
+that are required by it and there is no need to include any
+header file. Nevertheless, all these declarations are included in
+the file antia.h which can be found in this directory. For general
+comments about C functions in the book the reader should refer to the
+first section of Appendix C, while more information about each of
+the functions can be found in subsequent sections of Appendix C.
+
+During the revision, the names of the following two routines have changed
+
+GAMLN   to      GAMMALN To calculate logarithm of Gamma function
+RAN     to      RAN1    To generate random numbers with uniform distribution
+
+Further the arguments of the following routines have changed
+
+BSPFIT  An additional argument to calculate the covariance matrix
+LLSQ    An additional argument to calculate the covariance matrix
+POLFIT  The 5th argument is now error in input data instead of weight (1/error**2) 
+RANGAU  The seed is now real instead of integer
+
+The random number generators RAN1 and RANGAU have been modified and hence
+the output of programs may not match the earlier version.
+Apart from this the calls to calloc where required have been modified to
+confirm to current standard using type size_t.
+
+The following new routines have been added
+
+betai.c, betap.c, betcon1.c, betcon.c, betser.c, fbeta.c, gammap.c,
+iranbin.c, iranpoi.c, linfitxy.c, pcor.c, shsort.c
+
+Apart from 222 C functions this directory contains the following files:
+
+antia.h	 The header file
+
+fun.ier	 Alphabetic list of functions with possible values of
+		error parameter (IER)
+
+fun.ind	 Index of functions
+
+fun.lst	 Subject wise list of functions
+
+fun.req	 List of functions required by each routine
+
+fun.sor	 Alphabetic list of functions
+
+ier.lst	 Subject wise list of functions with possible values of
+		error parameter (IER)
+
+ier.lst	 Numerically sorted list of possible values of error parameter (IER)
+
+readme	 This file
+
+
+The following 222 c files are included in this directory
+
+adams.c     bspevn2.c   davidn_b.c  gammaln.c  lagure.c    polevl.c   setmat.c
+adi.c       bspevn.c    davidn.c    gammap.c   lagurw.c    polevn1.c  shsort.c
+adm.c       bspfit2.c   dawson.c    gaublk.c   lapinv.c    polevn2.c  simpl1.c
+adpint.c    bspfit.c    dft.c       gaubnd.c   lax.c       polevn.c   simplx.c
+balanc.c    bspfitn.c   divdif0.c   gaucb1.c   lines.c     polfit1.c  simpx.c
+balbak.c    bspfitw2.c  divdif.c    gaucb2.c   linfitxy.c  polfit2.c  simson.c
+balbak_l.c  bspfitwn.c  drvt.c      gaucby.c   linl1.c     polfit.c   smooth.c
+betai.c     bspint2.c   elmhes.c    gauelm.c   linmin.c    polfitn.c  sor.c
+betap.c     bspint.c    epsiln.c    gauher.c   linmnf.c    polort.c   sphbjn.c
+betcon1.c   bspintn.c   equids.c    gaujac.c   linrn.c     poly2.c    sphnd.c
+betcon.c    bsplin.c    erf.c       gaulag.c   llsq.c      polyl1.c   splevl.c
+betser.c    bspode.c    erfc.c      gauleg.c   locate.c    polyr.c    spline.c
+bfgs.c      bspqd2.c    euler.c     gaulg2.c   matinv.c    ran1.c     splint.c
+bi0.c       bspqd.c     extp.c      gaulog.c   mcarlo.c    ranf.c     strint.c
+bi1.c       bspqdn.c    fbeta.c     gaus16.c   minmax.c    rangau.c   stroud.c
+bin.c       by0.c       fdm.c       gausq2.c   mstep.c     ratnal.c   strt4.c
+bisect.c    by1.c       ferm05.c    gausq.c    muler2.c    remes.c    sturm.c
+bj0.c       byn.c       ferm15.c    gausrc.c   mulint.c    rk2.c      svd.c
+bj1.c       cabs.c      ferm25.c    gauss.c    muller.c    rk4.c      svdevl.c
+bjn.c       cassum_a.c  fermm05.c   gauswt.c   nearst.c    rkm_2.c    tinvit.c
+bjy0.c      cassum.c    fft.c       gear.c     newrap.c    rkm.c      tql2.c
+bjy1.c      cauchy.c    fftn.c      gevp.c     newton.c    rls.c      trbak.c
+bk0.c       cdiv.c      fftr.c      golden.c   ngauss.c    rmk1.c     tred2.c
+bk1.c       chebap.c    filon.c     herevp.c   nllsq.c     rmk.c      tridia.c
+bkn.c       chebcf.c    fln.c       hermit.c   nllsq_f.c   rmkd1.c    volt2.c
+brackm.c    chebex.c    flnm.c      hqr.c      nminf.c     rmkd.c     volt.c
+brent.c     cholsk.c    fm.c        invit.c    pade.c      rombrg.c   ylm.c
+brentm.c    crank.c     forw.c      invit_l.c  pcor.c      round.c    ylm_x.c
+broydn.c    crout.c     fred.c      iranbin.c  pleg.c      search.c   zroot2.c
+bspev2.c    crouth.c    fredco.c    iranpoi.c  plm.c       secan_2.c  zroot.c
+bspevl.c    csqrt.c     funk.c      kronrd.c   pold.c      secani.c
+bspevn1.c   davidm.c    gamma.c     lagitr.c   polev2.c    secant.c
+

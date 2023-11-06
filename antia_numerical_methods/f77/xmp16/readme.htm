@@ -1,0 +1,687 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.75 [en] (X11; U; Linux 2.2.13 i686) [Netscape]">
+   <meta name="Author" content="H. M. Antia">
+   <title>f77/xmp16</title>
+</head>
+<body>
+
+<center><font size=+1><b>NUMERICAL&nbsp; METHODS&nbsp; FOR&nbsp; SCIENTISTS&nbsp;
+AND ENGINEERS</b></font>
+<p><font size=+1><b>FORTRAN PROGRAMS</b></font></center>
+
+<p><br>
+<p>
+<hr WIDTH="100%">
+<p>This directory contains Fortran 77 programs using various subprograms
+described in <a href="../../doc/appendixb.htm">Appendix B</a>. All programs
+use quad precision (REAL*16 / COMPLEX*32) arithmetic. Single and double
+precision versions of these programs can be found in directories
+<a href="../xmp4/readme.htm">f77/xmp4</a>
+and
+<a href="../xmp8/readme.htm">f77/xmp8</a> respectively. The subprograms
+can be found in the directory
+<a href="../sub16/readme.htm">f77/sub16</a>
+<p><font color="#CC0000">All these programs have been tested to some extent,
+but there may be some bugs. Users are welcome to use these programs at
+their own risk. Any bugs discovered in these routines may be notified to</font>
+<p><a href="mailto:antia@tifr.res.in">antia@tifr.res.in</a>
+<p>The main purpose of the programs in this directory is to provide concrete
+examples of using the subprograms described in Appendix B. Most of these
+programs are based on either solved examples or exercises in the book.
+Sample output obtained from these programs is also included in files *.out.
+These output files may be useful to check if the program is running correctly
+(at least giving the same output!) on your computer. Because of differences
+in roundoff errors between different compilers and computers the output
+may not exactly match on two different machines.
+In most
+cases the output refers to output on Fortran logical unit 6 which
+is normally the terminal. This output has been redirected to a
+file which is included in the directory. In a few cases
+(anneal.f, bsplin.f, rls.f, smooth.f) the programs directly write
+to a file on the disk. Of these bsplin.f and smooth.f do not have
+any significant output on the screen and it is not included in
+the online material. While for anneal.f and rls.f the screen output is
+included in addition to the files directly written. 
+The input file kernel
+containing kernels for inverse problem (Example 13.5) as
+required by rls.f is kept in the base directory to avoid duplication.
+
+<p>
+Because
+of limitations imposed by precision of arithmetic some of the outputs in
+this directory do not correspond to the same problem as in the double precision
+version. In most cases, the effect of precision of arithmetic can be gauged
+by comparing the outputs in this directory with those in
+<a href="../xmp8/readme.htm">f77/xmp8</a>.
+Because of limitations mentioned in
+<a href="../sub16/readme.htm">f77/sub16/readme</a> all programs
+in this directory may not give the full accuracy expected from
+quadruple precision arithmetic. Some of these programs may
+require very long time to complete execution.
+<p>
+<p>
+<hr WIDTH="100%">
+<p>Apart from 123 pairs of Fortran programs and the corresponding output files this
+directory contains the following files:
+<br>&nbsp
+<center><table BORDER=0 WIDTH="90%" >
+
+<tr>
+<td>&nbsp;<a href="readme">readme</a>&nbsp;&nbsp;</td>
+<td>The readme file</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="readme.htm">readme.htm</a>&nbsp;&nbsp;</td>
+<td>This file</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="xmp.ind">xmp.ind</a>&nbsp;&nbsp;</td>
+<td>Index of subprograms used in different examples</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="xmp.lst">xmp.lst</a>&nbsp;&nbsp;</td>
+<td>Subject wise list of programs</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="xmp.sor">xmp.sor</a>&nbsp;&nbsp;</td>
+<td>Alphabetic list of programs</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="xmplst.htm">xmplst.htm</a>&nbsp;&nbsp;</td>
+<td>Subject wise list of subprograms with HTML links</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="xmplsta.htm">xmplsta.htm</a>&nbsp;&nbsp;</td>
+<td>Alphabetic list of subprograms with HTML links</td>
+</tr>
+
+</table></center>
+<br>&nbsp;
+<p>The following 123 Fortran programs (*.f)
+and corresponding output files (*.out) are included in this directory:
+<br>&nbsp;
+<br>&nbsp;
+<table BORDER COLS=5 WIDTH="100%" >
+<tr>
+<td>&nbsp;<a href="adi.f">adi.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#adi">
+(D)</a>
+&nbsp;<a href="adi.out">adi.out</a> </td>
+
+<td>&nbsp;<a href="adm.f">adm.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#adm">
+(D)</a>
+&nbsp;<a href="adm.out">adm.out</a> </td>
+
+<td>&nbsp;<a href="adpint.f">adpint.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#adpint">
+(D)</a>
+&nbsp;<a href="adpint.out">adpint.out</a> </td>
+
+<td>&nbsp;<a href="anneal.f">anneal.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#spline">
+(D)</a>
+&nbsp;<a href="anneal.out">anneal.out</a>, 
+&nbsp;<a href="titan.out">titan.out</a> </td>
+
+<td>&nbsp;<a href="bessel.f">bessel.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bj0">
+(D)</a>
+&nbsp;<a href="bessel.out">bessel.out</a> </td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="betap.f">betap.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#betap">
+(D)</a>
+&nbsp;<a href="betap.out">betap.out</a> </td>
+
+<td>&nbsp;<a href="bfgs.f">bfgs.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bfgs">
+(D)</a>
+&nbsp;<a href="bfgs.out">bfgs.out</a> </td>
+
+<td>&nbsp;<a href="binom.f">binom.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#iranbin">
+(D)</a>
+&nbsp;<a href="binom.out">binom.out</a> </td>
+
+<td>&nbsp;<a href="brentm.f">brentm.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#brentm">
+(D)</a>
+&nbsp;<a href="brentm.out">brentm.out</a> </td>
+
+<td>&nbsp;<a href="broydn.f">broydn.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#broydn">
+(D)</a>
+&nbsp;<a href="broydn.out">broydn.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="bspfit.f">bspfit.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bspfit">
+(D)</a>
+&nbsp;<a href="bspfit.out">bspfit.out</a> </td>
+
+<td>&nbsp;<a href="bspfit2.f">bspfit2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bspfit2">
+(D)</a>
+&nbsp;<a href="bspfit2.out">bspfit2.out</a> </td>
+
+<td>&nbsp;<a href="bspfitn.f">bspfitn.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bspfitn">
+(D)</a>
+&nbsp;<a href="bspfitn.out">bspfitn.out</a> </td>
+
+<td>&nbsp;<a href="bspintn.f">bspintn.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bspintn">
+(D)</a>
+&nbsp;<a href="bspintn.out">bspintn.out</a> </td>
+
+<td>&nbsp;<a href="bsplin.f">bsplin.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bsplin">
+(D)</a>
+&nbsp;<a href="bsplin.out">bsplin.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="bspode.f">bspode.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bspode">
+(D)</a>
+&nbsp;<a href="bspode.out">bspode.out</a> </td>
+
+<td>&nbsp;<a href="bspqd2.f">bspqd2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bspqd2">
+(D)</a>
+&nbsp;<a href="bspqd2.out">bspqd2.out</a> </td>
+
+<td>&nbsp;<a href="bspqdn.f">bspqdn.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#bspqdn">
+(D)</a>
+&nbsp;<a href="bspqdn.out">bspqdn.out</a> </td>
+
+<td>&nbsp;<a href="cauchy.f">cauchy.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#cauchy">
+(D)</a>
+&nbsp;<a href="cauchy.out">cauchy.out</a> </td>
+
+<td>&nbsp;<a href="chebap.f">chebap.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#chebap">
+(D)</a>
+&nbsp;<a href="chebap.out">chebap.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="chebcf.f">chebcf.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#chebcf">
+(D)</a>
+&nbsp;<a href="chebcf.out">chebcf.out</a> </td>
+
+<td>&nbsp;<a href="chebex.f">chebex.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#chebex">
+(D)</a>
+&nbsp;<a href="chebex.out">chebex.out</a> </td>
+
+<td>&nbsp;<a href="cmat.f">cmat.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gaubnd">
+(D)</a>
+&nbsp;<a href="cmat.out">cmat.out</a> </td>
+
+<td>&nbsp;<a href="crank.f">crank.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#crank">
+(D)</a>
+&nbsp;<a href="crank.out">crank.out</a> </td>
+
+<td>&nbsp;<a href="davidm.f">davidm.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#davidm">
+(D)</a>
+&nbsp;<a href="davidm.out">davidm.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="dawson.f">dawson.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#dawson">
+(D)</a>
+&nbsp;<a href="dawson.out">dawson.out</a> </td>
+
+<td>&nbsp;<a href="delves.f">delves.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#delves">
+(D)</a>
+&nbsp;<a href="delves.out">delves.out</a> </td>
+
+<td>&nbsp;<a href="drvt.f">drvt.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#drvt">
+(D)</a>
+&nbsp;<a href="drvt.out">drvt.out</a> </td>
+
+<td>&nbsp;<a href="erf.f">erf.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#erf">
+(D)</a>
+&nbsp;<a href="erf.out">erf.out</a> </td>
+
+<td>&nbsp;<a href="euler.f">euler.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#euler">
+(D)</a>
+&nbsp;<a href="euler.out">euler.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="extp.f">extp.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#extp">
+(D)</a>
+&nbsp;<a href="extp.out">extp.out</a> </td>
+
+<td>&nbsp;<a href="fdm.f">fdm.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#fdm">
+(D)</a>
+&nbsp;<a href="fdm.out">fdm.out</a> </td>
+
+<td>&nbsp;<a href="fermi.f">fermi.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#fermm05">
+(D)</a>
+&nbsp;<a href="fermi.out">fermi.out</a> </td>
+
+<td>&nbsp;<a href="fft.f">fft.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#dft">
+(D)</a>
+&nbsp;<a href="fft.out">fft.out</a> </td>
+
+<td>&nbsp;<a href="fftn.f">fftn.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#fftn">
+(D)</a>
+&nbsp;<a href="fftn.out">fftn.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="fftr.f">fftr.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#fftr">
+(D)</a>
+&nbsp;<a href="fftr.out">fftr.out</a> </td>
+
+<td>&nbsp;<a href="filon.f">filon.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#filon">
+(D)</a>
+&nbsp;<a href="filon.out">filon.out</a> </td>
+
+<td>&nbsp;<a href="fred.f">fred.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#fred">
+(D)</a>
+&nbsp;<a href="fred.out">fred.out</a> </td>
+
+<td>&nbsp;<a href="fred3.f">fred3.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#fred">
+(D)</a>
+&nbsp;<a href="fred3.out">fred3.out</a> </td>
+
+<td>&nbsp;<a href="fredco.f">fredco.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#fredco">
+(D)</a>
+&nbsp;<a href="fredco.out">fredco.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="gamma.f">gamma.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gamma">
+(D)</a>
+&nbsp;<a href="gamma.out">gamma.out</a> </td>
+
+<td>&nbsp;<a href="gaubnd.f">gaubnd.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gaubnd">
+(D)</a>
+&nbsp;<a href="gaubnd.out">gaubnd.out</a> </td>
+
+<td>&nbsp;<a href="gaucb1.f">gaucb1.f</a>&nbsp;&nbsp; <a href="../../doc/appendixb.htm#gaucb1">
+(D)</a>
+&nbsp;<a href="gaucb1.out">gaucb1.out</a> </td>
+
+<td>&nbsp;<a href="gaucb2.f">gaucb2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gaucb2">
+(D)</a>
+&nbsp;<a href="gaucb2.out">gaucb2.out</a> </td>
+
+<td>&nbsp;<a href="gaucby.f">gaucby.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gaucby">
+(D)</a>
+&nbsp;<a href="gaucby.out">gaucby.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="gauher.f">gauher.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gauher">
+(D)</a>
+&nbsp;<a href="gauher.out">gauher.out</a> </td>
+
+<td>&nbsp;<a href="gaujac.f">gaujac.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gaujac">
+(D)</a>
+&nbsp;<a href="gaujac.out">gaujac.out</a> </td>
+
+<td>&nbsp;<a href="gaulag.f">gaulag.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gaulag">
+(D)</a>
+&nbsp;<a href="gaulag.out">gaulag.out</a> </td>
+
+<td>&nbsp;<a href="gauleg.f">gauleg.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gauleg">
+(D)</a>
+&nbsp;<a href="gauleg.out">gauleg.out</a> </td>
+
+<td>&nbsp;<a href="gaulog.f">gaulog.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gaulg2">
+(D)</a>
+&nbsp;<a href="gaulog.out">gaulog.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="gausq.f">gausq.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gausq2">
+(D)</a>
+&nbsp;<a href="gausq.out">gausq.out</a> </td>
+
+<td>&nbsp;<a href="gausrc.f">gausrc.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gausrc">
+(D)</a>
+&nbsp;<a href="gausrc.out">gausrc.out</a> </td>
+
+<td>&nbsp;<a href="gauswt.f">gauswt.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gauswt">
+(D)</a>
+&nbsp;<a href="gauswt.out">gauswt.out</a> </td>
+
+<td>&nbsp;<a href="genevp.f">genevp.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#invit">
+(D)</a>
+&nbsp;<a href="genevp.out">genevp.out</a> </td>
+
+<td>&nbsp;<a href="gevp.f">gevp.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gevp">
+(D)</a>
+&nbsp;<a href="gevp.out">gevp.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="gevp_c.f">gevp_c.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gevp">
+(D)</a>
+&nbsp;<a href="gevp_c.out">gevp_c.out</a> </td>
+
+<td>&nbsp;<a href="golden.f">golden.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#brackm">
+(D)</a>
+&nbsp;<a href="golden.out">golden.out</a> </td>
+
+<td>&nbsp;<a href="herevp.f">herevp.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#herevp">
+(D)</a>
+&nbsp;<a href="herevp.out">herevp.out</a> </td>
+
+<td>&nbsp;<a href="hermit.f">hermit.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#hermit">
+(D)</a>
+&nbsp;<a href="hermit.out">hermit.out</a> </td>
+
+<td>&nbsp;<a href="interp.f">interp.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#divdif">
+(D)</a>
+&nbsp;<a href="interp.out">interp.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="invit.f">invit.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#invit">
+(D)</a>
+&nbsp;<a href="invit.out">invit.out</a> </td>
+
+<td>&nbsp;<a href="lagurw.f">lagurw.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#lagurw">
+(D)</a>
+&nbsp;<a href="lagurw.out">lagurw.out</a> </td>
+
+<td>&nbsp;<a href="lapinv.f">lapinv.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#lapinv">
+(D)</a>
+&nbsp;<a href="lapinv.out">lapinv.out</a> </td>
+
+<td>&nbsp;<a href="lax.f">lax.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#lax">
+(D)</a>
+&nbsp;<a href="lax.out">lax.out</a> </td>
+
+<td>&nbsp;<a href="linear.f">linear.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#gauelm">
+(D)</a>
+&nbsp;<a href="linear.out">linear.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="lines.f">lines.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#lines">
+(D)</a>
+&nbsp;<a href="lines.out">lines.out</a> </td>
+
+<td>&nbsp;<a href="linfitxy.f">linfitxy.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#linfitxy">
+(D)</a>
+&nbsp;<a href="linfitxy.out">linfitxy.out</a> </td>
+
+<td>&nbsp;<a href="linrn.f">linrn.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#linrn">
+(D)</a>
+&nbsp;<a href="linrn.out">linrn.out</a> </td>
+
+<td>&nbsp;<a href="llsq.f">llsq.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#llsq">
+(D)</a>
+&nbsp;<a href="llsq.out">llsq.out</a> </td>
+
+<td>&nbsp;<a href="llsq1.f">llsq1.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#llsq">
+(D)</a>
+&nbsp;<a href="llsq1.out">llsq1.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="matinv.f">matinv.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#matinv">
+(D)</a>
+&nbsp;<a href="matinv.out">matinv.out</a> </td>
+
+<td>&nbsp;<a href="median.f">median.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#shsort">
+(D)</a>
+&nbsp;<a href="median.out">median.out</a> </td>
+
+<td>&nbsp;<a href="minmax.f">minmax.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#minmax">
+(D)</a>
+&nbsp;<a href="minmax.out">minmax.out</a> </td>
+
+<td>&nbsp;<a href="mstep.f">mstep.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#mstep">
+(D)</a>
+&nbsp;<a href="mstep.out">mstep.out</a> </td>
+
+<td>&nbsp;<a href="muler2.f">muler2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#muler2">
+(D)</a>
+&nbsp;<a href="muler2.out">muler2.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="muller.f">muller.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#muller">
+(D)</a>
+&nbsp;<a href="muller.out">muller.out</a> </td>
+
+<td>&nbsp;<a href="multi.f">multi.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#mulint">
+(D)</a>
+&nbsp;<a href="multi.out">multi.out</a> </td>
+
+<td>&nbsp;<a href="multisp.f">multisp.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#sphnd">
+(D)</a>
+&nbsp;<a href="multisp.out">multisp.out</a> </td>
+
+<td>&nbsp;<a href="newrap.f">newrap.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#newrap">
+(D)</a>
+&nbsp;<a href="newrap.out">newrap.out</a> </td>
+
+<td>&nbsp;<a href="newton.f">newton.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#newton">
+(D)</a>
+&nbsp;<a href="newton.out">newton.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="nllsq.f">nllsq.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#nllsq">
+(D)</a>
+&nbsp;<a href="nllsq.out">nllsq.out</a> </td>
+
+<td>&nbsp;<a href="nminf.f">nminf.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#nminf">
+(D)</a>
+&nbsp;<a href="nminf.out">nminf.out</a> </td>
+
+<td>&nbsp;<a href="pade.f">pade.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#pade">
+(D)</a>
+&nbsp;<a href="pade.out">pade.out</a> </td>
+
+<td>&nbsp;<a href="pcor.f">pcor.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#pcor">
+(D)</a>
+&nbsp;<a href="pcor.out">pcor.out</a> </td>
+
+<td>&nbsp;<a href="plm.f">plm.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#plm">
+(D)</a>
+&nbsp;<a href="plm.out">plm.out</a> </td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="poisson.f">poisson.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#iranpoi">
+(D)</a>
+&nbsp;<a href="poisson.out">poisson.out</a> </td>
+
+<td>&nbsp;<a href="pold.f">pold.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#pold">
+(D)</a>
+&nbsp;<a href="pold.out">pold.out</a> </td>
+
+<td>&nbsp;<a href="polfit.f">polfit.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#polfit">
+(D)</a>
+&nbsp;<a href="polfit.out">polfit.out</a> </td>
+
+<td>&nbsp;<a href="polfit2.f">polfit2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#polfit2">
+(D)</a>
+&nbsp;<a href="polfit2.out">polfit2.out</a> </td>
+
+<td>&nbsp;<a href="polfitn.f">polfitn.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#polfitn">
+(D)</a>
+&nbsp;<a href="polfitn.out">polfitn.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="poly2.f">poly2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#poly2">
+(D)</a>
+&nbsp;<a href="poly2.out">poly2.out</a> </td>
+
+<td>&nbsp;<a href="polyc.f">polyc.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#polyc">
+(D)</a>
+&nbsp;<a href="polyc.out">polyc.out</a> </td>
+
+<td>&nbsp;<a href="polyl1.f">polyl1.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#polyl1">
+(D)</a>
+&nbsp;<a href="polyl1.out">polyl1.out</a> </td>
+
+<td>&nbsp;<a href="polyr.f">polyr.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#polyr">
+(D)</a>
+&nbsp;<a href="polyr.out">polyr.out</a> </td>
+
+<td>&nbsp;<a href="quad.f">quad.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#simson">
+(D)</a>
+&nbsp;<a href="quad.out">quad.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="realrt.f">realrt.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#secant">
+(D)</a>
+&nbsp;<a href="realrt.out">realrt.out</a> </td>
+
+<td>&nbsp;<a href="realsy.f">realsy.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#tred2">
+(D)</a>
+&nbsp;<a href="realsy.out">realsy.out</a> </td>
+
+<td>&nbsp;<a href="recin2.f">recin2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#adpint">
+(D)</a>
+&nbsp;<a href="recin2.out">recin2.out</a> </td>
+
+<td>&nbsp;<a href="recin3.f">recin3.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#adpint">
+(D)</a>
+&nbsp;<a href="recin3.out">recin3.out</a> </td>
+
+<td>&nbsp;<a href="recrt2.f">recrt2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#secant">
+(D)</a>
+&nbsp;<a href="recrt2.out">recrt2.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="remes.f">remes.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#remes">
+(D)</a>
+&nbsp;<a href="remes.out">remes.out</a> </td>
+
+<td>&nbsp;<a href="rkm.f">rkm.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#rkm">
+(D)</a>
+&nbsp;<a href="rkm.out">rkm.out</a> </td>
+
+<td>&nbsp;<a href="rkm_2.f">rkm_2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#rkm">
+(D)</a>
+&nbsp;<a href="rkm_2.out">rkm_2.out</a> </td>
+
+<td>&nbsp;<a href="rls.f">rls.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#rls">
+(D)</a>
+&nbsp;<a href="rls.out">rls.out</a>
+&nbsp;<a href="invers.out">invers.out</a>
+&nbsp;<a href="lcurv.out">lcurv.out</a> </td>
+
+<td>&nbsp;<a href="rmk.f">rmk.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#rmk">
+(D)</a>
+&nbsp;<a href="rmk.out">rmk.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="rmk1.f">rmk1.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#rmk1">
+(D)</a>
+&nbsp;<a href="rmk1.out">rmk1.out</a> </td>
+
+<td>&nbsp;<a href="root.f">root.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#secant">
+(D)</a>
+&nbsp;<a href="root.out">root.out</a> </td>
+
+<td>&nbsp;<a href="round.f">round.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#round">
+(D)</a>
+&nbsp;<a href="round.out">round.out</a> </td>
+
+<td>&nbsp;<a href="search.f">search.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#search">
+(D)</a>
+&nbsp;<a href="search.out">search.out</a> </td>
+
+<td>&nbsp;<a href="secan_2.f">secan_2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#secant">
+(D)</a>
+&nbsp;<a href="secan_2.out">secan_2.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="secanc.f">secanc.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#secanc">
+(D)</a>
+&nbsp;<a href="secanc.out">secanc.out</a> </td>
+
+<td>&nbsp;<a href="shoot.f">shoot.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#rkm">
+(D)</a>
+&nbsp;<a href="shoot.out">shoot.out</a> </td>
+
+<td>&nbsp;<a href="simplx.f">simplx.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#simplx">
+(D)</a>
+&nbsp;<a href="simplx.out">simplx.out</a> </td>
+
+<td>&nbsp;<a href="smooth.f">smooth.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#smooth">
+(D)</a>
+&nbsp;<a href="smooth.out">smooth.out</a> </td>
+
+<td>&nbsp;<a href="sor.f">sor.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#sor">
+(D)</a>
+&nbsp;<a href="sor.out">sor.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="splint.f">splint.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#splint">
+(D)</a>
+&nbsp;<a href="splint.out">splint.out</a> </td>
+
+<td>&nbsp;<a href="sum.f">sum.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#cassum">
+(D)</a>
+&nbsp;<a href="sum.out">sum.out</a> </td>
+
+<td>&nbsp;<a href="sum_a.f">sum_a.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#cassum">
+(D)</a>
+&nbsp;<a href="sum_a.out">sum_a.out</a> </td>
+
+<td>&nbsp;<a href="unsym.f">unsym.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#balanc">
+(D)</a>
+&nbsp;<a href="unsym.out">unsym.out</a> </td>
+
+<td>&nbsp;<a href="unsyml.f">unsyml.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#balanc">
+(D)</a>
+&nbsp;<a href="unsyml.out">unsyml.out</a> </td>
+</tr>
+
+<tr>
+
+<td>&nbsp;<a href="volt.f">volt.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#volt">
+(D)</a>
+&nbsp;<a href="volt.out">volt.out</a> </td>
+
+<td>&nbsp;<a href="volt2.f">volt2.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#volt2">
+(D)</a>
+&nbsp;<a href="volt2.out">volt2.out</a> </td>
+
+<td>&nbsp;<a href="ylm.f">ylm.f</a>&nbsp;&nbsp;&nbsp;<a href="../../doc/appendixb.htm#ylm">
+(D)</a>
+&nbsp;<a href="ylm.out">ylm.out</a> </td>
+</tr>
+</table>
+
+<p>&nbsp;<a href="../../c/readme.htm">C programs</a>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="../readme.htm">Fortran programs</a>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="../../doc/readme.htm">Documents</a>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="../../readme.htm">[Home]</a>
+</body>
+</html>

@@ -1,0 +1,105 @@
+This directory contains Fortran 77 subprograms described in
+Appendix B. All subprograms use double precision (REAL*8 /
+COMPLEX*16) arithmetic. Single and quadruple precision versions
+of these subprograms can be found in f77/sub4 and f77/sub16
+respectively. 
+
+All these subprograms have been tested to some extent, but there
+may be some bugs. Users are welcome to use these subprograms at
+their own risk. These subroutines are expected to be used with
+"reasonable" input parameters. Specifying arbitrary or invalid
+parameters will produce unpredictable results with or without any
+warnings. Any bugs discovered in these routines may be
+notified to
+
+antia@tifr.res.in
+
+It may be noted that the double precision arithmetic uses 53
+bits to represent the fraction part of floating point number
+giving a machine accuracy of about 1.1D-16. It can handle
+normalised floating point numbers in the range of approximately
+2.22D-308 to 1.8D+308.
+
+During the revision, the names of the following two routines have changed
+
+GAMLN   to      GAMMAL  To calculate logarithm of Gamma function
+RAN     to      RAN1    To generate random numbers with uniform distribution
+
+Further the arguments of the following routines have changed
+
+BSPFIT  An additional argument to calculate the covariance matrix
+LLSQ    An additional argument to calculate the covariance matrix
+POLFIT  The 5th argument is now error in input data instead of weight (1/error**2) 
+RANGAU  The seed is now real instead of integer
+
+The random number generators RAN1 and RANGAU have been modified and hence
+the output of programs may not match the earlier version.
+
+The following new routines have been added
+
+betai.f, betap.f, betcon1.f, betcon.f, betser.f, fbeta.f, gammap.f,
+iranbin.f, iranpoi.f, linfitxy.f, pcor.f, shsort.f
+
+Apart from 235 Fortran subprograms this directory contains the
+following files:
+
+ier.lst	 Subject wise list of subprograms with possible values of 
+		error parameter (IER)
+
+ier.sor	 	Numerically sorted list of possible values of error parameter (IER)
+
+readme	 	This file
+
+readme.htm	html version of readme
+
+sub.ier	 	Alphabetic list of subprograms with possible values of
+		error parameter (IER)
+
+sub.ind	 	Index of subprograms
+
+sub.lst	 	Subject wise list of subprograms
+
+sub.req	 	List of subprograms required by each subprograms
+
+sub.sor	 	Alphabetic list of subprograms
+
+sublst.htm	Subject wise list of subprograms with html links
+
+sublsta.htm	Alphabetic list of subprograms wiht html links
+
+The following 235 Fortran files are included in this directory
+
+adams.f     bspfit2.f   divdif0.f   gaucb1.f    lagure.f    polevn1.f   setmat_c.f
+adi.f       bspfit.f    divdif.f    gaucb2.f    lagurw.f    polevn2.f   setmat.f
+adm.f       bspfitn.f   drvt.f      gaucby.f    lapinv.f    polevn.f    shsort.f
+adpint.f    bspfitw2.f  elmhes.f    gauelm_c.f  lax.f       polfit1.f   simpl1.f
+balanc.f    bspfitwn.f  epsiln.f    gauelm.f    lines.f     polfit2.f   simplx.f
+balbak.f    bspint2.f   equids.f    gauher.f    linfitxy.f  polfit.f    simpx.f
+balbak_l.f  bspint.f    erfc.f      gaujac.f    linl1.f     polfitn.f   simson.f
+betai.f     bspintn.f   erf.f       gaulag.f    linmin.f    polort.f    smooth.f
+betap.f     bsplin.f    euler.f     gauleg.f    linmnf.f    poly2.f     sor.f
+betcon1.f   bspode.f    extp.f      gaulg2.f    linrn.f     polyc.f     sphbjn.f
+betcon.f    bspqd2.f    fbeta.f     gaulog.f    llsq.f      polyl1.f    sphnd.f
+betser.f    bspqd.f     fdm.f       gaus16.f    locate.f    polyr.f     splevl.f
+bfgs.f      bspqdn.f    ferm05.f    gausq2.f    matinv.f    ran1.f      spline.f
+bi0.f       by0.f       ferm15.f    gausq.f     mcarlo.f    ranf.f      splint.f
+bi1.f       by1.f       ferm25.f    gausrc.f    minmax.f    rangau.f    strint.f
+bin.f       byn.f       fermm05.f   gauss.f     mstep.f     ratnal.f    stroud.f
+bisect.f    cassum_a.f  fft.f       gauswt.f    muler2.f    remes.f     strt4.f
+bj0.f       cassum.f    fftn.f      gear.f      mulint.f    rk2.f       sturm.f
+bj1.f       cauchy.f    fftr.f      gevp_c.f    muller.f    rk4.f       svdevl.f
+bjn.f       chebap.f    filon.f     gevp.f      nearst.f    rkm_2.f     svd.f
+bjy0.f      chebcf.f    fln.f       golden.f    newrac.f    rkm.f       tinvit.f
+bjy1.f      chebex.f    flnm.f      herevp.f    newrap.f    rls.f       tql2.f
+bk0.f       cholsk.f    fm.f        hermit.f    newton.f    rmk1.f      trbak.f
+bk1.f       contur.f    forw.f      hqr.f       ngauss.f    rmkd1.f     tred2.f
+bkn.f       crank.f     fredco.f    invit_cc.f  nllsq.f     rmkd.f      tridia.f
+brackm.f    crout_c.f   fred.f      invit_c.f   nllsq_f.f   rmk.f       volt2.f
+brent.f     crout.f     funk.f      invit_cl.f  nminf.f     rombrg.f    volt.f
+brentm.f    crouth.f    gamma.f     invit.f     pade.f      round.f     ylm.f
+broydn.f    davidm.f    gammal.f    invit_l.f   pcor.f      search.f    ylm_x.f
+bspev2.f    davidn_b.f  gammap.f    iranbin.f   pleg.f      secan_2.f   zroot2.f
+bspevl.f    davidn.f    gaublk_c.f  iranpoi.f   plm.f       secanc_2.f  zroot.f
+bspevn1.f   dawson.f    gaublk.f    kronrd.f    pold.f      secanc.f
+bspevn2.f   delves.f    gaubnd_c.f  lagitc.f    polev2.f    secani.f
+bspevn.f    dft.f       gaubnd.f    lagitr.f    polevl.f    secant.f
