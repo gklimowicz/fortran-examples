@@ -91,13 +91,15 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 		D=$${P/*\/}; \
 	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
 			echo "$$D is on the exception list."; \
-		elif [[ -d "$$D" ]]; then \
-			: echo "$$D exists already"; \
+		elif [[ -d $$D ]]; then \
+			echo "$$D exists already"; \
 		else \
-			echo "$$D new"; \
-			git submodule add ssh://git@$$P \
-			|| git submodule add https://$$P; \
-			git submodule update --init "$$D"; \
+			if git submodule add ssh://git@$$P; then \
+			    echo "$$D new"; \
+			    git submodule update --init "$$D"; \
+		    else \
+		        echo "$$D failed; probably no longer available"; \
+		    fi; \
 		fi; \
 	done
 
@@ -131,13 +133,15 @@ beliavsky-new-projects:	beliavsky-projects.txt
 		D=$${P/*\/}; \
 	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
 			echo "$$D is on the exception list."; \
-		elif [[ -d "$$D" ]]; then \
-			: echo "$$D exists already"; \
+		elif [[ -d $$D ]]; then \
+			echo "$$D exists already"; \
 		else \
-			echo "$$D new"; \
-			git submodule add ssh://git@$$P \
-			|| git submodule add https://$$P; \
-			git submodule update --init "$$D"; \
+			if git submodule add ssh://git@$$P; then \
+			    echo "$$D new"; \
+			    git submodule update --init "$$D"; \
+		    else \
+		        echo "$$D failed; probably no longer available"; \
+		    fi; \
 		fi; \
 	done
 
