@@ -54,6 +54,11 @@ may be the page where such a link can be found.)
 This file is managed manually.
 
 
+# `exceptions.txt`
+There are some files mentioned on the `fortran-lang.org` and `Beliavsky` pages that don't actually contain Fortran source code that we are interested in (such as only contain `.fypp` files).
+We ignore projects that are in the `exceptions.txt` list.
+
+
 # Makefile
 The Makefile drives the collection of these repositories.
 Most of them come from the projects listed on https://fortran-lang.org.
