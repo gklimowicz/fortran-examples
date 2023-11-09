@@ -88,13 +88,13 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 			git*) ;; \
 			*) continue;; \
 		esac; \
-		D=$${P/*\/}; \
+		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
 	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
 			echo "$$D is on the exception list."; \
 		elif [[ -d $$D ]]; then \
 			echo "$$D exists already"; \
 		else \
-			if git submodule add ssh://git@$$P; then \
+			if git submodule add "ssh://git@$$P" "$$D"; then \
 			    echo "$$D new"; \
 			    git submodule update --init "$$D"; \
 		    else \
@@ -130,13 +130,13 @@ beliavsky-new-projects:	beliavsky-projects.txt
 			git*) ;; \
 			*) continue;; \
 		esac; \
-		D=$${P/*\/}; \
+		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
 	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
 			echo "$$D is on the exception list."; \
 		elif [[ -d $$D ]]; then \
 			echo "$$D exists already"; \
 		else \
-			if git submodule add ssh://git@$$P; then \
+			if git submodule add "ssh://git@$$P" "$$D"; then \
 			    echo "$$D new"; \
 			    git submodule update --init "$$D"; \
 		    else \
