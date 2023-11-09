@@ -20,7 +20,8 @@ all-files.txt:	Makefile all-projects.txt
 	| sort >"$@"
 
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" \
-	-o -iname "*.ftn" -o -iname "*.for" -o -iname "*.fypp" \)
+	-o -iname "*.for" -o -name "*.fpp"" \
+	-o -iname "*.ftn" -o -iname "*.fypp \)
 
 all-fortran-files.txt:	all-projects.txt Makefile
 	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \
@@ -89,7 +90,7 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 			*) continue;; \
 		esac; \
 		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
-	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
+	    if grep "^$$D:" exceptions.txt >/dev/null; then \
 			echo "$$D is on the exception list."; \
 		elif [[ -d $$D ]]; then \
 			echo "$$D exists already"; \
@@ -131,7 +132,7 @@ beliavsky-new-projects:	beliavsky-projects.txt
 			*) continue;; \
 		esac; \
 		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
-	    if grep "^$$D$$" exceptions.txt >/dev/null; then \
+	    if grep "^$$D:" exceptions.txt >/dev/null; then \
 			echo "$$D is on the exception list."; \
 		elif [[ -d $$D ]]; then \
 			echo "$$D exists already"; \
