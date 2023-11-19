@@ -3,7 +3,7 @@ This repository contains submodules for many Fortran-related projects.
 
 The goal is to have a wide variety of example Fortran codes, as found in the wild.
 
-We plan to use them as inputs into analyses on Fortran source, such as the investigation for the proposed Fortran 202y preprocessor.
+We plan to use them to analyze Fortran source as found in nature to investigate proposed features for the Fortran 202y (e.g., the proposed preprocessor).
 
 
 # Usage
@@ -32,17 +32,6 @@ For projects that come from a super-project (such as "GEOS-ESM"), all the direct
 Although this can obscure the `Makefile` and `all-*` file lists in the top-level directory, it felt silly to create a `src` directory and put all the projects underneath that.
 
 
-# Metrics
-File names that begin with "all-" contain aggregated lists and metrics for the sample projects.
-
-| File                     | Contents                                            |
-|:-------------------------|:----------------------------------------------------|
-| all-files.txt            | Every file in every project (including non-Fortran) |
-| all-fortran-files.txt    | Every Fortran file in every project                 |
-| all-fortran-files-lc.txt | Get `wc -l` output for every Fortran file           |
-| all-projects.txt         | List of all projects                                |
-| all-projects-lc.txt      | Get `wc -l` for Fortran files in each project       |
-
 
 # `origins.txt`
 Originally, this was to contain the provenance of each of the repositories.
@@ -60,8 +49,8 @@ We ignore projects that are in the `exceptions.txt` list.
 
 
 # Makefile
-The Makefile drives the collection of these repositories.
-Most of them come from the projects listed on https://fortran-lang.org.
+The Makefile drives the collection of these repositories and the gathering of statistics.
+Most of them come from the projects listed on [fortran-lang.org's projects pages](https://fortran-lang.org) and [Beliavsky's Fortran-code-on-GitHub list](https://github.com/Beliavsky/Fortran-code-on-GitHub).
 
 
 ## `make all`
@@ -88,6 +77,43 @@ with respect to its home repository.
 
 ## `make stats.txt`
 Print a couple lines of interesting statistics about the repository as a whole.
+
+# Metrics
+File names that begin with "all-" contain aggregated lists and metrics for the sample projects.
+
+| File                       | Contents                                            |
+|:---------------------------|:----------------------------------------------------|
+| all-files.txt              | Every file in every project (including non-Fortran) |
+| all-fortran-files.txt      | Every Fortran file in every project                 |
+| all-fortran-files-lc.txt   | Get `wc -l` output for every Fortran file           |
+| all-projects.txt           | List of all projects                                |
+| all-projects-lc.txt        | Get `wc -l` for Fortran files in each project       |
+| all-fortran-files-attr.txt | Attributes found in each Fortran file               |
+
+## `all-fortran-files-attr.txt`
+Each Fortran file is scanned to identify simple characteristics of the file.
+
+| Attribute        | Description                                                         |
+|:-----------------|:--------------------------------------------------------------------|
+| fixed            | `1` if the file appears to be fixed-form Fortran                    |
+| free             | `1` if the file appears to be free-form Fortran                     |
+| lines            | The number of lines in the file                                     |
+| maxlinelength    | The maximum length of a line in the file                            |
+| cpreprocessor    | The number of C preprocessor directives in the file                 |
+| ccomment         | The number of fixed-form comments beginning with `C` in column 1    |
+| dcomment         | The number of fixed-form comments beginning with `D` in column 1    |
+| starcomment      | The number of fixed-form comments beginning with `*` in column 1    |
+| fixedbang        | The number of times `!` comments appear in a fixed-form file        |
+| continuations    | The total number of line continuations in the file                  |
+| maxcontinuations | The longest sequence of continuation lines in the file              |
+| text73           | The number of lines in fixed-form file with text in columns 73-80   |
+| text133          | The number of lines in fixed-form file with text in columns 133-140 |
+| ampcont          | The number of `&`-style continuations seen in a free-form file.     |
+| ampampcont       | The number of `&`-style continuations with `&` on continued line.   |
+| include          | The number of Fortran `INCLUDE` lines in the file.                  |
+| openmpdir        | The number of OpenMP directives in the file.                        |
+| openaccdir       | The number of OpenACC directives in the file.                       |
+| otherdir         | The number of unidentifiable directives in the file.                |
 
 <!--  LocalWords:  GEOS ESM AeroApps
  -->

@@ -1,6 +1,8 @@
-all:	all-projects.txt all-files.txt all-fortran-files.txt \
-			all-projects-lc.txt all-fortran-files-lc.txt \
-			all-projects-fortran-file-count.txt stats.txt
+all:	all-projects.txt all-files.txt \
+			all-fortran-files.txt all-fortran-files-lc.txt \
+			all-projects-fortran-file-count.txt all-projects-lc.txt \
+			all-fortran-files-attr.txt \
+			stats.txt
 
 update-all: update all
 
@@ -10,31 +12,35 @@ update:
 
 # Create a list of all Fortran projects we have,
 # all files, and all Fortran files.
-all-projects.txt:	Makefile origins.txt .gitmodules
+all-projects.txt: origins.txt .gitmodules
 	(git submodule foreach -q 'echo $$sm_path'; \
 	 sed -n -e 's/#.*//' -e 's/:.*//p' <origins.txt) \
     | sort >"$@"
 
-all-files.txt:	Makefile all-projects.txt
+all-files.txt: all-projects.txt
 	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
 FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" \
-	-o -iname "*.for" -o -name "*.fpp"" \
-	-o -iname "*.ftn" -o -iname "*.fypp \)
+	-o -iname "*.for" -o -name "*.fpp" \
+	-o -iname "*.ftn" -o -iname "*.fypp" \)
 
-all-fortran-files.txt:	all-projects.txt Makefile
+all-fortran-files.txt:	all-projects.txt
 	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \
 	| sort >"$@"
 
-# Word count each Fortran file
-all-fortran-files-lc.txt:	all-fortran-files.txt Makefile
+# Line count each Fortran file
+all-fortran-files-lc.txt:	all-fortran-files.txt
 	tr '\n' '\0' <all-fortran-files.txt \
 	| xargs -0 wc -l \
 	| grep -v 'total$$' >"$@"
 
+all-fortran-files-attr.txt:	all-fortran-files.txt bin/determine-attributes
+	tr '\n' '\0' <all-fortran-files.txt \
+	| xargs -0 bin/determine-attributes >"$@"
+
 # Word count each Fortran file
-all-projects-lc.txt:	all-fortran-files.txt Makefile
+all-projects-lc.txt:	all-fortran-files.txt
 	for P in `cat all-projects.txt`; do \
 		echo "$$(find $$P ${FIND_IS_FORTRAN} -print0 \
 			| xargs -0 cat \
@@ -42,7 +48,7 @@ all-projects-lc.txt:	all-fortran-files.txt Makefile
 	done >"$@"
 
 # List number of Fortran files in each project
-all-projects-fortran-file-count.txt:	all-fortran-files.txt Makefile
+all-projects-fortran-file-count.txt:	all-fortran-files.txt
 	for P in `cat all-projects.txt`; do \
 		echo "$$P\t$$(find $$P ${FIND_IS_FORTRAN} -print \
 			| wc -l | tr -d ' ')"; \
@@ -58,7 +64,7 @@ stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 	  printf "%'12d Fortran lines\n" \
 			$$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc.txt); \
 	  printf "%'12d Fortran 77 lines\n" \
-			$$(awk '/\.[Ff]$$/ { sum += $$1} END { print sum}' \
+			$$(awk '/\.[Ff]$$/ || /\.[Ff]77/ || /\.[Ff][Tt][Nn]/ { sum += $$1} END { print sum}' \
 			<all-fortran-files-lc.txt); \
 	  printf "%'12d cpp directive lines\n" \
 	        $$(tr '\n' '\0' <all-fortran-files.txt \

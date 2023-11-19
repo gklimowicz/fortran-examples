@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+
+trap "exit 1" HUP INT QUIT TERM
+
+set -e -u -o pipefail
+
+CMD="$(basename $0)"
+CMD_DIR="$(dirname $0)"
+function usage {
+    (echo "Usage: $CMD [-hnv] file..."
+     echo "-h        Print this help message."
+     echo "-n        Dry run. Don't execute commands."
+     echo "-v        Verbose. Print extra information if appropriate."
+     echo "Determine the interesting attributes of a Fortran file.") 1>&2
+}
+
+DRY_RUN=
+VFLAG=
+while getopts hnv OPTCHAR; do
+    case $OPTCHAR in
+        b)  BFLAG=1
+            BVAL="$OPTARG";;
+        h)  usage; exit 0;;
+        n)  DRY_RUN=1;;
+        v)  VFLAG=1;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+case $# in
+    0)  usage; exit 1;;
+    *)  ;;
+esac
+
+for F in "$@"; do
+    FORM=undetermined
+    FIXED=0
+    FREE=0
+    case "$F" in
+        *.[Ff][Tt][Nn]|*.[Ff]77|*.[Ff]) FORM=fixed FIXED=1;;
+        *.[Ff]90|*.[Ff]95) FORM=free FREE=1;;
+        *.[Ff][Pp][Pp]) # Assume .fpp files are free form for now
+            FORM=free FREE=1;;
+    esac
+    : echo DEBUG=1 FIXED=$FIXED FREE=$FREE FORM=$FORM
+
+    # Use LC_ALL=C to avoid having te figure out what files
+    # use ISO-8859 or Unicode in strings.
+    LC_ALL=C gawk -v DEBUG=0 -v FIXED=$FIXED -v FREE=$FREE -v FORM=$FORM $'
+    function dprint (n, s) {
+        if (DEBUG >= n)
+            print s >>"/dev/stderr"
+    }
+    BEGIN {
+        NATTR = 0
+        attr_name[NATTR++] = "fixed"
+        attr_name[NATTR++] = "free"
+        attr_name[NATTR++] = "lines"
+        attr_name[NATTR++] = "maxlinelength"
+        attr_name[NATTR++] = "cpreprocessor"
+        attr_name[NATTR++] = "ccomment"
+        attr_name[NATTR++] = "dcomment"
+        attr_name[NATTR++] = "starcomment"
+        attr_name[NATTR++] = "fixedbang"
+        attr_name[NATTR++] = "continuations"
+        attr_name[NATTR++] = "maxcontinuations"
+        attr_name[NATTR++] = "text73"
+        attr_name[NATTR++] = "text133"
+        attr_name[NATTR++] = "ampcont"
+        attr_name[NATTR++] = "ampampcont"
+        attr_name[NATTR++] = "include"
+        attr_name[NATTR++] = "openmpdir"
+        attr_name[NATTR++] = "openaccdir"
+        attr_name[NATTR++] = "otherdir"
+
+        attr_cnt["linelength"] = 0
+        if (FIXED) attr_cnt["fixed"] = 1
+        if (FREE) attr_cnt["free"] = 1
+
+        if (DEBUG == "") DEBUG = 1
+        dprint(1, "DEBUG=" DEBUG " FIXED=" FIXED "FREE=" FREE "FORM=" FORM)
+    }
+
+    { attr_cnt["lines"] = NR }
+
+    length > attr_cnt["maxlinelength"] {
+        attr_cnt["maxlinelength"] = length
+        dprint(1, NR ": new maxlinelength " attr_cnt["maxlinelength"])
+    }
+    FIXED && /^[Cc]/ {
+        attr_cnt["ccomment"]++; dprint(2, NR ": ccomment")
+    }
+    FIXED && /^[Dd]/ {
+        attr_cnt["dcomment"]++; dprint(2, NR ": dcomment")
+    }
+    FIXED && /^[*]/  {
+        attr_cnt["starcomment"]++; dprint(2, NR ": starcomment")
+    }
+
+    FIXED && /!/  {
+        attr_cnt["fixedbang"]++; dprint(2, NR ": fixedbang")
+    }
+
+    FIXED && length($0) > 72 && substr($0,73,8) != "        " {
+        attr_cnt["text73"]++
+        dprint(1, NR ": text73 " substr($0,73,8))
+    }
+    FIXED && length($0) > 132 && substr($0,133,8) != "        " {
+        attr_cnt["text133"]++
+        dprint(1, NR ": text133 " substr($0,133,8))
+    }
+
+    FIXED && /^     [^ 0]/ && prev_fixed_cont {
+        attr_cnt["fixedcont"]++
+        prev_fixed_cont++
+        dprint(1, NR ": fixedcont " prev_fixed_cont)
+    }
+    FIXED && /^     [^ 0]/ && !prev_fixed_cont {
+        attr_cnt["fixedcont"]++
+        prev_fixed_cont = 2
+        dprint(1, NR ": fixedcont " prev_fixed_cont)
+    }
+    FIXED && (/^     [ 0]/ || /^[CD*]/) {
+        if (prev_fixed_cont > attr_cnt["maxcontinuations"]) {
+            attr_cnt["maxcontinuations"] = prev_fixed_cont
+            dprint(1, NR ": maxcontinuations " prev_fixed_cont)
+        }
+        prev_fixed_cont = 0
+    }
+
+    /^ *[Ii][Nn][Cc][Ll][Uu][Dd][Ee]  *[\'"]/ {
+        attr_cnt["include"]++
+        dprint(1, NR ": include")
+    }
+
+    /^ *# *define/ || /^ *# *undef/ || /^ *# *ifdef/ \
+      || /^ *# *ifndef/ || /^ *# *if/ || /^ *# *elif/ || /^ *# *endif/ \
+      || /^ *# *include/ {
+        attr_cnt["cpreprocessor"]++
+    }
+
+    FREE && /^ *&/ && prev_free_cont {
+        attr_cnt["ampampcont"]++
+        prev_free_cont++
+    }
+    FREE && /&$/ {
+        attr_cnt["ampcont"]++
+        prev_free_cont = 1
+    }
+    FREE && /[^&]$/ {
+        if (prev_free_cont > attr_cnt["maxcontinuations"]) {
+            attr_cnt["maxcontinuations"] = prev_free_cont
+        }
+        prev_free_cont = 0
+    }
+
+    FIXED && /^[cDd*!]\\$[Oo][Mm][Pp]/ {
+        attr_cnt["openmpdir"]++
+        dprint(1, NR ": openmpdir")
+    }
+    FIXED && /^[CcDd*!]\\$[Aa][Cc][Cc]/ {
+        attr_cnt["openaccdir"]++
+        dprint(1, NR ": openaccdir")
+    }
+    FIXED && /^[CcDd*!]\\$/ && ! /^[CcDd*!]\\$[Oo][Mm][Pp]/ && ! /^[CcDd*!]\$[Aa][Cc][Cc]/ {
+        attr_cnt["otherdir"]++
+        dprint(1, NR ": otherdir: " $0)
+    }
+
+    FREE && /![$][Oo][Mm][Pp]/ {
+        attr_cnt["openmpdir"]++
+        dprint(1, NR ": openmpdir")
+    }
+    FREE && /![$][Aa][Cc][Cc]/ {
+        attr_cnt["openaccdir"]++
+        dprint(1, NR ": openaccdir")
+    }
+    FREE && /![$]/ && ! /![$][Oo][Mm][Pp]/ && ! /![$][Aa][Cc][Cc]/ {
+        attr_cnt["otherdir"]++
+        dprint(1, NR ": otherdir: " $0)
+    }
+
+    END {
+        printf "%s", FILENAME;
+        for (i = 0; i < NATTR; i++) {
+            if (attr_cnt[attr_name[i]]) {
+                printf " %s:%d", attr_name[i], attr_cnt[attr_name[i]];
+            }
+        }
+        print ""
+    }
+    ' "$F"
+done
