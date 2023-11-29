@@ -21,9 +21,13 @@ all-files.txt: all-projects.txt
 	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
-FIND_IS_FORTRAN= -type f \( -iname "*.f" -o -iname "*.f[0-9][0-9]" \
-	-o -iname "*.for" -o -name "*.fpp" \
-	-o -iname "*.ftn" -o -iname "*.fypp" \)
+FIND_IS_FORTRAN= -type f \( -iname "*.f" \
+	-o -iname "*.for" -o -iname "*.ftn" \
+	-o -iname "*.fpp" -o -iname "*.fypp" \
+	-o -iname "*.f77" -o -iname "*.f90" -o -iname "*.f95" \
+	-o -iname "*.f03" -o -iname "*.f08" \
+	-o -iname "*.ftn77" -o -iname "*.ftn90" -o -iname "*.ftn95"\
+	-o -iname "*.ftn03" -o -iname "*.ftn08" \)
 
 all-fortran-files.txt:	all-projects.txt
 	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \

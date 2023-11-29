@@ -38,8 +38,12 @@ for F in "$@"; do
     FIXED=0
     FREE=0
     case "$F" in
-        *.[Ff][Tt][Nn]|*.[Ff]77|*.[Ff]) FORM=fixed FIXED=1;;
-        *.[Ff]90|*.[Ff]95) FORM=free FREE=1;;
+        *.[Ff][Tt][Nn]|*.[Ff]77|*.[Ff]|*.[Ff][Oo][Rr]|*.[Ff][Tt][Nn]77)
+            FORM=fixed FIXED=1;;
+        *.[Ff]90|*.[Ff]95|*.[Ff]03|*.[Ff]08)
+            FORM=free FREE=1;;
+        *.[Ff][Tt][Nn]90|*.[Ff][Tt][Nn]95|*.[Ff][Tt][Nn]03|*.[Ff][Tt][Nn]08)
+            FORM=free FREE=1;;
         *.[Ff][Pp][Pp]) # Assume .fpp files are free form for now
             FORM=free FREE=1;;
     esac
