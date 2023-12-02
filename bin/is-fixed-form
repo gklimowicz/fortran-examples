@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+trap "exit 1" HUP INT QUIT TERM
+
+set -e -u -o pipefail
+
+CMD="$(basename $0)"
+CMD_DIR="$(dirname $0)"
+function usage {
+    (echo "Usage: $CMD [-hnv] file"
+     echo "-h        Print this help message."
+     echo "-n        Dry run. Don't execute commands."
+     echo "-v        Verbose. Print extra information if appropriate."
+     echo "Return true if file is a fixed-form Fortran file.") 1>&2
+}
+
+DRY_RUN=
+VFLAG=
+while getopts hnv OPTCHAR; do
+    case $OPTCHAR in
+        h)  usage; exit 0;;
+        n)  DRY_RUN=1;;
+        v)  VFLAG=1;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+case $# in
+    1)  F="$1";;
+    *)  usage; exit 1;;
+esac
+
+case "$F" in
+    *.[Ff])            exit 0;;
+    *.[Ff]77)          exit 0;;
+    *.[Ff][Oo][Rr])    exit 0;;
+    *.[Ff][Tt][Nn])    exit 0;;
+    *.[Ff][Tt][Nn]77)  exit 0;;
+    *.[Ff]90|*.[Ff][Tt][Nn]90) exit 1;;
+    *.[Ff]95|*.[Ff][Tt][Nn]95) exit 1;;
+    *.[Ff]03|*.[Ff][Tt][Nn]03) exit 1;;
+    *.[Ff]08|*.[Ff][Tt][Nn]08) exit 1;;
+    *.[Ff]18|*.[Ff][Tt][Nn]18) exit 1;;
+    *.[Ff]23|*.[Ff][Tt][Nn]23) exit 1;;
+    *.[Ff][Pp][Pp]|*.[Ff][Yy][Pp][Pp])
+        # Try to tell if there are lines that don't look like
+        # comments, spaces, preprocessor directives, or labels
+        # that begin in column 1.
+        if grep -l '^[^CcDd*! \t#0-9]' "$F" >/dev/null; then
+            exit 1
+        else
+            exit 0
+        fi;;
+    *)  echo "$CMD: Not sure how to determine if file is fixed-form: $F" >/dev/stderr
+        # Try to tell if there are lines that don't look like
+        # comments, spaces, preprocessor directives, or labels
+        # that begin in column 1.
+        if grep -l '^[^CcDd*! \t#0-9]' "$F" >/dev/null; then
+            exit 1
+        else
+            exit 0
+        fi;;
+esac
+
+exit 1

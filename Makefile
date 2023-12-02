@@ -1,7 +1,9 @@
 all:	all-projects.txt all-files.txt \
-			all-fortran-files.txt all-fortran-files-lc.txt \
-			all-projects-fortran-file-count.txt all-projects-lc.txt \
+			all-fortran-files.txt \
 			all-fortran-files-attr.txt \
+			all-fortran-files-lc.txt \
+	                all-projects-lc.txt \
+			all-projects-fortran-file-count.txt \
 			stats.txt
 
 update-all: update all
@@ -25,38 +27,43 @@ FIND_IS_FORTRAN= -type f \( -iname "*.f" \
 	-o -iname "*.for" -o -iname "*.ftn" \
 	-o -iname "*.fpp" -o -iname "*.fypp" \
 	-o -iname "*.f77" -o -iname "*.f90" -o -iname "*.f95" \
-	-o -iname "*.f03" -o -iname "*.f08" \
-	-o -iname "*.ftn77" -o -iname "*.ftn90" -o -iname "*.ftn95"\
-	-o -iname "*.ftn03" -o -iname "*.ftn08" \)
+	-o -iname "*.f03" -o -iname "*.f08" -o -iname "$.f18" \
+	-o -iname "*.ftn77" -o -iname "*.ftn90" -o -iname "*.ftn95" \
+	-o -iname "*.ftn03" -o -iname "*.ftn08" -o -iname "*.ftn18" \)
 
 all-fortran-files.txt:	all-projects.txt
 	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \
-	| sort >"$@"
-
-# Line count each Fortran file
-all-fortran-files-lc.txt:	all-fortran-files.txt
-	tr '\n' '\0' <all-fortran-files.txt \
-	| xargs -0 wc -l \
-	| grep -v 'total$$' >"$@"
+	| LC_ALL=C sort >"$@"
 
 all-fortran-files-attr.txt:	all-fortran-files.txt bin/determine-attributes
 	tr '\n' '\0' <all-fortran-files.txt \
 	| xargs -0 bin/determine-attributes >"$@"
 
-# Word count each Fortran file
-all-projects-lc.txt:	all-fortran-files.txt
-	for P in `cat all-projects.txt`; do \
-		echo "$$(find $$P ${FIND_IS_FORTRAN} -print0 \
-			| xargs -0 cat \
-			| wc -l)\t$$P"; \
-	done >"$@"
+# Line count of Fortran files in each project
+all-fortran-files-lc.txt:	all-fortran-files-attr.txt
+	gawk '{ file = $$1; \
+	        lc = gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0; \
+	        printf("%8d %s\n", lc, file); \
+	      }' \
+	      <all-fortran-files-attr.txt \
+	      >"$@"
 
 # List number of Fortran files in each project
-all-projects-fortran-file-count.txt:	all-fortran-files.txt
-	for P in `cat all-projects.txt`; do \
-		echo "$$P\t$$(find $$P ${FIND_IS_FORTRAN} -print \
-			| wc -l | tr -d ' ')"; \
-	done >"$@"
+all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
+	gawk 'BEGIN { last_proj = "" } \
+	      { proj = gensub(/\/.*/, "", 1, $$1); \
+	        if (proj != last_proj) { \
+	             if (last_proj != "") \
+	                 printf "%s\t%d\n", last_proj, sum; \
+	             last_proj = proj; \
+	             sum = 1; \
+	        } else { \
+	             sum += 1; \
+	        } \
+	      } \
+	      END { printf "%s\t%d\n", last_proj, sum }' \
+	      <all-fortran-files-attr.txt \
+	      >"$@"
 
 # Print some moderately interesting stats about the repositories.
 stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
@@ -66,14 +73,19 @@ stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 	  printf "%'12d files\n" $$(wc -l <all-files.txt); \
 	  printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files.txt); \
 	  printf "%'12d Fortran lines\n" \
-			$$(awk '{ sum += $$1} END { print sum}' <all-fortran-files-lc.txt); \
+			$$(gawk '{ sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0 } \
+                           END { print sum }' \
+	                   <all-fortran-files-attr.txt); \
 	  printf "%'12d Fortran 77 lines\n" \
-			$$(awk '/\.[Ff]$$/ || /\.[Ff]77/ || /\.[Ff][Tt][Nn]/ { sum += $$1} END { print sum}' \
-			<all-fortran-files-lc.txt); \
+			$$(gawk '/form=fixed/ { \
+                                    sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0} \
+                                    END { print sum }' \
+			<all-fortran-files-attr.txt); \
 	  printf "%'12d cpp directive lines\n" \
-	        $$(tr '\n' '\0' <all-fortran-files.txt \
-			   | xargs -0 cat \
-	           | egrep '^[[:space:]]*#' | wc -l); \
+	        $$(gawk '/cpreprocessor/ { \
+                                    sum += gensub(/.*cpreprocessor:([0-9]*).*/, "\\1", 1, $$0)+0} \
+                                    END { print sum }' \
+	                <all-fortran-files-attr.txt); \
 	  echo "Largest projects:"; \
 	  sort -rn -k 1 all-projects-lc.txt \
 		| head -10 \
@@ -83,8 +95,8 @@ stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 		| head -10 \
 		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'; \
 	  echo "Projects with no Fortran files:"; \
-	  grep '[^0-9]0$$' all-projects-fortran-file-count.txt \
-	    | sed -e 's/^/  /') \
+	  grep ' 0\t' all-projects-lc.txt \
+	    | sed -e 's/.*\t/  /') \
 	 | tee "$@"
 
 

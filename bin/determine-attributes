@@ -34,32 +34,23 @@ case $# in
 esac
 
 for F in "$@"; do
-    FORM=undetermined
-    FIXED=0
-    FREE=0
-    case "$F" in
-        *.[Ff][Tt][Nn]|*.[Ff]77|*.[Ff]|*.[Ff][Oo][Rr]|*.[Ff][Tt][Nn]77)
-            FORM=fixed FIXED=1;;
-        *.[Ff]90|*.[Ff]95|*.[Ff]03|*.[Ff]08)
-            FORM=free FREE=1;;
-        *.[Ff][Tt][Nn]90|*.[Ff][Tt][Nn]95|*.[Ff][Tt][Nn]03|*.[Ff][Tt][Nn]08)
-            FORM=free FREE=1;;
-        *.[Ff][Pp][Pp]) # Assume .fpp files are free form for now
-            FORM=free FREE=1;;
-    esac
-    : echo DEBUG=1 FIXED=$FIXED FREE=$FREE FORM=$FORM
+    if "$CMD_DIR"/is-fixed-form "$F"; then
+        FORM=fixed
+    else
+        FORM=free
+    fi
 
-    # Use LC_ALL=C to avoid having te figure out what files
+    : echo DEBUG=1 FORM=$FORM
+
+    # Use LC_ALL=C to avoid having to figure out what files
     # use ISO-8859 or Unicode in strings.
-    LC_ALL=C gawk -v DEBUG=0 -v FIXED=$FIXED -v FREE=$FREE -v FORM=$FORM $'
+    LC_ALL=C gawk -v DEBUG=0 -v FORM=$FORM $'
     function dprint (n, s) {
         if (DEBUG >= n)
             print s >>"/dev/stderr"
     }
     BEGIN {
         NATTR = 0
-        attr_name[NATTR++] = "fixed"
-        attr_name[NATTR++] = "free"
         attr_name[NATTR++] = "lines"
         attr_name[NATTR++] = "maxlinelength"
         attr_name[NATTR++] = "cpreprocessor"
@@ -79,11 +70,9 @@ for F in "$@"; do
         attr_name[NATTR++] = "otherdir"
 
         attr_cnt["linelength"] = 0
-        if (FIXED) attr_cnt["fixed"] = 1
-        if (FREE) attr_cnt["free"] = 1
 
         if (DEBUG == "") DEBUG = 1
-        dprint(1, "DEBUG=" DEBUG " FIXED=" FIXED "FREE=" FREE "FORM=" FORM)
+        dprint(1, "DEBUG=" DEBUG " FORM=" FORM)
     }
 
     { attr_cnt["lines"] = NR }
@@ -92,40 +81,40 @@ for F in "$@"; do
         attr_cnt["maxlinelength"] = length
         dprint(1, NR ": new maxlinelength " attr_cnt["maxlinelength"])
     }
-    FIXED && /^[Cc]/ {
+    FORM == "fixed" && /^[Cc]/ {
         attr_cnt["ccomment"]++; dprint(2, NR ": ccomment")
     }
-    FIXED && /^[Dd]/ {
+    FORM == "fixed" && /^[Dd]/ {
         attr_cnt["dcomment"]++; dprint(2, NR ": dcomment")
     }
-    FIXED && /^[*]/  {
+    FORM == "fixed" && /^[*]/  {
         attr_cnt["starcomment"]++; dprint(2, NR ": starcomment")
     }
 
-    FIXED && /!/  {
+    FORM == "fixed" && /!/  {
         attr_cnt["fixedbang"]++; dprint(2, NR ": fixedbang")
     }
 
-    FIXED && length($0) > 72 && substr($0,73,8) != "        " {
+    FORM == "fixed" && length($0) > 72 && substr($0,73,8) != "        " {
         attr_cnt["text73"]++
         dprint(1, NR ": text73 " substr($0,73,8))
     }
-    FIXED && length($0) > 132 && substr($0,133,8) != "        " {
+    FORM == "fixed" && length($0) > 132 && substr($0,133,8) != "        " {
         attr_cnt["text133"]++
         dprint(1, NR ": text133 " substr($0,133,8))
     }
 
-    FIXED && /^     [^ 0]/ && prev_fixed_cont {
+    FORM == "fixed" && /^     [^ 0]/ && prev_fixed_cont {
         attr_cnt["fixedcont"]++
         prev_fixed_cont++
         dprint(1, NR ": fixedcont " prev_fixed_cont)
     }
-    FIXED && /^     [^ 0]/ && !prev_fixed_cont {
+    FORM == "fixed" && /^     [^ 0]/ && !prev_fixed_cont {
         attr_cnt["fixedcont"]++
         prev_fixed_cont = 2
         dprint(1, NR ": fixedcont " prev_fixed_cont)
     }
-    FIXED && (/^     [ 0]/ || /^[CD*]/) {
+    FORM == "fixed" && (/^     [ 0]/ || /^[CD*]/) {
         if (prev_fixed_cont > attr_cnt["maxcontinuations"]) {
             attr_cnt["maxcontinuations"] = prev_fixed_cont
             dprint(1, NR ": maxcontinuations " prev_fixed_cont)
@@ -159,34 +148,34 @@ for F in "$@"; do
         prev_free_cont = 0
     }
 
-    FIXED && /^[cDd*!]\\$[Oo][Mm][Pp]/ {
+    FORM == "fixed" && /^[cDd*!]\\$[Oo][Mm][Pp]/ {
         attr_cnt["openmpdir"]++
         dprint(1, NR ": openmpdir")
     }
-    FIXED && /^[CcDd*!]\\$[Aa][Cc][Cc]/ {
+    FORM == "fixed" && /^[CcDd*!]\\$[Aa][Cc][Cc]/ {
         attr_cnt["openaccdir"]++
         dprint(1, NR ": openaccdir")
     }
-    FIXED && /^[CcDd*!]\\$/ && ! /^[CcDd*!]\\$[Oo][Mm][Pp]/ && ! /^[CcDd*!]\$[Aa][Cc][Cc]/ {
+    FORM == "fixed" && /^[CcDd*!]\\$/ && ! /^[CcDd*!]\\$[Oo][Mm][Pp]/ && ! /^[CcDd*!]\$[Aa][Cc][Cc]/ {
         attr_cnt["otherdir"]++
         dprint(1, NR ": otherdir: " $0)
     }
 
-    FREE && /![$][Oo][Mm][Pp]/ {
+    FORM == "free" && /![$][Oo][Mm][Pp]/ {
         attr_cnt["openmpdir"]++
         dprint(1, NR ": openmpdir")
     }
-    FREE && /![$][Aa][Cc][Cc]/ {
+    FORM == "free" && /![$][Aa][Cc][Cc]/ {
         attr_cnt["openaccdir"]++
         dprint(1, NR ": openaccdir")
     }
-    FREE && /![$]/ && ! /![$][Oo][Mm][Pp]/ && ! /![$][Aa][Cc][Cc]/ {
+    FORM == "free" && /![$]/ && ! /![$][Oo][Mm][Pp]/ && ! /![$][Aa][Cc][Cc]/ {
         attr_cnt["otherdir"]++
         dprint(1, NR ": otherdir: " $0)
     }
 
     END {
-        printf "%s", FILENAME;
+        printf "%s form=%s", FILENAME, FORM;
         for (i = 0; i < NATTR; i++) {
             if (attr_cnt[attr_name[i]]) {
                 printf " %s:%d", attr_name[i], attr_cnt[attr_name[i]];
