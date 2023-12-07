@@ -48,6 +48,18 @@ all-fortran-files-lc.txt:	all-fortran-files-attr.txt
 	      <all-fortran-files-attr.txt \
 	      >"$@"
 
+# All fixed-form Fortran files
+all-fortran-files-fixed.txt:	all-fortran-files-attr.txt
+	gawk '/form:fixed/ { print $$1 }' \
+	      <all-fortran-files-attr.txt \
+	      >"$@"
+
+# All free-form Fortran files
+all-fortran-files-free.txt:	all-fortran-files-attr.txt
+	gawk '/form:free/ { print $$1 }' \
+	      <all-fortran-files-attr.txt \
+	      >"$@"
+
 # List number of Fortran files in each project
 all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
 	gawk 'BEGIN { last_proj = "" } \

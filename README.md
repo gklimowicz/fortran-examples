@@ -64,10 +64,8 @@ Runs `git submodule update --remote`.
 
 ## `make add-new-projects`
 Search for new projects to add.
-Only looks at fortran-lang.org so far.
-
-This is broken at the moment.
-To be fixed soon, as fortran-lang.org is a great source for Fortran projects that are actually used.
+Only looks at [fortran-lang.org](https://fortran-lang.org/en/packages) and
+[github.com/Beliavsky](https://github.com/Beliavsky/Fortran-code-on-GitHub) so far.
 
 
 ## `make update-existing-projects`
@@ -81,22 +79,25 @@ Print a couple lines of interesting statistics about the repository as a whole.
 # Metrics
 File names that begin with "all-" contain aggregated lists and metrics for the sample projects.
 
-| File                       | Contents                                            |
-|:---------------------------|:----------------------------------------------------|
-| all-files.txt              | Every file in every project (including non-Fortran) |
-| all-fortran-files.txt      | Every Fortran file in every project                 |
-| all-fortran-files-lc.txt   | Get `wc -l` output for every Fortran file           |
-| all-projects.txt           | List of all projects                                |
-| all-projects-lc.txt        | Get `wc -l` for Fortran files in each project       |
-| all-fortran-files-attr.txt | Attributes found in each Fortran file               |
+| File                        | Contents                                            |
+|:----------------------------|:----------------------------------------------------|
+| all-files.txt               | Every file in every project (including non-Fortran) |
+| all-fortran-files.txt       | Every Fortran file in every project                 |
+| all-fortran-files-attr.txt  | Attributes found in each Fortran file               |
+| all-fortran-files-fixed.txt | Every fixed-form Fortran file in every project      |
+| all-fortran-files-free.txt  | Every free-form Fortran file in every project       |
+| all-fortran-files-lc.txt    | Line count for every Fortran file                   |
+| all-projects.txt            | List of all projects                                |
+| all-projects-lc.txt         | Line count for Fortran files in each project        |
+
 
 ## `all-fortran-files-attr.txt`
 Each Fortran file is scanned to identify simple characteristics of the file.
 
 | Attribute        | Description                                                         |
 |:-----------------|:--------------------------------------------------------------------|
-| fixed            | `1` if the file appears to be fixed-form Fortran                    |
-| free             | `1` if the file appears to be free-form Fortran                     |
+| form             | `fixed` if the file appears to be fixed-form Fortran                |
+|                  | `free` if the file appears to be free-form Fortran                  |
 | lines            | The number of lines in the file                                     |
 | maxlinelength    | The maximum length of a line in the file                            |
 | cpreprocessor    | The number of C preprocessor directives in the file                 |
