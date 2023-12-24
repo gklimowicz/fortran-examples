@@ -25,21 +25,21 @@ all-files.txt: all-projects.txt
 	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
-FIND_IS_FORTRAN= -type f \( -iname "*.f" \
-	-o -iname "*.for" -o -iname "*.ftn" \
-	-o -iname "*.fpp" \
-	-o -iname "*.f77" -o -iname "*.f90" -o -iname "*.f95" \
-	-o -iname "*.f03" -o -iname "*.f08" -o -iname "$.f18" \
-	-o -iname "*.ftn77" -o -iname "*.ftn90" -o -iname "*.ftn95" \
-	-o -iname "*.ftn03" -o -iname "*.ftn08" -o -iname "*.ftn18" \)
-
-# Some files that match the pattern above are not Fortran files.
+# Some files that match the pattern list are not Fortran files.
 # Eliminate them explicitly.
+FIND_IS_FORTRAN=-type f \
+	        -a ! -path  "pencil-code@pencil-code/samples/Pencil-EULAG/EULAG_alone.f" \
+	        -a ! -path "wartonlegacy@daoudclarke/src/f90/NO1OF20.F90" \
+	        -a \( -iname "*.f" \
+	              -o -iname "*.for" -o -iname "*.ftn" \
+	              -o -iname "*.fpp" \
+	              -o -iname "*.f77" -o -iname "*.f90" -o -iname "*.f95" \
+	              -o -iname "*.f03" -o -iname "*.f08" -o -iname "$.f18" \
+	              -o -iname "*.ftn77" -o -iname "*.ftn90" -o -iname "*.ftn95" \
+	              -o -iname "*.ftn03" -o -iname "*.ftn08" -o -iname "*.ftn18" \)
+
 all-fortran-files.txt:	all-projects.txt
-	find `cat all-projects.txt` ${FIND_IS_FORTRAN} \
-	    ! -name "pencil-code@pencil-code/samples/Pencil-EULAG/EULAG_alone.f" \
-	    ! -name "wartonlegacy@daoudclarke/src/f90/NO1OF20.F90" \
-	    -print \
+	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \
 	| LC_ALL=C sort >"$@"
 
 # Compute the attributes in parallel and concatenate results.
