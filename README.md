@@ -32,7 +32,6 @@ For projects that come from a super-project (such as "GEOS-ESM"), all the direct
 Although this can obscure the `Makefile` and `all-*` file lists in the top-level directory, it felt silly to create a `src` directory and put all the projects underneath that.
 
 
-
 # `origins.txt`
 Originally, this was to contain the provenance of each of the repositories.
 Since this is already saved in `.gitmodules` for the git-based projects,
@@ -43,9 +42,15 @@ may be the page where such a link can be found.)
 This file is managed manually.
 
 
-# `exceptions.txt`
-There are some files mentioned on the `fortran-lang.org` and `Beliavsky` pages that don't actually contain Fortran source code that we are interested in (such as only contain `.fypp` files).
-We ignore projects that are in the `exceptions.txt` list.
+# `project-exceptions.txt`
+There are projects mentioned on the `fortran-lang.org` and `Beliavsky` pages that don't actually contain Fortran source code that we are interested in (such as only contain `.fypp` files).
+We ignore projects that are in the `project-exceptions.txt` list.
+
+
+# `file-exceptions.txt`
+There are files in projects that have names like Fortran files,
+but don't actually contain Fortran source code (e.g., `Makefile.f90`).
+We ignore files that are in the `file-exceptions.txt` list.
 
 
 # Makefile

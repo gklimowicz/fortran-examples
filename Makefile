@@ -1,6 +1,9 @@
+SHELL = /bin/bash
+
 BUILD_FILES=all-projects.txt all-files.txt \
 	    all-fortran-files.txt \
 	    all-fortran-files-attr.txt \
+	    all-fortran-files-type.txt \
 	    all-fortran-files-lc.txt \
 	    all-projects-lc.txt \
 	    all-projects-fortran-file-count.txt \
@@ -46,22 +49,23 @@ all-fortran-files.txt:	all-projects.txt
 # This is awkward, but cuts the time to generate them down dramatically.
 # Note that since all-fortran-files.txt is sorted, the attributes
 # file will be as well, without having to explicitly sort it.
-
-N = 6
-
 all-fortran-files-attr.txt:	all-fortran-files.txt bin/determine-attributes
+	set -u; \
 	export LC_ALL=C; \
-	N_SPLIT=$$(($$(wc -l <all-fortran-files.txt | tr -d ' ') / $N)); \
-	split -d -l $$N_SPLIT all-fortran-files.txt "aff-split.$$$$."; \
+	SPLIT_TMP="aff-split.$$$$"; \
+	ATTR_TMP="$@.$$$$"; \
+	N=$$(nproc); \
+	N_SPLIT=$$(($$(wc -l <all-fortran-files.txt | tr -d ' ') / $$N + 1)); \
+	split -d -l $$N_SPLIT all-fortran-files.txt "$$SPLIT_TMP."; \
+	trap 'killall xargs; killall bash' HUP INT QUIT KILL TERM; \
+	trap 'rm -f "$$SPLIT_TMP."* "$$ATTR_TMP".*' EXIT; \
 	for F in aff-split.$$$$.*; do \
 	      SUFFIX="$${F/*.*.}"; \
 	      tr '\n' '\0' <"$$F" \
-	      | xargs -0 bin/determine-attributes >"$@.$$$$.$$SUFFIX"& \
+	      | xargs -0 bin/determine-attributes >"$$ATTR_TMP.$$SUFFIX"& \
 	done; \
 	wait; \
-	rm aff-split.$$$$.*; \
-	cat "$@.$$$$".* >"$@"; \
-	rm "$@.$$$$".*
+	cat "$$ATTR_TMP".* >"$@"
 	wc -l "$@"
 
 # All fixed-form Fortran files
@@ -75,6 +79,28 @@ all-fortran-files-free.txt:	all-fortran-files-attr.txt
 	gawk '/form:free/ { print $$1 }' \
 	      <all-fortran-files-attr.txt \
 	      >"$@"
+
+# Results of running "file" on each Fortran file.
+# This is useful for finding non-Fortran files that are
+# disguised with Fortran-file-like names.
+all-fortran-files-type.txt:	all-fortran-files.txt
+	set -u; \
+	export LC_ALL=C; \
+	SPLIT_TMP="aff-split.$$$$"; \
+	TYPES_TMP="$@.$$$$"; \
+	N=$$(nproc); \
+	N_SPLIT=$$(($$(wc -l <all-fortran-files.txt | tr -d ' ') / $$N + 1)); \
+	split -d -l $$N_SPLIT all-fortran-files.txt "$$SPLIT_TMP."; \
+	trap 'killall xargs; killall bash' HUP INT QUIT KILL TERM; \
+	trap 'rm -f "$$SPLIT_TMP."* "$$TYPES_TMP".*' EXIT; \
+	for F in "$$SPLIT_TMP".*; do \
+	      SUFFIX="$${F/*.*.}"; \
+	      tr '\n' '\0' <"$$F" \
+	      | xargs -0 file >"$$TYPES_TMP.$$SUFFIX"& \
+	done; \
+	wait; \
+	cat "$$TYPES_TMP".* >"$@"
+	wc -l "$@"
 
 # Line count of Fortran files in each project
 all-fortran-files-lc.txt:	all-fortran-files-attr.txt
@@ -169,8 +195,8 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 			*) continue;; \
 		esac; \
 		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
-	    if grep "^$$D:" exceptions.txt >/dev/null; then \
-			echo "$$D is on the exception list."; \
+	    if grep "^$$D:" project-exceptions.txt >/dev/null; then \
+			echo "$$D is on the project exception list."; \
 		elif [[ -d $$D ]]; then \
 			echo "$$D exists already"; \
 		else \
@@ -211,8 +237,8 @@ beliavsky-new-projects:	beliavsky-projects.txt
 			*) continue;; \
 		esac; \
 		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
-	    if grep "^$$D:" exceptions.txt >/dev/null; then \
-			echo "$$D is on the exception list."; \
+	    if grep "^$$D:" project-exceptions.txt >/dev/null; then \
+			echo "$$D is on the project exception list."; \
 		elif [[ -d $$D ]]; then \
 			echo "$$D exists already"; \
 		else \
