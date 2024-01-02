@@ -28,22 +28,12 @@ all-files.txt: all-projects.txt
 	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
-# Some files that match the pattern list are not Fortran files.
+# Some files that match the fortran-file-patterns.txt list are not Fortran files.
 # Eliminate them explicitly.
-FIND_IS_FORTRAN=-type f \
-	        -a ! -path  "pencil-code@pencil-code/samples/Pencil-EULAG/EULAG_alone.f" \
-	        -a ! -path "wartonlegacy@daoudclarke/src/f90/NO1OF20.F90" \
-	        -a \( -iname "*.f" \
-	              -o -iname "*.for" -o -iname "*.ftn" \
-	              -o -iname "*.fpp" \
-	              -o -iname "*.f77" -o -iname "*.f90" -o -iname "*.f95" \
-	              -o -iname "*.f03" -o -iname "*.f08" -o -iname "$.f18" \
-	              -o -iname "*.ftn77" -o -iname "*.ftn90" -o -iname "*.ftn95" \
-	              -o -iname "*.ftn03" -o -iname "*.ftn08" -o -iname "*.ftn18" \)
-
-all-fortran-files.txt:	all-projects.txt
-	find `cat all-projects.txt` ${FIND_IS_FORTRAN} -print \
-	| LC_ALL=C sort >"$@"
+all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
+			fortran-exceptions.txt
+	grep -i -f fortran-file-patterns.txt all-files.txt \
+	| fgrep -v -f fortran-exceptions.txt >"$@"
 
 # Compute the attributes in parallel and concatenate results.
 # This is awkward, but cuts the time to generate them down dramatically.
@@ -70,15 +60,13 @@ all-fortran-files-attr.txt:	all-fortran-files.txt bin/determine-attributes
 
 # All fixed-form Fortran files
 all-fortran-files-fixed.txt:	all-fortran-files-attr.txt
-	gawk '/form:fixed/ { print $$1 }' \
-	      <all-fortran-files-attr.txt \
-	      >"$@"
+	gawk  -F '\t' '/form:fixed/ { print $$1 }' \
+	      <all-fortran-files-attr.txt >"$@"
 
 # All free-form Fortran files
 all-fortran-files-free.txt:	all-fortran-files-attr.txt
-	gawk '/form:free/ { print $$1 }' \
-	      <all-fortran-files-attr.txt \
-	      >"$@"
+	gawk -F '\t' '/form:free/ { print $$1 }' \
+	      <all-fortran-files-attr.txt >"$@"
 
 # Results of running "file" on each Fortran file.
 # This is useful for finding non-Fortran files that are
@@ -104,39 +92,40 @@ all-fortran-files-type.txt:	all-fortran-files.txt
 
 # Line count of Fortran files in each project
 all-fortran-files-lc.txt:	all-fortran-files-attr.txt
-	gawk '{ file = $$1; \
-	        lc = gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0; \
-	        printf("%8d %s\n", lc, file); \
-	      }' \
-	      <all-fortran-files-attr.txt \
-	      >"$@"
+	gawk -F '\t' \
+	    '{ file = $$1; \
+	         lc = gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0; \
+	         printf("%8d\t%s\n", lc, file); \
+	     }' \
+	      <all-fortran-files-attr.txt >"$@"
 
 all-projects-lc.txt:   all-fortran-files-lc.txt
-	gawk 'function new_proj() { \
-	          printf("%8d %s\n", lc, last_proj); \
-	          last_proj = project; \
-	          lc = 0; \
-	      } \
-	      NR == 1 { \
-	          last_proj = gensub(/\/.*/, "", 1, $$2); \
-	          lc = $$1; \
-	          next; \
-	      } \
-	      { \
-	          project = gensub(/\/.*/, "", 1, $$2); \
-	          if (project != last_proj) \
-	              new_proj(); \
-	          lc += $$1; \
-	      } \
-	      END { \
-	          new_proj(); \
-	      }' \
-	      <all-fortran-files-lc.txt \
-	      >"$@"
+	gawk -F '\t' \
+	    'function new_proj() { \
+	         printf("%8d %s\n", lc, last_proj); \
+	         last_proj = project; \
+	         lc = 0; \
+	     } \
+	     NR == 1 { \
+	         last_proj = gensub(/\/.*/, "", 1, $$2); \
+	         lc = $$1; \
+	         next; \
+	     } \
+	     { \
+	         project = gensub(/\/.*/, "", 1, $$2); \
+	         if (project != last_proj) \
+	             new_proj(); \
+	         lc += $$1; \
+	     } \
+	     END { \
+	         new_proj(); \
+	     }' \
+	      <all-fortran-files-lc.txt >"$@"
 
 # List number of Fortran files in each project
 all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
-	gawk 'BEGIN { last_proj = "" } \
+	gawk -F '\t' \
+	     'BEGIN { last_proj = "" } \
 	      { proj = gensub(/\/.*/, "", 1, $$1); \
 	        if (proj != last_proj) { \
 	             if (last_proj != "") \
@@ -148,8 +137,7 @@ all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
 	        } \
 	      } \
 	      END { printf "%s\t%d\n", last_proj, sum }' \
-	      <all-fortran-files-attr.txt \
-	      >"$@"
+	      <all-fortran-files-attr.txt >"$@"
 
 # Print some moderately interesting stats about the repositories.
 stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
@@ -159,19 +147,23 @@ stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 	  printf "%'12d files\n" $$(wc -l <all-files.txt); \
 	  printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files.txt); \
 	  printf "%'12d Fortran lines\n" \
-			$$(gawk '{ sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0 } \
-                           END { print sum }' \
-	                   <all-fortran-files-attr.txt); \
+		$$(gawk -F '\t' \
+	            '{ sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0 } \
+                    END { print sum }' \
+	            <all-fortran-files-attr.txt); \
 	  printf "%'12d Fortran 77 lines\n" \
-			$$(gawk '/form:fixed/ { \
-                                    sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0} \
-                                    END { print sum }' \
-			<all-fortran-files-attr.txt); \
+		$$(gawk -F '\t' \
+	            '/form:fixed/ { \
+                         sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0} \
+                     END { print sum }' \
+		<all-fortran-files-attr.txt); \
 	  printf "%'12d cpp directive lines\n" \
-	        $$(gawk '/cpreprocessor/ { \
-                                    sum += gensub(/.*cpreprocessor:([0-9]*).*/, "\\1", 1, $$0)+0} \
-                                    END { print sum }' \
-	                <all-fortran-files-attr.txt); \
+	        $$(gawk -F '\t' \
+	            '/cpreprocessor/ { \
+                         sum += gensub(/.*cpreprocessor:([0-9]*).*/, "\\1", 1, $$0)+0 \
+	             } \
+                     END { print sum }' \
+	           <all-fortran-files-attr.txt); \
 	  echo "Largest projects:"; \
 	  sort -rn -k 1 all-projects-lc.txt \
 		| head -10 \
@@ -232,23 +224,21 @@ fortran-lang-category-urls.txt:	FORCE
 # Only look at Git projects (not sourceforge or whatever).
 beliavsky-new-projects:	beliavsky-projects.txt
 	for P in `cat beliavsky-projects.txt`; do \
-		case "$$P" in \
-			git*) ;; \
-			*) continue;; \
-		esac; \
-		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
+	    case "$$P" in \
+	        git*) ;; \
+	        *) continue;; \
+	    esac; \
+	    D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
 	    if grep "^$$D:" project-exceptions.txt >/dev/null; then \
-			echo "$$D is on the project exception list."; \
-		elif [[ -d $$D ]]; then \
-			echo "$$D exists already"; \
-		else \
-			if git submodule add "ssh://git@$$P" "$$D"; then \
-			    echo "$$D new"; \
-			    git submodule update --init "$$D"; \
-		    else \
-		        echo "$$D failed; probably no longer available"; \
-		    fi; \
-		fi; \
+	        echo "$$D is on the project exception list."; \
+	    elif [[ -d $$D ]]; then \
+	        echo "$$D exists already"; \
+	    elif git submodule add "ssh://git@$$P" "$$D"; then \
+	           echo "$$D new"; \
+	           git submodule update --init "$$D"; \
+	    else \
+	        echo "$$D failed; probably no longer available"; \
+	    fi; \
 	done
 
 BELIAVSKY_URL = https://github.com/Beliavsky/Fortran-code-on-GitHub

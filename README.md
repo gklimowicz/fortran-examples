@@ -47,10 +47,16 @@ There are projects mentioned on the `fortran-lang.org` and `Beliavsky` pages tha
 We ignore projects that are in the `project-exceptions.txt` list.
 
 
-# `file-exceptions.txt`
+# `fortran-exceptions.txt`
 There are files in projects that have names like Fortran files,
 but don't actually contain Fortran source code (e.g., `Makefile.f90`).
 We ignore files that are in the `file-exceptions.txt` list.
+
+
+# `fortran-file-patterns.txt`
+Of all the files found in the projects, files that match these `grep` patterns
+are likely to be Fortran files.
+(Those that aren't really Fortran should be in `fortran-exceptions.txt`.
 
 
 # Makefile
