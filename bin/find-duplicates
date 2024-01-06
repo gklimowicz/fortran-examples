@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+trap "exit 1" HUP INT QUIT TERM
+
+set -e -u -o pipefail
+
+CMD="$(basename $0)"
+CMD_DIR="$(dirname $0)"
+function usage {
+    (echo "Usage: $CMD [-hnv] file..."
+     echo "-h        Print this help message."
+     echo "-n        Dry run. Don't execute commands."
+     echo "-v        Verbose. Print extra information if appropriate."
+     echo "Look for projects that may be duplicates based on the project name.") 1>&2
+}
+
+DRY_RUN=
+VFLAG=
+while getopts hnv OPTCHAR; do
+    case $OPTCHAR in
+        h)  usage; exit 0;;
+        n)  DRY_RUN=1;;
+        v)  VFLAG=1;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+case $# in
+    0)  ;;
+    *)  usage; exit 1;;
+esac
+
+/bin/ls -d */ \
+    | gawk -F "@" \
+          'function print_dups(                i) {
+               print curr_proj
+               for (i = 0; i < n_instances; i++) {
+                   print "     " dupe_proj[i]
+               }
+               print ""
+           }
+           /bin\// { next }
+           {
+                # Delete any trailing slash.
+                $0 = gensub(/[/]$/, "", 1, $0)
+                if ($1 == curr_proj) {
+                    dupe_proj[n_instances++] = $0
+                } else {
+                    if (n_instances > 1)
+                        print_dups()
+                    curr_proj = $1
+                    dupe_proj[0] = $0
+                    n_instances = 1
+                }
+           }
+           END {
+               if (n_instances > 1)
+                   print_dups()
+           }'
