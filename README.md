@@ -127,5 +127,8 @@ Each Fortran file is scanned to identify simple characteristics of the file.
 | openaccdir       | The number of OpenACC directives in the file.                       |
 | otherdir         | The number of unidentifiable directives in the file.                |
 
-<!--  LocalWords:  GEOS ESM AeroApps
+## `duplicates-ok.txt`
+This is a list of files (produced by `bin/find-duplicates`) that are not really duplicated projects. They are either completely different projects, modernizations, or some other variation on a theme.
+
+<!--  LocalWords:  GEOS ESM AeroApps modernizations
  -->
