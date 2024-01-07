@@ -11,9 +11,7 @@ BUILD_FILES=all-projects.txt all-files.txt \
 
 all: ${BUILD_FILES}
 
-update-all: update all
-
-# Update projects from their remote repos
+# Update projects from their remote repos.
 update:
 	git submodule update --remote
 
