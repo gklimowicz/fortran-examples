@@ -5,6 +5,8 @@ BUILD_FILES=all-projects.txt all-files.txt \
 	    all-fortran-files-attr.txt \
 	    all-fortran-files-type.txt \
 	    all-fortran-files-lc.txt \
+	    all-fortran-files-fixed.txt \
+	    all-fortran-files-free.txt \
 	    all-projects-lc.txt \
 	    all-projects-fortran-file-count.txt \
 	    stats.txt
