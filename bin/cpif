@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+function usage {
+    echo "Usage: ... | $CMD [-vdn] file-to-compare-standard-input-against" 1>&2
+    echo "-d    Report diffs on changed files." 1>&2
+    echo "-n    Dry run. Don't change files." 1>&2
+    echo "-q    Ouiet, Don't report changed files." 1>&2
+    echo "-v    Verbose. Report unchanged files and line counts on changed files." 1>&2
+}
+
+CMD="$(basename "$0")"
+CMPFLAG=-s
+DRY_RUN=
+DIFF_FLAG=
+QFLAG=
+VFLAG=
+while getopts dnqv OPTCHAR; do
+     case $OPTCHAR in
+     d)     DIFF_FLAG=1;;
+     n)     DRY_RUN=1;;
+     q)     QFLAG=1;;
+     v)     VFLAG=$((VFLAG+1))
+            if [[ "$VFLAG" -ge 3 ]]; then
+                CMPFLAG=-x
+            fi;;
+     ?)     usage
+            exit 2;;
+     esac
+done
+
+shift $(($OPTIND - 1))
+
+case $# in
+    1) FILE="$1";;
+    *) usage
+       exit 2;;
+esac
+
+TMPFILE="$(mktemp -t "cpif.$(basename "$FILE")")"
+trap 'rm -f "$TMPFILE"' HUP INT QUIT KILL TERM EXIT
+
+export LC_ALL=C
+cat >"$TMPFILE"
+if [[ ! -f "$FILE" ]]; then
+    echo "$FILE new ($(wc -l <"$TMPFILE" | tr -d ' ') lines)."
+    if [[ -z "$DRY_RUN" ]]; then
+        cp "$TMPFILE" "$FILE"
+    fi
+elif cmp $CMPFLAG "$TMPFILE" "$FILE"; then
+    if [[ "$VFLAG" -ge 2 ]]; then
+	echo "$FILE unchanged"
+    fi
+else
+    if [[ -z "$QFLAG" ]]; then
+        echo "$FILE changed."
+    fi
+    if [[ "$VFLAG" -ge 1 ]]; then
+        wc -l "$FILE"
+        wc -l "$TMPFILE"
+        cmp -x "$FILE" "$TMPFILE" | head -10
+        echo "... (more, maybe)"
+    fi
+    if [[ -n "$DIFF_FLAG" ]] || [[ "$VFLAG" -ge 2 ]]; then
+        diff "$FILE" "$TMPFILE" | cat -e | head -10
+        echo "... (more, maybe)"
+    fi
+    if [[ -z "$DRY_RUN" ]]; then
+        cp "$TMPFILE" "$FILE"
+    fi
+fi

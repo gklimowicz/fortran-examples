@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+
+set -u -o pipefail
+
+CMD="$(basename "$0")"
+CMD_DIR="$(dirname "$0")"
+function usage {
+    (echo "Usage: $CMD [-hnv] file-list stats-program stats-file"
+     echo "-f        Force a full recreation of the stats-file."
+     echo "-h        Print this help message."
+     echo "-H        Invoke stats program with -H for header"
+     echo "-n        Dry run. Don't execute commands."
+     echo "-v        Verbose. Print extra information if appropriate."
+     echo "Update list of Fortran file stats based on recent file changes.") 1>&2
+}
+
+. "$CMD_DIR/vecho"
+
+HFLAG=
+FFLAG=
+DRY_RUN=
+VFLAG=0
+while getopts fhnv\? OPTCHAR; do
+    case $OPTCHAR in
+        f)  FFLAG=1;;
+        h)  usage; exit 0;;
+        H)  HFLAG=-H;;
+        n)  DRY_RUN=1;;
+        v)  VFLAG=$((VFLAG+1));;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+case $# in
+    3)  FILE_LIST="$1" STATS_PROGRAM="$(realpath $2)" STATS_FILE="$(realpath "$3")";;
+    *)  usage; exit 1;;
+esac
+
+TMP="$(mktemp -u -t stats)"
+trap 'rm -f "$TMP"; exit 1' HUP INT QUIT TERM
+
+if [[ -n "$FFLAG" ]] || [[ ! -e "$STATS_FILE" ]]; then
+    # Rebuild from scratch.
+    vecho 1 "Rebuild '$STATS_FILE' from scratch..."
+
+    # Assume all"$FILE_LIST" is sorted to avoid sorting.
+    $CMD_DIR/create-stats-file $HFLAG "$FILE_LIST" "$STATS_PROGRAM" >"$TMP"
+else
+    # Not rebuilding from scratch.
+
+    #   1. Identify new or updated files
+    #   2. Identify missing files
+    #   2. Concatenate
+    #      a. Old stats with updated or deleted entries removed.
+    #      b. Stats for new or updated files.
+    #   3. Sort by file name and place result in temp statistics.
+    #   4. If -v, show the diff.
+    #   5. Replace $STATS_FILE with the updated temp statistics.
+    REL_TO="$(dirname "$FILE_LIST")"
+    NEW_OR_UPDATED="$(for F in `cat "$FILE_LIST"`; do
+                          if [[ "$REL_TO/$F" -nt "$STATS_FILE" ]]; then
+                               echo "$F"
+                           fi;
+                      done)"
+    MISSING="$(for F in `cat fortran-examples/all-fortran-files.txt`; do
+                   if [[ ! -e "$REL_TO/$F" ]]; then
+                       echo "$F"
+                   fi;
+              done)"
+    if [[ "$(echo "$NEW_OR_UPDATED" | wc -l)" -gt 100 ]]; then
+        echo "NEW_OR_UPDATED is over 100 files?"
+    fi
+    vecho 2 "NEW_OR_UPDATED='$NEW_OR_UPDATED'"
+    vecho 2 "MISSING='$MISSING'"
+
+    if [[ "$NEW_OR_UPDATED" = "" ]]; then
+        vecho 1 "$STATS_FILE is up to date."
+
+        rm "$TMP"
+        exit 0
+    fi
+
+    # Note that the STATS_FILE file does not quote the file name.
+    # Technically, looking for quotes in the first field is unnecessary.
+    # $STATS_PROGRAM should not quote the file name.
+    if [[ -n "$HFLAG" ]]; then
+        D1="-e 1d"
+    else
+        D1=
+    fi
+    TO_REMOVE="$D1 $(echo "$NEW_OR_UPDATED
+$MISSING" \
+                       | sed -n -e 's;/;\\/;g' -e 's;..*;-e /^\"*&\"*,/d;p')"
+    vecho 2 "TO_REMOVE='$TO_REMOVE'"
+
+    (if [[ -n "$HFLAG" ]]; then
+         "$STATS_PROGRAM" -H
+     fi;
+     (sed $TO_REMOVE <"$STATS_FILE";
+      builtin cd "$REL_TO" \
+          && echo "$NEW_OR_UPDATED" | xargs "$STATS_PROGRAM") \
+        | sort -t ',' -k 1) >"$TMP"
+fi
+
+# "$TMP" has the new version of the stats file, whether created anew
+# or updated with only files that were added, deleted, or changed.
+if [[ "$VFLAG" -ge 2 ]]; then
+    echo "Diff: $STATS_FILE $TMP"
+    diff "$STATS_FILE" "$TMP"
+fi
+
+if [[ -n "$DRY_RUN" ]]; then
+    rm "$TMP"
+else
+    mv "$TMP" "$STATS_FILE"
+fi
+
+vecho 1 "$STATS_FILE updated."
+
+exit 0

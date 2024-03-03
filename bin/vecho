@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+function vecho {
+    local N="$1"
+    shift
+    if [[ "$VFLAG" -ge "$N" ]]; then
+        echo "$@"
+    fi
+}

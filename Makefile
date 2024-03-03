@@ -39,23 +39,10 @@ all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
 # This is awkward, but cuts the time to generate them down dramatically.
 # Note that since all-fortran-files.txt is sorted, the attributes
 # file will be as well, without having to explicitly sort it.
-all-fortran-files-attr.txt:	all-fortran-files.txt bin/determine-attributes
-	set -u; \
-	export LC_ALL=C; \
-	SPLIT_TMP="aff-split.$$$$"; \
-	ATTR_TMP="$@.$$$$"; \
-	N=$$(nproc); \
-	N_SPLIT=$$(($$(wc -l <all-fortran-files.txt | tr -d ' ') / $$N + 1)); \
-	split -d -l $$N_SPLIT all-fortran-files.txt "$$SPLIT_TMP."; \
-	trap 'killall xargs; killall bash' HUP INT QUIT KILL TERM; \
-	trap 'rm -f "$$SPLIT_TMP."* "$$ATTR_TMP".*' EXIT; \
-	for F in aff-split.$$$$.*; do \
-	      SUFFIX="$${F/*.*.}"; \
-	      tr '\n' '\0' <"$$F" \
-	      | xargs -0 bin/determine-attributes >"$$ATTR_TMP.$$SUFFIX"& \
-	done; \
-	wait; \
-	cat "$$ATTR_TMP".* >"$@"
+all-fortran-files-attr.txt:	all-fortran-files.txt \
+		bin/create-stats-file bin/determine-attributes
+	bin/create-stats-file all-fortran-files.txt bin/determine-attributes \
+	| bin/cpif "$@"
 	wc -l "$@"
 
 # All fixed-form Fortran files
@@ -71,24 +58,10 @@ all-fortran-files-free.txt:	all-fortran-files-attr.txt
 # Results of running "file" on each Fortran file.
 # This is useful for finding non-Fortran files that are
 # disguised with Fortran-file-like names.
-all-fortran-files-type.txt:	all-fortran-files.txt
-	set -u; \
-	export LC_ALL=C; \
-	SPLIT_TMP="aff-split.$$$$"; \
-	TYPES_TMP="$@.$$$$"; \
-	N=$$(nproc); \
-	N_SPLIT=$$(($$(wc -l <all-fortran-files.txt | tr -d ' ') / $$N + 1)); \
-	split -d -l $$N_SPLIT all-fortran-files.txt "$$SPLIT_TMP."; \
-	trap 'killall xargs; killall bash' HUP INT QUIT KILL TERM; \
-	trap 'rm -f "$$SPLIT_TMP."* "$$TYPES_TMP".*' EXIT; \
-	for F in "$$SPLIT_TMP".*; do \
-	      SUFFIX="$${F/*.*.}"; \
-	      tr '\n' '\0' <"$$F" \
-	      | xargs -0 file >"$$TYPES_TMP.$$SUFFIX"& \
-	done; \
-	wait; \
-	cat "$$TYPES_TMP".* >"$@"
-	wc -l "$@"
+all-fortran-files-type.txt:	all-fortran-files.txt bin/create-stats-file
+	bin/create-stats-file \
+		all-fortran-files.txt /usr/bin/file \
+	| bin/cpif "$@"
 
 # Line count of Fortran files in each project
 all-fortran-files-lc.txt:	all-fortran-files-attr.txt

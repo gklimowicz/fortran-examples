@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+trap "exit 1" HUP INT QUIT TERM
+
+set -e -u -o pipefail
+
+CMD="$(basename $0)"
+CMD_DIR="$(dirname $0)"
+function usage {
+    (echo "Usage: $CMD [-hnv] file-list stats-program ..."
+     echo "-h        Print this help message."
+     echo "-H        Invoke stats program with -H for header"
+     echo "-n        Dry run. Don't execute commands."
+     echo "-v        Verbose. Print extra information if appropriate."
+     echo "This is what it does") 1>&2
+}
+
+. "$CMD_DIR/vecho"
+
+HFLAG=
+DRY_RUN=
+VFLAG=0
+while getopts hHnv OPTCHAR; do
+    case $OPTCHAR in
+        h)  usage; exit 0;;
+        H)  HFLAG=-H;;
+        n)  DRY_RUN=1;;
+        v)  VFLAG=$((VFLAG+1));;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+case $# in
+    2)  FILE_LIST="$1" STATS_PROGRAM="$(realpath $2)";;
+    *)  usage; exit 1;;
+esac
+
+export LC_ALL=C
+N=$(nproc)
+: echo "N=$N"
+SPLIT_TMP="$(mktemp -u -t split)"
+STATS_TMP="$(mktemp -u -t stats)"
+vecho 1 "SPLIT_TMP=$SPLIT_TMP" 1>&2
+vecho 1 "STATS_TMP=$STATS_TMP" 1>&2
+
+N_SPLIT=$(($(wc -l <"$FILE_LIST" | tr -d ' ') / $N + 1))
+: echo "N_SPLIT=$N_SPLIT"
+split -d -l $N_SPLIT "$FILE_LIST" "$SPLIT_TMP."
+builtin cd "$(dirname "$FILE_LIST")"
+trap 'kill $BG_TASKS' HUP INT QUIT KILL TERM
+trap 'rm -f "$SPLIT_TMP."* "$STATS_TMP".*' EXIT
+
+BG_TASKS=
+for F in "$SPLIT_TMP".*; do
+      SUFFIX="${F/*.*.}"
+      tr '\n' '\0' <"$F"\
+      | xargs -0 ${STATS_PROGRAM} >"$STATS_TMP.$SUFFIX"&
+      BG_TASKS="$BG_TASKS $!"
+done
+builtin cd -
+
+vecho 1 "$BG_TASKS=$BG_TASKS" 1>&2
+wait
+
+if [[ -n "$HFLAG" ]]; then
+    "$STATS_PROGRAM" -H
+fi
+cat "$STATS_TMP".*
