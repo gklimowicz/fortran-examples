@@ -7,11 +7,11 @@ set -e -u -o pipefail
 CMD="$(basename $0)"
 CMD_DIR="$(dirname $0)"
 function usage {
-    (echo "Usage: $CMD [-hnv] file"
+    (echo "Usage: $CMD [-hnv] project ..."
      echo "-h        Print this help message."
      echo "-n        Dry run. Don't execute commands."
      echo "-v        Verbose. Print extra information if appropriate."
-     echo "Get the URL of the git repo corresponding to a project.") 1>&2
+     echo "Get the URL of the git repo corresponding to listed projects.") 1>&2
 }
 
 DRY_RUN=
@@ -27,17 +27,27 @@ done
 shift $(($OPTIND - 1))
 
 case $# in
-    1)  P="$1";;
-    *)  usage; exit 1;;
+    0)  usage; exit 1;;
 esac
 
-REMOTE="$(builtin cd "$P" && git remote -v)"
-URL=$(echo "$REMOTE" \
-          | sed -e $'s/^[^\t]*[ \t]//' \
-                -e 's/\.git//' \
-                -e 's/github.com:/github.com\//g' \
-                -e 's/gitlab.com:/gitlab.com\//g' \
-                -e 's/[^/]*@//' \
-                -e 's/ssh:/https:/' \
-                -n -e 's/ [(]fetch[)]//p')
-echo $URL
+ERR=
+for P in "$@"; do
+    if  [[  ! -d "$P" ]];  then
+        echo "$CMD: No such directory '$P'" 1>& 2
+        ERR=1
+        continue
+    fi
+
+    REMOTE="$(builtin cd "$P" && git remote -v)"
+    URL=$(echo "$REMOTE" \
+              | sed -e $'s/^[^\t]*[ \t]//' \
+                    -e 's/\.git//' \
+                    -e 's/github.com:/github.com\//g' \
+                    -e 's/gitlab.com:/gitlab.com\//g' \
+                    -e 's/[^/]*@//' \
+                    -e 's/ssh:/https:/' \
+                    -n -e 's/ [(]fetch[)]//p')
+    echo $URL
+done
+
+exit $ERR
