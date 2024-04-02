@@ -218,6 +218,7 @@ BELIAVSKY_URL = https://github.com/Beliavsky/Fortran-code-on-GitHub
 beliavsky-projects.txt:	FORCE
 	curl -L --no-progress-meter "${BELIAVSKY_URL}" \
 		| sed -n -e 's;^<p dir="auto"><a href="https://\([^"]*\)".*;\1;p' \
+	        | sed -e 's/#.*//' \
 		| sort -u >"$@"
 
 clean: FORCE
