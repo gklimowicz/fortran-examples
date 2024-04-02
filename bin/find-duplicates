@@ -34,11 +34,11 @@ esac
 /bin/ls -d */ \
     | gawk -F "@" \
           'function print_dups(                i) {
-               print curr_proj
+               printf "%s", curr_proj
                for (i = 0; i < n_instances; i++) {
-                   print "     " dupe_proj[i]
+                   printf " %s", dupe_proj[i]
                }
-               print ""
+               printf "\n"
            }
            /bin\// { next }
            {
