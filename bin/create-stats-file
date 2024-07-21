@@ -58,7 +58,7 @@ for F in "$SPLIT_TMP".*; do
       | xargs -0 ${STATS_PROGRAM} >"$STATS_TMP.$SUFFIX"&
       BG_TASKS="$BG_TASKS $!"
 done
-builtin cd -
+builtin cd "$OLDPWD"
 
 vecho 1 "$BG_TASKS=$BG_TASKS" 1>&2
 wait
