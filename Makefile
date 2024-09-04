@@ -7,6 +7,7 @@ BUILD_FILES=all-projects.txt all-files.txt \
 	    all-fortran-files-lc.txt \
 	    all-fortran-files-fixed.txt \
 	    all-fortran-files-free.txt \
+	    all-fortran-comment-directives.txt \
 	    all-projects-lc.txt \
 	    all-projects-fortran-file-count.txt \
 	    stats.txt
@@ -39,10 +40,14 @@ all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
 # This is awkward, but cuts the time to generate them down dramatically.
 # Note that since all-fortran-files.txt is sorted, the attributes
 # file will be as well, without having to explicitly sort it.
+# We touch it at the end, for the unusual circumstance
+# where the file looks out of date, but no changes were
+# made via `cpif,.
 all-fortran-files-attr.txt:	all-fortran-files.txt \
 		bin/create-stats-file bin/determine-attributes
 	bin/create-stats-file all-fortran-files.txt bin/determine-attributes \
 	| bin/cpif "$@"
+	touch "$@"
 	wc -l "$@"
 
 # All fixed-form Fortran files
@@ -62,6 +67,7 @@ all-fortran-files-type.txt:	all-fortran-files.txt bin/create-stats-file
 	bin/create-stats-file \
 		all-fortran-files.txt /usr/bin/file \
 	| bin/cpif "$@"
+	touch "$@"
 
 # Line count of Fortran files in each project
 all-fortran-files-lc.txt:	all-fortran-files-attr.txt
@@ -111,6 +117,27 @@ all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
 	      } \
 	      END { printf "%s\t%d\n", last_proj, sum }' \
 	      <all-fortran-files-attr.txt >"$@"
+
+all-fortran-comment-directives.txt: all-fortran-files-fixed.txt \
+		all-fortran-files-free.txt
+	(export LC_ALL=C; \
+	 cat all-fortran-files-fixed.txt \
+	 | tr '\n' '\0' \
+	 | xargs -0 gawk '/^[^CcDd*]/ { next } \
+			/.....[$$]/ { print substr($$1,2,4); next } \
+			{ print substr($$1,2); next }'; \
+	 cat all-fortran-files-free.txt \
+	 | tr '\n' '\0' \
+	 | xargs -0 gawk '/^[^ ]*!/ { next } \
+			/^[^!]*$$/ { next } \
+			/^ *!/ { print substr($$1,2) }') \
+	| (export LC_ALL=C; \
+	   tr -d ' ' \
+	   | tr '[[:upper:]]' '[[:lower:]]' \
+	   | gawk '/^[$$][a-zA-Z][a-zA-Z][a-zA-Z]*/ \
+		    || /^[a-zA-Z][a-zA-Z][a-zA-Z][$$]/ \
+		    || /^[a-zA-Z][a-zA-Z][$$]/ { print }' \
+	   | sort -u) > "$@"
 
 # Print some moderately interesting stats about the repositories.
 stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
