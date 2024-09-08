@@ -118,27 +118,6 @@ all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
 	      END { printf "%s\t%d\n", last_proj, sum }' \
 	      <all-fortran-files-attr.txt >"$@"
 
-all-fortran-comment-directives.txt: all-fortran-files-fixed.txt \
-		all-fortran-files-free.txt
-	(export LC_ALL=C; \
-	 cat all-fortran-files-fixed.txt \
-	 | tr '\n' '\0' \
-	 | xargs -0 gawk '/^[^CcDd*]/ { next } \
-			/.....[$$]/ { print substr($$1,2,4); next } \
-			{ print substr($$1,2); next }'; \
-	 cat all-fortran-files-free.txt \
-	 | tr '\n' '\0' \
-	 | xargs -0 gawk '/^[^ ]*!/ { next } \
-			/^[^!]*$$/ { next } \
-			/^ *!/ { print substr($$1,2) }') \
-	| (export LC_ALL=C; \
-	   tr -d ' ' \
-	   | tr '[[:upper:]]' '[[:lower:]]' \
-	   | gawk '/^[$$][a-zA-Z][a-zA-Z][a-zA-Z]*/ \
-		    || /^[a-zA-Z][a-zA-Z][a-zA-Z][$$]/ \
-		    || /^[a-zA-Z][a-zA-Z][$$]/ { print }' \
-	   | sort -u) > "$@"
-
 # Print some moderately interesting stats about the repositories.
 stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 			all-fortran-files.txt all-fortran-files-lc.txt \
