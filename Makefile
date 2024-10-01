@@ -7,7 +7,6 @@ BUILD_FILES=all-projects.txt all-files.txt \
 	    all-fortran-files-lc.txt \
 	    all-fortran-files-fixed.txt \
 	    all-fortran-files-free.txt \
-	    all-fortran-comment-directives.txt \
 	    all-projects-lc.txt \
 	    all-projects-fortran-file-count.txt \
 	    stats.txt
