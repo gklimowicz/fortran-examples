@@ -1,15 +1,22 @@
 SHELL = /bin/bash
 
-BUILD_FILES=all-projects.txt all-files.txt \
+# We compress the largest files to keep GitHub
+# from complaining about file sizes.
+BUILD_FILES=all-projects.txt \
+	    all-files.txt all-files.txt.gz \
 	    all-fortran-files.txt \
-	    all-fortran-files-attr.txt \
-	    all-fortran-files-type.txt \
+	    all-fortran-files-attr.txt all-fortran-files-attr.txt.gz \
+	    all-fortran-files-type.txt all-fortran-files-type.txt.gz \
 	    all-fortran-files-lc.txt \
 	    all-fortran-files-fixed.txt \
 	    all-fortran-files-free.txt \
 	    all-projects-lc.txt \
 	    all-projects-fortran-file-count.txt \
 	    stats.txt
+
+# Update the .gz file only if it changes.
+%.txt.gz: %.txt
+	gzip --keep "$<"
 
 all: ${BUILD_FILES}
 
@@ -28,6 +35,8 @@ all-files.txt: all-projects.txt
 	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
+all-files.txt.gz: all-files.txt
+
 # Some files that match the fortran-file-patterns.txt list are not Fortran files.
 # Eliminate them explicitly.
 all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
@@ -43,34 +52,36 @@ all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
 # We touch it at the end, for the unusual circumstance
 # where the file looks out of date, but no changes were
 # made via `cpif,.
-all-fortran-files-attr.txt:	all-fortran-files.txt \
-		bin/create-stats-file bin/determine-attributes
+all-fortran-files-attr.txt:	all-fortran-files.txt bin/determine-attributes
 	bin/create-stats-file all-fortran-files.txt bin/determine-attributes \
 	| bin/cpif "$@"
-	touch "$@"
 	wc -l "$@"
+
+all-fortran-files-attr.txt.gz: all-fortran-files-attr.txt
 
 # All fixed-form Fortran files
 all-fortran-files-fixed.txt:	all-fortran-files-attr.txt
 	gawk  -F '\t' '/form:fixed/ { print $$1 }' \
-	      <all-fortran-files-attr.txt >"$@"
+	      <"$<" >"$@"
 	wc -l "$@"
 
 # All free-form Fortran files
 all-fortran-files-free.txt:	all-fortran-files-attr.txt
 	gawk -F '\t' '/form:free/ { print $$1 }' \
-	      <all-fortran-files-attr.txt >"$@"
+	      <"$<" >"$@"
 	wc -l "$@"
 
 # Results of running "file" on each Fortran file.
 # This is useful for finding non-Fortran files that are
 # disguised with Fortran-file-like names.
-all-fortran-files-type.txt:	all-fortran-files.txt bin/create-stats-file
+all-fortran-files-type.txt:	all-fortran-files.txt /usr/bin/file
 	bin/create-stats-file \
 		all-fortran-files.txt /usr/bin/file \
 	| bin/cpif "$@"
 	touch "$@"
 	wc -l "$@"
+
+all-fortran-files-type.txt.gz: all-fortran-files-type.txt
 
 # Line count of Fortran files in each project
 all-fortran-files-lc.txt:	all-fortran-files-attr.txt
