@@ -34,6 +34,7 @@ all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
 			fortran-exceptions.txt
 	grep -i -f fortran-file-patterns.txt all-files.txt \
 	| fgrep -v -f fortran-exceptions.txt >"$@"
+	wc -l "$@"
 
 # Compute the attributes in parallel and concatenate results.
 # This is awkward, but cuts the time to generate them down dramatically.
@@ -53,11 +54,13 @@ all-fortran-files-attr.txt:	all-fortran-files.txt \
 all-fortran-files-fixed.txt:	all-fortran-files-attr.txt
 	gawk  -F '\t' '/form:fixed/ { print $$1 }' \
 	      <all-fortran-files-attr.txt >"$@"
+	wc -l "$@"
 
 # All free-form Fortran files
 all-fortran-files-free.txt:	all-fortran-files-attr.txt
 	gawk -F '\t' '/form:free/ { print $$1 }' \
 	      <all-fortran-files-attr.txt >"$@"
+	wc -l "$@"
 
 # Results of running "file" on each Fortran file.
 # This is useful for finding non-Fortran files that are
@@ -67,6 +70,7 @@ all-fortran-files-type.txt:	all-fortran-files.txt bin/create-stats-file
 		all-fortran-files.txt /usr/bin/file \
 	| bin/cpif "$@"
 	touch "$@"
+	wc -l "$@"
 
 # Line count of Fortran files in each project
 all-fortran-files-lc.txt:	all-fortran-files-attr.txt
@@ -76,6 +80,7 @@ all-fortran-files-lc.txt:	all-fortran-files-attr.txt
 	         printf("%8d\t%s\n", lc, file); \
 	     }' \
 	      <all-fortran-files-attr.txt >"$@"
+	wc -l "$@"
 
 all-projects-lc.txt:   all-fortran-files-lc.txt
 	gawk -F '\t' \
@@ -99,6 +104,7 @@ all-projects-lc.txt:   all-fortran-files-lc.txt
 	         new_proj(); \
 	     }' \
 	      <all-fortran-files-lc.txt >"$@"
+	wc -l "$@"
 
 # List number of Fortran files in each project
 all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
@@ -116,6 +122,7 @@ all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
 	      } \
 	      END { printf "%s\t%d\n", last_proj, sum }' \
 	      <all-fortran-files-attr.txt >"$@"
+	wc -l "$@"
 
 # Print some moderately interesting stats about the repositories.
 stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
@@ -150,7 +157,8 @@ stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
 	  sort -rn -k 1 all-fortran-files-lc.txt \
 		| head -10 \
 		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}') \
-	 | tee "$@"
+	| tee "$@"
+	wc -l "$@"
 
 
 # Add new projects we may find lying about.
@@ -165,8 +173,9 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 			*) continue;; \
 		esac; \
 		D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
-	    if grep "^$$D:" project-exceptions.txt >/dev/null; then \
+	    if grep "^$$D:" project-exceptions.txt; then \
 			echo "$$D is on the project exception list."; \
+			echo ""; \
 		elif [[ -d $$D ]]; then \
 			echo "$$D exists already"; \
 		else \
@@ -207,8 +216,9 @@ beliavsky-new-projects:	beliavsky-projects.txt
 	        *) continue;; \
 	    esac; \
 	    D="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
-	    if grep "^$$D:" project-exceptions.txt >/dev/null; then \
+	    if grep "^$$D:" project-exceptions.txt; then \
 	        echo "$$D is on the project exception list."; \
+		echo ""; \
 	    elif [[ -d $$D ]]; then \
 	        echo "$$D exists already"; \
 	    elif git submodule add "ssh://git@$$P" "$$D"; then \
