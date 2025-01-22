@@ -16,7 +16,7 @@ BUILD_FILES=all-projects.txt \
 
 # Update the .gz file only if it changes.
 %.txt.gz: %.txt
-	gzip --keep "$<"
+	gzip --keep --force "$<"
 
 all: ${BUILD_FILES}
 
