@@ -202,7 +202,7 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 fortran-lang-projects.txt:	fortran-lang-category-urls.txt
 	for P in `cat fortran-lang-category-urls.txt`; do \
 		curl -L --no-progress-meter "$$P" \
-		| sed -n -e '/^<h2 class="rubric".*<span class="/s;.*href="https*://\([^"]*\).*;\1;p'; \
+		| sed -n -e '/^<p class="rubric".*<span class="/s;.*href="https*://\([^"]*\).*;\1;p'; \
 	done \
 	| sort -u >"$@"
 
@@ -212,7 +212,7 @@ fortran-lang-projects.txt:	fortran-lang-category-urls.txt
 # These are organized into separate pages based on
 # project category, so we gather the category pages first.
 
-FORTRAN_LANG_URL = https://fortran-lang.org/en/packages
+FORTRAN_LANG_URL = https://fortran-lang.org/packages
 fortran-lang-category-urls.txt:	FORCE
 	curl -L --no-progress-meter "${FORTRAN_LANG_URL}" 2>&1 \
 	| sed -n -e '/^<h2><a class="reference internal" href="\([^"]*\).*/s;;${FORTRAN_LANG_URL}/\1;p' \
