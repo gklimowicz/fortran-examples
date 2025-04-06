@@ -22,6 +22,7 @@ all: ${BUILD_FILES}
 
 # Update projects from their remote repos.
 update:
+	git submodule foreach git fetch --tags --force
 	git submodule update --remote
 
 # Create a list of all Fortran projects we have,
