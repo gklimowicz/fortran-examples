@@ -21,17 +21,13 @@ BUILD_FILES=all-projects.txt \
 all: ${BUILD_FILES}
 
 # Update projects from their remote repos.
-update: update-tags update-commits
-
-update-tags: FORCE
-	for D in [S-Za-z]*@*; do \
-	     (echo "Entering $D..." \
-	      && builtin cd "$D" \
-	      && git fetch --tags --force); \
+update: # update-tags update-commits
+	for D in [d-z]*@*; do \
+	     (echo "Updating $$D..." \
+	      && (builtin cd "$$D" \
+	          && git fetch --tags --prune --prune-tags --force) \
+	      && git submodule update --remote "$$D"); \
 	done
-
-update-commits: FORCE
-	git submodule update --remote
 
 # Create a list of all Fortran projects we have,
 # all files, and all Fortran files.
