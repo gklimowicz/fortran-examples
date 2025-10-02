@@ -1,5 +1,7 @@
 SHELL = /bin/bash
 
+LETTERS=
+
 # We compress the largest files to keep GitHub
 # from complaining about file sizes.
 BUILD_FILES=all-projects.txt \
@@ -22,7 +24,7 @@ all: ${BUILD_FILES}
 
 # Update projects from their remote repos.
 update: # update-tags update-commits
-	for D in [d-z]*@*; do \
+	for D in ${LETTERS}*@*; do \
 	     (echo "Updating $$D..." \
 	      && (builtin cd "$$D" \
 	          && git fetch --tags --prune --prune-tags --force) \
