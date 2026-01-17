@@ -20,16 +20,29 @@ BUILD_FILES=all-projects.txt \
 %.txt.gz: %.txt
 	gzip --keep --force --best "$<"
 
-all: ${BUILD_FILES}
+all: check-no-empty-dirs ${BUILD_FILES}
 
 # Update projects from their remote repos.
-update: # update-tags update-commits
+update: check-no-empty-dirs
 	for D in ${LETTERS}*@*; do \
 	     (echo "Updating $$D..." \
 	      && (builtin cd "$$D" \
 	          && git fetch --tags --prune --prune-tags --force) \
 	      && git submodule update --remote "$$D"); \
 	done
+
+# Perform sanity checks on the corpus.
+# If there are directories that have no entries,
+# that's an indicator that the submodules did not
+# populate correctly.
+check-no-empty-dirs:
+	@for D in *@*/; do \
+	    echo "$$D"/[a-zA-Z0-9_]*; \
+	done \
+	    | sed -n -e 's/\/.*[*].*//p' \
+	    | grep '.' \
+	&& exit 1 \
+	|| exit 0
 
 # Create a list of all Fortran projects we have,
 # all files, and all Fortran files.
