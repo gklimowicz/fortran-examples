@@ -1,20 +1,28 @@
 SHELL = /bin/bash
 
+PROJECTS_DIR=../projects
+BUILD_ROOT=../build
+
+# If you want to work on a subset of the projects,
+# add 'LETTERS="[a-f]"' when invoking 'make'.
 LETTERS=
 
 # We compress the largest files to keep GitHub
 # from complaining about file sizes.
-BUILD_FILES=all-projects.txt \
-	    all-files.txt all-files.txt.gz \
-	    all-fortran-files.txt \
-	    all-fortran-files-attr.txt all-fortran-files-attr.txt.gz \
-	    all-fortran-files-type.txt all-fortran-files-type.txt.gz \
-	    all-fortran-files-lc.txt \
-	    all-fortran-files-fixed.txt \
-	    all-fortran-files-free.txt \
-	    all-projects-lc.txt \
-	    all-projects-fortran-file-count.txt \
-	    stats.txt
+BUILD_FILES=${BUILD_ROOT}/all-projects.txt \
+	    ${BUILD_ROOT}/all-files.txt \
+	    ${BUILD_ROOT}/all-files.txt.gz \
+	    ${BUILD_ROOT}/all-fortran-files.txt \
+	    ${BUILD_ROOT}/all-fortran-files-attr.txt \
+	    ${BUILD_ROOT}/all-fortran-files-attr.txt.gz \
+	    ${BUILD_ROOT}/all-fortran-files-type.txt \
+	    ${BUILD_ROOT}/all-fortran-files-type.txt.gz \
+	    ${BUILD_ROOT}/all-fortran-files-lc.txt \
+	    ${BUILD_ROOT}/all-fortran-files-fixed.txt \
+	    ${BUILD_ROOT}/all-fortran-files-free.txt \
+	    ${BUILD_ROOT}/all-projects-lc.txt \
+	    ${BUILD_ROOT}/all-projects-fortran-file-count.txt \
+	    ${BUILD_ROOT}/stats.txt
 
 # Update the .gz file only if it changes.
 %.txt.gz: %.txt
@@ -24,7 +32,7 @@ all: check-no-empty-dirs ${BUILD_FILES}
 
 # Update projects from their remote repos.
 update: check-no-empty-dirs
-	for D in ${LETTERS}*@*; do \
+	for D in ${PROJECTS_DIR}/${LETTERS}*@*; do \
 	     (echo "Updating $$D..." \
 	      && (builtin cd "$$D" \
 	          && git fetch --tags --prune --prune-tags --force) \
@@ -36,7 +44,8 @@ update: check-no-empty-dirs
 # that's an indicator that the submodules did not
 # populate correctly.
 check-no-empty-dirs:
-	@for D in *@*/; do \
+	cd "${PROJECTS_DIR}"; \
+	for D in *@*/; do \
 	    echo "$$D"/[a-zA-Z0-9_]*; \
 	done \
 	    | sed -n -e 's/\/.*[*].*//p' \
@@ -46,22 +55,25 @@ check-no-empty-dirs:
 
 # Create a list of all Fortran projects we have,
 # all files, and all Fortran files.
-all-projects.txt: origins.txt .gitmodules
-	(git submodule foreach -q 'echo $$sm_path'; \
+${BUILD_ROOT}/all-projects.txt: origins.txt ../.gitmodules
+	(git submodule foreach -q 'echo $$sm_path' \
+	    | sed -e "s;$$(basename "${PROJECTS_DIR}")/;;"; \
 	 sed -n -e 's/#.*//' -e 's/:.*//p' <origins.txt) \
-    | sort >"$@"
-
-all-files.txt: all-projects.txt
-	find `cat all-projects.txt` ! -path ".git*" -a -type f -print \
 	| sort >"$@"
 
-all-files.txt.gz: all-files.txt
+${BUILD_ROOT}/all-files.txt: ${BUILD_ROOT}/all-projects.txt
+	(cd "${PROJECTS_DIR}"; \
+	 find `cat ${BUILD_ROOT}/all-projects.txt` ! -path ".git*" -a -type f -print \
+	 | sort) >"$@"
+
+${BUILD_ROOT}/all-files.txt.gz: ${BUILD_ROOT}/all-files.txt
 
 # Some files that match the fortran-file-patterns.txt list are not Fortran files.
 # Eliminate them explicitly.
-all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
-			fortran-exceptions.txt
-	grep -i -f fortran-file-patterns.txt all-files.txt \
+${BUILD_ROOT}/all-fortran-files.txt: fortran-file-patterns.txt \
+	    fortran-exceptions.txt \
+	    ${BUILD_ROOT}/all-files.txt
+	grep -i -f fortran-file-patterns.txt ${BUILD_ROOT}/all-files.txt \
 	| fgrep -v -f fortran-exceptions.txt >"$@"
 	wc -l "$@"
 
@@ -72,21 +84,24 @@ all-fortran-files.txt:	all-files.txt fortran-file-patterns.txt \
 # We touch it at the end, for the unusual circumstance
 # where the file looks out of date, but no changes were
 # made via `cpif,.
-all-fortran-files-attr.txt:	all-fortran-files.txt bin/determine-attributes
-	bin/create-stats-file all-fortran-files.txt bin/determine-attributes \
-	| bin/cpif "$@"
+${BUILD_ROOT}/all-fortran-files-attr.txt:	${BUILD_ROOT}/all-fortran-files.txt \
+	    ../bin/determine-attributes
+	../bin/create-stats-file ${PROJECTS_DIR} \
+	    ${BUILD_ROOT}/all-fortran-files.txt \
+	    ../bin/determine-attributes \
+	| ../bin/cpif "$@"
 	wc -l "$@"
 
-all-fortran-files-attr.txt.gz: all-fortran-files-attr.txt
+${BUILD_ROOT}/all-fortran-files-attr.txt.gz: ${BUILD_ROOT}/all-fortran-files-attr.txt
 
 # All fixed-form Fortran files
-all-fortran-files-fixed.txt:	all-fortran-files-attr.txt
+${BUILD_ROOT}/all-fortran-files-fixed.txt:	${BUILD_ROOT}/all-fortran-files-attr.txt
 	gawk  -F '\t' '/form:fixed/ { print $$1 }' \
 	      <"$<" >"$@"
 	wc -l "$@"
 
 # All free-form Fortran files
-all-fortran-files-free.txt:	all-fortran-files-attr.txt
+${BUILD_ROOT}/all-fortran-files-free.txt:	${BUILD_ROOT}/all-fortran-files-attr.txt
 	gawk -F '\t' '/form:free/ { print $$1 }' \
 	      <"$<" >"$@"
 	wc -l "$@"
@@ -94,26 +109,27 @@ all-fortran-files-free.txt:	all-fortran-files-attr.txt
 # Results of running "file" on each Fortran file.
 # This is useful for finding non-Fortran files that are
 # disguised with Fortran-file-like names.
-all-fortran-files-type.txt:	all-fortran-files.txt /usr/bin/file
-	bin/create-stats-file \
-		all-fortran-files.txt /usr/bin/file \
-	| bin/cpif "$@"
+${BUILD_ROOT}/all-fortran-files-type.txt:	${BUILD_ROOT}/all-fortran-files.txt
+	../bin/create-stats-file ${PROJECTS_DIR} \
+	    ${BUILD_ROOT}/all-fortran-files.txt \
+	    /usr/bin/file \
+	| ../bin/cpif "$@"
 	touch "$@"
 	wc -l "$@"
 
-all-fortran-files-type.txt.gz: all-fortran-files-type.txt
+${BUILD_ROOT}/all-fortran-files-type.txt.gz: ${BUILD_ROOT}/all-fortran-files-type.txt
 
 # Line count of Fortran files in each project
-all-fortran-files-lc.txt:	all-fortran-files-attr.txt
+${BUILD_ROOT}/all-fortran-files-lc.txt:	${BUILD_ROOT}/all-fortran-files-attr.txt
 	gawk -F '\t' \
 	    '{ file = $$1; \
 	         lc = gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0; \
 	         printf("%8d\t%s\n", lc, file); \
 	     }' \
-	      <all-fortran-files-attr.txt >"$@"
+	      <${BUILD_ROOT}/all-fortran-files-attr.txt >"$@"
 	wc -l "$@"
 
-all-projects-lc.txt:   all-fortran-files-lc.txt
+${BUILD_ROOT}/all-projects-lc.txt:   ${BUILD_ROOT}/all-fortran-files-lc.txt
 	gawk -F '\t' \
 	    'function new_proj() { \
 	         printf("%8d %s\n", lc, last_proj); \
@@ -134,11 +150,11 @@ all-projects-lc.txt:   all-fortran-files-lc.txt
 	     END { \
 	         new_proj(); \
 	     }' \
-	      <all-fortran-files-lc.txt >"$@"
+	      <${BUILD_ROOT}/all-fortran-files-lc.txt >"$@"
 	wc -l "$@"
 
 # List number of Fortran files in each project
-all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
+${BUILD_ROOT}/all-projects-fortran-file-count.txt:	${BUILD_ROOT}/all-fortran-files-attr.txt
 	gawk -F '\t' \
 	     'BEGIN { last_proj = "" } \
 	      { proj = gensub(/\/.*/, "", 1, $$1); \
@@ -152,40 +168,43 @@ all-projects-fortran-file-count.txt:	all-fortran-files-attr.txt
 	        } \
 	      } \
 	      END { printf "%s\t%d\n", last_proj, sum }' \
-	      <all-fortran-files-attr.txt >"$@"
+	      <${BUILD_ROOT}/all-fortran-files-attr.txt >"$@"
 	wc -l "$@"
 
 # Print some moderately interesting stats about the repositories.
-stats.txt:  all-projects.txt all-projects-lc.txt all-files.txt \
-			all-fortran-files.txt all-fortran-files-lc.txt \
-			all-projects-fortran-file-count.txt
-	@(printf "%'12d projects\n" $$(wc -l <all-projects.txt); \
-	  printf "%'12d files\n" $$(wc -l <all-files.txt); \
-	  printf "%'12d Fortran files\n" $$(wc -l <all-fortran-files.txt); \
+${BUILD_DIR}/stats.txt:  ${BUILD_ROOT}/all-projects.txt \
+	    ${BUILD_ROOT}/all-projects-lc.txt \
+	    ${BUILD_ROOT}/all-files.txt \
+	    ${BUILD_ROOT}/all-fortran-files.txt \
+	    ${BUILD_ROOT}/all-fortran-files-lc.txt \
+	    ${BUILD_ROOT}/all-projects-fortran-file-count.txt
+	@(printf "%'12d projects\n" $$(wc -l <${BUILD_ROOT}/all-projects.txt); \
+	  printf "%'12d files\n" $$(wc -l <${BUILD_ROOT}/all-files.txt); \
+	  printf "%'12d Fortran files\n" $$(wc -l <${BUILD_ROOT}/all-fortran-files.txt); \
 	  printf "%'12d Fortran lines\n" \
 		$$(gawk -F '\t' \
 	            '{ sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0 } \
                     END { print sum }' \
-	            <all-fortran-files-attr.txt); \
+	            <${BUILD_ROOT}/all-fortran-files-attr.txt); \
 	  printf "%'12d Fortran 77 lines\n" \
 		$$(gawk -F '\t' \
 	            '/form:fixed/ { \
                          sum += gensub(/.*lines:([0-9]*).*/, "\\1", 1, $$0)+0} \
                      END { print sum }' \
-		<all-fortran-files-attr.txt); \
+		<${BUILD_ROOT}/all-fortran-files-attr.txt); \
 	  printf "%'12d cpp directive lines\n" \
 	        $$(gawk -F '\t' \
 	            '/cpreprocessor/ { \
                          sum += gensub(/.*cpreprocessor:([0-9]*).*/, "\\1", 1, $$0)+0 \
 	             } \
                      END { print sum }' \
-	           <all-fortran-files-attr.txt); \
+	           <${BUILD_ROOT}/all-fortran-files-attr.txt); \
 	  echo "Largest projects:"; \
-	  sort -rn -k 1 all-projects-lc.txt \
+	  sort -rn -k 1 ${BUILD_ROOT}/all-projects-lc.txt \
 		| head -10 \
 		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}'; \
 	  echo "Largest Fortran files:"; \
-	  sort -rn -k 1 all-fortran-files-lc.txt \
+	  sort -rn -k 1 ${BUILD_ROOT}/all-fortran-files-lc.txt \
 		| head -10 \
 		| awk $$'{ printf "%\'12d %s\\n", $$1, $$2}') \
 	| tee "$@"
@@ -219,7 +238,7 @@ fortran-lang-new-projects:	fortran-lang-projects.txt
 		fi; \
 	done
 
-fortran-lang-projects.txt:	fortran-lang-category-urls.txt
+${BUILD_ROOT}/fortran-lang-projects.txt:	fortran-lang-category-urls.txt
 	for P in `cat fortran-lang-category-urls.txt`; do \
 		curl -L --no-progress-meter "$$P" \
 		| sed -n -e '/^<p class="rubric".*<span class="/s;.*href="https*://\([^"]*\).*;\1;p'; \
@@ -233,15 +252,15 @@ fortran-lang-projects.txt:	fortran-lang-category-urls.txt
 # project category, so we gather the category pages first.
 
 FORTRAN_LANG_URL = https://fortran-lang.org/packages
-fortran-lang-category-urls.txt:	FORCE
+${BUILD_ROOT}/fortran-lang-category-urls.txt:	FORCE
 	curl -L --no-progress-meter "${FORTRAN_LANG_URL}" 2>&1 \
 	| sed -n -e '/^<h2><a class="reference internal" href="\([^"]*\).*/s;;${FORTRAN_LANG_URL}/\1;p' \
 	| sort -u >"$@"
 
 # Get new projects from github.com/Beliavsky/Fortran-code-on-GitHub.
 # Only look at Git projects (not sourceforge or whatever).
-beliavsky-new-projects:	beliavsky-projects.txt
-	for P in `cat beliavsky-projects.txt`; do \
+beliavsky-new-projects:	${BUILD_ROOT}/beliavsky-projects.txt
+	for P in `cat ${BUILD_ROOT}/beliavsky-projects.txt`; do \
 	    case "$$P" in \
 	        git*) ;; \
 	        *) continue;; \
@@ -261,7 +280,7 @@ beliavsky-new-projects:	beliavsky-projects.txt
 	done
 
 BELIAVSKY_URL = https://github.com/Beliavsky/Fortran-code-on-GitHub
-beliavsky-projects.txt:	FORCE
+${BUILD_ROOT}/beliavsky-projects.txt:	FORCE
 	curl -L --no-progress-meter "${BELIAVSKY_URL}" \
 		| sed -n -e 's;^<p dir="auto"><a href="https://\([^"]*\)".*;\1;p' \
 	        | sed -e 's/#.*//' \

@@ -7,12 +7,13 @@ set -e -u -o pipefail
 CMD="$(basename $0)"
 CMD_DIR="$(dirname $0)"
 function usage {
-    (echo "Usage: $CMD [-hnv] file-list stats-program ..."
+    (echo "Usage: $CMD [-hnv] projects-dir file-list stats-program ..."
      echo "-h        Print this help message."
      echo "-H        Invoke stats program with -H for header"
      echo "-n        Dry run. Don't execute commands."
      echo "-v        Verbose. Print extra information if appropriate."
-     echo "This is what it does") 1>&2
+     echo "Given projects in [project-dir], compute the stats for a bunch of files"
+    ) 1>&2
 }
 
 . "$CMD_DIR/vecho"
@@ -32,7 +33,9 @@ done
 shift $(($OPTIND - 1))
 
 case $# in
-    2)  FILE_LIST="$1" STATS_PROGRAM="$(realpath $2)";;
+    3)  PROJECTS_DIR="$(realpath "$1")"
+        FILE_LIST="$(realpath "$2")"
+        STATS_PROGRAM="$(realpath $3)";;
     *)  usage; exit 1;;
 esac
 
@@ -47,7 +50,7 @@ vecho 1 "STATS_TMP=$STATS_TMP" 1>&2
 N_SPLIT=$(($(wc -l <"$FILE_LIST" | tr -d ' ') / $N + 1))
 : echo "N_SPLIT=$N_SPLIT"
 split -d -l $N_SPLIT "$FILE_LIST" "$SPLIT_TMP."
-builtin cd "$(dirname "$FILE_LIST")"
+builtin cd "$PROJECTS_DIR"
 trap 'kill $BG_TASKS' HUP INT QUIT KILL TERM
 trap 'rm -f "$SPLIT_TMP."* "$STATS_TMP".*' EXIT
 
