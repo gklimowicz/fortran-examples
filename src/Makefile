@@ -44,7 +44,7 @@ update: check-no-empty-dirs
 # that's an indicator that the submodules did not
 # populate correctly.
 check-no-empty-dirs:
-	cd "${PROJECTS_DIR}"; \
+	@builtin cd "${PROJECTS_DIR}"; \
 	for D in *@*/; do \
 	    echo "$$D"/[a-zA-Z0-9_]*; \
 	done \
@@ -62,7 +62,7 @@ ${BUILD_ROOT}/all-projects.txt: origins.txt ../.gitmodules
 	| sort >"$@"
 
 ${BUILD_ROOT}/all-files.txt: ${BUILD_ROOT}/all-projects.txt
-	(cd "${PROJECTS_DIR}"; \
+	(builtin cd "${PROJECTS_DIR}"; \
 	 find `cat ${BUILD_ROOT}/all-projects.txt` ! -path ".git*" -a -type f -print \
 	 | sort) >"$@"
 
