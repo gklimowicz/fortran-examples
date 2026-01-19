@@ -178,7 +178,7 @@ ${BUILD_DIR}/stats.txt:  ${BUILD_ROOT}/all-projects.txt \
 	    ${BUILD_ROOT}/all-fortran-files.txt \
 	    ${BUILD_ROOT}/all-fortran-files-lc.txt \
 	    ${BUILD_ROOT}/all-projects-fortran-file-count.txt
-	@(printf "%'12d projects\n" $$(wc -l <${BUILD_ROOT}/all-projects.txt); \
+	(printf "%'12d projects\n" $$(wc -l <${BUILD_ROOT}/all-projects.txt); \
 	  printf "%'12d files\n" $$(wc -l <${BUILD_ROOT}/all-files.txt); \
 	  printf "%'12d Fortran files\n" $$(wc -l <${BUILD_ROOT}/all-fortran-files.txt); \
 	  printf "%'12d Fortran lines\n" \
@@ -267,7 +267,7 @@ beliavsky-new-projects:	${BUILD_ROOT}/beliavsky-projects.txt
 	        *) continue;; \
 	    esac; \
 	    SM="$$(echo "$$P" | awk -F / '{ print $$3 "@" $$2 }')"; \
-	    D="$$PROJECTS_DIR/$$SM"; \
+	    D="${PROJECTS_DIR}/$$SM"; \
 	    if grep "^$$SM:" project-exceptions.txt; then \
 	        echo "$$SM is on the project exception list."; \
 		echo ""; \
