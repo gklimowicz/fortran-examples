@@ -41,21 +41,19 @@ case $# in
 esac
 
 export LC_ALL=C
-N=$(nproc)
-: echo "N=$N"
+NPROC=$(nproc)
+vecho 1 "NPROC=$NPROC"
 SPLIT_TMP="$(mktemp -u -t split)"
 STATS_TMP="$(mktemp -u -t stats)"
 vecho 1 "SPLIT_TMP=$SPLIT_TMP" 1>&2
 vecho 1 "STATS_TMP=$STATS_TMP" 1>&2
 
-N_SPLIT=$(($(wc -l <"$FILE_LIST" | tr -d ' ') / $N + 1))
-: echo "N_SPLIT=$N_SPLIT"
+N_SPLIT=$(($(wc -l <"$FILE_LIST" | tr -d ' ') / $NPROC + 1))
 vecho 1 "N_SPLIT=$N_SPLIT"
 vecho 1 split -d -l $N_SPLIT "$FILE_LIST" "$SPLIT_TMP."
 split -d -l $N_SPLIT "$FILE_LIST" "$SPLIT_TMP."
+
 builtin cd "$PROJECTS_DIR"
-trap 'kill $BG_TASKS' HUP INT QUIT KILL TERM
-trap 'rm -f "$SPLIT_TMP."* "$STATS_TMP".*' EXIT
 
 BG_TASKS=
 for F in "$SPLIT_TMP".*; do
@@ -66,6 +64,10 @@ for F in "$SPLIT_TMP".*; do
 done
 
 vecho 1 "BG_TASKS=$BG_TASKS" 1>&2
+
+trap 'kill $BG_TASKS' HUP INT QUIT KILL TERM
+trap 'rm -f "$SPLIT_TMP."* "$STATS_TMP".*' EXIT
+
 builtin cd "$OLDPWD"
 
 wait
