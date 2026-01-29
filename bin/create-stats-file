@@ -20,12 +20,13 @@ function usage {
 
 HFLAG=
 DRY_RUN=
+NO_EXEC=
 VFLAG=0
 while getopts hHnv OPTCHAR; do
     case $OPTCHAR in
         h)  usage; exit 0;;
         H)  HFLAG=-H;;
-        n)  DRY_RUN=1;;
+        n)  DRY_RUN=1 NO_EXEC=echo;;
         v)  VFLAG=$((VFLAG+1));;
     esac
 done
@@ -49,6 +50,8 @@ vecho 1 "STATS_TMP=$STATS_TMP" 1>&2
 
 N_SPLIT=$(($(wc -l <"$FILE_LIST" | tr -d ' ') / $N + 1))
 : echo "N_SPLIT=$N_SPLIT"
+vecho 1 "N_SPLIT=$N_SPLIT"
+vecho 1 split -d -l $N_SPLIT "$FILE_LIST" "$SPLIT_TMP."
 split -d -l $N_SPLIT "$FILE_LIST" "$SPLIT_TMP."
 builtin cd "$PROJECTS_DIR"
 trap 'kill $BG_TASKS' HUP INT QUIT KILL TERM
@@ -58,15 +61,16 @@ BG_TASKS=
 for F in "$SPLIT_TMP".*; do
       SUFFIX="${F/*.*.}"
       tr '\n' '\0' <"$F"\
-      | xargs -0 ${STATS_PROGRAM} >"$STATS_TMP.$SUFFIX"&
+      | xargs -0 $NO_EXEC ${STATS_PROGRAM} >"$STATS_TMP.$SUFFIX" &
       BG_TASKS="$BG_TASKS $!"
 done
+
+vecho 1 "BG_TASKS=$BG_TASKS" 1>&2
 builtin cd "$OLDPWD"
 
-vecho 1 "$BG_TASKS=$BG_TASKS" 1>&2
 wait
 
 if [[ -n "$HFLAG" ]]; then
     "$STATS_PROGRAM" -H
 fi
-cat "$STATS_TMP".*
+$NO_EXEC cat "$STATS_TMP".*
