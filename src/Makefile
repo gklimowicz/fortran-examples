@@ -7,6 +7,9 @@ BUILD_ROOT=../build
 # add 'LETTERS="[a-f]"' when invoking 'make'.
 LETTERS=
 
+# Set sort collating to be 'C' to avoid case-folding.
+LC=C
+
 # We compress the largest files to keep GitHub
 # from complaining about file sizes.
 BUILD_FILES=${BUILD_ROOT}/all-projects.txt \
@@ -59,12 +62,12 @@ ${BUILD_ROOT}/all-projects.txt: origins.txt ../.gitmodules
 	(git submodule foreach -q 'echo $$sm_path' \
 	    | sed -e "s;$$(basename "${PROJECTS_DIR}")/;;"; \
 	 sed -n -e 's/#.*//' -e 's/:.*//p' <origins.txt) \
-	| sort >"$@"
+	| LC_ALL=${LC} sort >"$@"
 
 ${BUILD_ROOT}/all-files.txt: ${BUILD_ROOT}/all-projects.txt
 	(builtin cd "${PROJECTS_DIR}"; \
 	 find `cat ${BUILD_ROOT}/all-projects.txt` ! -path ".git*" -a -type f -print \
-	 | sort) >"$@"
+	 | LC_ALL=${LC} sort) >"$@"
 
 ${BUILD_ROOT}/all-files.txt.gz: ${BUILD_ROOT}/all-files.txt
 
@@ -172,7 +175,7 @@ ${BUILD_ROOT}/all-projects-fortran-file-count.txt:	${BUILD_ROOT}/all-fortran-fil
 	wc -l "$@"
 
 # Print some moderately interesting stats about the repositories.
-${BUILD_DIR}/stats.txt:  ${BUILD_ROOT}/all-projects.txt \
+${BUILD_ROOT}/stats.txt:  ${BUILD_ROOT}/all-projects.txt \
 	    ${BUILD_ROOT}/all-projects-lc.txt \
 	    ${BUILD_ROOT}/all-files.txt \
 	    ${BUILD_ROOT}/all-fortran-files.txt \
@@ -244,7 +247,7 @@ ${BUILD_ROOT}/fortran-lang-projects.txt:	${BUILD_ROOT}/fortran-lang-category-url
 		curl -L --no-progress-meter "$$P" \
 		| sed -n -e '/^<p class="rubric".*<span class="/s;.*href="https*://\([^"]*\).*;\1;p'; \
 	done \
-	| sort -u >"$@"
+	| LC_ALL=${LC} sort -u >"$@"
 
 
 # Get Fortran projects from https://fortran-lang.org/
@@ -256,7 +259,7 @@ FORTRAN_LANG_URL = https://fortran-lang.org/packages
 ${BUILD_ROOT}/fortran-lang-category-urls.txt:	FORCE
 	curl -L --no-progress-meter "${FORTRAN_LANG_URL}" 2>&1 \
 	| sed -n -e '/^<h2><a class="reference internal" href="\([^"]*\).*/s;;${FORTRAN_LANG_URL}/\1;p' \
-	| sort -u >"$@"
+	| LC_ALL=${LC} sort -u >"$@"
 
 # Get new projects from github.com/Beliavsky/Fortran-code-on-GitHub.
 # Only look at Git projects (not sourceforge or whatever).
@@ -286,7 +289,7 @@ ${BUILD_ROOT}/beliavsky-projects.txt:	FORCE
 	curl -L --no-progress-meter "${BELIAVSKY_URL}" \
 		| sed -n -e 's;^<p dir="auto"><a href="https://\([^"]*\)".*;\1;p' \
 	        | sed -e 's/#.*//' \
-		| sort -u >"$@"
+		| LC_ALL=${LC} sort -u >"$@"
 
 clean: FORCE
 	rm -f ${BUILD_FILES}
