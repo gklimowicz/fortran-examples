@@ -40,7 +40,11 @@ update: check-no-empty-dirs
 	      && (builtin cd "$$D" \
 	          && git fetch --tags --prune --prune-tags --force) \
 	      && git submodule update --remote "$$D"); \
-	done
+	done 2>&1 \
+	| tee /dev/tty \
+	| tee ${BUILD_ROOT}/update-log.txt \
+	| egrep -B 6 -A 4 -i 'error:' >${BUILD_ROOT}/update-failures.txt; \
+	echo ""; echo "Failures:"; cat ${BUILD_ROOT}/update-failures.txt
 
 # Perform sanity checks on the corpus.
 # If there are directories that have no entries,
