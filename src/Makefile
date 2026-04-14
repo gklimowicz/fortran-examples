@@ -31,7 +31,7 @@ BUILD_FILES=${BUILD_ROOT}/all-projects.txt \
 %.txt.gz: %.txt
 	gzip --keep --force --best "$<"
 
-all: check-no-empty-dirs ${BUILD_FILES}
+all: check-no-empty-dirs check-duplicates ${BUILD_FILES}
 
 # Update projects from their remote repos.
 update: check-no-empty-dirs
@@ -59,6 +59,13 @@ check-no-empty-dirs:
 	    | grep '.' \
 	&& exit 1 \
 	|| exit 0
+
+check-duplicates: ${BUILD_ROOT}/found-duplicates.txt
+	diff expected-duplicates.txt ${BUILD_ROOT}/found-duplicates.txt
+
+${BUILD_ROOT}/found-duplicates.txt: FORCE
+	../bin/find-duplicates >"$@"
+
 
 # Create a list of all Fortran projects we have,
 # all files, and all Fortran files.
@@ -217,8 +224,31 @@ ${BUILD_ROOT}/stats.txt:  ${BUILD_ROOT}/all-projects.txt \
 	| tee "$@"
 	wc -l "$@"
 
+${BUILD_ROOT}/possible-duplicates.txt: FORCE
+	(builtin cd ${PROJECTS_DIR}; \
+	 /bin/ls \
+	 | awk -F "@" \
+	       'NR == 1 { \
+	            prev_proj = $$1; \
+	            prev = $$0; \
+	            prev_printed = 0; \
+	            next; \
+	        } \
+	        $$1 == prev_proj { \
+	            if (!prev_printed) \
+	                print prev; \
+	            print; \
+	            prev_printed = 1; \
+	            next; \
+	        } \
+	        { \
+	            prev_proj = $$1; \
+	            prev = $$0; \
+	            prev_printed = 0; \
+	            next; \
+	        }') >"$@"
 
-# Add new projects we may find lying about.
+# Add new projects in project lists repositories.
 add-new-projects:	fortran-lang-new-projects beliavsky-new-projects
 
 # Get new projects for fortran-lang.org.

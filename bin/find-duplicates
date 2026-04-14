@@ -31,6 +31,15 @@ case $# in
     *)  usage; exit 1;;
 esac
 
+if [[ -d "projects" ]]; then
+    builtin cd projects
+elif [[ -d "../projects" ]]; then
+    builtin cd ../projects
+else
+    echo "Must be run in the top-level directory or where we can find projects." 1>&2
+    exit 1
+fi
+
 /bin/ls -d */ \
     | gawk -F "@" \
           'function print_dups(                i) {
@@ -40,7 +49,6 @@ esac
                }
                printf "\n"
            }
-           /bin\// { next }
            {
                 # Delete any trailing slash.
                 $0 = gensub(/[/]$/, "", 1, $0)
