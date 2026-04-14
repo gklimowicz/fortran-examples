@@ -12,7 +12,8 @@ LC=C
 
 # We compress the largest files to keep GitHub
 # from complaining about file sizes.
-BUILD_FILES=${BUILD_ROOT}/all-projects.txt \
+BUILD_FILES=${BUILD_ROOT}/found-duplicates.txt \
+	    ${BUILD_ROOT}/all-projects.txt \
 	    ${BUILD_ROOT}/all-files.txt \
 	    ${BUILD_ROOT}/all-files.txt.gz \
 	    ${BUILD_ROOT}/all-fortran-files.txt \
@@ -34,7 +35,7 @@ BUILD_FILES=${BUILD_ROOT}/all-projects.txt \
 all: check-no-empty-dirs check-duplicates ${BUILD_FILES}
 
 # Update projects from their remote repos.
-update: check-no-empty-dirs
+update: check-no-empty-dirs check-duplicates
 	for D in ${PROJECTS_DIR}/${LETTERS}*@*; do \
 	     (echo "Updating $$D..." \
 	      && (builtin cd "$$D" \
