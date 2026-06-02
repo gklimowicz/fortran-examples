@@ -321,9 +321,9 @@ beliavsky-new-projects:	${BUILD_ROOT}/beliavsky-projects.txt
 
 BELIAVSKY_URL = https://github.com/Beliavsky/Fortran-code-on-GitHub
 ${BUILD_ROOT}/beliavsky-projects.txt:	FORCE
-	curl -L --no-progress-meter "${BELIAVSKY_URL}" \
-		| sed -n -e 's;^<p dir="auto"><a href="https://\([^"]*\)".*;\1;p' \
-	        | sed -e 's/#.*//' \
+	(cd "Fortran-code-on-GitHub@Beliavsky" && git submodule update --remote)
+	cat "Fortran-code-on-GitHub@Beliavsky/README.md" \
+		| sed -n -e '/^[[]/s;^[[][^]]*[]](https://\(git[^)]*\)).*;\1;p' \
 		| LC_ALL=${LC} sort -u >"$@"
 
 clean: FORCE
