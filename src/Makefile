@@ -72,7 +72,8 @@ ${BUILD_ROOT}/found-duplicates.txt: FORCE
 # all files, and all Fortran files.
 ${BUILD_ROOT}/all-projects.txt: origins.txt ../.gitmodules
 	(git submodule foreach -q 'echo $$sm_path' \
-	    | sed -e "s;$$(basename "${PROJECTS_DIR}")/;;"; \
+	    | sed -e "s;$$(basename "${PROJECTS_DIR}")/;;" \
+	          -e "/^src\//d"; \
 	 sed -n -e 's/#.*//' -e 's/:.*//p' <origins.txt) \
 	| LC_ALL=${LC} sort >"$@"
 
